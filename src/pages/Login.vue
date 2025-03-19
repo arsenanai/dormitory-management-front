@@ -1,0 +1,436 @@
+<template>
+  <div class="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+      <!-- Language Selector -->
+      <div class="flex justify-end mb-4">
+        <FwbSelect
+          v-model="selectedLanguage"
+          :options="languageOptions"
+          class="w-40 focus:ring-blue-500 focus:border-blue-500 focus:ring-2"
+        />
+      </div>
+
+      <!-- Login Card -->
+      <div class="bg-white rounded-lg shadow-lg p-8">
+        <FwbTabs v-model="activeTab" variant="pills" class="pt-8">
+          <FwbTab name="login" :title="t('Login')">
+            <form @submit.prevent="handleLogin">
+              <!-- Email/Username Field -->
+              <div class="mb-4">
+                <FwbInput
+                  v-model="credentials.email"
+                  type="text"
+                  :label="t('Email or Username')"
+                  placeholder="example@domain.com"
+                  required
+                  autocomplete="username"
+                  class="focus:outline-none"
+                />
+              </div>
+
+              <!-- Password Field -->
+              <div class="mb-6">
+                <FwbInput
+                  v-model="credentials.password"
+                  type="password"
+                  :label="t('Password')"
+                  required
+                  autocomplete="current-password"
+                  class="focus:outline-none"
+                />
+              </div>
+
+              <!-- Submit Button -->
+              <FwbButton
+                type="submit"
+                class="w-full"
+                size="lg"
+              >
+                {{ t('Login') }}
+              </FwbButton>
+            </form>
+          </FwbTab>
+          <FwbTab name="registration" :title="t('Student Registration')">
+            <form>
+              <!-- IIN Field -->
+              <div class="mb-4">
+                <FwbInput
+                  v-model="registration.iin"
+                  type="text"
+                  :label="t('IIN')"
+                  required
+                  class="focus:outline-none"
+                />
+              </div>
+
+              <!-- Fullname Field -->
+              <div class="mb-4">
+                <FwbInput
+                  v-model="registration.name"
+                  type="text"
+                  :label="t('Fullname')"
+                  placeholder="Anna Fettisov"
+                  required
+                  class="focus:outline-none"
+                />
+              </div>
+
+              <!-- Faculty Field -->
+              <div class="mb-4">
+                <FwbSelect
+                  v-model="registration.faculty"
+                  :options="facultyOptions"
+                  :label="t('Faculty')"
+                  required
+                  class="focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:ring-2"
+                />
+              </div>
+
+              <!-- Specialist Field -->
+              <div class="mb-4">
+                <FwbSelect
+                  v-model="registration.specialist"
+                  :options="specialistOptions"
+                  :label="t('Specialist')"
+                  required
+                  class="focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:ring-2"
+                />
+              </div>
+
+              <!-- Enrollment Year Field -->
+              <div class="mb-4">
+                <FwbInput
+                  v-model="registration.enrollmentYear"
+                  type="text"
+                  :label="t('Enrollment Year')"
+                  required
+                  class="focus:outline-none"
+                />
+              </div>
+
+              <!-- Gender Field -->
+              <div class="mb-4">
+                <FwbSelect
+                  v-model="registration.gender"
+                  :options="genderOptions"
+                  :label="t('Gender')"
+                  required
+                  class="focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:ring-2"
+                />
+              </div>
+
+              <!-- Login Email Field -->
+              <div class="mb-4">
+                <FwbInput
+                  v-model="registration.email"
+                  type="email"
+                  :label="t('Login Email')"
+                  placeholder="a.fettisov@gmail.com"
+                  required
+                  class="focus:outline-none"
+                />
+              </div>
+
+              <!-- Password Field -->
+              <div class="mb-4">
+                <FwbInput
+                  v-model="registration.password"
+                  type="password"
+                  :label="t('Password')"
+                  required
+                  class="focus:outline-none"
+                />
+              </div>
+
+              <!-- Confirm Password Field -->
+              <div class="mb-4">
+                <FwbInput
+                  v-model="registration.confirmPassword"
+                  type="password"
+                  :label="t('Confirm Password')"
+                  required
+                  class="focus:outline-none"
+                />
+              </div>
+
+              <!-- Dormitory Field -->
+              <div class="mb-4">
+                <FwbSelect
+                  v-model="registration.dormitory"
+                  :options="dormitoryOptions"
+                  :label="t('Select Dormitory')"
+                  required
+                  class="focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:ring-2"
+                />
+              </div>
+
+              <!-- Room Field -->
+              <div class="mb-4">
+                <FwbSelect
+                  v-model="registration.room"
+                  :options="roomOptions"
+                  :label="t('Select Room')"
+                  required
+                  class="focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:ring-2"
+                />
+              </div>
+
+              <!-- Add to Reserve List Checkbox -->
+              <div class="mb-4">
+                <FwbCheckbox
+                  v-model="registration.addToReserveList"
+                  :label="t('Add to Reserve List')"
+                  class="focus:outline-none"
+                />
+              </div>
+
+              <!-- Upload ID Fields -->
+              <div v-for="(file, index) in registration.files" :key="index" class="mb-4">
+                <FwbFileInput
+                  :modelValue="file"
+                  @update:modelValue="updateRegistrationFileInput(index, $event)"
+                  :label="t('Files to be Uploaded')"
+                  required
+                  class="focus:outline-none"
+                />
+              </div>
+
+              <!-- Add More Files Button -->
+              <div class="flex justify-end mb-4">
+                <button
+                  type="button"
+                  @click="addRegistrationFileInput"
+                  class="bg-orange-500 text-white rounded-full p-2 shadow-md hover:bg-orange-600 focus:outline-none focus:ring-3 focus:ring-orange-300"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+              </div>
+
+              <!-- QR Code -->
+              <div class="mb-4">
+                <div class="mx-auto w-24 h-24">
+                  <img
+                    :src="qrCodeUrl"
+                    alt="Kaspi QR Code"
+                    class="w-full h-full object-contain"
+                  />
+                </div>
+                <p class="text-center">{{ t('Kaspi QR Code') }}</p>
+              </div>
+
+              <!-- Agree to Dormitory Rules Checkbox -->
+              <div class="mb-4">
+                <FwbCheckbox
+                  v-model="registration.agreeToDormitoryRules"
+                  :label="t('I Agree to Dormitory Rules')"
+                  required
+                  class="focus:outline-none"
+                />
+              </div>
+
+              <!-- Submit Button -->
+              <FwbButton
+                type="submit"
+                class="w-full"
+                size="lg"
+              >
+                {{ t('Submit') }}
+              </FwbButton>
+            </form>
+          </FwbTab>
+          <FwbTab name="guest" :title="t('Guest Home')">
+            <form>
+              <!-- Room Type Field -->
+              <div class="mb-4">
+                <FwbSelect
+                  v-model="guest.roomType"
+                  :options="roomTypeOptions"
+                  :label="t('Room Type')"
+                  required
+                  class="focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:ring-2"
+                />
+              </div>
+
+              <!-- Fullname Field -->
+              <div class="mb-4">
+                <FwbInput
+                  v-model="guest.name"
+                  type="text"
+                  :label="t('Fullname')"
+                  placeholder="Anna Fettisov"
+                  required
+                  class="focus:outline-none"
+                />
+              </div>
+
+              <!-- Upload ID Fields -->
+              <div v-for="(file, index) in guest.files" :key="index" class="mb-4">
+                <FwbFileInput
+                  :modelValue="file"
+                  @update:modelValue="updateFileInput(index, $event)"
+                  :label="t('Upload ID Card or Passport')"
+                  required
+                  class="focus:outline-none"
+                />
+              </div>
+
+              <!-- Add More Files Button -->
+              <div class="flex justify-end mb-4">
+                <button
+                  type="button"
+                  @click="addFileInput"
+                  class="bg-orange-500 text-white rounded-full p-2 shadow-md hover:bg-orange-600 focus:outline-none focus:ring-3 focus:ring-orange-300"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Submit Button -->
+              <FwbButton
+                type="submit"
+                class="w-full"
+                size="lg"
+              >
+                {{ t('Booking') }}
+              </FwbButton>
+            </form>
+          </FwbTab>
+        </FwbTabs>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import {
+  FwbInput, 
+  FwbSelect,
+  FwbButton,
+  FwbTab,
+  FwbTabs,
+  FwbFileInput,
+  FwbCheckbox,
+} from 'flowbite-vue';
+// import { useAuthStore } from '@/stores/auth'
+
+const { t } = useI18n()
+// const authStore = useAuthStore()
+
+// Language Selection
+const selectedLanguage = ref('en')
+const languageOptions = [
+  { value: 'en', name: 'English' },
+  { value: 'kk', name: 'Қазақша' },
+  { value: 'ru', name: 'Русский' }
+]
+const activeTab = ref('login');
+
+// Login Credentials
+const credentials = ref({
+  email: '',
+  password: ''
+})
+
+// Registration Form Data
+const registration = ref({
+  iin: '',
+  name: '',
+  faculty: '',
+  specialist: '',
+  enrollmentYear: '',
+  gender: '',
+  email: '',
+  password: '',
+  confirmPassword: '',
+  dormitory: '',
+  room: '',
+  addToReserveList: false,
+  files: [null], // Initialize with one file input
+  agreeToDormitoryRules: false,
+})
+
+const facultyOptions = [
+  { value: 'engineering', name: 'Engineering and natural sciences' },
+  { value: 'business', name: 'Business and economics' },
+  { value: 'law', name: 'Law and social sciences' }
+]
+
+const specialistOptions = [
+  { value: 'computer_sciences', name: 'Computer sciences' },
+  { value: 'mechanical_engineering', name: 'Mechanical engineering' },
+  { value: 'civil_engineering', name: 'Civil engineering' }
+]
+
+const genderOptions = [
+  { value: 'male', name: 'Male' },
+  { value: 'female', name: 'Female' }
+]
+
+const dormitoryOptions = [
+  { value: 'a_block', name: 'A-Block' },
+  { value: 'b_block', name: 'B-Block' }
+]
+
+const roomOptions = [
+  { value: 'a210', name: 'A210' },
+  { value: 'a211', name: 'A211' },
+  { value: 'a212', name: 'A212' }
+]
+
+// Guest Form Data
+const guest = ref({
+  roomType: '',
+  name: '',
+  files: [null] // Initialize with one file input
+})
+
+const roomTypeOptions = [
+  { value: 'one_person', name: 'One person' },
+  { value: 'double', name: 'Double' },
+  { value: 'suit', name: 'Suit' }
+]
+
+// Add More Files Handler for Guest Form
+const addFileInput = () => {
+  guest.value.files.push(null)
+}
+
+// Update File Input Handler for Guest Form
+const updateFileInput = (index, value) => {
+  guest.value.files[index] = value
+}
+
+// Add More Files Handler for Registration Form
+const addRegistrationFileInput = () => {
+  registration.value.files.push(null)
+}
+
+// Update File Input Handler for Registration Form
+const updateRegistrationFileInput = (index, value) => {
+  registration.value.files[index] = value
+}
+
+// Example QR Code URL (replace with your desired content)
+const qrCodeUrl = ref(
+  `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Kaspi%20QR%20Code`
+)
+
+// Login Handler
+const handleLogin = async () => {
+  try {
+    // await authStore.login(credentials.value)
+  } catch (error) {
+    console.error('Login failed:', error)
+  }
+}
+</script>
+
+<style scoped>
+/* Custom styles if needed */
+</style>
