@@ -7,12 +7,9 @@
 </template>
 
 <script setup lang="ts">
-import { watch, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { initFlowbite } from 'flowbite'
-import {
-  FlowbiteThemable,
-} from 'flowbite-vue';
 
 const router = useRouter()
 

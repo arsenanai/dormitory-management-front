@@ -1,25 +1,26 @@
 <template>
-  <div class="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+  <div class="min-h-screen bg-blue-50 flex items-start lg:items-center justify-center py-2 lg:p-4">
     <div class="w-full max-w-md">
+      <FlowbiteThemable :theme="theme">
       <!-- Language Selector -->
-      <div class="flex justify-end mb-4">
+      <div class="flex justify-center lg:justify-end mb-4 lg:p-0">
         <FwbSelect
           v-model="selectedLanguage"
           :options="languageOptions"
-          class="w-40 focus:ring-blue-500 focus:border-blue-500 focus:ring-2"
+          class="w-40 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:ring-2"
         />
       </div>
 
       <!-- Login Card -->
-      <div class="bg-white rounded-lg shadow-lg p-8">
-        <FwbTabs v-model="activeTab" variant="pills" class="pt-8">
+        <div class="bg-white rounded-lg shadow-lg">
+        <FwbTabs v-model="activeTab" variant="underline" class="p-4 lg:p-8">
           <FwbTab name="login" :title="t('Login')">
             <form @submit.prevent="handleLogin">
               <!-- Email/Username Field -->
               <div class="mb-4">
                 <FwbInput
                   v-model="credentials.email"
-                  type="text"
+                  type="email"
                   :label="t('Email or Username')"
                   placeholder="example@domain.com"
                   required
@@ -45,6 +46,7 @@
                 type="submit"
                 class="w-full"
                 size="lg"
+                outline
               >
                 {{ t('Login') }}
               </FwbButton>
@@ -191,21 +193,13 @@
                   @update:modelValue="updateRegistrationFileInput(index, $event)"
                   :label="t('Files to be Uploaded')"
                   required
-                  class="focus:outline-none"
+                  class=""
                 />
               </div>
 
               <!-- Add More Files Button -->
               <div class="flex justify-end mb-4">
-                <button
-                  type="button"
-                  @click="addRegistrationFileInput"
-                  class="bg-orange-500 text-white rounded-full p-2 shadow-md hover:bg-orange-600 focus:outline-none focus:ring-3 focus:ring-orange-300"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                  </svg>
-                </button>
+                <AddMoreButton @click="addRegistrationFileInput" />
               </div>
 
               <!-- QR Code -->
@@ -235,8 +229,9 @@
                 type="submit"
                 class="w-full"
                 size="lg"
+                outline
               >
-                {{ t('Submit') }}
+                {{ t('Register') }}
               </FwbButton>
             </form>
           </FwbTab>
@@ -272,27 +267,20 @@
                   @update:modelValue="updateFileInput(index, $event)"
                   :label="t('Upload ID Card or Passport')"
                   required
-                  class="focus:outline-none"
+                  class=""
                 />
               </div>
 
               <!-- Add More Files Button -->
               <div class="flex justify-end mb-4">
-                <button
-                  type="button"
-                  @click="addFileInput"
-                  class="bg-orange-500 text-white rounded-full p-2 shadow-md hover:bg-orange-600 focus:outline-none focus:ring-3 focus:ring-orange-300"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                  </svg>
-                </button>
+                <AddMoreButton @click="addFileInput" />
               </div>
 
               <!-- Submit Button -->
               <FwbButton
                 type="submit"
                 class="w-full"
+                outline
                 size="lg"
               >
                 {{ t('Booking') }}
@@ -301,13 +289,15 @@
           </FwbTab>
         </FwbTabs>
       </div>
+      </FlowbiteThemable>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import {
   FwbInput, 
   FwbSelect,
@@ -316,10 +306,14 @@ import {
   FwbTabs,
   FwbFileInput,
   FwbCheckbox,
+  FlowbiteThemable
 } from 'flowbite-vue';
+import AddMoreButton from '@/components/AddMoreButton.vue';
 // import { useAuthStore } from '@/stores/auth'
 
-const { t } = useI18n()
+const { t } = useI18n();
+const router = useRouter();
+const theme = ref('blue');
 // const authStore = useAuthStore()
 
 // Language Selection
@@ -425,6 +419,7 @@ const qrCodeUrl = ref(
 const handleLogin = async () => {
   try {
     // await authStore.login(credentials.value)
+    router.push('/main');
   } catch (error) {
     console.error('Login failed:', error)
   }
