@@ -4,27 +4,29 @@
 /* Define custom colors for SDU branding */
 
 @theme {
-  --color-primary-50: #E3F2FD; /* Lightest shade */
-  --color-primary-100: #BBDEFB;
-  --color-primary-200: #90CAF9;
-  --color-primary-300: #64B5F6;
-  --color-primary-400: #42A5F5;
-  --color-primary-500: #2196F3; /* Main SDU blue */
-  --color-primary-600: #1E88E5;
-  --color-primary-700: #1976D2;
-  --color-primary-800: #1565C0;
-  --color-primary-900: #0D47A1; /* Darkest shade */
+  /* Primary SDU Blue */
+  --color-primary-50: #f3f4f9;   /* Lightest */
+  --color-primary-100: #e1e3f0;  /* Lighter */
+  --color-primary-200: #c2c6e1;  /* Light */
+  --color-primary-300: #a3a8d2;  /* Medium Light */
+  --color-primary-400: #848bc3;  /* Medium */
+  --color-primary-500: #2f3459;  /* Main SDU Blue */
+  --color-primary-600: #2a2f50;  /* Dark */
+  --color-primary-700: #232743;  /* Darker */
+  --color-primary-800: #1c1f36;  /* Even Darker */
+  --color-primary-900: #141624;  /* Darkest */
 
-  --color-secondary-50: #FFF3E0; /* Lightest shade */
-  --color-secondary-100: #FFE0B2;
-  --color-secondary-200: #FFCC80;
-  --color-secondary-300: #FFB74D;
-  --color-secondary-400: #FFA726;
-  --color-secondary-500: #FF9800; /* Main SDU orange */
-  --color-secondary-600: #FB8C00;
-  --color-secondary-700: #F57C00;
-  --color-secondary-800: #EF6C00;
-  --color-secondary-900: #E65100; /* Darkest shade */
+  /* Secondary SDU Orange */
+  --color-secondary-50: #fdf7f5; /* Lightest */
+  --color-secondary-100: #f9e9e3; /* Lighter */
+  --color-secondary-200: #f3d0c6; /* Light */
+  --color-secondary-300: #eeb6a8; /* Medium Light */
+  --color-secondary-400: #e89d8b; /* Medium */
+  --color-secondary-500: #d69979; /* Main SDU Orange */
+  --color-secondary-600: #c38a6d; /* Dark */
+  --color-secondary-700: #a9735b; /* Darker */
+  --color-secondary-800: #8f5c49; /* Even Darker */
+  --color-secondary-900: #6c4537; /* Darkest */
 }
 
 @custom-variant dark (&:where(.dark, .dark *));

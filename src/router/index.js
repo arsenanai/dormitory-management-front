@@ -1,8 +1,7 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router';
 import Login from '@/pages/Login.vue';
-import Main from '@/pages/Main.vue';
-import Students from '@/pages/Students.vue';
+import Main from '@/pages/Statistics.vue';
 
 const routes = [
   {
@@ -16,31 +15,31 @@ const routes = [
   },
   {
     path: '/main',
-    name: 'Main',
-    component: Main,
+    name: 'Main Page',
+    component: () => Main,
     meta: {
-      title: 'Main Page',
+      title: 'Dashboard',
       requiresAuth: true
     }
   },
   {
     path: '/students',
     name: 'Students',
-    component: Students,
+    component: () => import('@/pages/Students.vue'),
     meta: {
-      title: 'Students',
+      title: 'Student Management',
       requiresAuth: true
     }
   },
-  // {
-  //   path: '/guest-house',
-  //   name: 'GuestHouse',
-  //   component: () => import('@/pages/GuestHouse.vue'), // Lazy-loaded
-  //   meta: {
-  //     title: 'Guest House',
-  //     requiresAuth: true
-  //   }
-  // },
+  {
+    path: '/guest-house',
+    name: 'GuestHouse',
+    component: () => import('@/pages/Guests.vue'),
+    meta: {
+      title: 'Guest House',
+      requiresAuth: true
+    }
+  },
   // {
   //   path: '/messages',
   //   name: 'Messages',

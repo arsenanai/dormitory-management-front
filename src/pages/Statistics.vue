@@ -4,7 +4,7 @@
     <main class="flex-1 bg-white p-6 shadow flex flex-col">
       <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <!-- Cards -->
-        <FwbCard
+        <div
           v-for="(card, index) in cards"
           :key="index"
           :class="card.bgClass + ' text-center rounded-lg shadow p-6 flex flex-col justify-between h-full'"
@@ -24,11 +24,11 @@
             <h3 :class="card.textClass" class="text-5xl font-extrabold">
               {{ card.value }}
             </h3>
-            <p class="text-gray-700 mt-2 text-lg font-medium">
+            <p class="text-blue-950 mt-2 text-lg font-medium">
               {{ card.description }}
             </p>
           </div>
-        </FwbCard>
+        </div>
       </div>
     </main>
   </Navigation>

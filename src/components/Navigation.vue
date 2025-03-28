@@ -1,64 +1,70 @@
 <template>
-  <div class="flex min-h-screen flex-col bg-gray-100">
+  <div class="flex min-h-screen flex-col bg-gray-100 text-primary-900">
     <!-- Header -->
     <header
-      class="flex flex-col lg:flex-row items-stretch justify-between bg-blue-50  text-blue-800 shadow"
+      class="flex flex-col items-stretch justify-between bg-primary-50 shadow lg:flex-row"
     >
-      <div class="flex flex-row items-center justify-between px-2 lg:pl-6 lg:pr-4 py-4 flex-1">
-        <div class="flex items-center space-x-2 lg:space-x-4 lg:w-60">
+      <div class="flex flex-1 flex-row items-center justify-between py-2">
+        <div
+          class="flex items-center justify-start space-x-2 lg:w-64 lg:justify-center lg:space-x-4"
+        >
           <!-- Burger Menu -->
           <FwbButton
             type="button"
             outline
-            class="block lg:hidden p-3 border-transparent text-blue-900"
+            class="block border-transparent p-3 focus:ring-0 lg:hidden lg:focus:ring-2"
             @click="isSideMenuOpen = !isSideMenuOpen"
           >
             <Bars3Icon class="h-6 w-6" />
           </FwbButton>
-          <img src="/src/assets/sdu logo.png" class="h-10" alt="Logo">
+          <img src="/src/assets/sdu logo.png" class="h-14" alt="Logo" />
         </div>
-        <div class="flex-1 hidden lg:block text-blue-900 font-bold">
+        <div class="hidden flex-1 font-bold lg:block">
           {{ title }}
-        </div> 
-        <div class="flex items-center space-x-2 lg:space-x-4">
+        </div>
+        <div class="flex items-center space-x-2 lg:space-x-4 lg:pr-4">
           <div class="text-right">
-            <p class="font-bold text-sm lg:text-base text-blue-900">IBRAHIM TUNCER</p>
-            <p class="text-xs lg:text-sm text-blue-900">Super Admin</p>
+            <p class="text-sm font-bold lg:text-base">
+              IBRAHIM TUNCER
+            </p>
+            <p class="text-xs lg:text-sm">Super Admin</p>
           </div>
           <router-link
             to="/"
-            class="flex items-center gap-3 text-left p-3 rounded font-medium text-base leading-5 hover:bg-blue-100 text-blue-900"
+            class="lg:focus-ring-2 lg:focus-ring-primary-200 flex items-center gap-3 rounded p-3 text-left text-base leading-5 font-medium hover:bg-primary-100 focus:ring-0"
           >
             <ArrowRightOnRectangleIcon class="h-6 w-6" />
           </router-link>
         </div>
       </div>
-      <p class="block lg:hidden text-center p-2">{{ title }}</p>
+      <p class="block p-2 text-center lg:hidden">{{ title }}</p>
     </header>
 
-    <div class="flex flex-col lg:flex-row flex-1">
+    <div class="flex flex-1 flex-col lg:flex-row">
       <!-- Sidebar -->
       <aside
-        class="flex flex-col overflow-x-auto bg-blue-50 p-4 text-blue-800 shadow lg:static lg:h-auto lg:w-64 lg:flex-col lg:overflow-visible"
+        class="flex flex-col overflow-x-auto bg-primary-50 p-4 shadow lg:static lg:h-auto lg:w-64 lg:flex-col lg:overflow-visible"
         :class="isSideMenuOpen ? 'block' : 'hidden lg:block'"
       >
         <!-- Menu Items -->
         <nav class="w-full flex-col space-y-2 lg:flex">
           <router-link
             v-for="menu in menus"
-            :key="menu.path"
+            :key="menu.name"
             :to="menu.path"
             :class="[
-              'flex items-center gap-3 w-full text-left p-3 rounded font-medium text-base leading-5 hover:bg-blue-100',
+              'flex w-full items-center gap-3 rounded p-3 text-left text-base leading-5 font-medium hover:bg-primary-100',
               route.path === menu.path
-                ? 'bg-blue-100 text-blue-900'
-                : 'bg-transparent text-blue-900 lg:text-gray-500'
+                ? 'bg-primary-100'
+                : 'bg-transparent lg:text-gray-500',
             ]"
           >
             <component
               :is="menu.icon"
               class="h-5 w-5"
-              :class="route.path === menu.path ? 'text-blue-900' : 'text-gray-500'"
+              :class="
+                route.path === menu.path ? 'text-secondary-500' : 'text-gray-500'
+              "
             />
             {{ menu.name }}
           </router-link>
@@ -109,7 +115,11 @@ const menus = [
   { name: t("Students"), path: "/students", icon: AcademicCapIcon },
   { name: t("Guest House"), path: "/guest-house", icon: BuildingOfficeIcon },
   { name: t("Messages"), path: "/messages", icon: ChatBubbleLeftRightIcon },
-  { name: t("Accounting"), path: "/accounting", icon: ClipboardDocumentListIcon },
+  {
+    name: t("Accounting"),
+    path: "/accounting",
+    icon: ClipboardDocumentListIcon,
+  },
   { name: t("Configuration"), path: "/configuration", icon: Cog6ToothIcon },
 ];
 </script>

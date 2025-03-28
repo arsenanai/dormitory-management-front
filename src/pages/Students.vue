@@ -1,5 +1,5 @@
 <template>
-  <Navigation :title="t('Students List')">
+  <Navigation :title="t('Student Management')">
     <!-- Main Content -->
     <main class="flex-1 bg-white p-6 shadow">
       <!-- Search Input -->
