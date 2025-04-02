@@ -1,14 +1,18 @@
 <template>
   <Navigation :title="t('Student Management')">
     <!-- Main Content -->
-    <main class="flex-1 bg-white p-6 shadow">
+    <main class="flex-1 bg-white p-6 shadow space-y-6">
       <!-- Search Input -->
       <div class="mb-4">
         <FwbInput
+          v-model="searchQuery"
           type="text"
           :placeholder="t('Search')"
-          class="w-full"
+          class="w-full pl-10 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
         />
+        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+          <MagnifyingGlassIcon class="h-5 w-5 text-gray-400" />
+        </div>
       </div>
 
       <!-- Filter Select Boxes -->
@@ -58,6 +62,7 @@
             type="button"
             outline
             class="text-blue-500"
+            @click="navigateToAddStudent"
           >
             <span class="flex items-center gap-2">
               <PlusIcon class="h-5 w-5" />
@@ -66,60 +71,66 @@
           </FwbButton>
         </div>
       </div>
+
       <label class="flex items-center space-x-2 mb-4">
-        <FwbCheckbox/>
+        <FwbCheckbox />
         <span>{{ t('Show only students in dormitory') }}</span>
       </label>
 
       <!-- Student Table -->
-      <div class="overflow-x-auto mb-4">
-        <table class="w-full border-collapse border border-gray-300">
-          <thead class="bg-gray-100">
-            <tr>
-              <th class="border border-gray-300 p-2">
-                <FwbCheckbox/>
-              </th>
-              <th class="border border-gray-300 p-2">{{ t('NAME') }}</th>
-              <th class="border border-gray-300 p-2">{{ t('SURNAME') }}</th>
-              <th class="border border-gray-300 p-2">{{ t('STATUS') }}</th>
-              <th class="border border-gray-300 p-2">{{ t('ENROLMENT YEAR') }}</th>
-              <th class="border border-gray-300 p-2">{{ t('FACULTY') }}</th>
-              <th class="border border-gray-300 p-2">{{ t('DORM') }}</th>
-              <th class="border border-gray-300 p-2">{{ t('ROOM') }}</th>
-              <th class="border border-gray-300 p-2">{{ t('TELEPHONE') }}</th>
-              <th class="border border-gray-300 p-2">{{ t('EDIT') }}</th>
-              <th class="border border-gray-300 p-2">{{ t('IN/OUT') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(student, index) in paginatedStudents" :key="index">
-              <td class="border border-gray-300 p-2">
-                <FwbCheckbox/>
-              </td>
-              <td class="border border-gray-300 p-2">{{ student.name }}</td>
-              <td class="border border-gray-300 p-2">{{ student.surname }}</td>
-              <td class="border border-gray-300 p-2">{{ student.status }}</td>
-              <td class="border border-gray-300 p-2">{{ student.enrolmentYear }}</td>
-              <td class="border border-gray-300 p-2">{{ student.faculty }}</td>
-              <td class="border border-gray-300 p-2">{{ student.dorm }}</td>
-              <td class="border border-gray-300 p-2">{{ student.room }}</td>
-              <td class="border border-gray-300 p-2">{{ student.telephone }}</td>
-              <td class="border border-gray-300 p-2 text-center">
-                <FwbButton type="button" outline class="text-blue-500">
-                  {{ t('Edit') }}
-                </FwbButton>
-              </td>
-              <td class="border border-gray-300 p-2 text-center">
-                <component
-                  :is="student.status === t('In') ? CheckCircleIcon : XCircleIcon"
-                  :class="student.status === t('In') ? 'text-green-500' : 'text-red-500'"
-                  class="h-6 w-6 mx-auto"
-                />
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <FwbTable hoverable>
+        <FwbTableHead>
+          <FwbTableHeadCell>
+            <FwbCheckbox />
+          </FwbTableHeadCell>
+          <FwbTableHeadCell>{{ t('NAME') }}</FwbTableHeadCell>
+          <FwbTableHeadCell>{{ t('SURNAME') }}</FwbTableHeadCell>
+          <FwbTableHeadCell>{{ t('STATUS') }}</FwbTableHeadCell>
+          <FwbTableHeadCell>{{ t('ENROLMENT YEAR') }}</FwbTableHeadCell>
+          <FwbTableHeadCell>{{ t('FACULTY') }}</FwbTableHeadCell>
+          <FwbTableHeadCell>{{ t('DORM') }}</FwbTableHeadCell>
+          <FwbTableHeadCell>{{ t('ROOM') }}</FwbTableHeadCell>
+          <FwbTableHeadCell>{{ t('TELEPHONE') }}</FwbTableHeadCell>
+          <FwbTableHeadCell>{{ t('EDIT') }}</FwbTableHeadCell>
+          <FwbTableHeadCell>{{ t('IN/OUT') }}</FwbTableHeadCell>
+        </FwbTableHead>
+        <FwbTableBody>
+          <FwbTableRow
+            v-for="(student, index) in paginatedStudents"
+            :key="index"
+            class="border-gray-300"
+          >
+            <FwbTableCell>
+              <FwbCheckbox />
+            </FwbTableCell>
+            <FwbTableCell>{{ student.name }}</FwbTableCell>
+            <FwbTableCell>{{ student.surname }}</FwbTableCell>
+            <FwbTableCell>{{ student.status }}</FwbTableCell>
+            <FwbTableCell>{{ student.enrolmentYear }}</FwbTableCell>
+            <FwbTableCell>{{ student.faculty }}</FwbTableCell>
+            <FwbTableCell>{{ student.dorm }}</FwbTableCell>
+            <FwbTableCell>{{ student.room }}</FwbTableCell>
+            <FwbTableCell>{{ student.telephone }}</FwbTableCell>
+            <FwbTableCell class="text-center">
+              <FwbButton
+                type="button"
+                outline
+                class="text-blue-500"
+                @click="navigateToEditStudent(index)"
+              >
+                {{ t('Edit') }}
+              </FwbButton>
+            </FwbTableCell>
+            <FwbTableCell class="text-center">
+              <component
+                :is="student.status === t('In') ? CheckCircleIcon : XCircleIcon"
+                :class="student.status === t('In') ? 'text-green-500' : 'text-red-500'"
+                class="h-6 w-6 mx-auto"
+              />
+            </FwbTableCell>
+          </FwbTableRow>
+        </FwbTableBody>
+      </FwbTable>
 
       <!-- Pagination -->
       <div class="flex justify-between items-center mb-4">
@@ -163,15 +174,27 @@
 import Navigation from "@/components/Navigation.vue";
 import { useI18n } from "vue-i18n";
 import { ref, computed } from "vue";
+import { useRouter } from "vue-router";
 import {
   ArrowDownTrayIcon,
   PlusIcon,
   CheckCircleIcon,
   XCircleIcon,
 } from "@heroicons/vue/24/outline";
-import { FwbInput, FwbSelect, FwbCheckbox, FwbButton } from "flowbite-vue";
+import { FwbInput, FwbSelect, FwbCheckbox, FwbButton, FwbTable, FwbTableHead, FwbTableHeadCell, FwbTableBody, FwbTableRow, FwbTableCell } from "flowbite-vue";
 
 const { t } = useI18n();
+const router = useRouter();
+
+// Navigate to Add Student form
+const navigateToAddStudent = () => {
+  router.push("/student-form");
+};
+
+// Navigate to Edit Student form
+const navigateToEditStudent = (id) => {
+  router.push(`/student-form/${id}`);
+};
 
 // Student data
 const students = ref([
@@ -195,7 +218,6 @@ const students = ref([
     room: "B317",
     telephone: "+71234567891",
   },
-  // Add more students as needed
 ]);
 
 // Pagination
@@ -208,6 +230,9 @@ const paginatedStudents = computed(() =>
     currentPage.value * itemsPerPage
   )
 );
+
+// Search Query
+const searchQuery = ref("");
 </script>
 
 <style scoped>

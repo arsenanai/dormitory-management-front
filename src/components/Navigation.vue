@@ -12,7 +12,7 @@
           <FwbButton
             type="button"
             outline
-            class="block border-transparent p-3 focus:ring-0 lg:hidden lg:focus:ring-2"
+            class="block border-transparent p-3 focus:ring-0 lg:hidden lg:focus:ring-2 text-primary-900"
             @click="isSideMenuOpen = !isSideMenuOpen"
           >
             <Bars3Icon class="h-6 w-6" />
@@ -42,35 +42,7 @@
 
     <div class="flex flex-1 flex-col lg:flex-row">
       <!-- Sidebar -->
-      <aside
-        class="flex flex-col overflow-x-auto bg-primary-50 p-4 shadow lg:static lg:h-auto lg:w-64 lg:flex-col lg:overflow-visible"
-        :class="isSideMenuOpen ? 'block' : 'hidden lg:block'"
-      >
-        <!-- Menu Items -->
-        <nav class="w-full flex-col space-y-2 lg:flex">
-          <router-link
-            v-for="menu in menus"
-            :key="menu.name"
-            :to="menu.path"
-            :class="[
-              'flex w-full items-center gap-3 rounded p-3 text-left text-base leading-5 font-medium hover:bg-primary-100',
-              route.path === menu.path
-                ? 'bg-primary-100'
-                : 'bg-transparent lg:text-gray-500',
-            ]"
-          >
-            <component
-              :is="menu.icon"
-              class="h-5 w-5"
-              :class="
-                route.path === menu.path ? 'text-secondary-500' : 'text-gray-500'
-              "
-            />
-            {{ menu.name }}
-          </router-link>
-        </nav>
-      </aside>
-
+      <Sidebar :class="isSideMenuOpen ? 'block' : 'hidden lg:block'"/>
       <!-- Content -->
       <slot></slot>
     </div>
@@ -80,18 +52,11 @@
 <script setup>
 import { FwbButton } from "flowbite-vue";
 import { ref } from "vue";
-import { useRoute } from "vue-router";
-import { useI18n } from "vue-i18n";
 import {
-  HomeIcon,
-  AcademicCapIcon,
-  BuildingOfficeIcon,
-  ChatBubbleLeftRightIcon,
-  ClipboardDocumentListIcon,
-  Cog6ToothIcon,
   Bars3Icon,
   ArrowRightOnRectangleIcon,
 } from "@heroicons/vue/24/outline";
+import Sidebar from "./Sidebar.vue";
 
 defineProps({
   title: {
@@ -103,27 +68,4 @@ defineProps({
 // State for mobile menu toggle
 const isSideMenuOpen = ref(false);
 
-// Get the current route
-const route = useRoute();
-
-// Import the `t` function from vue-i18n
-const { t } = useI18n();
-
-// Menu items array with icons and translated names
-const menus = [
-  { name: t("Main Page"), path: "/main", icon: HomeIcon },
-  { name: t("Students"), path: "/students", icon: AcademicCapIcon },
-  { name: t("Guest House"), path: "/guest-house", icon: BuildingOfficeIcon },
-  { name: t("Messages"), path: "/messages", icon: ChatBubbleLeftRightIcon },
-  {
-    name: t("Accounting"),
-    path: "/accounting",
-    icon: ClipboardDocumentListIcon,
-  },
-  { name: t("Configuration"), path: "/configuration", icon: Cog6ToothIcon },
-];
 </script>
-
-<style scoped>
-/* Add custom styles if needed */
-</style>
