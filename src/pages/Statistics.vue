@@ -1,36 +1,40 @@
 <template>
   <Navigation :title="t('Dashboard')">
     <!-- Main Content -->
-    <main class="flex-1 bg-white p-6 shadow flex flex-col">
-      <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <!-- Cards -->
-        <div
-          v-for="(card, index) in cards"
-          :key="index"
-          :class="card.bgClass + ' text-center rounded-lg shadow p-6 flex flex-col justify-between h-full'"
-        >
-          <div class="flex items-center justify-center mb-4">
-            <div
-              :class="card.iconBgClass + ' p-4 rounded-full flex items-center justify-center'"
-            >
-              <component
-                :is="card.icon"
-                class="h-8 w-8"
-                :class="card.iconTextClass"
-              />
-            </div>
-          </div>
-          <div>
-            <h3 :class="card.textClass" class="text-5xl font-extrabold">
-              {{ card.value }}
-            </h3>
-            <p class="text-blue-950 mt-2 text-lg font-medium">
-              {{ card.description }}
-            </p>
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <!-- Cards -->
+      <div
+        v-for="(card, index) in cards"
+        :key="index"
+        :class="
+          card.bgClass +
+          ' flex h-full flex-col justify-between rounded-lg p-6 text-center shadow'
+        "
+      >
+        <div class="mb-4 flex items-center justify-center">
+          <div
+            :class="
+              card.iconBgClass +
+              ' flex items-center justify-center rounded-full p-4'
+            "
+          >
+            <component
+              :is="card.icon"
+              class="h-8 w-8"
+              :class="card.iconTextClass"
+            />
           </div>
         </div>
+        <div>
+          <h3 :class="card.textClass" class="text-5xl font-extrabold">
+            {{ card.value }}
+          </h3>
+          <p class="mt-2 text-lg font-medium text-blue-950">
+            {{ card.description }}
+          </p>
+        </div>
       </div>
-    </main>
+    </div>
   </Navigation>
 </template>
 

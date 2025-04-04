@@ -1,174 +1,168 @@
 <template>
   <Navigation :title="t('Add-edit student page')">
-    <main class="flex-1 bg-white p-6 shadow space-y-6">
-      <!-- Form Fields -->
-      <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <!-- IIN Field -->
-        <div>
-          <FwbInput
-            v-model="student.iin"
-            type="text"
-            :label="t('IIN')"
-            placeholder="Enter IIN"
-            required
-            class="focus:outline-none"
-          />
-        </div>
+    <!-- Form Fields -->
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <!-- IIN Field -->
+      <div>
+        <FwbInput
+          v-model="student.iin"
+          type="text"
+          :label="t('IIN')"
+          placeholder="Enter IIN"
+          required
+          class="focus:outline-none"
+        />
+      </div>
 
-        <!-- Name-Surname Field -->
-        <div>
-          <FwbInput
-            v-model="student.name"
-            type="text"
-            :label="t('Name-Surname')"
-            placeholder="Enter Name and Surname"
-            required
-            class="focus:outline-none"
-          />
-        </div>
+      <!-- Name-Surname Field -->
+      <div>
+        <FwbInput
+          v-model="student.name"
+          type="text"
+          :label="t('Name-Surname')"
+          placeholder="Enter Name and Surname"
+          required
+          class="focus:outline-none"
+        />
+      </div>
 
-        <!-- Faculty Field -->
-        <div>
-          <FwbSelect
-            v-model="student.faculty"
-            :options="facultyOptions"
-            :label="t('Faculty')"
-            required
-            class="focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:ring-2"
-          />
-        </div>
+      <!-- Faculty Field -->
+      <div>
+        <FwbSelect
+          v-model="student.faculty"
+          :options="facultyOptions"
+          :label="t('Faculty')"
+          required
+          class="focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        />
+      </div>
 
-        <!-- Specialist Field -->
-        <div>
-          <FwbSelect
-            v-model="student.specialist"
-            :options="specialistOptions"
-            :label="t('Specialist')"
-            required
-            class="focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:ring-2"
-          />
-        </div>
+      <!-- Specialist Field -->
+      <div>
+        <FwbSelect
+          v-model="student.specialist"
+          :options="specialistOptions"
+          :label="t('Specialist')"
+          required
+          class="focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        />
+      </div>
 
-        <!-- Enrollment Year Field -->
-        <div>
-          <FwbInput
-            v-model="student.enrollmentYear"
-            type="number"
-            :label="t('Enrollment Year')"
-            placeholder="Enter Enrollment Year"
-            required
-            class="focus:outline-none"
-          />
-        </div>
+      <!-- Enrollment Year Field -->
+      <div>
+        <FwbInput
+          v-model="student.enrollmentYear"
+          type="number"
+          :label="t('Enrollment Year')"
+          placeholder="Enter Enrollment Year"
+          required
+          class="focus:outline-none"
+        />
+      </div>
 
-        <!-- Gender Field -->
-        <div>
-          <FwbSelect
-            v-model="student.gender"
-            :options="genderOptions"
-            :label="t('Gender')"
-            required
-            class="focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:ring-2"
-          />
-        </div>
+      <!-- Gender Field -->
+      <div>
+        <FwbSelect
+          v-model="student.gender"
+          :options="genderOptions"
+          :label="t('Gender')"
+          required
+          class="focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        />
+      </div>
 
-        <!-- Email Field -->
-        <div>
-          <FwbInput
-            v-model="student.email"
-            type="email"
-            :label="t('E-mail')"
-            placeholder="Enter E-mail"
-            required
-            class="focus:outline-none"
-          />
-        </div>
-        <div></div>
+      <!-- Email Field -->
+      <div>
+        <FwbInput
+          v-model="student.email"
+          type="email"
+          :label="t('E-mail')"
+          placeholder="Enter E-mail"
+          required
+          class="focus:outline-none"
+        />
+      </div>
+      <div></div>
 
-        <!-- Phone Numbers -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700">
-            {{ t('Phone Numbers') }}
-          </label>
-          <div class="flex flex-row gap-2 items-end">
-            <div class="flex flex-col gap-2 items-stretch">
-              <FwbInput
-                v-for="(phone, index) in student.phoneNumbers"
-                :key="index"
-                v-model="student.phoneNumbers[index]"
-                type="tel"
-                placeholder="Enter Phone Number"
-                class="w-full focus:outline-none flex-1"
-              />
-            </div>
-            <AddMoreButton
-              @click="addPhoneField"
+      <!-- Phone Numbers -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700">
+          {{ t("Phone Numbers") }}
+        </label>
+        <div class="flex flex-row items-end gap-2">
+          <div class="flex flex-col items-stretch gap-2">
+            <FwbInput
+              v-for="(phone, index) in student.phoneNumbers"
+              :key="index"
+              v-model="student.phoneNumbers[index]"
+              type="tel"
+              placeholder="Enter Phone Number"
+              class="w-full flex-1 focus:outline-none"
             />
-            </div>
-        </div>
-
-        <!-- Country Field -->
-        <div>
-          <FwbSelect
-            v-model="student.country"
-            :options="countryOptions"
-            :label="t('Country')"
-            required
-            class="focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:ring-2"
-          />
-        </div>
-
-        <!-- Region Field -->
-        <div>
-          <FwbSelect
-            v-model="student.region"
-            :options="regionOptions"
-            :label="t('Region')"
-            required
-            class="focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:ring-2"
-          />
-        </div>
-
-        <!-- City Field -->
-        <div>
-          <FwbSelect
-            v-model="student.city"
-            :options="cityOptions"
-            :label="t('City')"
-            required
-            class="focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:ring-2"
-          />
-        </div>
-
-        <!-- Deal Number Field -->
-        <div>
-          <FwbInput
-            v-model="student.dealNumber"
-            type="text"
-            :label="t('Deal Number')"
-            placeholder="Enter Deal Number"
-            required
-            class="focus:outline-none"
-          />
-        </div>
-        <div class="flex flex-row gap-2 items-end justify-end">
-          <FwbButton type="button" outline>
-            {{ t('Submit') }}
-          </FwbButton>
-          <FwbButton type="button" outline>
-            <span class="flex flex-row items-center gap-2">
-              <PrinterIcon class="h-5 w-5" />
-              {{ t('Print') }}
-            </span>
-          </FwbButton>
+          </div>
+          <AddMoreButton @click="addPhoneField" />
         </div>
       </div>
 
-      <!-- Submit and Print Buttons -->
-      <div class="flex items-end justify-between gap-2">
-        
+      <!-- Country Field -->
+      <div>
+        <FwbSelect
+          v-model="student.country"
+          :options="countryOptions"
+          :label="t('Country')"
+          required
+          class="focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        />
       </div>
-    </main>
+
+      <!-- Region Field -->
+      <div>
+        <FwbSelect
+          v-model="student.region"
+          :options="regionOptions"
+          :label="t('Region')"
+          required
+          class="focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        />
+      </div>
+
+      <!-- City Field -->
+      <div>
+        <FwbSelect
+          v-model="student.city"
+          :options="cityOptions"
+          :label="t('City')"
+          required
+          class="focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        />
+      </div>
+
+      <!-- Deal Number Field -->
+      <div>
+        <FwbInput
+          v-model="student.dealNumber"
+          type="text"
+          :label="t('Deal Number')"
+          placeholder="Enter Deal Number"
+          required
+          class="focus:outline-none"
+        />
+      </div>
+      <div class="flex flex-row items-end justify-end gap-2">
+        <FwbButton type="button" outline>
+          {{ t("Submit") }}
+        </FwbButton>
+        <FwbButton type="button" outline>
+          <span class="flex flex-row items-center gap-2">
+            <PrinterIcon class="h-5 w-5" />
+            {{ t("Print") }}
+          </span>
+        </FwbButton>
+      </div>
+    </div>
+
+    <!-- Submit and Print Buttons -->
+    <div class="flex items-end justify-between gap-2"></div>
   </Navigation>
 </template>
 

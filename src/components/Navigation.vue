@@ -42,9 +42,17 @@
 
     <div class="flex flex-1 flex-col lg:flex-row">
       <!-- Sidebar -->
-      <Sidebar :class="isSideMenuOpen ? 'block' : 'hidden lg:block'"/>
+      <Sidebar
+        class="lg:max-h-screen overflow-hidden transition-all duration-150 ease-in"
+        :class="{
+          'max-h-[0px] opacity-0': isSideMenuOpen === false,
+          'max-h-[700px] opacity-100': isSideMenuOpen === true,
+        }"
+      />
       <!-- Content -->
-      <slot></slot>
+      <main class="flex-1 bg-white p-6 shadow space-y-6 overflow-auto">
+        <slot></slot>
+      </main>
     </div>
   </div>
 </template>
@@ -67,5 +75,4 @@ defineProps({
 
 // State for mobile menu toggle
 const isSideMenuOpen = ref(false);
-
 </script>

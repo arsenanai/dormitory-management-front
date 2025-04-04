@@ -1,64 +1,67 @@
 <template>
-    <aside
-        class="flex flex-col overflow-x-auto bg-primary-50 p-4 shadow lg:static lg:h-auto lg:w-64 lg:flex-col lg:overflow-visible"
+  <aside
+    class="overflow-hidden bg-primary-50 shadow lg:static lg:w-64 lg:flex-shrink-0"
+  >
+      <nav
+        v-if="isVisible"
+        class="flex flex-col space-y-2 p-4"
       >
-        <!-- Menu Items -->
-        <nav class="w-full flex-col space-y-2 lg:flex">
-          <div v-for="menu in topLevelMenus" :key="menu.name">
-            <!-- Top-Level Menu -->
-            <router-link
-              :to="menu.path"
-              :class="[
-                'flex w-full items-center gap-3 rounded p-3 text-left text-base leading-5 font-medium hover:bg-primary-100',
+        <div v-for="menu in topLevelMenus" :key="menu.name">
+          <!-- Top-Level Menu -->
+          <router-link
+            :to="menu.path"
+            :class="[
+              'flex w-full items-center gap-3 rounded p-3 text-left text-base leading-5 font-medium hover:bg-primary-100',
+              route.path === menu.path
+                ? 'bg-primary-100'
+                : 'bg-transparent lg:text-gray-500',
+            ]"
+          >
+            <component
+              :is="menu.meta.icon"
+              class="h-5 w-5"
+              :class="
                 route.path === menu.path
+                  ? 'text-secondary-500'
+                  : 'text-gray-500'
+              "
+            />
+            {{ t(menu.meta.title) }}
+          </router-link>
+
+          <!-- Submenus -->
+          <div
+            v-if="menu.submenus && menu.submenus.length && isSubmenuActive(menu.submenus)"
+            class="ml-6 space-y-2"
+          >
+            <router-link
+              v-for="submenu in menu.submenus"
+              :key="submenu.name"
+              :to="submenu.path"
+              :class="[
+                'flex w-full items-center gap-3 rounded p-3 text-left text-sm leading-5 font-medium hover:bg-primary-100',
+                isSubmenuHighlighted(submenu)
                   ? 'bg-primary-100'
                   : 'bg-transparent lg:text-gray-500',
               ]"
             >
               <component
-                :is="menu.meta.icon"
-                class="h-5 w-5"
+                :is="submenu.meta.icon"
+                class="h-4 w-4"
                 :class="
-                  route.path === menu.path
+                  isSubmenuHighlighted(submenu)
                     ? 'text-secondary-500'
                     : 'text-gray-500'
                 "
               />
-              {{ t(menu.meta.title) }}
+              {{ t(submenu.meta.title) }}
             </router-link>
-
-            <!-- Submenus -->
-            <div
-              v-if="menu.submenus && menu.submenus.length && isSubmenuActive(menu.submenus)"
-              class="ml-6 space-y-2"
-            >
-              <router-link
-                v-for="submenu in menu.submenus"
-                :key="submenu.name"
-                :to="submenu.path"
-                :class="[
-                  'flex w-full items-center gap-3 rounded p-3 text-left text-sm leading-5 font-medium hover:bg-primary-100',
-                  isSubmenuHighlighted(submenu)
-                    ? 'bg-primary-100'
-                    : 'bg-transparent lg:text-gray-500',
-                ]"
-              >
-                <component
-                  :is="submenu.meta.icon"
-                  class="h-4 w-4"
-                  :class="
-                    isSubmenuHighlighted(submenu)
-                      ? 'text-secondary-500'
-                      : 'text-gray-500'
-                  "
-                />
-                {{ t(submenu.meta.title) }}
-              </router-link>
-            </div>
           </div>
-        </nav>
-      </aside>
+        </div>
+      </nav>
+  </aside>
 </template>
+
 <script setup>
 import { ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -70,6 +73,9 @@ const router = useRouter();
 
 // Import the `t` function from vue-i18n
 const { t } = useI18n();
+
+// State to control visibility
+const isVisible = ref(true);
 
 // Filter top-level menus
 const topLevelMenus = ref(

@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap&subset=cyrillic-ext');
 @import "tailwindcss";
 @plugin 'flowbite/plugin';
 
@@ -27,6 +28,7 @@
   --color-secondary-700: #a9735b; /* Darker */
   --color-secondary-800: #8f5c49; /* Even Darker */
   --color-secondary-900: #6c4537; /* Darkest */
+  --font-noto-sans: "Noto Sans", sans-serif;
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
