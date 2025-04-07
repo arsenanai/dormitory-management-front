@@ -57,13 +57,25 @@ const routes = [
   },
   {
     path: '/guest-house',
-    name: 'Guest House',
+    name: 'Guests',
     component: () => import('@/pages/Guests.vue'),
     meta: {
-      title: 'Guest House',
+      title: 'Guests',
       requiresAuth: true,
       sidebar: true,
       icon: BuildingOfficeIcon, // Icon for Guest House
+    },
+  },
+  {
+    path: '/guest-form/:id?',
+    name: 'Guest Form',
+    component: () => import('@/pages/GuestForm.vue'),
+    meta: {
+      title: 'Guest Form',
+      parent: 'Guests', // Submenu under Guests
+      requiresAuth: true,
+      sidebar: true,
+      icon: PencilSquareIcon, // Icon for Guest Form
     },
   },
   // Uncomment and implement these routes when ready

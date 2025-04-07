@@ -96,8 +96,10 @@ import {
   TrashIcon,
 } from "@heroicons/vue/24/outline"; // Import icons
 import { ref, computed } from "vue";
+import { useRouter } from "vue-router";
 
 const { t } = useI18n();
+const router = useRouter();
 
 // Guests Data
 const guests = ref([
@@ -145,13 +147,14 @@ const filteredGuests = computed(() => {
   );
 });
 
-// Methods
+// Navigate to Add Student form
 const addGuest = () => {
-  console.log("Add Guest clicked");
+  router.push("/guest-form");
 };
 
+// Navigate to Edit Student form
 const editGuest = (id) => {
-  console.log("Edit Guest with ID:", id);
+  router.push(`/guest-form/${id}`);
 };
 
 const deleteGuest = (id) => {

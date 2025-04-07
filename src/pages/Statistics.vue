@@ -1,14 +1,14 @@
 <template>
   <Navigation :title="t('Dashboard')">
     <!-- Main Content -->
-    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 h-full">
       <!-- Cards -->
       <div
         v-for="(card, index) in cards"
         :key="index"
         :class="
           card.bgClass +
-          ' flex h-full flex-col justify-between rounded-lg p-6 text-center shadow'
+          ' flex flex-col justify-between rounded-lg p-6 text-center shadow'
         "
       >
         <div class="mb-4 flex items-center justify-center">

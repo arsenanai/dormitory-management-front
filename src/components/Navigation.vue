@@ -45,7 +45,7 @@
       <Sidebar
         class="lg:max-h-screen overflow-hidden transition-all duration-150 ease-in"
         :class="{
-          'max-h-[0px] opacity-0': isSideMenuOpen === false,
+          'max-h-[0px] lg:max-h-[700px] opacity-0 lg:opacity-100': isSideMenuOpen === false,
           'max-h-[700px] opacity-100': isSideMenuOpen === true,
         }"
       />
