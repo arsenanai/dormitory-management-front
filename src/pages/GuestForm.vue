@@ -2,19 +2,19 @@
   <Navigation :title="t('Add-edit guest page')">
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <!-- Guest First Name -->
-      <FwbInput v-model="guest.firstName" :label="t('Name')" required />
+      <FwbInput v-model="guest.firstName" :label="t('Firstname')" required />
 
       <!-- Guest Last Name -->
-      <FwbInput v-model="guest.lastName" :label="t('Name')" required />
+      <FwbInput v-model="guest.lastName" :label="t('Surname')" required />
 
       <!-- Phone -->
-      <FwbInput v-model="guest.phone" :label="t('Tel no:')" type="tel" placeholder="+7 (___) _______" />
+      <FwbInput v-model="guest.phone" :label="t('Tel no')" type="tel" placeholder="+7(___)_______" />
 
       <!-- Enter Date -->
-      <FwbInput v-model="guest.enterDate" :label="t('Enter date:')" type="date" />
+      <FwbInput v-model="guest.enterDate" :label="t('Enter date')" type="date" />
 
       <!-- Exit Date -->
-      <FwbInput v-model="guest.exitDate" :label="t('Exit date:')" type="date" />
+      <FwbInput v-model="guest.exitDate" :label="t('Exit date')" type="date" />
 
       <!-- Room Selection -->
       <FwbSelect
@@ -42,7 +42,7 @@
     </div>
 
     <hr class="my-4 border-t" />
-    <div class="text-lg font-medium">{{ t('информация об оплате') }}</div>
+    <div class="text-lg font-medium">{{ t('Payment info') }}</div>
 
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <!-- Daily Rate -->
