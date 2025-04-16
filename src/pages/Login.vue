@@ -26,6 +26,7 @@
                   autocomplete="username"
                   :validationState="credentialsValidationState.email"
                   :validationMessage="credentialsValidationMessage.email"
+                  pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
                 />
               </div>
 
@@ -39,6 +40,7 @@
                   autocomplete="current-password"
                   :validationState="credentialsValidationState.password"
                   :validationMessage="credentialsValidationMessage.password"
+                  pattern=".{6,}"
                 />
               </div>
 
@@ -60,6 +62,7 @@
                     required
                     :validationState="registrationValidationState.iin"
                     :validationMessage="registrationValidationMessage.iin"
+                    pattern="\d{12}"
                   />
                 </div>
 
@@ -73,6 +76,7 @@
                     required
                     :validationState="registrationValidationState.name"
                     :validationMessage="registrationValidationMessage.name"
+                    pattern="^[a-zA-Z\s]+$"
                   />
                 </div>
 
@@ -109,6 +113,7 @@
                     required
                     :validationState="registrationValidationState.enrollmentYear"
                     :validationMessage="registrationValidationMessage.enrollmentYear"
+                    pattern="^\d{4}$"
                   />
                 </div>
 
@@ -134,6 +139,7 @@
                     required
                     :validationState="registrationValidationState.email"
                     :validationMessage="registrationValidationMessage.email"
+                    pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
                   />
                 </div>
 
@@ -146,6 +152,7 @@
                     required
                     :validationState="registrationValidationState.password"
                     :validationMessage="registrationValidationMessage.password"
+                    pattern=".{6,}"
                   />
                 </div>
 
@@ -158,6 +165,7 @@
                     required
                     :validationState="registrationValidationState.confirmPassword"
                     :validationMessage="registrationValidationMessage.confirmPassword"
+                    pattern=".{6,}"
                   />
                 </div>
 
@@ -256,6 +264,7 @@
                 :label="t('Fullname')"
                 :placeholder="t('Anna Fettisova')"
                 required
+                pattern="^[a-zA-Z\s]+$"
               />
               
               <div class="mt-4">
@@ -274,8 +283,6 @@
                   </CButton>
                 </div>
               </div>
-
-              
 
               <CButton type="submit" class="w-full mt-4" variant="primary">
                 {{ t("Book Room") }}

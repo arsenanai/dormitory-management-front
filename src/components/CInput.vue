@@ -123,7 +123,7 @@ const {
   },
   pattern: {
     type: String,
-    default: '',
+    default: '.*',
   },
   validationState: {
     type: String,
