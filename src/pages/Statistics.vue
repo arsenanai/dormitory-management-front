@@ -1,7 +1,7 @@
 <template>
   <Navigation :title="t('Dashboard')">
     <!-- Main Content -->
-    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 h-full">
+    <div class="grid h-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
       <!-- Cards -->
       <div
         v-for="(card, index) in cards"
@@ -39,7 +39,7 @@
 </template>
 
 <script setup>
-import Navigation from "@/components/Navigation.vue";
+import Navigation from "@/components/CNavigation.vue";
 import { useI18n } from "vue-i18n";
 import {
   HomeIcon,

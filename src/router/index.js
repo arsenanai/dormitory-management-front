@@ -101,17 +101,17 @@ const routes = [
   //     icon: ClipboardDocumentListIcon, // Icon for Accounting
   //   },
   // },
-  // {
-  //   path: '/configuration',
-  //   name: 'Configuration',
-  //   component: () => import('@/pages/Configuration.vue'), // Lazy-loaded
-  //   meta: {
-  //     title: 'Configuration',
-  //     requiresAuth: true,
-  //     sidebar: true,
-  //     icon: Cog6ToothIcon, // Icon for Configuration
-  //   },
-  // },
+  {
+    path: '/configuration',
+    name: 'Configuration',
+    component: () => import('@/pages/Options.vue'), // Lazy-loaded
+    meta: {
+      title: 'Configuration',
+      requiresAuth: true,
+      sidebar: true,
+      icon: Cog6ToothIcon, // Icon for Configuration
+    },
+  },
 ];
 
 const router = createRouter({

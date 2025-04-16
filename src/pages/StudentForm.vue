@@ -100,7 +100,9 @@
               class="w-full flex-1 focus:outline-none"
             />
           </div>
-          <AddMoreButton @click="addPhoneField" />
+          <Button @click="addPhoneField" class="">
+            <PlusIcon class="h-5 w-5" /> {{ t("Add more") }}
+          </Button>
         </div>
       </div>
 
@@ -148,16 +150,14 @@
           class="focus:outline-none"
         />
       </div>
-      <div class="flex flex-row items-end justify-end gap-2">
-        <FwbButton type="button" outline>
+      <div class="flex flex-row items-end justify-start gap-2">
+        <PrimaryButton>
           {{ t("Submit") }}
-        </FwbButton>
-        <FwbButton type="button" outline>
-          <span class="flex flex-row items-center gap-2">
-            <PrinterIcon class="h-5 w-5" />
-            {{ t("Print") }}
-          </span>
-        </FwbButton>
+        </PrimaryButton>
+        <Button>
+          <PrinterIcon class="h-5 w-5" />
+          {{ t("Print") }}
+        </Button>
       </div>
     </div>
 
@@ -167,12 +167,13 @@
 </template>
 
 <script setup>
-import Navigation from "@/components/Navigation.vue";
+import Navigation from "@/components/CNavigation.vue";
 import { useI18n } from "vue-i18n";
-import { FwbInput, FwbSelect, FwbButton } from "flowbite-vue";
-import { PrinterIcon } from "@heroicons/vue/24/outline"; // Import icons
-import AddMoreButton from "@/components/AddMoreButton.vue"; // Import AddMoreButton
+import { FwbInput, FwbSelect } from "flowbite-vue";
+import { PlusIcon, PrinterIcon } from "@heroicons/vue/24/outline"; // Import icons
 import { ref } from "vue";
+import PrimaryButton from "@/components/PrimaryButton.vue";
+import Button from "@/components/CButton.vue";
 
 const { t } = useI18n();
 

@@ -18,7 +18,7 @@
       <FwbButton
         type="button"
         class="ml-4 flex items-center gap-2"
-        outline
+        color="light"
         @click="addGuest"
       >
         <span class="flex flex-row items-center gap-2">
@@ -77,7 +77,7 @@
 </template>
 
 <script setup>
-import Navigation from "@/components/Navigation.vue";
+import Navigation from "@/components/CNavigation.vue";
 import { useI18n } from "vue-i18n";
 import {
   FwbInput,

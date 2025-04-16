@@ -8,19 +8,19 @@
         v-model="searchQuery"
         type="text"
         :placeholder="t('Search')"
-        class="w-full pl-10 focus:border-blue-500 focus:ring-blue-500 focus:outline-none"
+        class="w-full pl-10"
       />
       <div
         class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
       >
-        <MagnifyingGlassIcon class="h-5 w-5 text-gray-400" />
+        <MagnifyingGlassIcon class="h-5 w-5 text-gray-700" />
       </div>
     </div>
 
     <!-- Filter Select Boxes -->
     <div class="mb-4 flex items-center gap-4">
       <FwbSelect
-        class="w-40"
+        class="w-40 focus:ring-blue-500"
         :options="[
           { value: 1, name: t('Law and Social Sciences') },
           { value: 2, name: t('Computer Science') },
@@ -29,7 +29,7 @@
         :placeholder="t('Faculty')"
       />
       <FwbSelect
-        class="w-40"
+        class="w-40 focus:ring-blue-500"
         :options="[
           { value: 1, name: 'A227' },
           { value: 2, name: 'B317' },
@@ -38,7 +38,7 @@
         :placeholder="t('Room')"
       />
       <FwbSelect
-        class="w-40"
+        class="w-40 focus:ring-blue-500"
         :options="[
           { value: 1, name: t('Registered') },
           { value: 2, name: t('Reserv') },
@@ -50,23 +50,14 @@
     <!-- Checkbox and Actions -->
     <div class="mb-4 flex items-center justify-end">
       <div class="flex items-center space-x-4">
-        <FwbButton type="button" outline class="text-blue-500">
-          <span class="flex items-center gap-2">
-            <ArrowDownTrayIcon class="h-5 w-5" />
-            {{ t("Export to Excel") }}
-          </span>
-        </FwbButton>
-        <FwbButton
-          type="button"
-          outline
-          class="text-blue-500"
-          @click="navigateToAddStudent"
-        >
-          <span class="flex items-center gap-2">
-            <PlusIcon class="h-5 w-5" />
-            {{ t("Add Student") }}
-          </span>
-        </FwbButton>
+        <Button>
+          <ArrowDownTrayIcon class="h-5 w-5" />
+          {{ t("Export to Excel") }}
+        </Button>
+        <Button @click="navigateToAddStudent">
+          <PlusIcon class="h-5 w-5" />
+          {{ t("Add Student") }}
+        </Button>
       </div>
     </div>
 
@@ -110,14 +101,9 @@
           <FwbTableCell>{{ student.room }}</FwbTableCell>
           <FwbTableCell>{{ student.telephone }}</FwbTableCell>
           <FwbTableCell class="text-center">
-            <FwbButton
-              type="button"
-              outline
-              class="text-blue-500"
-              @click="navigateToEditStudent(index)"
-            >
+            <Button @click="navigateToEditStudent(index)">
               {{ t("Edit") }}
-            </FwbButton>
+            </Button>
           </FwbTableCell>
           <FwbTableCell class="text-center">
             <component
@@ -134,25 +120,15 @@
 
     <!-- Pagination -->
     <div class="mb-4 flex items-center justify-between">
-      <FwbButton
-        type="button"
-        outline
-        :disabled="currentPage === 1"
-        @click="currentPage--"
-      >
+      <Button :disabled="currentPage === 1" @click="currentPage--">
         {{ t("Previous") }}
-      </FwbButton>
+      </Button>
       <span
         >{{ t("Page") }} {{ currentPage }} {{ t("of") }} {{ totalPages }}</span
       >
-      <FwbButton
-        type="button"
-        outline
-        :disabled="currentPage === totalPages"
-        @click="currentPage++"
-      >
+      <Button :disabled="currentPage === totalPages" @click="currentPage++">
         {{ t("Next") }}
-      </FwbButton>
+      </Button>
     </div>
 
     <div class="flex flex-row items-center space-x-4">
@@ -164,15 +140,15 @@
         ]"
         :placeholder="t('Action')"
       />
-      <FwbButton type="button" outline>
+      <PrimaryButton>
         {{ t("Submit") }}
-      </FwbButton>
+      </PrimaryButton>
     </div>
   </Navigation>
 </template>
 
 <script setup>
-import Navigation from "@/components/Navigation.vue";
+import Navigation from "@/components/CNavigation.vue";
 import { useI18n } from "vue-i18n";
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
@@ -194,6 +170,8 @@ import {
   FwbTableRow,
   FwbTableCell,
 } from "flowbite-vue";
+import Button from "@/components/CButton.vue";
+import PrimaryButton from "@/components/PrimaryButton.vue";
 
 const { t } = useI18n();
 const router = useRouter();

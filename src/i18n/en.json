@@ -1,4 +1,12 @@
 {
+    "fileInput": {
+        "clickOrDrag": "Click to upload or drag and drop",
+        "description": "SVG, PNG, JPG, or GIF (MAX. 800x400px)",
+        "selectedFile": "Selected file",
+        "dropHere": "Drop here",
+        "invalidSize": "Allowed max file size: {maxSize} MB",
+        "invalidExtension": "Allowed extensions: {extensions}"
+    },
     "Main Page": "Main Page",
     "Students": "Students",
     "Guest House": "Guest House",
