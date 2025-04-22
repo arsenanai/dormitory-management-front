@@ -2,119 +2,95 @@
   <Navigation :title="t('Dormitory Information')">
     <!-- Search and Filters -->
     <div class="mb-4">
-      <FwbInput
+      <CInput
+        id="search-dormitory"
         v-model="searchQuery"
         type="text"
         :placeholder="t('Search dormitory')"
-        class="w-full pl-10 focus:border-blue-500 focus:ring-blue-500 focus:outline-none"
+        :label="t('Search')"
       />
-      <div
-        class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
-      >
-        <MagnifyingGlassIcon class="h-5 w-5 text-gray-400" />
-      </div>
     </div>
 
     <!-- Action Buttons -->
     <div class="mb-4 flex items-center justify-between">
-      <div class="flex items-center space-x-4">
-        <FwbButton type="button" color="light">
-          <span class="flex items-center gap-2">
-            <ArrowDownTrayIcon class="h-5 w-5" />
-            {{ t("Export to Excel") }}
-          </span>
-        </FwbButton>
-        <FwbButton type="button" color="light" @click="navigateToAddDormitory">
-          <span class="flex items-center gap-2">
-            <PlusIcon class="h-5 w-5" />
-            {{ t("Add Dormitory") }}
-          </span>
-        </FwbButton>
+      <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-4">
+        <CButton variant="primary">
+          <ArrowDownTrayIcon class="h-5 w-5" />
+          {{ t("Export to Excel") }}
+        </CButton>
+        <CButton variant="primary" @click="navigateToAddDormitory">
+          <PlusIcon class="h-5 w-5" />
+          {{ t("Add Dormitory") }}
+        </CButton>
       </div>
     </div>
 
     <!-- Dormitory Table -->
-    <FwbTable hoverable>
-      <FwbTableHead>
-        <FwbTableHeadCell>
-          <FwbCheckbox />
-        </FwbTableHeadCell>
-        <FwbTableHeadCell>{{ t("DORMITORY") }}</FwbTableHeadCell>
-        <FwbTableHeadCell>{{ t("STUDENT CAPACITY") }}</FwbTableHeadCell>
-        <FwbTableHeadCell>{{ t("GENDER") }}</FwbTableHeadCell>
-        <FwbTableHeadCell>{{ t("ADMIN USERNAME") }}</FwbTableHeadCell>
-        <FwbTableHeadCell>{{ t("REGISTERED STUDENTS") }}</FwbTableHeadCell>
-        <FwbTableHeadCell>{{ t("FREE BEDS") }}</FwbTableHeadCell>
-        <FwbTableHeadCell>{{ t("ROOM") }}</FwbTableHeadCell>
-        <FwbTableHeadCell>{{ t("EDIT") }}</FwbTableHeadCell>
-      </FwbTableHead>
-      <FwbTableBody>
-        <FwbTableRow
-          v-for="(dorm, index) in filteredDorms"
+    <CTable>
+      <CTableHead>
+        <CTableHeadCell>
+          <CCheckbox />
+        </CTableHeadCell>
+        <CTableHeadCell>{{ t("DORMITORY") }}</CTableHeadCell>
+        <CTableHeadCell>{{ t("STUDENT CAPACITY") }}</CTableHeadCell>
+        <CTableHeadCell>{{ t("GENDER") }}</CTableHeadCell>
+        <CTableHeadCell>{{ t("ADMIN USERNAME") }}</CTableHeadCell>
+        <CTableHeadCell>{{ t("REGISTERED STUDENTS") }}</CTableHeadCell>
+        <CTableHeadCell>{{ t("FREE BEDS") }}</CTableHeadCell>
+        <CTableHeadCell>{{ t("ROOM") }}</CTableHeadCell>
+        <CTableHeadCell>{{ t("EDIT") }}</CTableHeadCell>
+      </CTableHead>
+      <CTableBody>
+        <CTableRow
+          v-for="(dorm, index) in paginatedDorms"
           :key="index"
-          class="border-gray-300"
         >
-          <FwbTableCell>
-            <FwbCheckbox />
-          </FwbTableCell>
-          <FwbTableCell>{{ dorm.name }}</FwbTableCell>
-          <FwbTableCell>{{ dorm.capacity }}</FwbTableCell>
-          <FwbTableCell>{{ dorm.gender }}</FwbTableCell>
-          <FwbTableCell>{{ dorm.admin }}</FwbTableCell>
-          <FwbTableCell>{{ dorm.registered }}</FwbTableCell>
-          <FwbTableCell :class="{ 'text-red-500': dorm.freeBeds === 0 }">
+          <CTableCell>
+            <CCheckbox />
+          </CTableCell>
+          <CTableCell>{{ dorm.name }}</CTableCell>
+          <CTableCell>{{ dorm.capacity }}</CTableCell>
+          <CTableCell>{{ dorm.gender }}</CTableCell>
+          <CTableCell>{{ dorm.admin }}</CTableCell>
+          <CTableCell>{{ dorm.registered }}</CTableCell>
+          <CTableCell :class="{ 'text-red-500': dorm.freeBeds === 0 }">
             {{ dorm.freeBeds }}
-          </FwbTableCell>
-          <FwbTableCell>{{ dorm.rooms }}</FwbTableCell>
-          <FwbTableCell class="text-center">
-            <FwbButton
-              type="button"
-              color="light"
-              @click="navigateToEditDormitory(dorm.id)"
-            >
+          </CTableCell>
+          <CTableCell>{{ dorm.rooms }}</CTableCell>
+          <CTableCell class="text-center">
+            <CButton variant="primary" @click="navigateToEditDormitory(dorm.id)">
               {{ t("Edit") }}
-            </FwbButton>
-          </FwbTableCell>
-        </FwbTableRow>
-      </FwbTableBody>
-    </FwbTable>
+            </CButton>
+          </CTableCell>
+        </CTableRow>
+      </CTableBody>
+    </CTable>
 
     <!-- Pagination -->
     <div class="mt-4 mb-4 flex items-center justify-between">
-      <FwbButton
-        type="button"
-        color="light"
-        :disabled="currentPage === 1"
-        @click="currentPage--"
-      >
+      <CButton :disabled="currentPage === 1" @click="currentPage--">
         {{ t("Previous") }}
-      </FwbButton>
+      </CButton>
       <span>
         {{ t("Page") }} {{ currentPage }} {{ t("of") }} {{ totalPages }}
       </span>
-      <FwbButton
-        type="button"
-        color="light"
-        :disabled="currentPage === totalPages"
-        @click="currentPage++"
-      >
+      <CButton :disabled="currentPage === totalPages" @click="currentPage++">
         {{ t("Next") }}
-      </FwbButton>
+      </CButton>
     </div>
 
     <!-- Bulk Actions -->
-    <div class="flex flex-row items-center space-x-4">
-      <FwbSelect
-        class="w-40"
-        :options="[
-          { value: 1, name: t('Disable Delete') },
-          { value: 2, name: t('Export Selected') },
-        ]"
-        :placeholder="t('Action')"
+    <div class="flex flex-row items-end space-x-4 justify-end">
+      <CSelect
+        id="bulk-action"
+        v-model="bulkAction"
+        :options="bulkActionOptions"
+        :label="t('Action')"
+        :placeholder="t('Select Action')"
       />
-      <blueButton>
-        {{ t("SUBMIT") }}
-      </blueButton>
+      <CButton variant="primary">
+        {{ t("Submit") }}
+      </CButton>
     </div>
 
     <!-- Divider -->
@@ -126,27 +102,27 @@
     </h2>
 
     <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-      <FwbInput
+      <CInput
+        id="faculty"
         v-model="educationSettings.faculty"
         type="text"
         :label="t('Faculty')"
         readonly
-        class="bg-gray-100"
       />
-      <FwbInput
+      <CInput
+        id="specialist"
         v-model="educationSettings.specialist"
         type="text"
         :label="t('Specialist')"
         readonly
-        class="bg-gray-100"
       />
       <div class="md:col-span-2">
-        <FwbInput
+        <CInput
+          id="information-systems"
           v-model="educationSettings.informationSystems"
           type="text"
           :label="t('Information systems')"
           readonly
-          class="bg-gray-100"
         />
       </div>
     </div>
@@ -161,26 +137,28 @@ import { useRouter } from "vue-router";
 import {
   ArrowDownTrayIcon,
   PlusIcon,
-  MagnifyingGlassIcon,
 } from "@heroicons/vue/24/outline";
-import {
-  FwbInput,
-  FwbSelect,
-  FwbCheckbox,
-  FwbButton,
-  FwbTable,
-  FwbTableHead,
-  FwbTableHeadCell,
-  FwbTableBody,
-  FwbTableRow,
-  FwbTableCell,
-} from "flowbite-vue";
-import blueButton from "@/components/blueButton.vue";
+import CInput from "@/components/CInput.vue";
+import CSelect from "@/components/CSelect.vue";
+import CCheckbox from "@/components/CCheckbox.vue";
+import CButton from "@/components/CButton.vue";
+import CTable from "@/components/CTable.vue";
+import CTableHead from "@/components/CTableHead.vue";
+import CTableHeadCell from "@/components/CTableHeadCell.vue";
+import CTableBody from "@/components/CTableBody.vue";
+import CTableRow from "@/components/CTableRow.vue";
+import CTableCell from "@/components/CTableCell.vue";
 
 const { t } = useI18n();
 const router = useRouter();
 
-// Dormitory Data
+const searchQuery = ref("");
+const bulkAction = ref("");
+const bulkActionOptions = [
+  { value: "disable", name: t("Disable Delete") },
+  { value: "export", name: t("Export Selected") },
+];
+
 const dorms = ref([
   {
     id: 1,
@@ -214,15 +192,12 @@ const dorms = ref([
   },
 ]);
 
-// Education Settings Data
 const educationSettings = ref({
   faculty: "Engineering and natural sciences",
   specialist: "Computer Science",
   informationSystems: "",
 });
 
-// Search functionality
-const searchQuery = ref("");
 const filteredDorms = computed(() => {
   if (!searchQuery.value) return dorms.value;
   return dorms.value.filter(
@@ -232,14 +207,18 @@ const filteredDorms = computed(() => {
   );
 });
 
-// Pagination
 const currentPage = ref(1);
 const itemsPerPage = 10;
 const totalPages = computed(() =>
   Math.ceil(filteredDorms.value.length / itemsPerPage),
 );
+const paginatedDorms = computed(() =>
+  filteredDorms.value.slice(
+    (currentPage.value - 1) * itemsPerPage,
+    currentPage.value * itemsPerPage,
+  ),
+);
 
-// Navigation functions
 const navigateToAddDormitory = () => {
   router.push("/dormitory-form");
 };

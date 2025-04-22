@@ -4,108 +4,96 @@
 
     <!-- Search Input -->
     <div class="mb-4">
-      <FwbInput
+      <CInput
+        id="search-input"
         v-model="searchQuery"
-        type="text"
+        type="search"
         :placeholder="t('Search')"
-        class="w-full pl-10"
+        :label="t('Search')"
       />
-      <div
-        class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
-      >
-        <MagnifyingGlassIcon class="h-5 w-5 text-gray-700" />
-      </div>
     </div>
 
     <!-- Filter Select Boxes -->
-    <div class="mb-4 flex items-center gap-4">
-      <FwbSelect
-        class="w-40 focus:ring-blue-500"
-        :options="[
-          { value: 1, name: t('Law and Social Sciences') },
-          { value: 2, name: t('Computer Science') },
-          { value: 3, name: t('Management') },
-        ]"
-        :placeholder="t('Faculty')"
+    <div class="mb-4 flex items-stretch justify-between lg:justify-start flex-col lg:flex-row gap-4">
+      <CSelect
+        id="faculty-filter"
+        v-model="filters.faculty"
+        :options="facultyOptions"
+        :label="t('Faculty')"
+        :placeholder="t('Select Faculty')"
+        class="lg:w-40"
       />
-      <FwbSelect
-        class="w-40 focus:ring-blue-500"
-        :options="[
-          { value: 1, name: 'A227' },
-          { value: 2, name: 'B317' },
-          { value: 3, name: 'C105' },
-        ]"
-        :placeholder="t('Room')"
+      <CSelect
+        id="room-filter"
+        v-model="filters.room"
+        :options="roomOptions"
+        :label="t('Room')"
+        :placeholder="t('Select Room')"
+        class="lg:w-40"
       />
-      <FwbSelect
-        class="w-40 focus:ring-blue-500"
-        :options="[
-          { value: 1, name: t('Registered') },
-          { value: 2, name: t('Reserv') },
-        ]"
-        :placeholder="t('Status')"
+      <CSelect
+        id="status-filter"
+        v-model="filters.status"
+        :options="statusOptions"
+        :label="t('Status')"
+        :placeholder="t('Select Status')"
+        class="lg:w-40"
       />
     </div>
 
     <!-- Checkbox and Actions -->
-    <div class="mb-4 flex items-center justify-end">
-      <div class="flex items-center space-x-4">
-        <Button>
+    <div class="mb-4 flex items-stretch justify-between flex-col lg:flex-row gap-4">
+      <CCheckbox
+        id="show-dormitory-students"
+        v-model="filters.showDormitoryStudents"
+        :label="t('Show only students in dormitory')"
+      />
+      <div class="flex items-stretch flex-col lg:flex-row justify-between gap-4">
+        <CButton>
           <ArrowDownTrayIcon class="h-5 w-5" />
           {{ t("Export to Excel") }}
-        </Button>
-        <Button @click="navigateToAddStudent">
+        </CButton>
+        <CButton @click="navigateToAddStudent">
           <PlusIcon class="h-5 w-5" />
           {{ t("Add Student") }}
-        </Button>
+        </CButton>
       </div>
     </div>
 
-    <label class="mb-4 flex items-center space-x-2">
-      <FwbCheckbox />
-      <span>{{ t("Show only students in dormitory") }}</span>
-    </label>
-
     <!-- Student Table -->
-    <FwbTable hoverable>
-      <FwbTableHead>
-        <FwbTableHeadCell>
-          <FwbCheckbox />
-        </FwbTableHeadCell>
-        <FwbTableHeadCell>{{ t("NAME") }}</FwbTableHeadCell>
-        <FwbTableHeadCell>{{ t("SURNAME") }}</FwbTableHeadCell>
-        <FwbTableHeadCell>{{ t("STATUS") }}</FwbTableHeadCell>
-        <FwbTableHeadCell>{{ t("ENROLMENT YEAR") }}</FwbTableHeadCell>
-        <FwbTableHeadCell>{{ t("FACULTY") }}</FwbTableHeadCell>
-        <FwbTableHeadCell>{{ t("DORM") }}</FwbTableHeadCell>
-        <FwbTableHeadCell>{{ t("ROOM") }}</FwbTableHeadCell>
-        <FwbTableHeadCell>{{ t("TELEPHONE") }}</FwbTableHeadCell>
-        <FwbTableHeadCell>{{ t("EDIT") }}</FwbTableHeadCell>
-        <FwbTableHeadCell>{{ t("IN/OUT") }}</FwbTableHeadCell>
-      </FwbTableHead>
-      <FwbTableBody>
-        <FwbTableRow
+    <CTable>
+      <CTableHead>
+        <CTableHeadCell>
+          <CCheckbox />
+        </CTableHeadCell>
+        <CTableHeadCell>{{ t("NAME") }}</CTableHeadCell>
+        <CTableHeadCell>{{ t("SURNAME") }}</CTableHeadCell>
+        <CTableHeadCell>{{ t("STATUS") }}</CTableHeadCell>
+        <CTableHeadCell>{{ t("ENROLMENT YEAR") }}</CTableHeadCell>
+        <CTableHeadCell>{{ t("FACULTY") }}</CTableHeadCell>
+        <CTableHeadCell>{{ t("DORM") }}</CTableHeadCell>
+        <CTableHeadCell>{{ t("ROOM") }}</CTableHeadCell>
+        <CTableHeadCell>{{ t("TELEPHONE") }}</CTableHeadCell>
+        <CTableHeadCell>{{ t("IN/OUT") }}</CTableHeadCell>
+        <CTableHeadCell class="text-right">{{ t("Action") }}</CTableHeadCell>
+      </CTableHead>
+      <CTableBody>
+        <CTableRow
           v-for="(student, index) in paginatedStudents"
           :key="index"
-          class="border-gray-300"
         >
-          <FwbTableCell>
-            <FwbCheckbox />
-          </FwbTableCell>
-          <FwbTableCell>{{ student.name }}</FwbTableCell>
-          <FwbTableCell>{{ student.surname }}</FwbTableCell>
-          <FwbTableCell>{{ student.status }}</FwbTableCell>
-          <FwbTableCell>{{ student.enrolmentYear }}</FwbTableCell>
-          <FwbTableCell>{{ student.faculty }}</FwbTableCell>
-          <FwbTableCell>{{ student.dorm }}</FwbTableCell>
-          <FwbTableCell>{{ student.room }}</FwbTableCell>
-          <FwbTableCell>{{ student.telephone }}</FwbTableCell>
-          <FwbTableCell class="text-center">
-            <Button @click="navigateToEditStudent(index)">
-              {{ t("Edit") }}
-            </Button>
-          </FwbTableCell>
-          <FwbTableCell class="text-center">
+          <CTableCell>
+            <CCheckbox />
+          </CTableCell>
+          <CTableCell>{{ student.name }}</CTableCell>
+          <CTableCell>{{ student.surname }}</CTableCell>
+          <CTableCell>{{ student.status }}</CTableCell>
+          <CTableCell>{{ student.enrolmentYear }}</CTableCell>
+          <CTableCell>{{ student.faculty }}</CTableCell>
+          <CTableCell>{{ student.dorm }}</CTableCell>
+          <CTableCell>{{ student.room }}</CTableCell>
+          <CTableCell>{{ student.telephone }}</CTableCell>
+          <CTableCell>
             <component
               :is="student.status === t('In') ? CheckCircleIcon : XCircleIcon"
               :class="
@@ -113,36 +101,41 @@
               "
               class="mx-auto h-6 w-6"
             />
-          </FwbTableCell>
-        </FwbTableRow>
-      </FwbTableBody>
-    </FwbTable>
+          </CTableCell>
+          <CTableCell class="text-right">
+            <CButton @click="navigateToEditStudent(index)">
+              <PencilSquareIcon class="h-5 w-5" /> {{ t("Edit") }}
+            </CButton>
+          </CTableCell>
+          
+        </CTableRow>
+      </CTableBody>
+    </CTable>
 
     <!-- Pagination -->
     <div class="mb-4 flex items-center justify-between">
-      <Button :disabled="currentPage === 1" @click="currentPage--">
+      <CButton :disabled="currentPage === 1" @click="currentPage--">
         {{ t("Previous") }}
-      </Button>
-      <span
-        >{{ t("Page") }} {{ currentPage }} {{ t("of") }} {{ totalPages }}</span
-      >
-      <Button :disabled="currentPage === totalPages" @click="currentPage++">
+      </CButton>
+      <span>{{ t("Page") }} {{ currentPage }} {{ t("of") }} {{ totalPages }}</span>
+      <CButton :disabled="currentPage === totalPages" @click="currentPage++">
         {{ t("Next") }}
-      </Button>
+      </CButton>
     </div>
 
-    <div class="flex flex-row items-center space-x-4">
-      <FwbSelect
+    <!-- Bulk Actions -->
+    <div class="flex flex-row items-end gap-4">
+      <CSelect
+        id="bulk-action"
+        v-model="bulkAction"
+        :options="bulkActionOptions"
+        :label="t('Action')"
+        :placeholder="t('Select Action')"
         class="w-40"
-        :options="[
-          { value: 1, name: t('Deactivate') },
-          { value: 2, name: t('Delete') },
-        ]"
-        :placeholder="t('Action')"
       />
-      <PrimaryButton>
+      <CButton variant="primary">
         {{ t("Submit") }}
-      </PrimaryButton>
+      </CButton>
     </div>
   </Navigation>
 </template>
@@ -157,36 +150,53 @@ import {
   PlusIcon,
   CheckCircleIcon,
   XCircleIcon,
+  PencilSquareIcon,
 } from "@heroicons/vue/24/outline";
-import {
-  FwbInput,
-  FwbSelect,
-  FwbCheckbox,
-  FwbButton,
-  FwbTable,
-  FwbTableHead,
-  FwbTableHeadCell,
-  FwbTableBody,
-  FwbTableRow,
-  FwbTableCell,
-} from "flowbite-vue";
-import Button from "@/components/CButton.vue";
-import PrimaryButton from "@/components/PrimaryButton.vue";
+import CInput from "@/components/CInput.vue";
+import CSelect from "@/components/CSelect.vue";
+import CCheckbox from "@/components/CCheckbox.vue";
+import CButton from "@/components/CButton.vue";
+import CTable from "@/components/CTable.vue";
+import CTableHead from "@/components/CTableHead.vue";
+import CTableHeadCell from "@/components/CTableHeadCell.vue";
+import CTableBody from "@/components/CTableBody.vue";
+import CTableRow from "@/components/CTableRow.vue";
+import CTableCell from "@/components/CTableCell.vue";
 
 const { t } = useI18n();
 const router = useRouter();
 
-// Navigate to Add Student form
-const navigateToAddStudent = () => {
-  router.push("/student-form");
-};
+const searchQuery = ref("");
+const filters = ref({
+  faculty: "",
+  room: "",
+  status: "",
+  showDormitoryStudents: false,
+});
+const bulkAction = ref("");
 
-// Navigate to Edit Student form
-const navigateToEditStudent = (id) => {
-  router.push(`/student-form/${id}`);
-};
+const facultyOptions = [
+  { value: "law", name: t("Law and Social Sciences") },
+  { value: "cs", name: t("Computer Science") },
+  { value: "management", name: t("Management") },
+];
 
-// Student data
+const roomOptions = [
+  { value: "a227", name: "A227" },
+  { value: "b317", name: "B317" },
+  { value: "c105", name: "C105" },
+];
+
+const statusOptions = [
+  { value: "registered", name: t("Registered") },
+  { value: "reserv", name: t("Reserv") },
+];
+
+const bulkActionOptions = [
+  { value: "deactivate", name: t("Deactivate") },
+  { value: "delete", name: t("Delete") },
+];
+
 const students = ref([
   {
     name: "Student1",
@@ -210,7 +220,6 @@ const students = ref([
   },
 ]);
 
-// Pagination
 const currentPage = ref(1);
 const itemsPerPage = 10;
 const totalPages = computed(() =>
@@ -223,8 +232,13 @@ const paginatedStudents = computed(() =>
   ),
 );
 
-// Search Query
-const searchQuery = ref("");
+const navigateToAddStudent = () => {
+  router.push("/student-form");
+};
+
+const navigateToEditStudent = (id) => {
+  router.push(`/student-form/${id}`);
+};
 </script>
 
 <style scoped>

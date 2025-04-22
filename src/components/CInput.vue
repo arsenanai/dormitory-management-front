@@ -26,7 +26,7 @@
     <!-- Mobile Icon -->
     <component
       v-else-if="type === 'tel'"
-      :is="PhoneIcon"
+      :is="DevicePhoneMobileIcon"
       class="absolute top-1/2 -translate-y-1/2 left-0 w-8 h-8 text-gray-500 dark:text-gray-400 pointer-events-none pl-3"
     />
     <!-- Custom Icon -->
@@ -81,7 +81,8 @@
 
 <script setup>
 import { computed } from 'vue';
-import { MagnifyingGlassIcon, EnvelopeIcon, PhoneIcon } from '@heroicons/vue/24/outline'; // Correct imports
+import { MagnifyingGlassIcon, EnvelopeIcon, DevicePhoneMobileIcon } from '@heroicons/vue/24/outline'; // Correct imports
+
 
 // Props
 const {

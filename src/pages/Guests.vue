@@ -1,102 +1,74 @@
 <template>
   <Navigation :title="t('Guest House')">
     <!-- Search Bar -->
-    <div class="mb-4 flex items-center justify-between">
+    <div class="mb-4 flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between">
       <div class="relative w-full max-w-xs">
-        <FwbInput
+        <CInput
+          id="search-guests"
           v-model="searchQuery"
-          type="text"
+          type="search"
           :placeholder="t('Search')"
-          class="pl-10 focus:border-blue-500 focus:ring-blue-500 focus:outline-none"
+          :label="t('Search')"
         />
-        <div
-          class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
-        >
-          <MagnifyingGlassIcon class="h-5 w-5 text-gray-400" />
-        </div>
       </div>
-      <FwbButton
-        type="button"
-        class="ml-4 flex items-center gap-2"
-        color="light"
-        @click="addGuest"
-      >
-        <span class="flex flex-row items-center gap-2">
-          <UserPlusIcon class="h-5 w-5" />
-          {{ t("Add Guest") }}
-        </span>
-      </FwbButton>
+      <CButton variant="primary" @click="addGuest">
+        <UserPlusIcon class="h-5 w-5" />
+        {{ t("Add Guest") }}
+      </CButton>
     </div>
 
-    <!-- Responsive Table -->
-    <FwbTable hoverable>
-      <FwbTableHead>
-        <FwbTableHeadCell>{{ t("Name") }}</FwbTableHeadCell>
-        <FwbTableHeadCell>{{ t("Surname") }}</FwbTableHeadCell>
-        <FwbTableHeadCell>{{ t("Enter Date") }}</FwbTableHeadCell>
-        <FwbTableHeadCell>{{ t("Exit Date") }}</FwbTableHeadCell>
-        <FwbTableHeadCell>{{ t("Telephone") }}</FwbTableHeadCell>
-        <FwbTableHeadCell>{{ t("Room") }}</FwbTableHeadCell>
-        <FwbTableHeadCell>{{ t("Payment") }}</FwbTableHeadCell>
-        <FwbTableHeadCell>{{ t("Edit") }}</FwbTableHeadCell>
-        <FwbTableHeadCell>{{ t("Delete") }}</FwbTableHeadCell>
-      </FwbTableHead>
-      <FwbTableBody>
-        <FwbTableRow
+    <!-- Guests Table -->
+    <CTable>
+      <CTableHead>
+        <CTableHeadCell>{{ t("Name") }}</CTableHeadCell>
+        <CTableHeadCell>{{ t("Surname") }}</CTableHeadCell>
+        <CTableHeadCell>{{ t("Enter Date") }}</CTableHeadCell>
+        <CTableHeadCell>{{ t("Exit Date") }}</CTableHeadCell>
+        <CTableHeadCell>{{ t("Telephone") }}</CTableHeadCell>
+        <CTableHeadCell>{{ t("Room") }}</CTableHeadCell>
+        <CTableHeadCell>{{ t("Payment") }}</CTableHeadCell>
+        <CTableHeadCell class="text-right">{{ t("Action") }}</CTableHeadCell>
+      </CTableHead>
+      <CTableBody>
+        <CTableRow
           v-for="guest in filteredGuests"
           :key="guest.id"
-          class="border-gray-300"
         >
-          <FwbTableCell>{{ guest.name }}</FwbTableCell>
-          <FwbTableCell>{{ guest.surname }}</FwbTableCell>
-          <FwbTableCell>{{ guest.enterDate }}</FwbTableCell>
-          <FwbTableCell>{{ guest.exitDate }}</FwbTableCell>
-          <FwbTableCell>{{ guest.telephone }}</FwbTableCell>
-          <FwbTableCell>{{ guest.room }}</FwbTableCell>
-          <FwbTableCell>{{ guest.payment }}</FwbTableCell>
-          <FwbTableCell>
-            <button
-              @click="editGuest(guest.id)"
-              class="text-blue-500 hover:text-blue-700"
-            >
-              <PencilSquareIcon class="h-5 w-5" />
-            </button>
-          </FwbTableCell>
-          <FwbTableCell>
-            <button
-              @click="deleteGuest(guest.id)"
-              class="text-red-500 hover:text-red-700"
-            >
-              <TrashIcon class="h-5 w-5" />
-            </button>
-          </FwbTableCell>
-        </FwbTableRow>
-      </FwbTableBody>
-    </FwbTable>
+          <CTableCell>{{ guest.name }}</CTableCell>
+          <CTableCell>{{ guest.surname }}</CTableCell>
+          <CTableCell>{{ guest.enterDate }}</CTableCell>
+          <CTableCell>{{ guest.exitDate }}</CTableCell>
+          <CTableCell>{{ guest.telephone }}</CTableCell>
+          <CTableCell>{{ guest.room }}</CTableCell>
+          <CTableCell>{{ guest.payment }}</CTableCell>
+          <CTableCell class="flex gap-2 items-center justify-end">
+            <CButton @click="editGuest(guest.id)">
+              <PencilSquareIcon class="h-5 w-5" /> {{ t('Edit') }}
+            </CButton>
+            <CButton class="text-red-600" @click="deleteGuest(guest.id)">
+              <TrashIcon class="h-5 w-5" /> {{ t('Delete') }}
+            </CButton>
+          </CTableCell>
+        </CTableRow>
+      </CTableBody>
+    </CTable>
   </Navigation>
 </template>
 
 <script setup>
 import Navigation from "@/components/CNavigation.vue";
 import { useI18n } from "vue-i18n";
-import {
-  FwbInput,
-  FwbButton,
-  FwbTable,
-  FwbTableBody,
-  FwbTableCell,
-  FwbTableHead,
-  FwbTableHeadCell,
-  FwbTableRow,
-} from "flowbite-vue";
-import {
-  MagnifyingGlassIcon,
-  UserPlusIcon,
-  PencilSquareIcon,
-  TrashIcon,
-} from "@heroicons/vue/24/outline"; // Import icons
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
+import CInput from "@/components/CInput.vue";
+import CButton from "@/components/CButton.vue";
+import CTable from "@/components/CTable.vue";
+import CTableHead from "@/components/CTableHead.vue";
+import CTableHeadCell from "@/components/CTableHeadCell.vue";
+import CTableBody from "@/components/CTableBody.vue";
+import CTableRow from "@/components/CTableRow.vue";
+import CTableCell from "@/components/CTableCell.vue";
+import { UserPlusIcon, PencilSquareIcon, TrashIcon } from "@heroicons/vue/24/outline";
 
 const { t } = useI18n();
 const router = useRouter();
@@ -147,16 +119,17 @@ const filteredGuests = computed(() => {
   );
 });
 
-// Navigate to Add Student form
+// Navigate to Add Guest form
 const addGuest = () => {
   router.push("/guest-form");
 };
 
-// Navigate to Edit Student form
+// Navigate to Edit Guest form
 const editGuest = (id) => {
   router.push(`/guest-form/${id}`);
 };
 
+// Delete Guest
 const deleteGuest = (id) => {
   console.log("Delete Guest with ID:", id);
 };

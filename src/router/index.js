@@ -33,6 +33,17 @@ const routes = [
     },
   },
   {
+    path: '/student-main',
+    name: 'Student Main',
+    component: () => import('@/pages/StudentMain.vue'), // Lazy-loaded
+    meta: {
+      title: 'Student Main',
+      requiresAuth: true,
+      sidebar: true,
+      icon: HomeIcon, // Icon for Student Main
+    },
+  },
+  {
     path: '/students',
     name: 'Students',
     component: () => import('@/pages/Students.vue'),
@@ -79,28 +90,28 @@ const routes = [
     },
   },
   // Uncomment and implement these routes when ready
-  // {
-  //   path: '/messages',
-  //   name: 'Messages',
-  //   component: () => import('@/pages/Messages.vue'), // Lazy-loaded
-  //   meta: {
-  //     title: 'Messages',
-  //     requiresAuth: true,
-  //     sidebar: true,
-  //     icon: ChatBubbleLeftRightIcon, // Icon for Messages
-  //   },
-  // },
-  // {
-  //   path: '/accounting',
-  //   name: 'Accounting',
-  //   component: () => import('@/pages/Accounting.vue'), // Lazy-loaded
-  //   meta: {
-  //     title: 'Accounting',
-  //     requiresAuth: true,
-  //     sidebar: true,
-  //     icon: ClipboardDocumentListIcon, // Icon for Accounting
-  //   },
-  // },
+  {
+    path: '/messages',
+    name: 'Messages',
+    component: () => import('@/pages/Messages.vue'), // Lazy-loaded
+    meta: {
+      title: 'Messages',
+      requiresAuth: true,
+      sidebar: true,
+      icon: ChatBubbleLeftRightIcon, // Icon for Messages
+    },
+  },
+  {
+    path: '/accounting',
+    name: 'Accounting',
+    component: () => import('@/pages/Accounting.vue'), // Lazy-loaded
+    meta: {
+      title: 'Accounting',
+      requiresAuth: true,
+      sidebar: true,
+      icon: ClipboardDocumentListIcon, // Icon for Accounting
+    },
+  },
   {
     path: '/configuration',
     name: 'Configuration',
@@ -110,6 +121,18 @@ const routes = [
       requiresAuth: true,
       sidebar: true,
       icon: Cog6ToothIcon, // Icon for Configuration
+    },
+  },
+  {
+    path: '/dormitory-form/:id?',
+    name: 'Dormitory Form',
+    component: () => import('@/pages/DormitoryForm.vue'), // Lazy-loaded
+    meta: {
+      title: 'Dormitory Form',
+      parent: 'Configuration', // Submenu under Configuration
+      requiresAuth: true,
+      sidebar: true,
+      icon: PencilSquareIcon, // Icon for Configuration Form
     },
   },
 ];

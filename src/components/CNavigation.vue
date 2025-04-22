@@ -9,7 +9,7 @@
           class="flex items-center justify-start space-x-2 lg:w-64 lg:justify-center lg:space-x-4"
         >
           <!-- Burger Menu -->
-          <Button @click="isSideMenuOpen = !isSideMenuOpen" class="lg:hidden">
+          <Button @click="isSideMenuOpen = !isSideMenuOpen" variant="transparent" class="lg:hidden">
             <Bars3Icon class="h-6 w-6" />
           </Button>
           <img src="/src/assets/sdu logo.png" class="h-14" alt="Logo" />
@@ -36,7 +36,7 @@
     <div class="flex flex-1 flex-col lg:flex-row">
       <!-- Sidebar -->
       <Sidebar
-        class="overflow-hidden transition-all duration-150 ease-in lg:max-h-screen"
+        class="overflow-hidden lg:max-h-screen"
         :class="{
           'max-h-[0px] opacity-0 lg:max-h-[700px] lg:opacity-100':
             isSideMenuOpen === false,

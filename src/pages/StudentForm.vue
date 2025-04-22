@@ -1,179 +1,175 @@
 <template>
-  <Navigation :title="t('Add-edit student page')">
+  <Navigation :title="t('Student page')">
     <!-- Form Fields -->
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <!-- IIN Field -->
       <div>
-        <FwbInput
+        <CInput
+          id="student-iin"
           v-model="student.iin"
-          type="text"
+          type="search"
           :label="t('IIN')"
           placeholder="Enter IIN"
           required
-          class="focus:outline-none"
         />
       </div>
 
       <!-- Name-Surname Field -->
       <div>
-        <FwbInput
+        <CInput
+          id="student-name"
           v-model="student.name"
           type="text"
           :label="t('Name-Surname')"
           placeholder="Enter Name and Surname"
           required
-          class="focus:outline-none"
         />
       </div>
 
       <!-- Faculty Field -->
       <div>
-        <FwbSelect
+        <CSelect
+          id="student-faculty"
           v-model="student.faculty"
           :options="facultyOptions"
           :label="t('Faculty')"
           required
-          class="focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
         />
       </div>
 
       <!-- Specialist Field -->
       <div>
-        <FwbSelect
+        <CSelect
+          id="student-specialist"
           v-model="student.specialist"
           :options="specialistOptions"
           :label="t('Specialist')"
           required
-          class="focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
         />
       </div>
 
       <!-- Enrollment Year Field -->
       <div>
-        <FwbInput
+        <CInput
+          id="student-enrollment-year"
           v-model="student.enrollmentYear"
           type="number"
           :label="t('Enrollment Year')"
           placeholder="Enter Enrollment Year"
           required
-          class="focus:outline-none"
         />
       </div>
 
       <!-- Gender Field -->
       <div>
-        <FwbSelect
+        <CSelect
+          id="student-gender"
           v-model="student.gender"
           :options="genderOptions"
           :label="t('Gender')"
           required
-          class="focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
         />
       </div>
 
       <!-- Email Field -->
       <div>
-        <FwbInput
+        <CInput
+          id="student-email"
           v-model="student.email"
           type="email"
           :label="t('E-mail')"
           placeholder="Enter E-mail"
           required
-          class="focus:outline-none"
         />
       </div>
-      <div></div>
 
       <!-- Phone Numbers -->
       <div>
         <label class="block text-sm font-medium text-gray-700">
           {{ t("Phone Numbers") }}
         </label>
-        <div class="flex flex-row items-end gap-2">
+        <div class="flex flex-col lg:flex-row items-stretch lg:items-end gap-2">
           <div class="flex flex-col items-stretch gap-2">
-            <FwbInput
+            <CInput
               v-for="(phone, index) in student.phoneNumbers"
               :key="index"
               v-model="student.phoneNumbers[index]"
               type="tel"
               placeholder="Enter Phone Number"
-              class="w-full flex-1 focus:outline-none"
             />
           </div>
-          <Button @click="addPhoneField" class="">
+          <CButton @click="addPhoneField">
             <PlusIcon class="h-5 w-5" /> {{ t("Add more") }}
-          </Button>
+          </CButton>
         </div>
       </div>
 
       <!-- Country Field -->
       <div>
-        <FwbSelect
+        <CSelect
+          id="student-country"
           v-model="student.country"
           :options="countryOptions"
           :label="t('Country')"
           required
-          class="focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
         />
       </div>
 
       <!-- Region Field -->
       <div>
-        <FwbSelect
+        <CSelect
+          id="student-region"
           v-model="student.region"
           :options="regionOptions"
           :label="t('Region')"
           required
-          class="focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
         />
       </div>
 
       <!-- City Field -->
       <div>
-        <FwbSelect
+        <CSelect
+          id="student-city"
           v-model="student.city"
           :options="cityOptions"
           :label="t('City')"
           required
-          class="focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
         />
       </div>
 
       <!-- Deal Number Field -->
       <div>
-        <FwbInput
+        <CInput
+          id="student-deal-number"
           v-model="student.dealNumber"
           type="text"
           :label="t('Deal Number')"
           placeholder="Enter Deal Number"
           required
-          class="focus:outline-none"
         />
       </div>
-      <div class="flex flex-row items-end justify-start gap-2">
-        <PrimaryButton>
-          {{ t("Submit") }}
-        </PrimaryButton>
-        <Button>
-          <PrinterIcon class="h-5 w-5" />
-          {{ t("Print") }}
-        </Button>
-      </div>
     </div>
-
     <!-- Submit and Print Buttons -->
-    <div class="flex items-end justify-between gap-2"></div>
+    <div class="mt-6 flex flex-row items-end justify-end gap-2">
+      <CButton onclick="window.print()">
+        <PrinterIcon class="h-5 w-5" />
+        {{ t("Print") }}
+      </CButton>
+      <CButton variant="primary">
+        {{ t("Submit") }}
+      </CButton>
+    </div>
   </Navigation>
 </template>
 
 <script setup>
 import Navigation from "@/components/CNavigation.vue";
 import { useI18n } from "vue-i18n";
-import { FwbInput, FwbSelect } from "flowbite-vue";
-import { PlusIcon, PrinterIcon } from "@heroicons/vue/24/outline"; // Import icons
 import { ref } from "vue";
-import PrimaryButton from "@/components/PrimaryButton.vue";
-import Button from "@/components/CButton.vue";
+import CInput from "@/components/CInput.vue";
+import CSelect from "@/components/CSelect.vue";
+import CButton from "@/components/CButton.vue";
+import { PlusIcon, PrinterIcon } from "@heroicons/vue/24/outline";
 
 const { t } = useI18n();
 

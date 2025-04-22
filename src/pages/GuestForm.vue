@@ -1,87 +1,176 @@
 <template>
-  <Navigation :title="t('Add-edit guest page')">
+  <Navigation :title="t('Guest page')">
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <!-- Guest First Name -->
-      <FwbInput v-model="guest.firstName" :label="t('Firstname')" required />
+      <div>
+        <CInput
+          id="guest-first-name"
+          v-model="guest.firstName"
+          type="text"
+          :label="t('Firstname')"
+          placeholder="Enter Firstname"
+          required
+        />
+      </div>
 
       <!-- Guest Last Name -->
-      <FwbInput v-model="guest.lastName" :label="t('Surname')" required />
+      <div>
+        <CInput
+          id="guest-last-name"
+          v-model="guest.lastName"
+          type="text"
+          :label="t('Surname')"
+          placeholder="Enter Surname"
+          required
+        />
+      </div>
 
       <!-- Phone -->
-      <FwbInput
-        v-model="guest.phone"
-        :label="t('Tel no')"
-        type="tel"
-        placeholder="+7(___)_______"
-      />
+      <div>
+        <CInput
+          id="guest-phone"
+          v-model="guest.phone"
+          type="tel"
+          :label="t('Tel no')"
+          placeholder="+7(___)_______"
+          required
+        />
+      </div>
 
       <!-- Enter Date -->
-      <FwbInput
-        v-model="guest.enterDate"
-        :label="t('Enter date')"
-        type="date"
-      />
+      <div>
+        <CInput
+          id="guest-enter-date"
+          v-model="guest.enterDate"
+          type="date"
+          :label="t('Enter date')"
+          required
+        />
+      </div>
 
       <!-- Exit Date -->
-      <FwbInput v-model="guest.exitDate" :label="t('Exit date')" type="date" />
+      <div>
+        <CInput
+          id="guest-exit-date"
+          v-model="guest.exitDate"
+          type="date"
+          :label="t('Exit date')"
+          required
+        />
+      </div>
 
       <!-- Room Selection -->
-      <FwbSelect
-        v-model="guest.room"
-        :options="roomOptions"
-        :label="t('Select room')"
-        class="focus:outline-none"
-      />
+      <div>
+        <CSelect
+          id="guest-room"
+          v-model="guest.room"
+          :options="roomOptions"
+          :label="t('Select room')"
+          required
+        />
+      </div>
 
       <!-- WiFi Username -->
-      <FwbInput v-model="guest.wifiUsername" :label="t('Wifi Username')" />
+      <div>
+        <CInput
+          id="guest-wifi-username"
+          v-model="guest.wifiUsername"
+          type="text"
+          :label="t('Wifi Username')"
+          placeholder="Enter WiFi Username"
+        />
+      </div>
 
       <!-- WiFi Password -->
-      <FwbInput v-model="guest.wifiPassword" :label="t('Wifi Password')" />
+      <div>
+        <CInput
+          id="guest-wifi-password"
+          v-model="guest.wifiPassword"
+          type="text"
+          :label="t('Wifi Password')"
+          placeholder="Enter WiFi Password"
+        />
+      </div>
 
       <!-- Information / Reminder -->
       <div class="col-span-1 lg:col-span-2">
+        <label class="block text-sm font-medium text-gray-700">
+          {{ t("Information - Reminder") }}
+        </label>
         <textarea
+          id="guest-reminder"
           v-model="guest.reminder"
           class="w-full rounded border border-gray-300 p-2 focus:outline-none"
-          placeholder="Information - Reminder"
+          placeholder="Enter Information or Reminder"
           rows="3"
         ></textarea>
       </div>
     </div>
 
-    <hr class="my-4 border-t" />
+    <hr class="my-4 border-t border-gray-300" />
     <div class="text-lg font-medium">{{ t("Payment info") }}</div>
 
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <!-- Daily Rate -->
-      <FwbInput v-model="guest.dailyRate" :label="t('Daily')" />
+      <div>
+        <CInput
+          id="guest-daily-rate"
+          v-model="guest.dailyRate"
+          type="text"
+          :label="t('Daily')"
+          placeholder="Enter Daily Rate"
+        />
+      </div>
 
       <!-- Payment Rows -->
       <template v-for="(payment, index) in guest.payments" :key="index">
-        <div class="flex flex-col gap-2">
-          <FwbInput v-model="payment.date" type="date" class="w-full" />
+        <div>
+          <CInput
+            :id="`guest-payment-date-${index}`"
+            v-model="payment.date"
+            type="date"
+            :label="t('Payment Date')"
+          />
         </div>
-        <FwbInput v-model="payment.amount" placeholder="0T" class="w-full" />
+        <div>
+          <CInput
+            :id="`guest-payment-amount-${index}`"
+            v-model="payment.amount"
+            type="text"
+            :label="t('Payment Amount')"
+            placeholder="0T"
+          />
+        </div>
       </template>
 
       <!-- Paid -->
-      <FwbInput v-model="guest.paid" :label="t('PAID')" />
+      <div>
+        <CInput
+          id="guest-paid"
+          v-model="guest.paid"
+          type="text"
+          :label="t('PAID')"
+          placeholder="Enter Paid Amount"
+        />
+      </div>
 
       <!-- Debt -->
-      <FwbInput v-model="guest.debt" :label="t('DEBT')" />
+      <div>
+        <CInput
+          id="guest-debt"
+          v-model="guest.debt"
+          type="text"
+          :label="t('DEBT')"
+          placeholder="Enter Debt Amount"
+        />
+      </div>
     </div>
 
     <!-- Submit Button -->
     <div class="mt-6 flex justify-end">
-      <FwbButton
-        outline
-        type="button"
-        @click="submitForm"
-        class="w-full sm:w-40"
-      >
-        {{ t("SUBMIT") }}
-      </FwbButton>
+      <CButton variant="primary" @click="submitForm" class="w-full lg:w-auto">
+        {{ t("Submit") }}
+      </CButton>
     </div>
   </Navigation>
 </template>
@@ -90,7 +179,9 @@
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import Navigation from "@/components/CNavigation.vue";
-import { FwbInput, FwbSelect, FwbButton } from "flowbite-vue";
+import CInput from "@/components/CInput.vue";
+import CSelect from "@/components/CSelect.vue";
+import CButton from "@/components/CButton.vue";
 
 const { t } = useI18n();
 
@@ -125,3 +216,7 @@ const submitForm = () => {
   console.log("Form submitted:", guest.value);
 };
 </script>
+
+<style scoped>
+/* Add custom styles if needed */
+</style>
