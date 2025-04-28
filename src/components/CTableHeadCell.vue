@@ -4,6 +4,6 @@
   </th>
 </template>
 
-<script setup>
+<script setup lang="ts">
 // No additional logic needed for the table head cell
 </script>

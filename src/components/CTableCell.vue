@@ -4,6 +4,6 @@
   </td>
 </template>
 
-<script setup>
+<script setup >
 // No additional logic needed for the table cell
 </script>

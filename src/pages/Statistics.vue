@@ -1,35 +1,44 @@
 <template>
   <Navigation :title="t('Dashboard')">
     <!-- Main Content -->
-    <div class="grid h-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <div
+      class="grid h-full grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6"
+    >
       <!-- Cards -->
       <div
         v-for="(card, index) in cards"
         :key="index"
         :class="
           card.bgClass +
-          ' flex flex-col justify-between rounded-lg p-6 text-center shadow'
+          ' flex flex-row justify-between lg:justify-center gap-2 rounded-lg p-2 text-center shadow lg:flex-col lg:gap-4 lg:p-6'
         "
       >
-        <div class="mb-4 flex items-center justify-center">
+        <div class="flex flex-col items-center justify-center">
           <div
             :class="
               card.iconBgClass +
-              ' flex items-center justify-center rounded-full p-4'
+              ' flex items-center justify-center rounded-full p-2 lg:p-4'
             "
           >
             <component
               :is="card.icon"
-              class="h-8 w-8"
+              class="h-4 w-4 lg:h-8 lg:w-8 xl:h-12 xl:w-12"
               :class="card.iconTextClass"
             />
           </div>
         </div>
-        <div>
-          <h3 :class="card.textClass" class="text-5xl font-extrabold">
+        <div
+          class="flex flex-1 lg:flex-none flex-row items-center justify-between gap-2 lg:flex-col lg:gap-4"
+        >
+          <h3
+            :class="card.textClass"
+            class="order-2 text-base font-semibold lg:order-1 lg:text-5xl lg:font-extrabold xl:text-6xl"
+          >
             {{ card.value }}
           </h3>
-          <p class="mt-2 text-lg font-medium text-blue-950">
+          <p
+            class="order-1 truncate text-sm font-medium text-blue-950 lg:order-2 lg:text-lg xl:text-xl"
+          >
             {{ card.description }}
           </p>
         </div>
@@ -104,7 +113,7 @@ const cards = [
     iconTextClass: "text-blue-600",
   },
   {
-    value: 758,
+    value: 1758,
     description: t("Current presence in dormitory"),
     bgClass: "bg-purple-50",
     textClass: "text-purple-600",

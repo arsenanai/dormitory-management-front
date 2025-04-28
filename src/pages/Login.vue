@@ -1,6 +1,11 @@
 <template>
-  <div class="flex min-h-screen items-start justify-center bg-blue-50 py-2 lg:items-center lg:p-4">
-    <div class="w-full max-w-md" :class="activeTab === 'registration' ? 'lg:max-w-5xl' : 'lg:max-w-md'">
+  <div
+    class="flex min-h-screen items-start justify-center bg-blue-50 py-2 lg:items-center lg:p-4"
+  >
+    <div
+      class="w-full max-w-md"
+      :class="activeTab === 'registration' ? 'lg:max-w-5xl' : 'lg:max-w-md'"
+    >
       <div class="mb-4 flex justify-center lg:justify-end lg:p-0">
         <CSelect
           id="language-selector"
@@ -44,14 +49,14 @@
                 />
               </div>
 
-              <CButton type="submit" class="w-full mt-4" variant="primary">
+              <CButton type="submit" class="mt-4 w-full" variant="primary">
                 {{ t("Login") }}
               </CButton>
             </form>
           </CTab>
 
           <CTab name="registration" :title="t('Registration')">
-            <form class="flex flex-col gap-2">
+            <form class="flex flex-col gap-4">
               <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <div>
                   <CInput
@@ -72,7 +77,7 @@
                     v-model="registration.name"
                     type="text"
                     :label="t('Fullname')"
-                    :placeholder="t('Anna Fettisov')"
+                    :placeholder="t('Fullname')"
                     required
                     :validationState="registrationValidationState.name"
                     :validationMessage="registrationValidationMessage.name"
@@ -100,7 +105,9 @@
                     :label="t('Specialist')"
                     required
                     :validationState="registrationValidationState.specialist"
-                    :validationMessage="registrationValidationMessage.specialist"
+                    :validationMessage="
+                      registrationValidationMessage.specialist
+                    "
                   />
                 </div>
 
@@ -111,8 +118,12 @@
                     type="text"
                     :label="t('Enrollment Year')"
                     required
-                    :validationState="registrationValidationState.enrollmentYear"
-                    :validationMessage="registrationValidationMessage.enrollmentYear"
+                    :validationState="
+                      registrationValidationState.enrollmentYear
+                    "
+                    :validationMessage="
+                      registrationValidationMessage.enrollmentYear
+                    "
                     pattern="^\d{4}$"
                   />
                 </div>
@@ -163,8 +174,12 @@
                     type="password"
                     :label="t('Confirm Password')"
                     required
-                    :validationState="registrationValidationState.confirmPassword"
-                    :validationMessage="registrationValidationMessage.confirmPassword"
+                    :validationState="
+                      registrationValidationState.confirmPassword
+                    "
+                    :validationMessage="
+                      registrationValidationMessage.confirmPassword
+                    "
                     pattern=".{6,}"
                   />
                 </div>
@@ -194,40 +209,18 @@
                 </div>
               </div>
 
-              <div>
-                <CCheckbox
-                  id="registration-reserve-list"
-                  v-model="registration.addToReserveList"
-                  :label="t('Add to Reserve List')"
+              <div
+                v-for="(fileLabel, index) in registrationFileLabels"
+                :key="index"
+              >
+                <CFileInput
+                  :id="`registration-file-${index}`"
+                  :name="fileLabel"
+                  :label="t(fileLabel)"
+                  :allowedExtensions="['jpg', 'jpeg', 'png', 'pdf']"
+                  :maxFileSize="2 * 1024 * 1024"
+                  @change="(file) => updateRegistrationFileInput(index, file)"
                 />
-              </div>
-
-              <div class="mt-4">
-                <div v-for="(file, index) in registration.files" :key="index" class="mb-2">
-                  <CFileInput
-                    :id="`guest-file-${index}`"
-                    :description="t('Documents to be Uploaded')"
-                    :allowedExtensions="['jpg', 'jpeg', 'png', 'pdf']"
-                    :maxFileSize="2 * 1024 * 1024"
-                    @change="(file) => updateRegistrationFileInput(index, file)"
-                  />
-                </div>
-                <div class="flex justify-end">
-                  <CButton @click="addRegistrationFileInput">
-                    {{ t("Upload more files") }}
-                  </CButton>
-                </div>
-              </div>
-
-              <div class="">
-                <div class="mx-auto h-24 w-24">
-                  <img
-                    :src="qrCodeUrl"
-                    :alt="t('Kaspi QR Code')"
-                    class="h-full w-full object-contain"
-                  />
-                </div>
-                <p class="text-center">{{ t("Kaspi QR Code") }}</p>
               </div>
 
               <div>
@@ -240,7 +233,7 @@
               </div>
 
               <div>
-                <CButton type="submit" class="w-full mt-4" variant="primary">
+                <CButton type="submit" class="mt-4 w-full" variant="primary">
                   {{ t("Register") }}
                 </CButton>
               </div>
@@ -249,42 +242,50 @@
 
           <CTab name="guests" :title="t('Guests')">
             <form class="flex flex-col gap-2">
-              <CSelect
-                id="guest-room-type"
-                v-model="guest.roomType"
-                :options="roomTypeOptions"
-                :label="t('Room Type')"
-                required
-              />
-
-              <CInput
-                id="guest-name"
-                v-model="guest.name"
-                type="text"
-                :label="t('Fullname')"
-                :placeholder="t('Anna Fettisova')"
-                required
-                pattern="^[a-zA-Z\s]+$"
-              />
-              
-              <div class="mt-4">
-                <div v-for="(file, index) in guest.files" :key="index" class="mb-2">
-                  <CFileInput
-                    :id="`guest-file-${index}`"
-                    :description="t('Upload ID Card or Passport')"
-                    :allowedExtensions="['jpg', 'jpeg', 'png', 'pdf']"
-                    :maxFileSize="2 * 1024 * 1024"
-                    @change="(file) => updateGuestFileInput(index, file)"
-                  />
-                </div>
-                <div class="flex justify-end">
-                  <CButton @click="addGuestFileInput">
-                    {{ t("Upload more files") }}
-                  </CButton>
+              <div>
+                <CSelect
+                  id="guest-room-type"
+                  v-model="guest.roomType"
+                  :options="roomTypeOptions"
+                  :label="t('Room Type')"
+                  required
+                />
+              </div>
+              <div>
+                <CInput
+                  id="guest-name"
+                  v-model="guest.name"
+                  type="text"
+                  :label="t('Fullname')"
+                  :placeholder="t('Fullname')"
+                  required
+                  pattern="^[a-zA-Z\s]+$"
+                />
+              </div>
+              <div>
+                <div class="flex flex-col gap-2">
+                  <div
+                    v-for="(file, index) in guest.files"
+                    :key="index"
+                    id="documents"
+                  >
+                    <CFileInput
+                      :id="`guest-file-${index}`"
+                      :label="`${t('Document')} ${index + 1}`"
+                      :allowedExtensions="['jpg', 'jpeg', 'png', 'pdf']"
+                      :maxFileSize="2 * 1024 * 1024"
+                      @change="(file) => updateGuestFileInput(index, file)"
+                    />
+                  </div>
+                  <div class="flex justify-end">
+                    <CButton @click="addGuestFileInput">
+                      {{ t("Upload more files") }}
+                    </CButton>
+                  </div>
                 </div>
               </div>
 
-              <CButton type="submit" class="w-full mt-4" variant="primary">
+              <CButton type="submit" class="mt-4 w-full" variant="primary">
                 {{ t("Book Room") }}
               </CButton>
             </form>
@@ -347,9 +348,17 @@ const registration = ref({
   dormitory: "",
   room: "",
   addToReserveList: false,
-  files: [null],
+  files: [null, null, null, null], // Fixed number of file inputs
   agreeToDormitoryRules: false,
 });
+
+// Fixed file input labels
+const registrationFileLabels = [
+  "063 Form",
+  "075 Form",
+  "ID Check",
+  "Bank Check",
+];
 
 const registrationValidationState = ref({
   iin: "",

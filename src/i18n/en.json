@@ -1,6 +1,7 @@
 {
     "fileInput": {
-        "clickOrDrag": "Click to upload or drag and drop",
+        "click": "Click to upload",
+        "orDrag": "or drag and drop",
         "description": "SVG, PNG, JPG, or GIF (MAX. 800x400px)",
         "selectedFile": "Selected file",
         "dropHere": "Drop here",

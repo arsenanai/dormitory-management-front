@@ -2,20 +2,24 @@
   <div>
     <!-- Tabs Navigation -->
     <div class="mb-4 border-b border-gray-200 dark:border-gray-700">
-      <ul class="flex text-sm font-medium text-center w-full" role="tablist">
+      <ul
+        v-if="tabs.length > 0"
+        class="flex w-full text-center text-sm font-medium"
+        role="tablist"
+      >
         <li
-          v-for="(tab, index) in tabs"
-          :key="index"
+          v-for="tab in tabs"
+          :key="tab.name"
           class="w-full"
           role="presentation"
         >
           <button
             :class="[
-              'inline-block w-full p-4 border-b-2 rounded-t-lg focus:outline-none transition-all',
+              'inline-block w-full rounded-t-lg border-b-2 p-4 transition-all focus:outline-none',
               activeTab === tab.name
                 ? 'text-primary-500 border-primary-500'
-                : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300',
-              'focus:ring-4 focus:ring-primary-300 dark:focus:ring-primary-700',
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300',
+              'focus:ring-primary-300 dark:focus:ring-primary-700 focus:ring-4',
             ]"
             @click="selectTab(tab.name)"
             type="button"
@@ -27,6 +31,9 @@
           </button>
         </li>
       </ul>
+      <p v-else class="text-center text-gray-500 dark:text-gray-400">
+        {{ t("tabs.noTabsAvailable") }}
+      </p>
     </div>
 
     <!-- Tabs Content -->
@@ -36,42 +43,55 @@
   </div>
 </template>
 
-<script setup>
-import { ref, provide, watch } from 'vue';
+<script setup lang="ts">
+import { ref, provide, computed } from "vue";
+import { useI18n } from "vue-i18n";
+
+// Define the type for a tab
+interface Tab {
+  name: string;
+  title: string;
+}
 
 // Props
-const props = defineProps({
-  modelValue: {
-    type: String,
-    required: true,
-  },
-});
+const props = defineProps<{
+  modelValue: string;
+}>();
 
 // Emits
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits<{
+  (event: "update:modelValue", value: string): void;
+}>();
 
 // State
-const activeTab = ref(props.modelValue);
-const tabs = ref([]);
+const tabs = ref<Tab[]>([]);
+
+// i18n
+const { t } = useI18n();
 
 // Provide the active tab and a method to register tabs
-provide('activeTab', activeTab);
-provide('registerTab', (tab) => {
-  tabs.value.push(tab);
+provide(
+  "activeTab",
+  computed(() => props.modelValue),
+);
+provide("registerTab", (tab: Tab) => {
+  if (!tabs.value.some((t) => t.name === tab.name)) {
+    tabs.value.push(tab); // Add the tab only if it doesn't already exist
+  }
 });
 
-// Watch for changes in the modelValue prop
-watch(
-  () => props.modelValue,
-  (newValue) => {
-    activeTab.value = newValue;
+// Computed active tab
+const activeTab = computed({
+  get: () => props.modelValue,
+  set: (value: string) => {
+    if (value !== props.modelValue) {
+      emit("update:modelValue", value); // Only emit if the value has changed
+    }
   },
-);
+});
 
 // Methods
-const selectTab = (tabName) => {
-  activeTab.value = tabName;
-  // Emit the updated tab name
-  emit('update:modelValue', tabName);
+const selectTab = (tabName: string) => {
+  activeTab.value = tabName; // Update the active tab
 };
 </script>

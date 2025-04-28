@@ -4,6 +4,6 @@
   </tbody>
 </template>
 
-<script setup>
+<script setup lang="ts">
 // No additional logic needed for the table body
 </script>

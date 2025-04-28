@@ -1,13 +1,23 @@
 <template>
   <div
-    class="flex items-center justify-center w-full"
+    class="flex w-full flex-col items-start justify-center"
     @dragover.prevent="handleDragOver"
     @dragleave.prevent="handleDragLeave"
     @drop.prevent="handleDrop"
   >
+    <!-- Label -->
     <label
+      v-if="label"
       :for="id"
-      class="flex flex-row items-center justify-between w-full border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600 focus:outline-none focus:ring-4 focus:ring-primary-300 dark:focus:ring-primary-700"
+      class="block text-sm font-medium"
+      :class="labelClass"
+    >
+      {{ label }}
+    </label>
+
+    <!-- File Input Wrapper -->
+    <div
+      class="focus:ring-primary-300 dark:focus:ring-primary-700 flex w-full cursor-pointer flex-row items-center justify-between rounded-lg border border-gray-300 bg-gray-50 hover:bg-gray-100 focus:ring-4 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:hover:border-gray-500 dark:hover:bg-gray-600"
       tabindex="0"
       @keydown.enter.prevent="focusFileInput"
       @keydown.space.prevent="focusFileInput"
@@ -15,23 +25,34 @@
     >
       <div class="relative px-2.5 py-2 pl-10">
         <!-- File Icon -->
-        <PaperClipIcon class="absolute top-1/2 -translate-y-1/2 left-0 w-8 h-8 text-gray-500 dark:text-gray-400 pointer-events-none pl-3" />
+        <PaperClipIcon
+          class="pointer-events-none absolute top-1/2 left-0 h-8 w-8 -translate-y-1/2 pl-3 text-gray-500 dark:text-gray-400"
+        />
         <p class="text-base text-gray-500 dark:text-gray-400">
           <!-- Selected File Name -->
-          <span v-if="selectedFile && !validationMessage" class="text-gray-900 dark:text-gray-50">
+          <span
+            v-if="selectedFile && !validationMessage"
+            class="text-gray-900 dark:text-gray-50"
+          >
             {{ selectedFile }}
           </span>
           <!-- Validation message -->
-          <span v-else-if="validationMessage" class="text-red-600 dark:text-red-500">
+          <span
+            v-else-if="validationMessage"
+            class="text-red-600 dark:text-red-500"
+          >
             {{ validationMessage }}
           </span>
           <!-- Instructional Text -->
           <span v-else-if="isDragging">
-            {{ t('fileInput.dropHere') }}
+            {{ t("fileInput.dropHere") }}
           </span>
           <!-- Instructional Text -->
           <span v-else>
-            {{ t('fileInput.clickOrDrag') }}
+            {{ t("fileInput.click") }}
+            <span class="hidden lg:inline-block">{{
+              t("fileInput.orDrag")
+            }}</span>
           </span>
         </p>
       </div>
@@ -40,47 +61,51 @@
         :id="id"
         type="file"
         class="hidden"
-        :accept="allowedExtensions.map(ext => `.${ext}`).join(',')"
+        :name="formatName(name)"
+        :accept="allowedExtensions.map((ext) => `.${ext}`).join(',')"
         @change="handleFileChange"
         ref="fileInput"
       />
-    </label>
+    </div>
   </div>
 </template>
 
-<script setup>
-import { ref } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { PaperClipIcon } from '@heroicons/vue/24/outline';
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import { useI18n } from "vue-i18n";
+import { PaperClipIcon } from "@heroicons/vue/24/outline";
 
-// Props
-const props = defineProps({
-  id: {
-    type: String,
-    required: true,
-  },
-  maxFileSize: {
-    type: Number,
-    default: 5 * 1024 * 1024, // Default max file size: 5MB
-  },
-  allowedExtensions: {
-    type: Array,
-    default: () => ['jpg', 'jpeg', 'png', 'gif', 'pdf'], // Default allowed extensions
-  },
-});
+// Define props using TypeScript
+interface Props {
+  id: string;
+  label?: string; // Optional label prop
+  maxFileSize?: number;
+  name?: string;
+  allowedExtensions?: string[];
+}
+
+const props = defineProps<Props>();
 
 // i18n
 const { t } = useI18n();
 
 // State
-const selectedFile = ref('');
-const fileInput = ref(null); // Reference to the file input element
-const isDragging = ref(false); // State to track drag-and-drop
-const validationMessage = ref(''); // Validation message for invalid files
+const selectedFile = ref<string | null>(null);
+const fileInput = ref<HTMLInputElement | null>(null); // Reference to the file input element
+const isDragging = ref<boolean>(false); // State to track drag-and-drop
+const validationMessage = ref<string | null>(null); // Validation message for invalid files
+
+// Computed Classes
+const labelClass = computed(() => {
+  return validationMessage.value
+    ? "text-red-700 dark:text-red-500"
+    : "text-gray-900 dark:text-white";
+});
 
 // Methods
-const handleFileChange = (event) => {
-  const file = event.target.files[0];
+const handleFileChange = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0] || null;
   validateFile(file);
 };
 
@@ -98,39 +123,54 @@ const handleDragLeave = () => {
   isDragging.value = false;
 };
 
-const handleDrop = (event) => {
+const formatName = (name: string | undefined) => {
+  if (!name) return ""; // Return an empty string if name is undefined
+  return name.replace(/\s+/g, "_").toLowerCase();
+};
+
+const handleDrop = (event: DragEvent) => {
   isDragging.value = false;
-  const file = event.dataTransfer.files[0];
+  const file = event.dataTransfer?.files[0] || null;
   validateFile(file);
 };
 
 // File Validation
-const validateFile = (file) => {
+const validateFile = (file: File | null) => {
   if (!file) {
-    validationMessage.value = '';
-    selectedFile.value = '';
+    validationMessage.value = "";
+    selectedFile.value = null;
     return;
   }
 
   const fileSize = file.size;
-  const fileExtension = file.name.split('.').pop().toLowerCase();
+  const fileExtension = file.name.split(".").pop()?.toLowerCase() || "";
 
   // Check file size
-  if (fileSize > props.maxFileSize) {
-    validationMessage.value = t('fileInput.invalidSize', { maxSize: props.maxFileSize / (1024 * 1024) });
-    selectedFile.value = '';
+  if (fileSize > (props.maxFileSize || 5 * 1024 * 1024)) {
+    validationMessage.value = t("fileInput.invalidSize", {
+      maxSize: (props.maxFileSize || 5 * 1024 * 1024) / (1024 * 1024),
+    });
+    selectedFile.value = null;
     return;
   }
 
   // Check file extension
-  if (!props.allowedExtensions.includes(fileExtension)) {
-    validationMessage.value = t('fileInput.invalidExtension', { extensions: props.allowedExtensions.join(', ') });
-    selectedFile.value = '';
+  if (
+    !(props.allowedExtensions || ["jpg", "jpeg", "png", "gif", "pdf"]).includes(
+      fileExtension,
+    )
+  ) {
+    validationMessage.value = t("fileInput.invalidExtension", {
+      extensions: (
+        props.allowedExtensions || ["jpg", "jpeg", "png", "gif", "pdf"]
+      ).join(", "),
+    });
+    selectedFile.value = null;
     return;
   }
 
   // Valid file
-  validationMessage.value = '';
+  validationMessage.value = "";
   selectedFile.value = file.name;
 };
 </script>

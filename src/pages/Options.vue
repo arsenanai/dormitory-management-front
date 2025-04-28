@@ -13,12 +13,14 @@
 
     <!-- Action Buttons -->
     <div class="mb-4 flex items-center justify-between">
-      <div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-4">
-        <CButton variant="primary">
+      <div
+        class="flex flex-col items-stretch gap-4 lg:flex-row lg:items-center"
+      >
+        <CButton variant="default">
           <ArrowDownTrayIcon class="h-5 w-5" />
           {{ t("Export to Excel") }}
         </CButton>
-        <CButton variant="primary" @click="navigateToAddDormitory">
+        <CButton variant="default" @click="navigateToAddDormitory">
           <PlusIcon class="h-5 w-5" />
           {{ t("Add Dormitory") }}
         </CButton>
@@ -41,10 +43,7 @@
         <CTableHeadCell>{{ t("EDIT") }}</CTableHeadCell>
       </CTableHead>
       <CTableBody>
-        <CTableRow
-          v-for="(dorm, index) in paginatedDorms"
-          :key="index"
-        >
+        <CTableRow v-for="(dorm, index) in paginatedDorms" :key="index">
           <CTableCell>
             <CCheckbox />
           </CTableCell>
@@ -58,7 +57,10 @@
           </CTableCell>
           <CTableCell>{{ dorm.rooms }}</CTableCell>
           <CTableCell class="text-center">
-            <CButton variant="primary" @click="navigateToEditDormitory(dorm.id)">
+            <CButton
+              variant="default"
+              @click="navigateToEditDormitory(dorm.id)"
+            >
               {{ t("Edit") }}
             </CButton>
           </CTableCell>
@@ -68,19 +70,27 @@
 
     <!-- Pagination -->
     <div class="mt-4 mb-4 flex items-center justify-between">
-      <CButton :disabled="currentPage === 1" @click="currentPage--">
+      <CButton
+        variant="default"
+        :disabled="currentPage === 1"
+        @click="currentPage--"
+      >
         {{ t("Previous") }}
       </CButton>
       <span>
         {{ t("Page") }} {{ currentPage }} {{ t("of") }} {{ totalPages }}
       </span>
-      <CButton :disabled="currentPage === totalPages" @click="currentPage++">
+      <CButton
+        variant="default"
+        :disabled="currentPage === totalPages"
+        @click="currentPage++"
+      >
         {{ t("Next") }}
       </CButton>
     </div>
 
     <!-- Bulk Actions -->
-    <div class="flex flex-row items-end space-x-4 justify-end">
+    <div class="flex flex-row items-end justify-end space-x-4">
       <CSelect
         id="bulk-action"
         v-model="bulkAction"
@@ -134,10 +144,7 @@ import Navigation from "@/components/CNavigation.vue";
 import { useI18n } from "vue-i18n";
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
-import {
-  ArrowDownTrayIcon,
-  PlusIcon,
-} from "@heroicons/vue/24/outline";
+import { ArrowDownTrayIcon, PlusIcon } from "@heroicons/vue/24/outline";
 import CInput from "@/components/CInput.vue";
 import CSelect from "@/components/CSelect.vue";
 import CCheckbox from "@/components/CCheckbox.vue";

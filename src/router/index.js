@@ -102,11 +102,11 @@ const routes = [
     },
   },
   {
-    path: '/accounting',
-    name: 'Accounting',
-    component: () => import('@/pages/Accounting.vue'), // Lazy-loaded
+    path: '/payments',
+    name: 'Payments',
+    component: () => import('@/pages/Payments.vue'), // Lazy-loaded
     meta: {
-      title: 'Accounting',
+      title: 'Payments',
       requiresAuth: true,
       sidebar: true,
       icon: ClipboardDocumentListIcon, // Icon for Accounting

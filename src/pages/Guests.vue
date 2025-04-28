@@ -2,7 +2,7 @@
   <Navigation :title="t('Guest House')">
     <!-- Search Bar -->
     <div class="mb-4 flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between">
-      <div class="relative w-full max-w-xs">
+      <div class="w-auto lg:w-128">
         <CInput
           id="search-guests"
           v-model="searchQuery"

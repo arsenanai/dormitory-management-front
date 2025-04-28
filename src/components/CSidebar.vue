@@ -1,6 +1,6 @@
 <template>
   <aside
-    class="overflow-hidden bg-blue-50 shadow lg:static lg:w-64 lg:flex-shrink-0"
+    class="bg-primary-50 overflow-hidden lg:static lg:w-64 lg:flex-shrink-0 z-10"
   >
     <nav v-if="isVisible" class="flex flex-col space-y-2 p-4">
       <div v-for="menu in topLevelMenus" :key="menu.name" class="p-0">
@@ -8,9 +8,9 @@
         <router-link
           :to="menu.path"
           :class="[
-            'flex w-full items-center gap-3 rounded p-3 text-left text-base leading-5 font-medium hover:bg-blue-100',
+            'hover:bg-primary-100 flex w-full items-center gap-3 rounded p-3 text-left text-base leading-5 font-medium',
             route.path === menu.path
-              ? 'bg-blue-100'
+              ? 'bg-primary-100 shadow'
               : 'bg-transparent lg:text-gray-500',
           ]"
         >
@@ -18,7 +18,7 @@
             :is="menu.meta.icon"
             class="h-5 w-5"
             :class="
-              route.path === menu.path ? 'text-yellow-600' : 'text-gray-500'
+              route.path === menu.path ? 'text-secondary-600' : 'text-gray-500'
             "
           />
           {{ t(menu.meta.title) }}
@@ -38,9 +38,9 @@
             :key="submenu.name"
             :to="submenu.path"
             :class="[
-              'flex w-full items-center gap-3 rounded p-3 text-left text-sm leading-5 font-medium hover:bg-blue-100',
+              'hover:bg-primary-100 flex w-full items-center gap-3 rounded p-3 text-left text-sm leading-5 font-medium',
               isSubmenuHighlighted(submenu)
-                ? 'bg-blue-100'
+                ? 'bg-primary-100'
                 : 'bg-transparent lg:text-gray-500',
             ]"
           >
@@ -49,7 +49,7 @@
               class="h-4 w-4"
               :class="
                 isSubmenuHighlighted(submenu)
-                  ? 'text-yellow-600'
+                  ? 'text-secondary-600'
                   : 'text-gray-500'
               "
             />
@@ -61,12 +61,25 @@
   </aside>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute, useRouter, RouteLocationMatched } from "vue-router";
 import { useI18n } from "vue-i18n";
 
-// Get the current route
+// Define the type for a menu item
+interface Menu {
+  name: string;
+  path: string;
+  meta: {
+    title: string;
+    icon: object | (() => void);
+    sidebar?: boolean;
+    parent?: string;
+  };
+  submenus?: Menu[];
+}
+
+// Get the current route and router
 const route = useRoute();
 const router = useRouter();
 
@@ -76,33 +89,52 @@ const { t } = useI18n();
 // State to control visibility
 const isVisible = ref(true);
 
+// Function to map a route to a menu item
+const mapRouteToMenu = (route: any): Menu => ({
+  name: route.name as string,
+  path: route.path,
+  meta: {
+    title: (route.meta?.title as string) || "",
+    icon: (route.meta?.icon as object | (() => void)) || (() => {}),
+    sidebar: (route.meta?.sidebar as boolean) || false,
+    parent: (route.meta?.parent as string) || "",
+  },
+  submenus: [],
+});
+
+// Function to map submenus for a given menu
+const mapSubmenus = (menuName: string): Menu[] => {
+  return router.options.routes
+    .filter(
+      (submenu) => submenu.meta?.parent === menuName && submenu.meta?.sidebar,
+    )
+    .map(mapRouteToMenu);
+};
+
 // Filter top-level menus
-const topLevelMenus = ref(
+const topLevelMenus = ref<Menu[]>(
   router.options.routes
     .filter((route) => route.meta?.sidebar && !route.meta?.parent)
     .map((menu) => ({
-      ...menu,
-      submenus: router.options.routes.filter(
-        (submenu) =>
-          submenu.meta?.parent === menu.name && submenu.meta?.sidebar,
-      ),
+      ...mapRouteToMenu(menu),
+      submenus: mapSubmenus(menu.name as string),
     })),
 );
 
 // Check if any submenu is active
-const isSubmenuActive = (submenus) => {
+const isSubmenuActive = (submenus: Menu[]): boolean => {
   return submenus.some((submenu) => {
-    // Use route.matched to check if the current route matches the submenu's path
     return route.matched.some(
-      (matchedRoute) => matchedRoute.path === submenu.path,
+      (matchedRoute: RouteLocationMatched) =>
+        matchedRoute.path === submenu.path,
     );
   });
 };
 
 // Check if a specific submenu is highlighted
-const isSubmenuHighlighted = (submenu) => {
+const isSubmenuHighlighted = (submenu: Menu): boolean => {
   return route.matched.some(
-    (matchedRoute) => matchedRoute.path === submenu.path,
+    (matchedRoute: RouteLocationMatched) => matchedRoute.path === submenu.path,
   );
 };
 
@@ -114,11 +146,8 @@ watch(
     topLevelMenus.value = router.options.routes
       .filter((route) => route.meta?.sidebar && !route.meta?.parent)
       .map((menu) => ({
-        ...menu,
-        submenus: router.options.routes.filter(
-          (submenu) =>
-            submenu.meta?.parent === menu.name && submenu.meta?.sidebar,
-        ),
+        ...mapRouteToMenu(menu),
+        submenus: mapSubmenus(menu.name as string),
       }));
   },
 );

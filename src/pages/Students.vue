@@ -1,141 +1,148 @@
 <template>
   <Navigation :title="t('Student Management')">
     <!-- Main Content -->
+    <div class="flex flex-col gap-4">
+      <!-- Search Input -->
+      <div class="w-auto lg:w-128">
+        <CInput
+          id="search-input"
+          v-model="searchQuery"
+          type="search"
+          :placeholder="t('Search')"
+          :label="t('Search')"
+          class=""
+        />
+      </div>
 
-    <!-- Search Input -->
-    <div class="mb-4">
-      <CInput
-        id="search-input"
-        v-model="searchQuery"
-        type="search"
-        :placeholder="t('Search')"
-        :label="t('Search')"
-      />
-    </div>
+      <!-- Filter Select Boxes -->
+      <div
+        class="flex flex-col items-stretch justify-between gap-4 lg:flex-row lg:justify-start"
+      >
+        <CSelect
+          id="faculty-filter"
+          v-model="filters.faculty"
+          :options="facultyOptions"
+          :label="t('Faculty')"
+          :placeholder="t('Select Faculty')"
+          class="lg:w-40"
+        />
+        <CSelect
+          id="room-filter"
+          v-model="filters.room"
+          :options="roomOptions"
+          :label="t('Room')"
+          :placeholder="t('Select Room')"
+          class="lg:w-40"
+        />
+        <CSelect
+          id="status-filter"
+          v-model="filters.status"
+          :options="statusOptions"
+          :label="t('Status')"
+          :placeholder="t('Select Status')"
+          class="lg:w-40"
+        />
+      </div>
 
-    <!-- Filter Select Boxes -->
-    <div class="mb-4 flex items-stretch justify-between lg:justify-start flex-col lg:flex-row gap-4">
-      <CSelect
-        id="faculty-filter"
-        v-model="filters.faculty"
-        :options="facultyOptions"
-        :label="t('Faculty')"
-        :placeholder="t('Select Faculty')"
-        class="lg:w-40"
-      />
-      <CSelect
-        id="room-filter"
-        v-model="filters.room"
-        :options="roomOptions"
-        :label="t('Room')"
-        :placeholder="t('Select Room')"
-        class="lg:w-40"
-      />
-      <CSelect
-        id="status-filter"
-        v-model="filters.status"
-        :options="statusOptions"
-        :label="t('Status')"
-        :placeholder="t('Select Status')"
-        class="lg:w-40"
-      />
-    </div>
+      <!-- Checkbox and Actions -->
+      <div
+        class="flex flex-col items-stretch justify-between gap-4 lg:flex-row"
+      >
+        <CCheckbox
+          id="show-dormitory-students"
+          v-model="filters.showDormitoryStudents"
+          :label="t('Show only students in dormitory')"
+        />
+        <div
+          class="flex flex-col items-stretch justify-between gap-4 lg:flex-row"
+        >
+          <CButton>
+            <ArrowDownTrayIcon class="h-5 w-5" />
+            {{ t("Export to Excel") }}
+          </CButton>
+          <CButton @click="navigateToAddStudent">
+            <PlusIcon class="h-5 w-5" />
+            {{ t("Add Student") }}
+          </CButton>
+        </div>
+      </div>
 
-    <!-- Checkbox and Actions -->
-    <div class="mb-4 flex items-stretch justify-between flex-col lg:flex-row gap-4">
-      <CCheckbox
-        id="show-dormitory-students"
-        v-model="filters.showDormitoryStudents"
-        :label="t('Show only students in dormitory')"
-      />
-      <div class="flex items-stretch flex-col lg:flex-row justify-between gap-4">
-        <CButton>
-          <ArrowDownTrayIcon class="h-5 w-5" />
-          {{ t("Export to Excel") }}
+      <!-- Student Table -->
+      <CTable>
+        <CTableHead>
+          <CTableHeadCell>
+            <CCheckbox />
+          </CTableHeadCell>
+          <CTableHeadCell>{{ t("NAME") }}</CTableHeadCell>
+          <CTableHeadCell>{{ t("SURNAME") }}</CTableHeadCell>
+          <CTableHeadCell>{{ t("STATUS") }}</CTableHeadCell>
+          <CTableHeadCell>{{ t("ENROLMENT YEAR") }}</CTableHeadCell>
+          <CTableHeadCell>{{ t("FACULTY") }}</CTableHeadCell>
+          <CTableHeadCell>{{ t("DORM") }}</CTableHeadCell>
+          <CTableHeadCell>{{ t("ROOM") }}</CTableHeadCell>
+          <CTableHeadCell>{{ t("TELEPHONE") }}</CTableHeadCell>
+          <CTableHeadCell>{{ t("IN/OUT") }}</CTableHeadCell>
+          <CTableHeadCell class="text-right">{{ t("Action") }}</CTableHeadCell>
+        </CTableHead>
+        <CTableBody>
+          <CTableRow v-for="(student, index) in paginatedStudents" :key="index">
+            <CTableCell>
+              <CCheckbox />
+            </CTableCell>
+            <CTableCell>{{ student.name }}</CTableCell>
+            <CTableCell>{{ student.surname }}</CTableCell>
+            <CTableCell>{{ student.status }}</CTableCell>
+            <CTableCell>{{ student.enrolmentYear }}</CTableCell>
+            <CTableCell>{{ student.faculty }}</CTableCell>
+            <CTableCell>{{ student.dorm }}</CTableCell>
+            <CTableCell>{{ student.room }}</CTableCell>
+            <CTableCell>{{ student.telephone }}</CTableCell>
+            <CTableCell>
+              <component
+                :is="student.status === t('In') ? CheckCircleIcon : XCircleIcon"
+                :class="
+                  student.status === t('In') ? 'text-green-500' : 'text-red-500'
+                "
+                class="mx-auto h-6 w-6"
+              />
+            </CTableCell>
+            <CTableCell class="text-right">
+              <CButton @click="navigateToEditStudent(index)">
+                <PencilSquareIcon class="h-5 w-5" /> {{ t("Edit") }}
+              </CButton>
+            </CTableCell>
+          </CTableRow>
+        </CTableBody>
+      </CTable>
+
+      <!-- Pagination -->
+      <div class="flex items-center justify-between">
+        <CButton :disabled="currentPage === 1" @click="currentPage--">
+          {{ t("Previous") }}
         </CButton>
-        <CButton @click="navigateToAddStudent">
-          <PlusIcon class="h-5 w-5" />
-          {{ t("Add Student") }}
+        <span
+          >{{ t("Page") }} {{ currentPage }} {{ t("of") }}
+          {{ totalPages }}</span
+        >
+        <CButton :disabled="currentPage === totalPages" @click="currentPage++">
+          {{ t("Next") }}
         </CButton>
       </div>
-    </div>
 
-    <!-- Student Table -->
-    <CTable>
-      <CTableHead>
-        <CTableHeadCell>
-          <CCheckbox />
-        </CTableHeadCell>
-        <CTableHeadCell>{{ t("NAME") }}</CTableHeadCell>
-        <CTableHeadCell>{{ t("SURNAME") }}</CTableHeadCell>
-        <CTableHeadCell>{{ t("STATUS") }}</CTableHeadCell>
-        <CTableHeadCell>{{ t("ENROLMENT YEAR") }}</CTableHeadCell>
-        <CTableHeadCell>{{ t("FACULTY") }}</CTableHeadCell>
-        <CTableHeadCell>{{ t("DORM") }}</CTableHeadCell>
-        <CTableHeadCell>{{ t("ROOM") }}</CTableHeadCell>
-        <CTableHeadCell>{{ t("TELEPHONE") }}</CTableHeadCell>
-        <CTableHeadCell>{{ t("IN/OUT") }}</CTableHeadCell>
-        <CTableHeadCell class="text-right">{{ t("Action") }}</CTableHeadCell>
-      </CTableHead>
-      <CTableBody>
-        <CTableRow
-          v-for="(student, index) in paginatedStudents"
-          :key="index"
-        >
-          <CTableCell>
-            <CCheckbox />
-          </CTableCell>
-          <CTableCell>{{ student.name }}</CTableCell>
-          <CTableCell>{{ student.surname }}</CTableCell>
-          <CTableCell>{{ student.status }}</CTableCell>
-          <CTableCell>{{ student.enrolmentYear }}</CTableCell>
-          <CTableCell>{{ student.faculty }}</CTableCell>
-          <CTableCell>{{ student.dorm }}</CTableCell>
-          <CTableCell>{{ student.room }}</CTableCell>
-          <CTableCell>{{ student.telephone }}</CTableCell>
-          <CTableCell>
-            <component
-              :is="student.status === t('In') ? CheckCircleIcon : XCircleIcon"
-              :class="
-                student.status === t('In') ? 'text-green-500' : 'text-red-500'
-              "
-              class="mx-auto h-6 w-6"
-            />
-          </CTableCell>
-          <CTableCell class="text-right">
-            <CButton @click="navigateToEditStudent(index)">
-              <PencilSquareIcon class="h-5 w-5" /> {{ t("Edit") }}
-            </CButton>
-          </CTableCell>
-          
-        </CTableRow>
-      </CTableBody>
-    </CTable>
-
-    <!-- Pagination -->
-    <div class="mb-4 flex items-center justify-between">
-      <CButton :disabled="currentPage === 1" @click="currentPage--">
-        {{ t("Previous") }}
-      </CButton>
-      <span>{{ t("Page") }} {{ currentPage }} {{ t("of") }} {{ totalPages }}</span>
-      <CButton :disabled="currentPage === totalPages" @click="currentPage++">
-        {{ t("Next") }}
-      </CButton>
-    </div>
-
-    <!-- Bulk Actions -->
-    <div class="flex flex-row items-end gap-4">
-      <CSelect
-        id="bulk-action"
-        v-model="bulkAction"
-        :options="bulkActionOptions"
-        :label="t('Action')"
-        :placeholder="t('Select Action')"
-        class="w-40"
-      />
-      <CButton variant="primary">
-        {{ t("Submit") }}
-      </CButton>
+      <!-- Bulk Actions -->
+      <div class="flex flex-row items-end gap-4">
+        <CSelect
+          id="bulk-action"
+          v-model="bulkAction"
+          :options="bulkActionOptions"
+          :label="t('Action')"
+          :placeholder="t('Select Action')"
+          class="w-auto lg:w-40"
+        />
+        <CButton variant="primary">
+          {{ t("Submit") }}
+        </CButton>
+      </div>
     </div>
   </Navigation>
 </template>

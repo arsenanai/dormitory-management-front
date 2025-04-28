@@ -116,7 +116,7 @@
         <CInput
           id="guest-daily-rate"
           v-model="guest.dailyRate"
-          type="text"
+          type="number"
           :label="t('Daily')"
           placeholder="Enter Daily Rate"
         />
@@ -136,9 +136,9 @@
           <CInput
             :id="`guest-payment-amount-${index}`"
             v-model="payment.amount"
-            type="text"
+            type="number"
             :label="t('Payment Amount')"
-            placeholder="0T"
+            placeholder="0"
           />
         </div>
       </template>
@@ -148,7 +148,7 @@
         <CInput
           id="guest-paid"
           v-model="guest.paid"
-          type="text"
+          type="number"
           :label="t('PAID')"
           placeholder="Enter Paid Amount"
         />
@@ -159,7 +159,7 @@
         <CInput
           id="guest-debt"
           v-model="guest.debt"
-          type="text"
+          type="number"
           :label="t('DEBT')"
           placeholder="Enter Debt Amount"
         />
@@ -195,15 +195,15 @@ const guest = ref({
   wifiUsername: "",
   wifiPassword: "",
   reminder: "",
-  dailyRate: "12000 T",
+  dailyRate: 12000,
   payments: [
-    { date: "2024-01-11", amount: "12000T" },
-    { date: "2024-01-13", amount: "10000T" },
-    { date: "", amount: "" },
-    { date: "", amount: "" },
+    { date: "2024-01-11", amount: 12000 },
+    { date: "2024-01-13", amount: 10000 },
+    { date: "", amount: null },
+    { date: "", amount: null },
   ],
-  paid: "22000T",
-  debt: "14000T",
+  paid: 22000,
+  debt: 14000,
 });
 
 const roomOptions = [

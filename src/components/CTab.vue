@@ -3,36 +3,40 @@
     v-show="isActive"
     role="tabpanel"
     :aria-labelledby="`${name}-tab`"
-    class="p-4 rounded-lg"
+    class="rounded-lg p-4"
   >
     <slot />
   </div>
 </template>
 
-<script setup>
-import { inject, onMounted, computed } from 'vue';
+<script setup lang="ts">
+import { inject, onMounted, computed, Ref } from "vue";
 
-// Props
-const { name, title } = defineProps({
-  name: {
-    type: String,
-    required: true,
-  },
-  title: {
-    type: String,
-    required: true,
-  },
-});
+// Define props using TypeScript
+interface Props {
+  name: string;
+  title: string;
+}
+
+const props = defineProps<Props>();
 
 // Inject activeTab and registerTab from the parent Tabs component
-const activeTab = inject('activeTab');
-const registerTab = inject('registerTab');
+const activeTab = inject<Ref<string>>("activeTab");
+const registerTab =
+  inject<(tab: { name: string; title: string }) => void>("registerTab");
+
+// Ensure the injected values are defined
+if (!activeTab || !registerTab) {
+  throw new Error(
+    "CTab must be used within a Tabs component that provides activeTab and registerTab.",
+  );
+}
 
 // Register this tab with the parent Tabs component
 onMounted(() => {
-  registerTab({ name, title });
+  registerTab({ name: props.name, title: props.title });
 });
 
 // Computed property to check if this tab is active
-const isActive = computed(() => activeTab.value === name);
+const isActive = computed(() => activeTab.value === props.name);
 </script>

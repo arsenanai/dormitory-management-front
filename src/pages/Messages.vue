@@ -1,7 +1,9 @@
 <template>
   <Navigation :title="t('My messages')">
     <!-- Filters -->
-    <div class="mb-4 flex flex-col lg:flex-row items-stretch lg:items-center gap-4">
+    <div
+      class="mb-4 flex flex-col items-stretch gap-4 lg:flex-row lg:items-center"
+    >
       <CSelect
         id="faculty-filter"
         v-model="filters.faculty"
@@ -42,12 +44,14 @@
     <!-- Send Button -->
     <div class="mb-6 flex justify-end">
       <CButton variant="primary" @click="sendMessage">
-        <PaperAirplaneIcon class="w-5 h-5" /> {{ t("Send") }}
+        <PaperAirplaneIcon class="h-5 w-5" /> {{ t("Send") }}
       </CButton>
     </div>
 
     <!-- Message History -->
-    <h2 class="mb-4 text-lg font-bold text-gray-800">{{ t("Message History") }}</h2>
+    <h2 class="mb-4 text-lg font-bold text-gray-800">
+      {{ t("Message History") }}
+    </h2>
     <CTable>
       <CTableHead>
         <CTableHeadCell>{{ t("FROM") }}</CTableHeadCell>
@@ -64,6 +68,7 @@
             'bg-gray-100 text-gray-900': selectedMessageIndex === index,
             'cursor-pointer hover:bg-gray-50': selectedMessageIndex !== index,
           }"
+          tabindex="0" class="focus:ring-4 focus:ring-offset-0 focus:ring-primary-300 dark:focus:ring-primary-600 dark:ring-offset-gray-800"
         >
           <CTableCell>{{ history.from }}</CTableCell>
           <CTableCell>{{ history.to }}</CTableCell>
@@ -88,7 +93,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import Navigation from "@/components/CNavigation.vue";
 import CSelect from "@/components/CSelect.vue";
@@ -135,8 +140,20 @@ const message = ref("");
 
 // Message History
 const messageHistory = ref([
-  { from: "Admin", to: "All", subject: "Welcome", dateTime: "01-09-2024 11:34", content: "Welcome to the dormitory management system!" },
-  { from: "Admin", to: "Faculty", subject: "Meeting Reminder", dateTime: "02-09-2024 09:00", content: "Don't forget about the faculty meeting tomorrow at 10 AM." },
+  {
+    from: "Admin",
+    to: "All",
+    subject: "Welcome",
+    dateTime: "01-09-2024 11:34",
+    content: "Welcome to the dormitory management system!",
+  },
+  {
+    from: "Admin",
+    to: "Faculty",
+    subject: "Meeting Reminder",
+    dateTime: "02-09-2024 09:00",
+    content: "Don't forget about the faculty meeting tomorrow at 10 AM.",
+  },
 ]);
 
 // Selected Message
@@ -154,6 +171,13 @@ const selectMessage = (message, index) => {
   selectedMessage.value = message.content;
   selectedMessageIndex.value = index;
 };
+
+// Set the first message as active on component mount
+onMounted(() => {
+  if (messageHistory.value.length > 0) {
+    selectMessage(messageHistory.value[0], 0);
+  }
+});
 </script>
 
 <style scoped>
