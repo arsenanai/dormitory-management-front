@@ -71,7 +71,7 @@
       <CTable>
         <CTableHead>
           <CTableHeadCell>
-            <CCheckbox />
+            <CCheckbox id="select-all-checkbox" />
           </CTableHeadCell>
           <CTableHeadCell>{{ t("NAME") }}</CTableHeadCell>
           <CTableHeadCell>{{ t("SURNAME") }}</CTableHeadCell>
@@ -87,7 +87,7 @@
         <CTableBody>
           <CTableRow v-for="(student, index) in paginatedStudents" :key="index">
             <CTableCell>
-              <CCheckbox />
+              <CCheckbox :id="'checkbox-' + index" />
             </CTableCell>
             <CTableCell>{{ student.name }}</CTableCell>
             <CTableCell>{{ student.surname }}</CTableCell>

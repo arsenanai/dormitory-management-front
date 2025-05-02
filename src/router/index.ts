@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 import Login from '@/pages/Login.vue';
 import Main from '@/pages/Statistics.vue';
 import {
@@ -11,7 +11,22 @@ import {
   Cog6ToothIcon,
 } from '@heroicons/vue/24/outline';
 
-const routes = [
+// Define meta fields for routes
+interface RouteMeta {
+  title: string;
+  requiresAuth: boolean;
+  sidebar?: boolean;
+  icon?: any; // Use `any` for dynamic icon imports
+  parent?: string; // Optional parent for submenu
+}
+
+// Extend RouteRecordRaw to include custom meta fields
+type AppRouteRecordRaw = RouteRecordRaw & {
+  meta?: RouteMeta;
+};
+
+// Define routes with type safety
+const routes: AppRouteRecordRaw[] = [
   {
     path: '/',
     name: 'login',
@@ -24,23 +39,23 @@ const routes = [
   {
     path: '/main',
     name: 'Main Page',
-    component: () => Main,
+    component: Main,
     meta: {
       title: 'Dashboard',
       requiresAuth: true,
       sidebar: true,
-      icon: HomeIcon, // Icon for Main Page
+      icon: HomeIcon,
     },
   },
   {
     path: '/student-main',
     name: 'Student Main',
-    component: () => import('@/pages/StudentMain.vue'), // Lazy-loaded
+    component: () => import('@/pages/StudentMain.vue'),
     meta: {
       title: 'Student Main',
       requiresAuth: true,
       sidebar: true,
-      icon: HomeIcon, // Icon for Student Main
+      icon: HomeIcon,
     },
   },
   {
@@ -51,7 +66,7 @@ const routes = [
       title: 'Students',
       requiresAuth: true,
       sidebar: true,
-      icon: AcademicCapIcon, // Icon for Students
+      icon: AcademicCapIcon,
     },
   },
   {
@@ -60,10 +75,10 @@ const routes = [
     component: () => import('@/pages/StudentForm.vue'),
     meta: {
       title: 'Student Form',
-      parent: 'Students', // Submenu under Students
+      parent: 'Students',
       requiresAuth: true,
       sidebar: true,
-      icon: PencilSquareIcon, // Icon for Student Form
+      icon: PencilSquareIcon,
     },
   },
   {
@@ -74,7 +89,7 @@ const routes = [
       title: 'Guests',
       requiresAuth: true,
       sidebar: true,
-      icon: BuildingOfficeIcon, // Icon for Guest House
+      icon: BuildingOfficeIcon,
     },
   },
   {
@@ -83,73 +98,73 @@ const routes = [
     component: () => import('@/pages/GuestForm.vue'),
     meta: {
       title: 'Guest Form',
-      parent: 'Guests', // Submenu under Guests
+      parent: 'Guests',
       requiresAuth: true,
       sidebar: true,
-      icon: PencilSquareIcon, // Icon for Guest Form
+      icon: PencilSquareIcon,
     },
   },
-  // Uncomment and implement these routes when ready
   {
     path: '/messages',
     name: 'Messages',
-    component: () => import('@/pages/Messages.vue'), // Lazy-loaded
+    component: () => import('@/pages/Messages.vue'),
     meta: {
       title: 'Messages',
       requiresAuth: true,
       sidebar: true,
-      icon: ChatBubbleLeftRightIcon, // Icon for Messages
+      icon: ChatBubbleLeftRightIcon,
     },
   },
   {
     path: '/payments',
     name: 'Payments',
-    component: () => import('@/pages/Payments.vue'), // Lazy-loaded
+    component: () => import('@/pages/Payments.vue'),
     meta: {
       title: 'Payments',
       requiresAuth: true,
       sidebar: true,
-      icon: ClipboardDocumentListIcon, // Icon for Accounting
+      icon: ClipboardDocumentListIcon,
     },
   },
   {
     path: '/configuration',
     name: 'Configuration',
-    component: () => import('@/pages/Options.vue'), // Lazy-loaded
+    component: () => import('@/pages/Options.vue'),
     meta: {
       title: 'Configuration',
       requiresAuth: true,
       sidebar: true,
-      icon: Cog6ToothIcon, // Icon for Configuration
+      icon: Cog6ToothIcon,
     },
   },
   {
     path: '/dormitory-form/:id?',
     name: 'Dormitory Form',
-    component: () => import('@/pages/DormitoryForm.vue'), // Lazy-loaded
+    component: () => import('@/pages/DormitoryForm.vue'),
     meta: {
       title: 'Dormitory Form',
-      parent: 'Configuration', // Submenu under Configuration
+      parent: 'Configuration',
       requiresAuth: true,
       sidebar: true,
-      icon: PencilSquareIcon, // Icon for Configuration Form
+      icon: PencilSquareIcon,
     },
   },
 ];
 
+// Create the router
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
 });
 
-// Optional: Add navigation guards
+// Add navigation guards
 router.beforeEach((to, from, next) => {
   // Set page title
-  document.title = 'SDU Dormitory | ' + (to.meta.title ?? '');
+  document.title = 'SDU Dormitory | ' + (to.meta?.title ?? '');
 
   // Example: Redirect to login if route requires auth
   const isAuthenticated = true; // Replace with actual authentication logic
-  if (to.meta.requiresAuth && !isAuthenticated) {
+  if (to.meta?.requiresAuth && !isAuthenticated) {
     next({ name: 'login' });
   } else {
     next();

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Style Guide</title>
+  <style>
+    body {
+      font-family: 'Noto Sans', sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+      background-color: #F9FAFB;
+      color: #111827;
+    }
+    h1, h2, h3 {
+      color: #2F3459;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    table th, table td {
+      border: 1px solid #E5E7EB;
+      padding: 8px;
+      text-align: left;
+    }
+    table th {
+      background-color: #F3F4F9;
+      color: #2F3459;
+    }
+    code {
+      background-color: #F3F4F9;
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+    pre {
+      background-color: #F3F4F9;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🖌️ Style Guide</h1>
+  </header>
+
+  <section>
+    <h2>Brand Identity</h2>
+    <ul>
+      <li><strong>Logo:</strong> <code>logo.svg</code> (white and dark versions)</li>
+      <li><strong>Tagline:</strong> "Simplify Your Workflow"</li>
+      <li><strong>Tone:</strong> Friendly, clear, and confident</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>🎨 Color Palette</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Hex</th>
+          <th>Usage</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Primary (SDU Blue)</td>
+          <td>#2F3459</td>
+          <td>Main buttons, links</td>
+        </tr>
+        <tr>
+          <td>Primary Light</td>
+          <td>#848BC3</td>
+          <td>Hover state</td>
+        </tr>
+        <tr>
+          <td>Secondary (SDU Orange)</td>
+          <td>#D69979</td>
+          <td>Highlights, accents</td>
+        </tr>
+        <tr>
+          <td>Background</td>
+          <td>#F9FAFB</td>
+          <td>Page background</td>
+        </tr>
+        <tr>
+          <td>Text Primary</td>
+          <td>#111827</td>
+          <td>Main text</td>
+        </tr>
+        <tr>
+          <td>Text Secondary</td>
+          <td>#6B7280</td>
+          <td>Subtext</td>
+        </tr>
+        <tr>
+          <td>Border</td>
+          <td>#E5E7EB</td>
+          <td>Input borders, cards</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>🔤 Typography</h2>
+    <h3>Font Family</h3>
+    <ul>
+      <li><strong>Primary:</strong> <code>'Noto Sans', sans-serif</code></li>
+      <li><strong>Fallback:</strong> <code>Tahoma, sans-serif</code></li>
+    </ul>
+    <h3>Font Sizes</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Use Case</th>
+          <th>Class</th>
+          <th>Size</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Heading 1</td>
+          <td><code>text-4xl</code></td>
+          <td>36px</td>
+        </tr>
+        <tr>
+          <td>Heading 2</td>
+          <td><code>text-2xl</code></td>
+          <td>24px</td>
+        </tr>
+        <tr>
+          <td>Body Text</td>
+          <td><code>text-base</code></td>
+          <td>16px</td>
+        </tr>
+        <tr>
+          <td>Caption</td>
+          <td><code>text-sm</code></td>
+          <td>14px</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>📐 Spacing System</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Small</td>
+          <td>8px</td>
+        </tr>
+        <tr>
+          <td>Medium</td>
+          <td>16px</td>
+        </tr>
+        <tr>
+          <td>Large</td>
+          <td>32px</td>
+        </tr>
+        <tr>
+          <td>X-Large</td>
+          <td>64px</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>Use consistent padding/margin based on a <code>4px</code> grid system.</p>
+  </section>
+
+  <section>
+    <h2>🔘 Buttons</h2>
+    <h3>Primary Button</h3>
+    <pre><code>&lt;button class="text-primary-500 border border-primary-500 bg-transparent hover:bg-primary-500 hover:text-white focus:ring-4 focus:ring-primary-300 rounded-lg px-4 py-2"&gt;
+  Submit
+&lt;/button&gt;</code></pre>
+    <h3>Default Button</h3>
+    <pre><code>&lt;button class="text-gray-900 border border-gray-300 bg-transparent hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 rounded-lg px-4 py-2"&gt;
+  Cancel
+&lt;/button&gt;</code></pre>
+  </section>
+
+  <section>
+    <h2>📱 Responsive Breakpoints</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Label</th>
+          <th>Width</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Mobile</td>
+          <td>&lt; 640px</td>
+        </tr>
+        <tr>
+          <td>Tablet</td>
+          <td>640px – 1023px</td>
+        </tr>
+        <tr>
+          <td>Desktop</td>
+          <td>≥ 1024px</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>🌐 Iconography</h2>
+    <ul>
+      <li>Use <strong>Heroicons</strong> for consistency.</li>
+      <li>Line icons for neutral UI, solid icons for actions.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>📁 Assets</h2>
+    <ul>
+      <li><strong>Logos:</strong> <code>/assets/logo-dark.svg</code>, <code>/assets/logo-light.svg</code></li>
+      <li><strong>Favicon:</strong> <code>/assets/favicon.ico</code></li>
+    </ul>
+  </section>
+</body>
+</html>

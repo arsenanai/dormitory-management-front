@@ -68,7 +68,8 @@
             'bg-gray-100 text-gray-900': selectedMessageIndex === index,
             'cursor-pointer hover:bg-gray-50': selectedMessageIndex !== index,
           }"
-          tabindex="0" class="focus:ring-4 focus:ring-offset-0 focus:ring-primary-300 dark:focus:ring-primary-600 dark:ring-offset-gray-800"
+          tabindex="0"
+          class="focus:ring-primary-300 dark:focus:ring-primary-600 focus:ring-4 focus:ring-offset-0 dark:ring-offset-gray-800"
         >
           <CTableCell>{{ history.from }}</CTableCell>
           <CTableCell>{{ history.to }}</CTableCell>
@@ -85,14 +86,14 @@
         v-model="selectedMessage"
         :label="t('Selected Message')"
         :placeholder="t('No message selected')"
-        rows="5"
+        :rows="5"
         readonly
       />
     </div>
   </Navigation>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import Navigation from "@/components/CNavigation.vue";
@@ -106,11 +107,19 @@ import CTableBody from "@/components/CTableBody.vue";
 import CTableRow from "@/components/CTableRow.vue";
 import CTableCell from "@/components/CTableCell.vue";
 import { PaperAirplaneIcon } from "@heroicons/vue/24/outline";
+import { Message } from "@/models/Message"; // Import the Message class
 
 const { t } = useI18n();
 
+// Define types for filters
+interface Filter {
+  faculty: string;
+  room: string;
+  dormitory: string;
+}
+
 // Filters
-const filters = ref({
+const filters = ref<Filter>({
   faculty: "",
   room: "",
   dormitory: "",
@@ -136,38 +145,38 @@ const dormitoryOptions = [
 ];
 
 // Message Input
-const message = ref("");
+const message = ref<string>("");
 
 // Message History
-const messageHistory = ref([
-  {
-    from: "Admin",
-    to: "All",
-    subject: "Welcome",
-    dateTime: "01-09-2024 11:34",
-    content: "Welcome to the dormitory management system!",
-  },
-  {
-    from: "Admin",
-    to: "Faculty",
-    subject: "Meeting Reminder",
-    dateTime: "02-09-2024 09:00",
-    content: "Don't forget about the faculty meeting tomorrow at 10 AM.",
-  },
+const messageHistory = ref<Message[]>([
+  new Message(
+    "Admin",
+    "All",
+    "Welcome",
+    "01-09-2024 11:34",
+    "Welcome to the dormitory management system!",
+  ),
+  new Message(
+    "Admin",
+    "Faculty",
+    "Meeting Reminder",
+    "02-09-2024 09:00",
+    "Don't forget about the faculty meeting tomorrow at 10 AM.",
+  ),
 ]);
 
 // Selected Message
-const selectedMessage = ref("");
-const selectedMessageIndex = ref(null);
+const selectedMessage = ref<string>("");
+const selectedMessageIndex = ref<number | null>(null);
 
 // Send Message
-const sendMessage = () => {
+const sendMessage = (): void => {
   console.log("Message sent:", message.value);
   // Add logic to send the message
 };
 
 // Select Message
-const selectMessage = (message, index) => {
+const selectMessage = (message: Message, index: number): void => {
   selectedMessage.value = message.content;
   selectedMessageIndex.value = index;
 };

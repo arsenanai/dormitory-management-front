@@ -38,7 +38,7 @@
   </Navigation>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import Navigation from "@/components/CNavigation.vue";
@@ -49,39 +49,22 @@ import CTableHeadCell from "@/components/CTableHeadCell.vue";
 import CTableBody from "@/components/CTableBody.vue";
 import CTableRow from "@/components/CTableRow.vue";
 import CTableCell from "@/components/CTableCell.vue";
+import { Payment } from "@/models/Payment"; // Import the Payment class
 
 const { t } = useI18n();
 
 // Search Query
-const searchQuery = ref("");
+const searchQuery = ref<string>("");
 
 // Accounting Data
-const accountingEntries = ref([
-  {
-    name: "Student1",
-    surname: "Studentov1",
-    dogovorDate: "22-11-2023",
-    dogovorNumber: "12345",
-    payment: "14000T",
-  },
-  {
-    name: "Student2",
-    surname: "Studentov2",
-    dogovorDate: "12-01-2024",
-    dogovorNumber: "67890",
-    payment: "0",
-  },
-  {
-    name: "Student3",
-    surname: "Studentov3",
-    dogovorDate: "12-01-2023",
-    dogovorNumber: "54321",
-    payment: "25000T",
-  },
+const accountingEntries = ref<Payment[]>([
+  new Payment("Student1", "Studentov1", "22-11-2023", "12345", "14000T"),
+  new Payment("Student2", "Studentov2", "12-01-2024", "67890", "0"),
+  new Payment("Student3", "Studentov3", "12-01-2023", "54321", "25000T"),
 ]);
 
 // Filtered Accounting Entries
-const filteredAccountingEntries = computed(() => {
+const filteredAccountingEntries = computed<Payment[]>(() => {
   return accountingEntries.value.filter((entry) =>
     `${entry.name} ${entry.surname} ${entry.dogovorDate} ${entry.dogovorNumber} ${entry.payment}`
       .toLowerCase()

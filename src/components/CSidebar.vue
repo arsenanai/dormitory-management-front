@@ -40,7 +40,7 @@
             :class="[
               'hover:bg-primary-100 flex w-full items-center gap-3 rounded p-3 text-left text-sm leading-5 font-medium',
               isSubmenuHighlighted(submenu)
-                ? 'bg-primary-100'
+                ? 'bg-primary-100 shadow'
                 : 'bg-transparent lg:text-gray-500',
             ]"
           >

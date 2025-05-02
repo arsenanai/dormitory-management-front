@@ -1,7 +1,9 @@
 <template>
   <Navigation :title="t('Guest House')">
     <!-- Search Bar -->
-    <div class="mb-4 flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between">
+    <div
+      class="mb-4 flex flex-col items-stretch justify-between gap-4 lg:flex-row lg:items-center"
+    >
       <div class="w-auto lg:w-128">
         <CInput
           id="search-guests"
@@ -30,10 +32,7 @@
         <CTableHeadCell class="text-right">{{ t("Action") }}</CTableHeadCell>
       </CTableHead>
       <CTableBody>
-        <CTableRow
-          v-for="guest in filteredGuests"
-          :key="guest.id"
-        >
+        <CTableRow v-for="guest in filteredGuests" :key="guest.id">
           <CTableCell>{{ guest.name }}</CTableCell>
           <CTableCell>{{ guest.surname }}</CTableCell>
           <CTableCell>{{ guest.enterDate }}</CTableCell>
@@ -41,12 +40,12 @@
           <CTableCell>{{ guest.telephone }}</CTableCell>
           <CTableCell>{{ guest.room }}</CTableCell>
           <CTableCell>{{ guest.payment }}</CTableCell>
-          <CTableCell class="flex gap-2 items-center justify-end">
+          <CTableCell class="flex items-center justify-end gap-2">
             <CButton @click="editGuest(guest.id)">
-              <PencilSquareIcon class="h-5 w-5" /> {{ t('Edit') }}
+              <PencilSquareIcon class="h-5 w-5" /> {{ t("Edit") }}
             </CButton>
             <CButton class="text-red-600" @click="deleteGuest(guest.id)">
-              <TrashIcon class="h-5 w-5" /> {{ t('Delete') }}
+              <TrashIcon class="h-5 w-5" /> {{ t("Delete") }}
             </CButton>
           </CTableCell>
         </CTableRow>
@@ -55,11 +54,11 @@
   </Navigation>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import Navigation from "@/components/CNavigation.vue";
 import { useI18n } from "vue-i18n";
 import { ref, computed } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter } from "vue-router"; // Import useRouter
 import CInput from "@/components/CInput.vue";
 import CButton from "@/components/CButton.vue";
 import CTable from "@/components/CTable.vue";
@@ -68,50 +67,57 @@ import CTableHeadCell from "@/components/CTableHeadCell.vue";
 import CTableBody from "@/components/CTableBody.vue";
 import CTableRow from "@/components/CTableRow.vue";
 import CTableCell from "@/components/CTableCell.vue";
-import { UserPlusIcon, PencilSquareIcon, TrashIcon } from "@heroicons/vue/24/outline";
+import {
+  UserPlusIcon,
+  PencilSquareIcon,
+  TrashIcon,
+} from "@heroicons/vue/24/outline";
+import { Guest } from "@/models/Guest";
 
-const { t } = useI18n();
+// Initialize router
 const router = useRouter();
 
+const { t } = useI18n();
+
 // Guests Data
-const guests = ref([
-  {
-    id: 1,
-    name: "Guest1",
-    surname: "Guestov1",
-    enterDate: "22-11-2023",
-    exitDate: "25-11-2023",
-    telephone: "+71234567890",
-    room: "A201",
-    payment: "14000T",
-  },
-  {
-    id: 2,
-    name: "Guest2",
-    surname: "Guestov2",
-    enterDate: "12-01-2024",
-    exitDate: "13-01-2024",
-    telephone: "+79991234567",
-    room: "A202",
-    payment: "0",
-  },
-  {
-    id: 3,
-    name: "Guest3",
-    surname: "Guestov3",
-    enterDate: "12-01-2023",
-    exitDate: "14-01-2024",
-    telephone: "+74443456789",
-    room: "A203",
-    payment: "25000T",
-  },
+const guests = ref<Guest[]>([
+  new Guest(
+    1,
+    "Guest1",
+    "Guestov1",
+    "22-11-2023",
+    "25-11-2023",
+    "+71234567890",
+    "A201",
+    "14000T",
+  ),
+  new Guest(
+    2,
+    "Guest2",
+    "Guestov2",
+    "12-01-2024",
+    "13-01-2024",
+    "+79991234567",
+    "A202",
+    "0",
+  ),
+  new Guest(
+    3,
+    "Guest3",
+    "Guestov3",
+    "12-01-2023",
+    "14-01-2024",
+    "+74443456789",
+    "A203",
+    "25000T",
+  ),
 ]);
 
 // Search Query
-const searchQuery = ref("");
+const searchQuery = ref<string>("");
 
 // Filtered Guests
-const filteredGuests = computed(() => {
+const filteredGuests = computed<Guest[]>(() => {
   return guests.value.filter((guest) =>
     `${guest.name} ${guest.surname} ${guest.telephone} ${guest.room}`
       .toLowerCase()
@@ -120,17 +126,17 @@ const filteredGuests = computed(() => {
 });
 
 // Navigate to Add Guest form
-const addGuest = () => {
+const addGuest = (): void => {
   router.push("/guest-form");
 };
 
 // Navigate to Edit Guest form
-const editGuest = (id) => {
+const editGuest = (id: number): void => {
   router.push(`/guest-form/${id}`);
 };
 
 // Delete Guest
-const deleteGuest = (id) => {
+const deleteGuest = (id: number): void => {
   console.log("Delete Guest with ID:", id);
 };
 </script>

@@ -5,24 +5,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { initFlowbite } from 'flowbite'
+import { ref, watch, onMounted } from "vue";
+import { useRouter, RouteLocationNormalized } from "vue-router";
+import { initFlowbite } from "flowbite";
 
-const router = useRouter()
+// Initialize the router
+const router = useRouter();
 
 // Optional: Watch for route changes
 watch(
   () => router.currentRoute.value,
-  (newRoute) => {
-    console.log('Route changed to:', newRoute.path)
-  }
-)
+  (newRoute: RouteLocationNormalized) => {
+    console.log("Route changed to:", newRoute.path);
+  },
+);
 
+// Initialize Flowbite on component mount
 onMounted(() => {
-    initFlowbite();
-})
+  initFlowbite();
+});
 </script>
 
-<style>
-</style>
+<style></style>

@@ -18,6 +18,7 @@
 
       <div class="rounded-lg bg-white shadow-lg">
         <CTabs v-model="activeTab">
+          <!-- Login Tab -->
           <CTab name="login" :title="t('Login')">
             <form class="flex flex-col gap-2" @submit.prevent="handleLogin">
               <div>
@@ -55,6 +56,7 @@
             </form>
           </CTab>
 
+          <!-- Registration Tab -->
           <CTab name="registration" :title="t('Registration')">
             <form class="flex flex-col gap-4">
               <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -296,7 +298,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
@@ -307,6 +309,7 @@ import CInput from "@/components/CInput.vue";
 import CButton from "@/components/CButton.vue";
 import CCheckbox from "@/components/CCheckbox.vue";
 import CFileInput from "@/components/CFileInput.vue";
+import { Student } from "@/models/Student";
 
 const { t } = useI18n();
 const router = useRouter();
@@ -325,7 +328,10 @@ const credentials = ref({
   password: "",
 });
 
-const credentialsValidationState = ref({
+const credentialsValidationState = ref<{
+  email: "" | "error" | "success";
+  password: "" | "error" | "success";
+}>({
   email: "",
   password: "",
 });
@@ -335,22 +341,26 @@ const credentialsValidationMessage = ref({
   password: "",
 });
 
-const registration = ref({
-  iin: "",
-  name: "",
-  faculty: "",
-  specialist: "",
-  enrollmentYear: "",
-  gender: "",
-  email: "",
-  password: "",
-  confirmPassword: "",
-  dormitory: "",
-  room: "",
-  addToReserveList: false,
-  files: [null, null, null, null], // Fixed number of file inputs
-  agreeToDormitoryRules: false,
-});
+// Registration Form Data
+const registration = ref(
+  new Student(
+    "", // iin
+    "", // name
+    "", // faculty
+    "", // specialist
+    "", // enrollmentYear
+    "", // gender
+    "", // email
+    [""], // phoneNumbers
+    "", // dealNumber (not used in registration)
+    "", // country (not used in registration)
+    "", // region (not used in registration)
+    "", // city (not used in registration)
+    [null, null, null, null] as (File | null)[], // files
+    false, // agreeToDormitoryRules
+    false, // addToReserveList
+  ),
+);
 
 // Fixed file input labels
 const registrationFileLabels = [
@@ -360,7 +370,19 @@ const registrationFileLabels = [
   "Bank Check",
 ];
 
-const registrationValidationState = ref({
+const registrationValidationState = ref<{
+  iin: "" | "error" | "success";
+  name: "" | "error" | "success";
+  faculty: "" | "error" | "success";
+  specialist: "" | "error" | "success";
+  enrollmentYear: "" | "error" | "success";
+  gender: "" | "error" | "success";
+  email: "" | "error" | "success";
+  password: "" | "error" | "success";
+  confirmPassword: "" | "error" | "success";
+  dormitory: "" | "error" | "success";
+  room: "" | "error" | "success";
+}>({
   iin: "",
   name: "",
   faculty: "",
@@ -374,7 +396,19 @@ const registrationValidationState = ref({
   room: "",
 });
 
-const registrationValidationMessage = ref({
+const registrationValidationMessage = ref<{
+  iin: string;
+  name: string;
+  faculty: string;
+  specialist: string;
+  enrollmentYear: string;
+  gender: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  dormitory: string;
+  room: string;
+}>({
   iin: "",
   name: "",
   faculty: "",

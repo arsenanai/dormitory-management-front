@@ -88,11 +88,12 @@
         <label class="block text-sm font-medium text-gray-700">
           {{ t("Phone Numbers") }}
         </label>
-        <div class="flex flex-col lg:flex-row items-stretch lg:items-end gap-2">
+        <div class="flex flex-col items-stretch gap-2 lg:flex-row lg:items-end">
           <div class="flex flex-col items-stretch gap-2">
             <CInput
               v-for="(phone, index) in student.phoneNumbers"
               :key="index"
+              :id="'phone-number-' + index"
               v-model="student.phoneNumbers[index]"
               type="tel"
               placeholder="Enter Phone Number"
@@ -155,26 +156,43 @@
         <PrinterIcon class="h-5 w-5" />
         {{ t("Print") }}
       </CButton>
-      <CButton variant="primary">
+      <CButton variant="primary" @click="submitForm">
         {{ t("Submit") }}
       </CButton>
     </div>
   </Navigation>
 </template>
 
-<script setup>
-import Navigation from "@/components/CNavigation.vue";
-import { useI18n } from "vue-i18n";
+<script setup lang="ts">
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
+import Navigation from "@/components/CNavigation.vue";
 import CInput from "@/components/CInput.vue";
 import CSelect from "@/components/CSelect.vue";
 import CButton from "@/components/CButton.vue";
 import { PlusIcon, PrinterIcon } from "@heroicons/vue/24/outline";
 
+// Define the type for the student object
+interface Student {
+  iin: string;
+  name: string;
+  faculty: string;
+  specialist: string;
+  enrollmentYear: string;
+  gender: string;
+  email: string;
+  phoneNumbers: string[];
+  country: string;
+  region: string;
+  city: string;
+  dealNumber: string;
+}
+
+// Initialize the `t` function from vue-i18n
 const { t } = useI18n();
 
 // Student Form Data
-const student = ref({
+const student = ref<Student>({
   iin: "",
   name: "",
   faculty: "",
@@ -182,49 +200,54 @@ const student = ref({
   enrollmentYear: "",
   gender: "",
   email: "",
-  phoneNumbers: [""], // Initialize with one phone number field
+  phoneNumbers: [""],
+  country: "kazakhstan",
+  region: "almaty",
+  city: "kaskelen",
   dealNumber: "",
-  country: "",
-  region: "",
-  city: "",
 });
 
 // Options for Select Fields
 const facultyOptions = [
-  { value: "engineering", name: "Engineering and natural sciences" },
-  { value: "business", name: "Business and economics" },
-  { value: "law", name: "Law and social sciences" },
+  { value: "engineering", name: t("Engineering and natural sciences") },
+  { value: "business", name: t("Business and economics") },
+  { value: "law", name: t("Law and social sciences") },
 ];
 
 const specialistOptions = [
-  { value: "computer_sciences", name: "Computer sciences" },
-  { value: "mechanical_engineering", name: "Mechanical engineering" },
-  { value: "civil_engineering", name: "Civil engineering" },
+  { value: "computer_sciences", name: t("Computer sciences") },
+  { value: "mechanical_engineering", name: t("Mechanical engineering") },
+  { value: "civil_engineering", name: t("Civil engineering") },
 ];
 
 const genderOptions = [
-  { value: "male", name: "Male" },
-  { value: "female", name: "Female" },
+  { value: "male", name: t("Male") },
+  { value: "female", name: t("Female") },
 ];
 
 const countryOptions = [
-  { value: "kazakhstan", name: "Kazakhstan" },
-  { value: "russia", name: "Russia" },
+  { value: "kazakhstan", name: t("Kazakhstan") },
+  { value: "russia", name: t("Russia") },
 ];
 
 const regionOptions = [
-  { value: "almaty", name: "Almaty" },
-  { value: "zhetisu", name: "Zhetisu" },
+  { value: "almaty", name: t("Almaty") },
+  { value: "zhetisu", name: t("Zhetisu") },
 ];
 
 const cityOptions = [
-  { value: "kaskelen", name: "Kaskelen" },
-  { value: "talgar", name: "Talgar" },
+  { value: "kaskelen", name: t("Kaskelen") },
+  { value: "talgar", name: t("Talgar") },
 ];
 
 // Add More Phone Numbers
-const addPhoneField = () => {
+const addPhoneField = (): void => {
   student.value.phoneNumbers.push("");
+};
+
+// Submit Form
+const submitForm = (): void => {
+  console.log("Form submitted:", student.value);
 };
 </script>
 

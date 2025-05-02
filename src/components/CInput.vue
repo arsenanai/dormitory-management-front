@@ -19,6 +19,7 @@
       type === 'tel'
     "
     class="relative"
+    v-bind="$attrs"
   >
     <!-- Search Icon -->
     <component
@@ -57,7 +58,9 @@
       :id="id"
       :placeholder="placeholder"
       :value="modelValue"
-      @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+      @input="
+        $emit('update:modelValue', ($event.target as HTMLInputElement).value)
+      "
       :class="[
         baseInputClass,
         validationClass,
@@ -71,6 +74,7 @@
       ]"
       :required="required"
       :pattern="pattern"
+      :autocomplete="autocomplete"
     />
   </div>
 
@@ -81,10 +85,15 @@
     :id="id"
     :placeholder="placeholder"
     :value="modelValue"
-    @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+    @input="
+      $emit('update:modelValue', ($event.target as HTMLInputElement).value)
+    "
     :class="[baseInputClass, validationClass]"
     :required="required"
+    :readonly="readonly"
     :pattern="pattern"
+    :autocomplete="autocomplete"
+    v-bind="$attrs"
   />
 
   <!-- Validation Message -->
@@ -95,7 +104,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, defineProps, defineEmits } from "vue";
 import {
   MagnifyingGlassIcon,
   EnvelopeIcon,
@@ -110,11 +119,13 @@ interface Props {
   placeholder?: string;
   modelValue?: string | number;
   required?: boolean;
+  readonly?: boolean;
   pattern?: string;
   validationState?: "success" | "error" | "";
   validationMessage?: string;
   prependText?: string;
   icon?: object | (() => void);
+  autocomplete?: string;
 }
 
 // Define props

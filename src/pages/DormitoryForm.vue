@@ -63,42 +63,39 @@
 
     <!-- Submit Button -->
     <div class="mt-6 flex justify-end">
-      <CButton variant="primary" @click="submitDormitory" class="w-full lg:w-auto">
+      <CButton
+        variant="primary"
+        @click="submitDormitory"
+        class="w-full lg:w-auto"
+      >
         {{ t("Submit") }}
       </CButton>
     </div>
   </Navigation>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import Navigation from "@/components/CNavigation.vue";
 import CInput from "@/components/CInput.vue";
 import CSelect from "@/components/CSelect.vue";
 import CButton from "@/components/CButton.vue";
+import { Dormitory } from "@/models/Dormitory";
 
 const { t } = useI18n();
 
 // Dormitory Form Data
-const dormitory = ref({
-  name: "",
-  capacity: "",
-  gender: "",
-  admin: "",
-  registered: "",
-  freeBeds: "",
-  rooms: "",
-});
+const dormitory = ref(new Dormitory());
 
 // Gender Options
-const genderOptions = [
+const genderOptions: { value: string; name: string }[] = [
   { value: "male", name: t("Male") },
   { value: "female", name: t("Female") },
 ];
 
 // Submit Dormitory
-const submitDormitory = () => {
+const submitDormitory = (): void => {
   console.log("Dormitory submitted:", dormitory.value);
   // Add logic to save or update dormitory data
 };

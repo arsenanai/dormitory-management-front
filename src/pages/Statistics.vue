@@ -10,7 +10,7 @@
         :key="index"
         :class="
           card.bgClass +
-          ' flex flex-row justify-between lg:justify-center gap-2 rounded-lg p-2 text-center shadow lg:flex-col lg:gap-4 lg:p-6'
+          ' flex flex-row justify-between gap-2 rounded-lg p-2 text-center shadow lg:flex-col lg:justify-center lg:gap-4 lg:p-6'
         "
       >
         <div class="flex flex-col items-center justify-center">
@@ -28,7 +28,7 @@
           </div>
         </div>
         <div
-          class="flex flex-1 lg:flex-none flex-row items-center justify-between gap-2 lg:flex-col lg:gap-4"
+          class="flex flex-1 flex-row items-center justify-between gap-2 lg:flex-none lg:flex-col lg:gap-4"
         >
           <h3
             :class="card.textClass"
@@ -47,7 +47,7 @@
   </Navigation>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import Navigation from "@/components/CNavigation.vue";
 import { useI18n } from "vue-i18n";
 import {
@@ -61,12 +61,13 @@ import {
   NoSymbolIcon,
   AcademicCapIcon,
 } from "@heroicons/vue/24/outline";
+import { Card } from "@/models/Card"; // Import the Card interface
 
 // Import the `t` function from vue-i18n
 const { t } = useI18n();
 
 // Card data array
-const cards = [
+const cards: Card[] = [
   {
     value: 4,
     description: t("Number of dormitories"),

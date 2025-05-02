@@ -31,7 +31,7 @@
     <CTable>
       <CTableHead>
         <CTableHeadCell>
-          <CCheckbox />
+          <CCheckbox id="select-all-checkbox"/>
         </CTableHeadCell>
         <CTableHeadCell>{{ t("DORMITORY") }}</CTableHeadCell>
         <CTableHeadCell>{{ t("STUDENT CAPACITY") }}</CTableHeadCell>
@@ -45,7 +45,7 @@
       <CTableBody>
         <CTableRow v-for="(dorm, index) in paginatedDorms" :key="index">
           <CTableCell>
-            <CCheckbox />
+            <CCheckbox :id="'checkbox-' + index" />
           </CTableCell>
           <CTableCell>{{ dorm.name }}</CTableCell>
           <CTableCell>{{ dorm.capacity }}</CTableCell>
@@ -139,7 +139,7 @@
   </Navigation>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import Navigation from "@/components/CNavigation.vue";
 import { useI18n } from "vue-i18n";
 import { ref, computed } from "vue";
@@ -155,57 +155,34 @@ import CTableHeadCell from "@/components/CTableHeadCell.vue";
 import CTableBody from "@/components/CTableBody.vue";
 import CTableRow from "@/components/CTableRow.vue";
 import CTableCell from "@/components/CTableCell.vue";
+import { Dormitory } from "@/models/Dormitory";
 
 const { t } = useI18n();
 const router = useRouter();
 
-const searchQuery = ref("");
-const bulkAction = ref("");
+const searchQuery = ref<string>("");
+const bulkAction = ref<string>("");
 const bulkActionOptions = [
   { value: "disable", name: t("Disable Delete") },
   { value: "export", name: t("Export Selected") },
 ];
 
-const dorms = ref([
-  {
-    id: 1,
-    name: "A-Block",
-    capacity: 300,
-    gender: "Female",
-    admin: "admin1",
-    registered: 267,
-    freeBeds: 33,
-    rooms: 75,
-  },
-  {
-    id: 2,
-    name: "B-block",
-    capacity: 300,
-    gender: "Female",
-    admin: "admin2",
-    registered: 300,
-    freeBeds: 0,
-    rooms: 78,
-  },
-  {
-    id: 3,
-    name: "C-Block",
-    capacity: 293,
-    gender: "Male",
-    admin: "admin3",
-    registered: 300,
-    freeBeds: 7,
-    rooms: 80,
-  },
+// Dormitory Data
+const dorms = ref<Dormitory[]>([
+  new Dormitory("A-Block", 300, "Female", "admin1", "267", "33", 75),
+  new Dormitory("B-Block", 300, "Female", "admin2", "300", "0", 78),
+  new Dormitory("C-Block", 293, "Male", "admin3", "300", "7", 80),
 ]);
 
+// Education Settings
 const educationSettings = ref({
   faculty: "Engineering and natural sciences",
   specialist: "Computer Science",
   informationSystems: "",
 });
 
-const filteredDorms = computed(() => {
+// Filtered Dormitories
+const filteredDorms = computed<Dormitory[]>(() => {
   if (!searchQuery.value) return dorms.value;
   return dorms.value.filter(
     (dorm) =>
@@ -214,23 +191,25 @@ const filteredDorms = computed(() => {
   );
 });
 
-const currentPage = ref(1);
+// Pagination
+const currentPage = ref<number>(1);
 const itemsPerPage = 10;
-const totalPages = computed(() =>
+const totalPages = computed<number>(() =>
   Math.ceil(filteredDorms.value.length / itemsPerPage),
 );
-const paginatedDorms = computed(() =>
+const paginatedDorms = computed<Dormitory[]>(() =>
   filteredDorms.value.slice(
     (currentPage.value - 1) * itemsPerPage,
     currentPage.value * itemsPerPage,
   ),
 );
 
-const navigateToAddDormitory = () => {
+// Navigation Functions
+const navigateToAddDormitory = (): void => {
   router.push("/dormitory-form");
 };
 
-const navigateToEditDormitory = (id) => {
+const navigateToEditDormitory = (id: number): void => {
   router.push(`/dormitory-form/${id}`);
 };
 </script>

@@ -175,7 +175,7 @@
   </Navigation>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import Navigation from "@/components/CNavigation.vue";
@@ -183,9 +183,33 @@ import CInput from "@/components/CInput.vue";
 import CSelect from "@/components/CSelect.vue";
 import CButton from "@/components/CButton.vue";
 
+// Define the type for a payment
+interface Payment {
+  date: string;
+  amount: number | null;
+}
+
+// Define the type for the guest object
+interface Guest {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  enterDate: string;
+  exitDate: string;
+  room: string;
+  wifiUsername: string;
+  wifiPassword: string;
+  reminder: string;
+  dailyRate: number;
+  payments: Payment[];
+  paid: number;
+  debt: number;
+}
+
 const { t } = useI18n();
 
-const guest = ref({
+// Guest Form Data
+const guest = ref<Guest>({
   firstName: "",
   lastName: "",
   phone: "",
@@ -206,13 +230,15 @@ const guest = ref({
   debt: 14000,
 });
 
-const roomOptions = [
+// Room Options
+const roomOptions: { value: string; name: string }[] = [
   { value: "A210", name: "A210" },
   { value: "A211", name: "A211" },
   { value: "A212", name: "A212" },
 ];
 
-const submitForm = () => {
+// Submit Form
+const submitForm = (): void => {
   console.log("Form submitted:", guest.value);
 };
 </script>
