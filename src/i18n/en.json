@@ -93,5 +93,21 @@
     "One person": "One person",
     "Double": "Double",
     "Suit": "Suit",
-    "Specialist": "Specialist"
+    "Specialist": "Specialist",
+    "Language": "Language",
+    "tabs.noTabsAvailable": "No tabs available",
+    "Registration": "Registration",
+    "Guests": "Guests",
+    "063 Form": "063 Form",
+    "075 Form": "075 Form",
+    "ID Check": "ID Check",
+    "Bank Check": "Bank Check",
+    "Document": "Document",
+    "Upload more files": "Upload more files",
+    "Email": "Email",
+    "Email is required.": "Email is required.",
+    "Password is required.": "Password is required.",
+    "Invalid email format.": "Invalid email format.",
+    "Password must be at least 6 characters long.": "Password must be at least 6 characters long.",
+    "Book Room": "Book Room"
 }

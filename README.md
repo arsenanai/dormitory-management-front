@@ -1,28 +1,15 @@
 # dorm-admin-front
 
-This template should help get you started developing with Vue 3 in Vite.
-
-## Recommended IDE Setup
-
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
+## Project Setup (Local)
 
 ```sh
 npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
 npm run dev
 ```
 
-### Compile and Minify for Production
+visit your browser with an address: "localhost:5173"
+
+### Building for Production
 
 ```sh
 npm run build
@@ -39,3 +26,25 @@ npm run test:unit
 ```sh
 npm run lint
 ```
+
+## Project Setup (Docker)
+
+```sh
+docker compose up -d
+```
+
+The application should run on: "localhost:8080"
+
+### Run tests via docker
+
+```sh
+docker compose up test
+```
+
+### Run the server locally via docker
+
+```sh
+docker compose up app
+```
+
+visit your browser with an address: "localhost:8080"

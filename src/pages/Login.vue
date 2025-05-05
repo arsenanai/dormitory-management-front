@@ -20,16 +20,20 @@
         <CTabs v-model="activeTab">
           <!-- Login Tab -->
           <CTab name="login" :title="t('Login')">
-            <form class="flex flex-col gap-2" @submit.prevent="handleLogin">
+            <form
+              class="flex flex-col gap-2"
+              @submit.prevent="handleLogin"
+              novalidate
+            >
               <div>
                 <CInput
                   id="login-email"
                   v-model="credentials.email"
                   type="email"
                   :label="t('Email')"
-                  :placeholder="t('example@domain.com')"
+                  placeholder="example@domain.com"
                   required
-                  autocomplete="username"
+                  autocomplete="email"
                   :validationState="credentialsValidationState.email"
                   :validationMessage="credentialsValidationMessage.email"
                   pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
@@ -43,7 +47,7 @@
                   type="password"
                   :label="t('Password')"
                   required
-                  autocomplete="current-password"
+                  autocomplete="password"
                   :validationState="credentialsValidationState.password"
                   :validationMessage="credentialsValidationMessage.password"
                   pattern=".{6,}"
@@ -148,7 +152,7 @@
                     v-model="registration.email"
                     type="email"
                     :label="t('Login Email')"
-                    :placeholder="t('a.fettisov@gmail.com')"
+                    placeholder="example@domain.com"
                     required
                     :validationState="registrationValidationState.email"
                     :validationMessage="registrationValidationMessage.email"
@@ -483,14 +487,46 @@ const qrCodeUrl = ref(
 );
 
 const handleLogin = async () => {
-  if (!credentials.value.email || !credentials.value.password) {
+  // Reset validation states
+  credentialsValidationState.value.email = "";
+  credentialsValidationMessage.value.email = "";
+  credentialsValidationState.value.password = "";
+  credentialsValidationMessage.value.password = "";
+
+  // Email validation
+  const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  if (!credentials.value.email) {
     credentialsValidationState.value.email = "error";
     credentialsValidationMessage.value.email = t("Email is required.");
+  } else if (!emailPattern.test(credentials.value.email)) {
+    credentialsValidationState.value.email = "error";
+    credentialsValidationMessage.value.email = t("Invalid email format.");
+  } else {
+    credentialsValidationState.value.email = "success";
+  }
+
+  // Password validation
+  if (!credentials.value.password) {
     credentialsValidationState.value.password = "error";
     credentialsValidationMessage.value.password = t("Password is required.");
+  } else if (credentials.value.password.length < 6) {
+    credentialsValidationState.value.password = "error";
+    credentialsValidationMessage.value.password = t(
+      "Password must be at least 6 characters long.",
+    );
+  } else {
+    credentialsValidationState.value.password = "success";
+  }
+
+  // If validation fails, stop submission
+  if (
+    credentialsValidationState.value.email === "error" ||
+    credentialsValidationState.value.password === "error"
+  ) {
     return;
   }
 
+  // Proceed with login
   try {
     router.push("/main");
   } catch (error) {

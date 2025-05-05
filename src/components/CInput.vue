@@ -1,59 +1,89 @@
 <template>
-  <!-- Label -->
-  <label
-    v-if="label"
-    :for="id"
-    class="block text-sm font-medium"
-    :class="labelClass"
-  >
-    {{ label }}
-  </label>
-
-  <!-- Input with Icon or Prepend Text -->
-  <div
-    v-if="
-      icon ||
-      prependText ||
-      type === 'search' ||
-      type === 'email' ||
-      type === 'tel'
-    "
-    class="relative"
-    v-bind="$attrs"
-  >
-    <!-- Search Icon -->
-    <component
-      v-if="type === 'search'"
-      :is="MagnifyingGlassIcon"
-      class="pointer-events-none absolute top-1/2 left-0 h-8 w-8 -translate-y-1/2 pl-3 text-gray-500 dark:text-gray-400"
-    />
-    <!-- Email Icon -->
-    <component
-      v-else-if="type === 'email'"
-      :is="EnvelopeIcon"
-      class="pointer-events-none absolute top-1/2 left-0 h-8 w-8 -translate-y-1/2 pl-3 text-gray-500 dark:text-gray-400"
-    />
-    <!-- Mobile Icon -->
-    <component
-      v-else-if="type === 'tel'"
-      :is="DevicePhoneMobileIcon"
-      class="pointer-events-none absolute top-1/2 left-0 h-8 w-8 -translate-y-1/2 pl-3 text-gray-500 dark:text-gray-400"
-    />
-    <!-- Custom Icon -->
-    <component
-      v-else-if="icon"
-      :is="icon"
-      class="pointer-events-none absolute top-1/2 left-0 h-8 w-8 -translate-y-1/2 pl-3 text-gray-500 dark:text-gray-400"
-      :class="iconClass"
-    />
-    <!-- Prepend Text -->
-    <span
-      v-else
-      class="absolute inset-y-0 left-0 flex items-center rounded-l-md border border-gray-300 bg-gray-200 px-3 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-400"
+  <!-- Global Wrapper -->
+  <div :id="`${id}-input-wrapper`" class="input-wrapper">
+    <!-- Label -->
+    <label
+      v-if="label"
+      :for="id"
+      class="block text-sm font-medium"
+      :class="labelClass"
     >
-      {{ prependText }}
-    </span>
+      {{ label }}
+    </label>
+
+    <!-- Input with Icon or Prepend Text -->
+    <div
+      v-if="
+        icon ||
+        prependText ||
+        type === 'search' ||
+        type === 'email' ||
+        type === 'tel'
+      "
+      class="relative"
+      v-bind="$attrs"
+    >
+      <!-- Search Icon -->
+      <component
+        v-if="type === 'search'"
+        :is="MagnifyingGlassIcon"
+        class="pointer-events-none absolute top-1/2 left-0 h-8 w-8 -translate-y-1/2 pl-3 text-gray-500 dark:text-gray-400"
+      />
+      <!-- Email Icon -->
+      <component
+        v-else-if="type === 'email'"
+        :is="EnvelopeIcon"
+        class="pointer-events-none absolute top-1/2 left-0 h-8 w-8 -translate-y-1/2 pl-3 text-gray-500 dark:text-gray-400"
+      />
+      <!-- Mobile Icon -->
+      <component
+        v-else-if="type === 'tel'"
+        :is="DevicePhoneMobileIcon"
+        class="pointer-events-none absolute top-1/2 left-0 h-8 w-8 -translate-y-1/2 pl-3 text-gray-500 dark:text-gray-400"
+      />
+      <!-- Custom Icon -->
+      <component
+        v-else-if="icon"
+        :is="icon"
+        class="pointer-events-none absolute top-1/2 left-0 h-8 w-8 -translate-y-1/2 pl-3 text-gray-500 dark:text-gray-400"
+        :class="iconClass"
+      />
+      <!-- Prepend Text -->
+      <span
+        v-else
+        class="absolute inset-y-0 left-0 flex items-center rounded-l-md border border-gray-300 bg-gray-200 px-3 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-400"
+      >
+        {{ prependText }}
+      </span>
+      <input
+        :type="type"
+        :id="id"
+        :placeholder="placeholder"
+        :value="modelValue"
+        @input="
+          $emit('update:modelValue', ($event.target as HTMLInputElement).value)
+        "
+        :class="[
+          baseInputClass,
+          validationClass,
+          icon ||
+          prependText ||
+          type === 'search' ||
+          type === 'email' ||
+          type === 'tel'
+            ? 'pl-10'
+            : '',
+        ]"
+        :required="required"
+        :pattern="pattern"
+        :autocomplete="autocomplete"
+        :validationstate="validationState"
+      />
+    </div>
+
+    <!-- Input Without Icon -->
     <input
+      v-else
       :type="type"
       :id="id"
       :placeholder="placeholder"
@@ -61,46 +91,25 @@
       @input="
         $emit('update:modelValue', ($event.target as HTMLInputElement).value)
       "
-      :class="[
-        baseInputClass,
-        validationClass,
-        icon ||
-        prependText ||
-        type === 'search' ||
-        type === 'email' ||
-        type === 'tel'
-          ? 'pl-10'
-          : '',
-      ]"
+      :class="[baseInputClass, validationClass]"
       :required="required"
+      :readonly="readonly"
       :pattern="pattern"
       :autocomplete="autocomplete"
+      :validationstate="validationState"
+      v-bind="$attrs"
     />
+
+    <!-- Validation Message -->
+    <p
+      v-if="validationMessage"
+      :id="`${id}-validation`"
+      :class="validationMessageClass"
+    >
+      <span class="font-medium">{{ validationMessagePrefix }}</span>
+      {{ validationMessage }}
+    </p>
   </div>
-
-  <!-- Input Without Icon -->
-  <input
-    v-else
-    :type="type"
-    :id="id"
-    :placeholder="placeholder"
-    :value="modelValue"
-    @input="
-      $emit('update:modelValue', ($event.target as HTMLInputElement).value)
-    "
-    :class="[baseInputClass, validationClass]"
-    :required="required"
-    :readonly="readonly"
-    :pattern="pattern"
-    :autocomplete="autocomplete"
-    v-bind="$attrs"
-  />
-
-  <!-- Validation Message -->
-  <p v-if="validationMessage" :class="validationMessageClass">
-    <span class="font-medium">{{ validationMessagePrefix }}</span>
-    {{ validationMessage }}
-  </p>
 </template>
 
 <script setup lang="ts">
@@ -158,7 +167,7 @@ const validationMessageClass = computed(() => {
 });
 
 const validationMessagePrefix = computed(() => {
-  return props.validationState === "success" ? "Well done!" : "Oh, snap!";
+  return props.validationState === "success" ? "Well done!" : "";
 });
 
 const iconClass = computed(() => {
