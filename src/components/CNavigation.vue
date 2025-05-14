@@ -1,8 +1,8 @@
 <template>
-  <div class="flex min-h-screen flex-col bg-primary-50">
+  <div class="flex min-h-screen flex-col ">
     <!-- Header -->
     <header
-      class="flex flex-col items-stretch justify-between bg-primary-50 lg:flex-row z-20"
+      class="flex flex-col items-stretch justify-between lg:flex-row z-20"
     >
       <div class="flex flex-1 flex-row items-center justify-between py-2">
         <div

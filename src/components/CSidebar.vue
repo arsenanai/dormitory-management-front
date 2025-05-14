@@ -1,6 +1,6 @@
 <template>
   <aside
-    class="bg-primary-50 overflow-hidden lg:static lg:w-64 lg:flex-shrink-0 z-10"
+    class="overflow-hidden lg:static lg:w-64 lg:flex-shrink-0 z-10"
   >
     <nav v-if="isVisible" class="flex flex-col space-y-2 p-4">
       <div v-for="menu in topLevelMenus" :key="menu.name" class="p-0">
