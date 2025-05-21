@@ -1,4 +1,7 @@
-export class Student {
+import { Role } from "./Role";
+import { City } from "./City";
+
+export class User {
   iin: string;
   name: string;
   faculty: string;
@@ -12,12 +15,11 @@ export class Student {
   password: string;
   confirmPassword: string;
   dealNumber: string;
-  country: string;
-  region: string;
-  city: string;
+  city: City | null;
   files: (File | null)[];
   agreeToDormitoryRules: boolean;
   addToReserveList: boolean;
+  roles: Role[];
 
   constructor(
     iin = "",
@@ -33,12 +35,11 @@ export class Student {
     password = "",
     confirmPassword = "",
     dealNumber = "",
-    country = "",
-    region = "",
-    city = "",
+    city: City | null = null,
     files: (File | null)[] = [null, null, null, null],
     agreeToDormitoryRules = false,
-    addToReserveList = false
+    addToReserveList = false,
+    roles: Role[] = []
   ) {
     this.iin = iin;
     this.name = name;
@@ -53,11 +54,10 @@ export class Student {
     this.password = password;
     this.confirmPassword = confirmPassword;
     this.dealNumber = dealNumber;
-    this.country = country;
-    this.region = region;
     this.city = city;
     this.files = files;
     this.agreeToDormitoryRules = agreeToDormitoryRules;
     this.addToReserveList = addToReserveList;
+    this.roles = roles;
   }
 }

@@ -109,10 +109,10 @@
       <div>
         <CSelect
           id="student-country"
-          v-model="student.country"
-          :options="countryOptions"
+          :model-value="selectedCountry?.id"
+          :options="countries.map((c) => ({ value: c.id, name: c.name }))"
           :label="t('Country')"
-          required
+          @update:model-value="onCountryChange"
         />
       </div>
 
@@ -120,10 +120,10 @@
       <div>
         <CSelect
           id="student-region"
-          v-model="student.region"
+          :model-value="selectedRegion?.id"
           :options="regionOptions"
           :label="t('Region')"
-          required
+          @update:model-value="onRegionChange"
         />
       </div>
 
@@ -131,10 +131,10 @@
       <div>
         <CSelect
           id="student-city"
-          v-model="student.city"
+          :model-value="student.city?.id"
           :options="cityOptions"
           :label="t('City')"
-          required
+          @update:model-value="onCityChange"
         />
       </div>
 
@@ -164,13 +164,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import Navigation from "@/components/CNavigation.vue";
 import CInput from "@/components/CInput.vue";
 import CSelect from "@/components/CSelect.vue";
 import CButton from "@/components/CButton.vue";
 import { PlusIcon, PrinterIcon } from "@heroicons/vue/24/outline";
+import { Country } from "@/models/Country";
+import { Region } from "@/models/Region";
+import { City } from "@/models/City";
 
 // Define the type for the student object
 interface Student {
@@ -182,14 +185,35 @@ interface Student {
   gender: string;
   email: string;
   phoneNumbers: string[];
-  country: string;
-  region: string;
-  city: string;
+  city: City | null;
   dealNumber: string;
 }
 
 // Initialize the `t` function from vue-i18n
 const { t } = useI18n();
+
+// Sample data for countries, regions, and cities
+const countries = ref<Country[]>([
+  new Country(1, "Kazakhstan"),
+  new Country(2, "Russia"),
+]);
+
+const regions = ref<Region[]>([
+  new Region(1, "Almaty", countries.value[0]),
+  new Region(2, "Zhetisu", countries.value[0]),
+  new Region(3, "Moscow", countries.value[1]),
+]);
+
+const cities = ref<City[]>([
+  new City(1, "Kaskelen", regions.value[0]),
+  new City(2, "Talgar", regions.value[0]),
+  new City(3, "Taldykorgan", regions.value[1]),
+  new City(4, "Moscow City", regions.value[2]),
+]);
+
+// Reactive selections
+const selectedCountry = ref<Country | null>(countries.value[0]);
+const selectedRegion = ref<Region | null>(regions.value[0]);
 
 // Student Form Data
 const student = ref<Student>({
@@ -201,9 +225,7 @@ const student = ref<Student>({
   gender: "",
   email: "",
   phoneNumbers: [""],
-  country: "kazakhstan",
-  region: "almaty",
-  city: "kaskelen",
+  city: null,
   dealNumber: "",
 });
 
@@ -225,20 +247,32 @@ const genderOptions = [
   { value: "female", name: t("Female") },
 ];
 
-const countryOptions = [
-  { value: "kazakhstan", name: t("Kazakhstan") },
-  { value: "russia", name: t("Russia") },
-];
+// Computed options for region and city based on selection
+const regionOptions = computed(() =>
+  regions.value
+    .filter((r) => r.country?.id === selectedCountry.value?.id)
+    .map((r) => ({ value: r.id, name: r.name, obj: r })),
+);
 
-const regionOptions = [
-  { value: "almaty", name: t("Almaty") },
-  { value: "zhetisu", name: t("Zhetisu") },
-];
+const cityOptions = computed(() =>
+  cities.value
+    .filter((c) => c.region?.id === selectedRegion.value?.id)
+    .map((c) => ({ value: c.id, name: c.name, obj: c })),
+);
 
-const cityOptions = [
-  { value: "kaskelen", name: t("Kaskelen") },
-  { value: "talgar", name: t("Talgar") },
-];
+// Watchers to reset dependent selections
+function onCountryChange(id: number) {
+  selectedCountry.value = countries.value.find((c) => c.id === id) || null;
+  selectedRegion.value = regionOptions.value[0]?.obj || null;
+  student.value.city = null;
+}
+function onRegionChange(id: number) {
+  selectedRegion.value = regions.value.find((r) => r.id === id) || null;
+  student.value.city = null;
+}
+function onCityChange(id: number) {
+  student.value.city = cities.value.find((c) => c.id === id) || null;
+}
 
 // Add More Phone Numbers
 const addPhoneField = (): void => {

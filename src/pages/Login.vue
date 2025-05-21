@@ -313,7 +313,7 @@ import CInput from "@/components/CInput.vue";
 import CButton from "@/components/CButton.vue";
 import CCheckbox from "@/components/CCheckbox.vue";
 import CFileInput from "@/components/CFileInput.vue";
-import { Student } from "@/models/Student";
+import { User } from "@/models/User";
 
 const { t } = useI18n();
 const router = useRouter();
@@ -347,7 +347,7 @@ const credentialsValidationMessage = ref({
 
 // Registration Form Data
 const registration = ref(
-  new Student(
+  new User(
     "", // iin
     "", // name
     "", // faculty
