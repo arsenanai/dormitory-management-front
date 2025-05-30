@@ -9,6 +9,7 @@ import {
   ChatBubbleLeftRightIcon,
   ClipboardDocumentListIcon,
   Cog6ToothIcon,
+  UserGroupIcon,
 } from '@heroicons/vue/24/outline';
 
 // Define meta fields for routes
@@ -16,16 +17,14 @@ interface RouteMeta {
   title: string;
   requiresAuth: boolean;
   sidebar?: boolean;
-  icon?: any; // Use `any` for dynamic icon imports
-  parent?: string; // Optional parent for submenu
+  icon?: any;
+  parent?: string;
 }
 
-// Extend RouteRecordRaw to include custom meta fields
 type AppRouteRecordRaw = RouteRecordRaw & {
   meta?: RouteMeta;
 };
 
-// Define routes with type safety
 const routes: AppRouteRecordRaw[] = [
   {
     path: '/',
@@ -48,14 +47,26 @@ const routes: AppRouteRecordRaw[] = [
     },
   },
   {
-    path: '/student-main',
-    name: 'Student Main',
-    component: () => import('@/pages/StudentMain.vue'),
+    path: '/users',
+    name: 'Users',
+    component: () => import('@/pages/Users.vue'),
     meta: {
-      title: 'Student Main',
+      title: 'Users',
       requiresAuth: true,
       sidebar: true,
-      icon: HomeIcon,
+      icon: UserGroupIcon,
+    },
+  },
+  {
+    path: '/admin-form/:id?',
+    name: 'Admin Form',
+    component: () => import('@/pages/AdminForm.vue'),
+    meta: {
+      title: 'Admin Form',
+      requiresAuth: true,
+      sidebar: true,
+      icon: PencilSquareIcon,
+      parent: 'Users',
     },
   },
   {
@@ -66,7 +77,7 @@ const routes: AppRouteRecordRaw[] = [
       title: 'Students',
       requiresAuth: true,
       sidebar: true,
-      icon: AcademicCapIcon,
+      icon: UserGroupIcon,
     },
   },
   {
@@ -75,10 +86,21 @@ const routes: AppRouteRecordRaw[] = [
     component: () => import('@/pages/StudentForm.vue'),
     meta: {
       title: 'Student Form',
-      parent: 'Students',
       requiresAuth: true,
       sidebar: true,
       icon: PencilSquareIcon,
+      parent: 'Students',
+    },
+  },
+  {
+    path: '/student-main',
+    name: 'Student Main',
+    component: () => import('@/pages/StudentMain.vue'),
+    meta: {
+      title: 'Student Main',
+      requiresAuth: true,
+      sidebar: true,
+      icon: HomeIcon,
     },
   },
   {
@@ -151,18 +173,13 @@ const routes: AppRouteRecordRaw[] = [
   },
 ];
 
-// Create the router
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
 });
 
-// Add navigation guards
 router.beforeEach((to, from, next) => {
-  // Set page title
   document.title = 'SDU Dormitory | ' + (to.meta?.title ?? '');
-
-  // Example: Redirect to login if route requires auth
   const isAuthenticated = true; // Replace with actual authentication logic
   if (to.meta?.requiresAuth && !isAuthenticated) {
     next({ name: 'login' });

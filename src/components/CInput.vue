@@ -1,25 +1,11 @@
 <template>
   <!-- Global Wrapper -->
-  <div :id="`${id}-input-wrapper`" class="input-wrapper">
+  <div :id="`${id}-input-wrapper`">
     <!-- Label -->
-    <label
-      v-if="label"
-      :for="id"
-      class="block text-sm font-medium"
-      :class="labelClass"
-    >
+    <label v-if="label" :for="id" class="block text-sm font-medium" :class="labelClass">
       {{ label }}
     </label>
-
-    <!-- Input with Icon or Prepend Text -->
     <div
-      v-if="
-        icon ||
-        prependText ||
-        type === 'search' ||
-        type === 'email' ||
-        type === 'tel'
-      "
       class="relative"
       v-bind="$attrs"
     >
@@ -48,64 +34,29 @@
         class="pointer-events-none absolute top-1/2 left-0 h-8 w-8 -translate-y-1/2 pl-3 text-gray-500 dark:text-gray-400"
         :class="iconClass"
       />
-      <!-- Prepend Text -->
       <span
-        v-else
+        v-else-if="prependText"
         class="absolute inset-y-0 left-0 flex items-center rounded-l-md border border-gray-300 bg-gray-200 px-3 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-400"
       >
         {{ prependText }}
       </span>
+
+      <!-- Input -->
       <input
         :type="type"
         :id="id"
         :placeholder="placeholder"
         :value="modelValue"
-        @input="
-          $emit('update:modelValue', ($event.target as HTMLInputElement).value)
-        "
-        :class="[
-          baseInputClass,
-          validationClass,
-          icon ||
-          prependText ||
-          type === 'search' ||
-          type === 'email' ||
-          type === 'tel'
-            ? 'pl-10'
-            : '',
-        ]"
+        @input="onInput"
+        :class="inputClass"
         :required="required"
         :pattern="pattern"
         :autocomplete="autocomplete"
-        :validationstate="validationState"
+        :readonly="readonly"
       />
     </div>
-
-    <!-- Input Without Icon -->
-    <input
-      v-else
-      :type="type"
-      :id="id"
-      :placeholder="placeholder"
-      :value="modelValue"
-      @input="
-        $emit('update:modelValue', ($event.target as HTMLInputElement).value)
-      "
-      :class="[baseInputClass, validationClass]"
-      :required="required"
-      :readonly="readonly"
-      :pattern="pattern"
-      :autocomplete="autocomplete"
-      :validationstate="validationState"
-      v-bind="$attrs"
-    />
-
     <!-- Validation Message -->
-    <p
-      v-if="validationMessage"
-      :id="`${id}-validation`"
-      :class="validationMessageClass"
-    >
+    <p v-if="validationMessage" :id="`${id}-validation`" :class="validationMessageClass">
       <span class="font-medium">{{ validationMessagePrefix }}</span>
       {{ validationMessage }}
     </p>
@@ -113,39 +64,40 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineProps, defineEmits } from "vue";
+import { computed, defineProps, defineEmits, useAttrs } from "vue";
 import {
   MagnifyingGlassIcon,
   EnvelopeIcon,
   DevicePhoneMobileIcon,
 } from "@heroicons/vue/24/outline";
 
-// Define props using TypeScript
-interface Props {
-  id: string;
-  type?: string;
-  label?: string;
-  placeholder?: string;
-  modelValue?: string | number;
-  required?: boolean;
-  readonly?: boolean;
-  pattern?: string;
-  validationState?: "success" | "error" | "";
-  validationMessage?: string;
-  prependText?: string;
-  icon?: object | (() => void);
-  autocomplete?: string;
+const props = defineProps({
+  id: String,
+  type: String,
+  label: String,
+  placeholder: String,
+  modelValue: [String, Number],
+  required: Boolean,
+  readonly: Boolean,
+  pattern: String,
+  validationState: String,
+  validationMessage: String,
+  prependText: String,
+  icon: [Object, Function],
+  autocomplete: String,
+  mask: String,
+});
+const emit = defineEmits(["update:modelValue"]);
+const $attrs = useAttrs();
+
+function onInput(event: Event) {
+  const value = (event.target as HTMLInputElement).value;
+  emit(
+    "update:modelValue",
+    props.mask ? applyMask(value, props.mask) : value
+  );
 }
 
-// Define props
-const props = defineProps<Props>();
-
-// Emit event types
-const emit = defineEmits<{
-  (event: "update:modelValue", value: string | number): void;
-}>();
-
-// Computed Classes
 const baseInputClass =
   "bg-gray-50 border text-gray-900 text-sm rounded-lg focus:ring-4 focus:ring-primary-300 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500";
 
@@ -170,6 +122,14 @@ const validationMessagePrefix = computed(() => {
   return props.validationState === "success" ? "Well done!" : "";
 });
 
+const labelClass = computed(() => {
+  return props.validationState === "success"
+    ? "text-green-700 dark:text-green-500"
+    : props.validationState === "error"
+      ? "text-red-700 dark:text-red-500"
+      : "text-gray-900 dark:text-white";
+});
+
 const iconClass = computed(() => {
   return props.validationState === "success"
     ? "text-green-500"
@@ -178,11 +138,32 @@ const iconClass = computed(() => {
       : "text-gray-500 dark:text-gray-400";
 });
 
-const labelClass = computed(() => {
-  return props.validationState === "success"
-    ? "text-green-700 dark:text-green-500"
-    : props.validationState === "error"
-      ? "text-red-700 dark:text-red-500"
-      : "text-gray-900 dark:text-white";
-});
+const inputClass = computed(() => [
+  baseInputClass,
+  validationClass.value,
+  (props.icon || props.prependText || props.type === 'search' || props.type === 'email' || props.type === 'tel') ? 'pl-10' : '',
+  $attrs.class
+]);
+
+// Example mask function (replace with your actual logic)
+function applyMask(value: string, mask: string): string {
+  const digits = value.replace(/\D/g, "");
+  let maskedValue = "";
+  let digitIndex = 0;
+
+  for (let i = 0; i < mask.length; i++) {
+    if (mask[i] === "X") {
+      if (digitIndex < digits.length) {
+        maskedValue += digits[digitIndex];
+        digitIndex++;
+      } else {
+        break;
+      }
+    } else {
+      maskedValue += mask[i];
+    }
+  }
+
+  return maskedValue;
+}
 </script>

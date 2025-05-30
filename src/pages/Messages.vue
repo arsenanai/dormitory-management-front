@@ -69,7 +69,7 @@
             'cursor-pointer hover:bg-gray-50': selectedMessageIndex !== index,
           }"
           tabindex="0"
-          class="focus:ring-primary-300 dark:focus:ring-primary-600 focus:ring-4 focus:ring-offset-0 dark:ring-offset-gray-800"
+          class=""
         >
           <CTableCell>{{ history.from }}</CTableCell>
           <CTableCell>{{ history.to }}</CTableCell>

@@ -2,17 +2,23 @@
   <aside
     class="overflow-hidden lg:static lg:w-64 lg:flex-shrink-0 z-10"
   >
-    <nav v-if="isVisible" class="flex flex-col space-y-2 p-4">
+    <nav
+      v-if="isVisible"
+      class="flex flex-col space-y-2 p-4"
+      aria-label="Main sidebar navigation"
+    >
+      <h2 class="sr-only">Main Navigation</h2>
       <div v-for="menu in topLevelMenus" :key="menu.name" class="p-0">
         <!-- Top-Level Menu -->
         <router-link
           :to="menu.path"
           :class="[
-            'hover:bg-primary-100 flex w-full items-center gap-3 rounded p-3 text-left text-base leading-5 font-medium',
+            'hover:bg-primary-100 focus:ring-3 focus:outline-none focus:ring-secondary-300 flex w-full items-center gap-3 rounded p-3 text-left text-base leading-5 font-medium transition-all duration-150',
             route.path === menu.path
-              ? 'bg-primary-100 shadow'
-              : 'bg-transparent lg:text-gray-500',
+              ? 'bg-primary-100 shadow border-l-4 border-l-secondary-600'
+              : 'bg-transparent lg:text-gray-500 border-l-4 border-l-transparent',
           ]"
+          :aria-current="route.path === menu.path ? 'page' : undefined"
         >
           <component
             :is="menu.meta.icon"
@@ -20,6 +26,7 @@
             :class="
               route.path === menu.path ? 'text-secondary-600' : 'text-gray-500'
             "
+            aria-hidden="true"
           />
           {{ t(menu.meta.title) }}
         </router-link>
@@ -38,11 +45,12 @@
             :key="submenu.name"
             :to="submenu.path"
             :class="[
-              'hover:bg-primary-100 flex w-full items-center gap-3 rounded p-3 text-left text-sm leading-5 font-medium',
+              'hover:bg-primary-100 focus:ring-3 focus:outline-none focus:ring-secondary-300 flex w-full items-center gap-3 rounded p-3 text-left text-sm leading-5 font-medium transition-all duration-150',
               isSubmenuHighlighted(submenu)
-                ? 'bg-primary-100 shadow'
-                : 'bg-transparent lg:text-gray-500',
+                ? 'bg-primary-100 shadow border-l-4 border-l-secondary-600'
+                : 'bg-transparent lg:text-gray-500 border-l-4 border-l-transparent',
             ]"
+            :aria-current="isSubmenuHighlighted(submenu) ? 'page' : undefined"
           >
             <component
               :is="submenu.meta.icon"
@@ -52,6 +60,7 @@
                   ? 'text-secondary-600'
                   : 'text-gray-500'
               "
+              aria-hidden="true"
             />
             {{ t(submenu.meta.title) }}
           </router-link>

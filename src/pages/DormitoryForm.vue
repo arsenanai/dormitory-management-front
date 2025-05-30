@@ -48,6 +48,30 @@
         />
       </div>
 
+      <!-- Registered Students -->
+      <div>
+        <CInput
+          id="dormitory-registered"
+          v-model="dormitory.registered"
+          type="number"
+          :label="t('Registered Students')"
+          placeholder="Enter Registered Students"
+          required
+        />
+      </div>
+
+      <!-- Free Beds -->
+      <div>
+        <CInput
+          id="dormitory-freeBeds"
+          v-model="dormitory.freeBeds"
+          type="number"
+          :label="t('Free Beds')"
+          placeholder="Enter Free Beds"
+          required
+        />
+      </div>
+
       <!-- Rooms -->
       <div>
         <CInput
@@ -92,6 +116,7 @@ const dormitory = ref(new Dormitory());
 const genderOptions: { value: string; name: string }[] = [
   { value: "male", name: t("Male") },
   { value: "female", name: t("Female") },
+  { value: "mixed", name: t("Mixed") },
 ];
 
 // Submit Dormitory

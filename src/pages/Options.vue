@@ -167,11 +167,11 @@ const bulkActionOptions = [
   { value: "export", name: t("Export Selected") },
 ];
 
-// Dormitory Data
+// Dormitory Data (all numeric fields are numbers, not strings)
 const dorms = ref<Dormitory[]>([
-  new Dormitory("A-Block", 300, "Female", "admin1", "267", "33", 75),
-  new Dormitory("B-Block", 300, "Female", "admin2", "300", "0", 78),
-  new Dormitory("C-Block", 293, "Male", "admin3", "300", "7", 80),
+  new Dormitory("A-Block", 300, "Female", "admin1", 267, 33, 75),
+  new Dormitory("B-Block", 300, "Female", "admin2", 300, 0, 78),
+  new Dormitory("C-Block", 293, "Male", "admin3", 300, 7, 80),
 ]);
 
 // Education Settings

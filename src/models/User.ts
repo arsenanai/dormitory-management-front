@@ -1,5 +1,8 @@
 import { Role } from "./Role";
 import { City } from "./City";
+import { Room } from "./Room";
+
+export type UserStatus = "reserved" | "indoor" | "outdoor";
 
 export class User {
   iin: string;
@@ -10,15 +13,14 @@ export class User {
   gender: string;
   email: string;
   phoneNumbers: string[];
-  dormitory: string;
-  room: string;
+  room: Room | null;
   password: string;
   confirmPassword: string;
   dealNumber: string;
   city: City | null;
   files: (File | null)[];
   agreeToDormitoryRules: boolean;
-  addToReserveList: boolean;
+  status: UserStatus;
   roles: Role[];
 
   constructor(
@@ -30,15 +32,14 @@ export class User {
     gender = "",
     email = "",
     phoneNumbers: string[] = [""],
-    dormitory = "",
-    room = "",
+    room: Room | null = null,
     password = "",
     confirmPassword = "",
     dealNumber = "",
     city: City | null = null,
     files: (File | null)[] = [null, null, null, null],
     agreeToDormitoryRules = false,
-    addToReserveList = false,
+    status: UserStatus = "reserved",
     roles: Role[] = []
   ) {
     this.iin = iin;
@@ -49,7 +50,6 @@ export class User {
     this.gender = gender;
     this.email = email;
     this.phoneNumbers = phoneNumbers;
-    this.dormitory = dormitory;
     this.room = room;
     this.password = password;
     this.confirmPassword = confirmPassword;
@@ -57,7 +57,7 @@ export class User {
     this.city = city;
     this.files = files;
     this.agreeToDormitoryRules = agreeToDormitoryRules;
-    this.addToReserveList = addToReserveList;
+    this.status = status;
     this.roles = roles;
   }
 }

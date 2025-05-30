@@ -3,8 +3,8 @@ export class Dormitory {
   capacity: number | null;
   gender: string;
   admin: string;
-  registered: string;
-  freeBeds: string;
+  registered: number | null;
+  freeBeds: number | null;
   rooms: number | null;
 
   constructor(
@@ -12,8 +12,8 @@ export class Dormitory {
     capacity: number | null = null,
     gender = "",
     admin = "",
-    registered = "",
-    freeBeds = "",
+    registered: number | null = null,
+    freeBeds: number | null = null,
     rooms: number | null = null
   ) {
     this.name = name;

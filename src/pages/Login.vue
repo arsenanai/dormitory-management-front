@@ -313,7 +313,7 @@ import CInput from "@/components/CInput.vue";
 import CButton from "@/components/CButton.vue";
 import CCheckbox from "@/components/CCheckbox.vue";
 import CFileInput from "@/components/CFileInput.vue";
-import { User } from "@/models/User";
+import { User, UserStatus } from "@/models/User";
 
 const { t } = useI18n();
 const router = useRouter();
@@ -356,13 +356,15 @@ const registration = ref(
     "", // gender
     "", // email
     [""], // phoneNumbers
-    "", // dealNumber (not used in registration)
-    "", // country (not used in registration)
-    "", // region (not used in registration)
-    "", // city (not used in registration)
+    null, // room
+    "", // password
+    "", // confirmPassword
+    "", // dealNumber
+    null, // city
     [null, null, null, null] as (File | null)[], // files
     false, // agreeToDormitoryRules
-    false, // addToReserveList
+    "reserved", // status (UserStatus)
+    [], // roles
   ),
 );
 
@@ -472,6 +474,12 @@ const roomOptions = [
   { value: "a210", name: "A210" },
   { value: "a211", name: "A211" },
   { value: "a212", name: "A212" },
+];
+
+const statusOptions = [
+  { value: "reserved", name: t("Reserved") },
+  { value: "indoor", name: t("Indoor") },
+  { value: "outdoor", name: t("Outdoor") },
 ];
 
 const addRegistrationFileInput = () => {

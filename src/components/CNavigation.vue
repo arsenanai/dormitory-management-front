@@ -12,13 +12,14 @@
           <Button
             @click="toggleSideMenu"
             variant="transparent"
-            class="lg:hidden"
+            class="lg:hidden focus:ring-3 focus:outline-none focus:ring-secondary-300"
+            :aria-label="t('Open sidebar menu')"
           >
             <Bars3Icon class="h-6 w-6" />
           </Button>
           <img src="/src/assets/sdu logo.png" class="h-14" alt="Logo" />
         </div>
-        <div class="hidden flex-1 font-bold lg:block">
+        <div class="hidden flex-1 text-lg font-bold lg:block">
           {{ title }}
         </div>
         <div class="flex items-center space-x-2 lg:space-x-4 lg:pr-4">
@@ -28,13 +29,14 @@
           </div>
           <router-link
             to="/"
-            class="lg:focus-ring-2 lg:focus-ring-primary-200 flex items-center gap-3 rounded p-3 text-left text-base leading-5 font-medium hover:bg-primary-100 focus:ring-0"
+            class="lg:focus-ring-3 lg:focus-ring-secondary-300 flex items-center gap-3 rounded p-3 text-left text-base leading-5 font-medium hover:bg-primary-100 focus:outline-none focus:ring-3 focus:ring-secondary-300"
+            :aria-label="t('Logout')"
           >
             <ArrowRightOnRectangleIcon class="h-6 w-6" />
           </router-link>
         </div>
       </div>
-      <p class="block p-2 text-center lg:hidden">{{ title }}</p>
+      <p class="block p-2 text-center text-lg uppercase font-bold lg:hidden">{{ title }}</p>
     </header>
 
     <div class="flex flex-1 flex-col items-stretch lg:flex-row">
@@ -61,6 +63,7 @@ import {
   ArrowRightOnRectangleIcon,
 } from "@heroicons/vue/24/outline";
 import Sidebar from "./CSidebar.vue";
+import { useI18n } from "vue-i18n";
 
 // Define props using TypeScript
 interface Props {
@@ -68,6 +71,9 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+// i18n composable
+const { t } = useI18n();
 
 // State for mobile menu toggle
 const isSideMenuOpen = ref(false);

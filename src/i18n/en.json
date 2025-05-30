@@ -109,5 +109,8 @@
     "Password is required.": "Password is required.",
     "Invalid email format.": "Invalid email format.",
     "Password must be at least 6 characters long.": "Password must be at least 6 characters long.",
-    "Book Room": "Book Room"
+    "Book Room": "Book Room",
+    "Open sidebar menu": "Open sidebar menu",
+    "Previous page": "Previous page",
+    "Next page": "Next page"
 }
