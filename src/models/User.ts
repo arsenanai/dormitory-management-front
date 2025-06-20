@@ -2,7 +2,7 @@ import { Role } from "./Role";
 import { City } from "./City";
 import { Room } from "./Room";
 
-export type UserStatus = "reserved" | "indoor" | "outdoor";
+export type UserStatus = "pending" | "active" | "passive";
 
 export class User {
   iin: string;
@@ -39,7 +39,7 @@ export class User {
     city: City | null = null,
     files: (File | null)[] = [null, null, null, null],
     agreeToDormitoryRules = false,
-    status: UserStatus = "reserved",
+    status: UserStatus = "pending",
     roles: Role[] = []
   ) {
     this.iin = iin;

@@ -21,6 +21,7 @@
         <CTableHeadCell>{{ t("DOGOVOR DATE") }}</CTableHeadCell>
         <CTableHeadCell>{{ t("DOGOVOR NOMER") }}</CTableHeadCell>
         <CTableHeadCell>{{ t("ОПЛАТА") }}</CTableHeadCell>
+        <CTableHeadCell /> <!-- For the action column -->
       </CTableHead>
       <CTableBody>
         <CTableRow
@@ -32,6 +33,17 @@
           <CTableCell>{{ entry.dogovorDate }}</CTableCell>
           <CTableCell>{{ entry.dogovorNumber }}</CTableCell>
           <CTableCell>{{ entry.payment }}</CTableCell>
+          <CTableCell>
+            <RouterLink
+              class="text-primary-700 hover:underline"
+              :to="{
+                name: 'Payment Form',
+                params: { id: entry.dogovorNumber }
+              }"
+            >
+              {{ t('Open') }}
+            </RouterLink>
+          </CTableCell>
         </CTableRow>
       </CTableBody>
     </CTable>
