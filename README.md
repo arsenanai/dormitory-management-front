@@ -1,50 +1,124 @@
-# dorm-admin-front
+SDU Dormitory Management Frontend
+=================================
 
-## Project Setup (Local)
+This is the frontend for the SDU Dormitory Management System, built with Vue 3, TypeScript, Tailwind CSS, and Pinia. It provides an admin interface for managing students, guests, rooms, dormitories, payments, and more.
 
-```sh
-npm install
-npm run dev
-```
+Features
+--------
 
-visit your browser with an address: "localhost:5173"
+*   **Authentication**: Secure login for admins.
+*   **Student & Guest Management**: Add, edit, and view students and guests.
+*   **Room & Dormitory Management**: Manage rooms, room types, and dormitories.
+*   **Payments**: Track and manage student and guest payments.
+*   **Messaging**: Send and receive messages within the system.
+*   **Responsive UI**: Built with Tailwind CSS and Flowbite for a modern, responsive design.
+*   **Multi-language Support**: English, Kazakh, and Russian (see `/src/i18n/`).
 
-### Building for Production
+Project Structure
+-----------------
 
-```sh
-npm run build
-```
+src/
+  assets/           # Images and static assets
+  components/       # Reusable Vue components (inputs, tables, buttons, etc.)
+  models/           # TypeScript models for data structures
+  pages/            # Main page components (Students, Guests, Payments, etc.)
+  router/           # Vue Router configuration
+  services/         # API and business logic (if any)
+  stores/           # Pinia stores for state management
+  i18n/             # Localization files
+  index.css         # Tailwind and custom CSS
+  main.ts           # App entry point
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
+Getting Started
+---------------
 
-```sh
-npm run test:unit
-```
+### Prerequisites
 
-### Lint with [ESLint](https://eslint.org/)
+*   [Node.js](https://nodejs.org/) (v18+ recommended)
+*   [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
+*   [Docker](https://www.docker.com/) (optional, for containerized development)
 
-```sh
-npm run lint
-```
+### Installation
 
-## Project Setup (Docker)
+    
+    # Install dependencies
+    npm install
+    # or
+    yarn install
+    
 
-```sh
-docker compose up -d
-```
+### Development
 
-The application should run on: "localhost:8080"
+    
+    npm run dev
+    # or
+    yarn dev
+    
 
-### Run tests via docker
+The app will be available at [http://localhost:5173](http://localhost:5173) (or as configured).
 
-```sh
-docker compose up test
-```
+### Linting & Formatting
 
-### Run the server locally via docker
+    
+    npm run lint
+    npm run format
+    
 
-```sh
-docker compose up app
-```
+### Testing
 
-visit your browser with an address: "localhost:8080"
+    
+    npm run test:unit
+    
+
+### Build for Production
+
+    
+    npm run build
+    
+
+### Docker Usage
+
+You can use Docker Compose for development, testing, and production builds:
+
+    
+    # Install dependencies
+    docker compose run --rm init
+    
+    # Start development server
+    docker compose --profile dev up
+    
+    # Run unit tests
+    docker compose --profile test up
+    
+    # Build for production
+    docker compose --profile build up
+    
+    # Serve production build with Nginx
+    docker compose --profile serve up
+    
+
+Customization
+-------------
+
+*   **Theme Colors**: See `/src/index.css` for SDU color palette and font settings.
+*   **Localization**: Edit `/src/i18n/en.json`, `kk.json`, `ru.json` for translations.
+*   **Component Library**: Uses custom components in `/src/components/` and Flowbite for UI.
+
+Contributing
+------------
+
+1.  Fork the repository
+2.  Create your feature branch (`git checkout -b feature/YourFeature`)
+3.  Commit your changes (`git commit -am 'Add some feature'`)
+4.  Push to the branch (`git push origin feature/YourFeature`)
+5.  Create a new Pull Request
+
+License
+-------
+
+This project is private and for SDU internal use only.
+
+* * *
+
+**SDU Dormitory Management System**  
+Contact: [info@sdu.edu.kz](mailto:info@sdu.edu.kz)
