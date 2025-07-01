@@ -106,7 +106,7 @@
   const roomTypes = ref([
     {
       id: "1",
-      name: "Standard Room",
+      name: "Standard",
       dormitory: dormitories[0],
       minimap: JSON.stringify([
         { id: "b1", number: "1", x: 60, y: 60 },
@@ -115,23 +115,12 @@
     },
     {
       id: "2",
-      name: "Lux Room",
+      name: "Lux",
       dormitory: dormitories[1],
       minimap: JSON.stringify([
         { id: "b1", number: "1", x: 60, y: 60 },
         { id: "b2", number: "2", x: 120, y: 60 },
         { id: "b3", number: "3", x: 180, y: 60 },
-      ]),
-    },
-    {
-      id: "3",
-      name: "Guest Room",
-      dormitory: dormitories[2],
-      minimap: JSON.stringify([
-        { id: "b1", number: "1", x: 60, y: 60 },
-        { id: "b2", number: "2", x: 120, y: 60 },
-        { id: "b3", number: "3", x: 180, y: 60 },
-        { id: "b4", number: "4", x: 240, y: 60 },
       ]),
     },
   ]);

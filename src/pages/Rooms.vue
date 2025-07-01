@@ -45,7 +45,9 @@
               <CTableCell>{{ room.number }}</CTableCell>
               <CTableCell>{{ room.dormitory?.name }}</CTableCell>
               <CTableCell>{{ room.roomType?.name }}</CTableCell>
-              <CTableCell>{{ room.floor }}</CTableCell>
+              <CTableCell>
+              {{ room.floor !== null ? room.floor : '-' }}
+            </CTableCell>
               <CTableCell>{{ room.beds?.length ?? 0 }}</CTableCell>
               <CTableCell>{{ room.notes }}</CTableCell>
               <CTableCell class="text-right flex gap-2 justify-end">
@@ -77,126 +79,135 @@
   </template>
   
   <script setup lang="ts">
-  import Navigation from "@/components/CNavigation.vue";
-  import { useI18n } from "vue-i18n";
-  import { ref, computed } from "vue";
-  import { useRouter } from "vue-router";
-  import CSelect from "@/components/CSelect.vue";
-  import CButton from "@/components/CButton.vue";
-  import CTable from "@/components/CTable.vue";
-  import CTableHead from "@/components/CTableHead.vue";
-  import CTableHeadCell from "@/components/CTableHeadCell.vue";
-  import CTableBody from "@/components/CTableBody.vue";
-  import CTableRow from "@/components/CTableRow.vue";
-  import CTableCell from "@/components/CTableCell.vue";
-  import { PlusIcon, PencilSquareIcon, TrashIcon } from "@heroicons/vue/24/outline";
-  import { Room } from "@/models/Room";
-  import { Dormitory } from "@/models/Dormitory";
-  import { RoomType } from "@/models/RoomType";
-  import { Bed } from "@/models/Bed";
-  
-  // i18n and router
-  const { t } = useI18n();
-  const router = useRouter();
-  
-  // Example dormitories
-  const dormitories = [
-    new Dormitory("A-BLOCK", 300, "female", "admin1", 267, 33, 75),
-    new Dormitory("B-BLOCK", 300, "female", "admin2", 300, 0, 78),
-    new Dormitory("C-BLOCK", 293, "male", "admin3", 300, 7, 80),
-  ];
-  
-  // Example room types
-  const roomTypes = [
-    new RoomType("1", "Double Room", JSON.stringify([
-      { id: "b1", number: "1", x: 60, y: 60 },
-      { id: "b2", number: "2", x: 120, y: 60 },
-    ])),
-    new RoomType("2", "Triple Room", JSON.stringify([
-      { id: "b1", number: "1", x: 60, y: 60 },
-      { id: "b2", number: "2", x: 120, y: 60 },
-      { id: "b3", number: "3", x: 180, y: 60 },
-    ])),
-    new RoomType("3", "Suite", JSON.stringify([
-      { id: "b1", number: "1", x: 60, y: 60 },
-      { id: "b2", number: "2", x: 120, y: 60 },
-      { id: "b3", number: "3", x: 180, y: 60 },
-      { id: "b4", number: "4", x: 240, y: 60 },
-    ])),
-  ];
-  
-  // Dormitory options for filter
-  const dormitoryOptions = [
-    { value: "", name: t("All Dormitories") },
-    ...dormitories.map((d) => ({ value: d.name, name: d.name })),
-  ];
-  
-  // Room type options for filter
-  const roomTypeOptions = [
-    { value: "", name: t("All Room Types") },
-    ...roomTypes.map((rt) => ({ value: rt.name, name: rt.name })),
-  ];
-  
-  // Filters
-  const filters = ref({
-    dormitory: "",
-    roomType: "",
-  });
-  
-  // Example rooms
-  const rooms = ref<Room[]>([
-    new Room("A210", dormitories[0], 2, "Near the stairs", roomTypes[0], [
+import Navigation from "@/components/CNavigation.vue";
+import { useI18n } from "vue-i18n";
+import { ref, computed, watch } from "vue";
+import { useRouter } from "vue-router";
+import CSelect from "@/components/CSelect.vue";
+import CButton from "@/components/CButton.vue";
+import CTable from "@/components/CTable.vue";
+import CTableHead from "@/components/CTableHead.vue";
+import CTableHeadCell from "@/components/CTableHeadCell.vue";
+import CTableBody from "@/components/CTableBody.vue";
+import CTableRow from "@/components/CTableRow.vue";
+import CTableCell from "@/components/CTableCell.vue";
+import { PlusIcon, PencilSquareIcon, TrashIcon } from "@heroicons/vue/24/outline";
+import { Room } from "@/models/Room";
+import { Dormitory } from "@/models/Dormitory";
+import { RoomType } from "@/models/RoomType";
+import { Bed } from "@/models/Bed";
+
+// i18n and router
+const { t } = useI18n();
+const router = useRouter();
+
+// Example dormitories (constructor: name, capacity, gender, admin, registered, freeBeds, rooms)
+const dormitories = [
+  new Dormitory("A-BLOCK", 300, "female", "admin1", 267, 33, 75),
+  new Dormitory("B-BLOCK", 300, "female", "admin2", 300, 0, 78),
+  new Dormitory("C-BLOCK", 293, "male", "admin3", 300, 7, 80),
+];
+
+// Example room types (constructor: id, name, minimap)
+const roomTypes = [
+  new RoomType("1", "Standard", ""),
+  new RoomType("2", "Lux", ""),
+];
+
+// Dormitory options for filter
+const dormitoryOptions = [
+  { value: "", name: t("All Dormitories") },
+  ...dormitories.map((d) => ({ value: d.name, name: d.name })),
+];
+
+// Room type options for filter
+const roomTypeOptions = [
+  { value: "", name: t("All Room Types") },
+  ...roomTypes.map((rt) => ({ value: rt.name, name: rt.name })),
+];
+
+// Filters
+const filters = ref({
+  dormitory: "",
+  roomType: "",
+});
+
+// Example rooms (constructor: number, floor, notes, dormitory, roomType, beds)
+const rooms = ref<Room[]>([
+  new Room(
+    "A210",
+    2,
+    "Near the stairs",
+    dormitories[0],
+    roomTypes[0],
+    [
       new Bed("b1", "1", "available", null, [], null),
       new Bed("b2", "2", "available", null, [], null),
-    ]),
-    new Room("A211", dormitories[0], 2, "", roomTypes[1], [
+    ]
+  ),
+  new Room(
+    "A211",
+    2,
+    "",
+    dormitories[0],
+    roomTypes[1],
+    [
       new Bed("b1", "1", "available", null, [], null),
       new Bed("b2", "2", "available", null, [], null),
       new Bed("b3", "3", "available", null, [], null),
-    ]),
-    new Room("B101", dormitories[1], 1, "Window view", roomTypes[2], [
+    ]
+  ),
+  new Room(
+    "B101",
+    1,
+    "Window view",
+    dormitories[1],
+    roomTypes[0],
+    [
       new Bed("b1", "1", "available", null, [], null),
       new Bed("b2", "2", "available", null, [], null),
       new Bed("b3", "3", "available", null, [], null),
       new Bed("b4", "4", "available", null, [], null),
-    ]),
-  ]);
-  
-  // Filtered rooms
-  const filteredRooms = computed(() => {
-    return rooms.value.filter((room) => {
-      const dormMatch = !filters.value.dormitory || room.dormitory?.name === filters.value.dormitory;
-      const typeMatch = !filters.value.roomType || room.roomType?.name === filters.value.roomType;
-      return dormMatch && typeMatch;
-    });
+    ]
+  ),
+]);
+
+// Filtered rooms
+const filteredRooms = computed(() => {
+  return rooms.value.filter((room) => {
+    const dormMatch = !filters.value.dormitory || room.dormitory?.name === filters.value.dormitory;
+    const typeMatch = !filters.value.roomType || room.roomType?.name === filters.value.roomType;
+    return dormMatch && typeMatch;
   });
-  
-  // Pagination
-  const currentPage = ref(1);
-  const itemsPerPage = 10;
-  const totalPages = computed(() =>
-    Math.ceil(filteredRooms.value.length / itemsPerPage)
-  );
-  const paginatedRooms = computed(() =>
-    filteredRooms.value.slice(
-      (currentPage.value - 1) * itemsPerPage,
-      currentPage.value * itemsPerPage
-    )
-  );
-  
-  // Navigation actions
-  function navigateToAddRoom() {
-    router.push("/room-form");
-  }
-  function navigateToEditRoom(number: string) {
-    router.push(`/room-form/${number}`);
-  }
-  function deleteRoom(number: string) {
-    const idx = rooms.value.findIndex(r => r.number === number);
-    if (idx !== -1) rooms.value.splice(idx, 1);
-  }
-  </script>
-  
-  <style scoped>
-  /* Add custom styles if needed */
-  </style>
+});
+
+// Pagination
+const currentPage = ref(1);
+const itemsPerPage = 10;
+const totalPages = computed(() =>
+  Math.max(1, Math.ceil(filteredRooms.value.length / itemsPerPage))
+);
+const paginatedRooms = computed(() =>
+  filteredRooms.value.slice(
+    (currentPage.value - 1) * itemsPerPage,
+    currentPage.value * itemsPerPage
+  )
+);
+
+// Keep currentPage in range when filteredRooms changes
+watch(filteredRooms, () => {
+  if (currentPage.value > totalPages.value) currentPage.value = totalPages.value;
+});
+
+// Navigation actions
+function navigateToAddRoom() {
+  router.push("/room-form");
+}
+function navigateToEditRoom(number: string) {
+  router.push(`/room-form/${number}`);
+}
+function deleteRoom(number: string) {
+  const idx = rooms.value.findIndex(r => r.number === number);
+  if (idx !== -1) rooms.value.splice(idx, 1);
+}
+</script>
