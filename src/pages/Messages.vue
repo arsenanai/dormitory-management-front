@@ -52,7 +52,18 @@
     <h2 class="mb-4 text-lg font-bold text-gray-800">
       {{ t("Message History") }}
     </h2>
-    <CTable>
+
+    <!-- Loading State -->
+    <div v-if="loading" class="text-center py-4">
+      {{ t("Loading...") }}
+    </div>
+
+    <!-- Error State -->
+    <div v-if="error" class="text-red-500 text-center py-4">
+      {{ error }}
+    </div>
+
+    <CTable v-if="!loading && !error">
       <CTableHead>
         <CTableHeadCell>{{ t("FROM") }}</CTableHeadCell>
         <CTableHeadCell>{{ t("TO") }}</CTableHeadCell>
@@ -61,9 +72,9 @@
       </CTableHead>
       <CTableBody>
         <CTableRow
-          v-for="(history, index) in messageHistory"
-          :key="index"
-          @click="selectMessage(history, index)"
+          v-for="(msg, index) in filteredMessages"
+          :key="msg.id || index"
+          @click="selectMessage(msg, index)"
           :class="{
             'bg-gray-100 text-gray-900': selectedMessageIndex === index,
             'cursor-pointer hover:bg-gray-50': selectedMessageIndex !== index,
@@ -71,10 +82,10 @@
           tabindex="0"
           class=""
         >
-          <CTableCell>{{ history.from }}</CTableCell>
-          <CTableCell>{{ history.to }}</CTableCell>
-          <CTableCell>{{ history.subject }}</CTableCell>
-          <CTableCell>{{ history.dateTime }}</CTableCell>
+          <CTableCell>{{ msg.sender?.name || msg.from || t('System') }}</CTableCell>
+          <CTableCell>{{ msg.receiver?.name || msg.to || t('All') }}</CTableCell>
+          <CTableCell>{{ msg.subject || t('No Subject') }}</CTableCell>
+          <CTableCell>{{ formatDate(msg.created_at || msg.dateTime) }}</CTableCell>
         </CTableRow>
       </CTableBody>
     </CTable>
@@ -94,7 +105,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import Navigation from "@/components/CNavigation.vue";
 import CSelect from "@/components/CSelect.vue";
@@ -107,9 +118,11 @@ import CTableBody from "@/components/CTableBody.vue";
 import CTableRow from "@/components/CTableRow.vue";
 import CTableCell from "@/components/CTableCell.vue";
 import { PaperAirplaneIcon } from "@heroicons/vue/24/outline";
-import { Message } from "@/models/Message"; // Import the Message class
+import { messageService, dormitoryService, roomService } from "@/services/api";
+import { useToast } from "@/composables/useToast";
 
 const { t } = useI18n();
+const { showError, showSuccess } = useToast();
 
 // Define types for filters
 interface Filter {
@@ -125,68 +138,129 @@ const filters = ref<Filter>({
   dormitory: "",
 });
 
+// Data
+const messages = ref<any[]>([]);
+const dormitories = ref<any[]>([]);
+const rooms = ref<any[]>([]);
+const loading = ref(false);
+const error = ref<string | null>(null);
+
+// Load data on component mount
+const loadData = async () => {
+  loading.value = true;
+  error.value = null;
+  try {
+    const [messagesResponse, dormitoriesResponse, roomsResponse] = await Promise.all([
+      messageService.getMyMessages(),
+      dormitoryService.getAll(),
+      roomService.getAll()
+    ]);
+    messages.value = messagesResponse.data || [];
+    dormitories.value = dormitoriesResponse.data || [];
+    rooms.value = roomsResponse.data || [];
+  } catch (err) {
+    error.value = 'Failed to load messages data';
+    showError(t('Failed to load messages data'));
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  loadData();
+});
+
 // Options for filters
 const facultyOptions = [
+  { value: "", name: t("All Faculties") },
   { value: "engineering", name: t("Engineering") },
   { value: "business", name: t("Business") },
   { value: "law", name: t("Law") },
 ];
 
-const roomOptions = [
-  { value: "a101", name: "A101" },
-  { value: "b202", name: "B202" },
-  { value: "c303", name: "C303" },
-];
+const roomOptions = computed(() => [
+  { value: "", name: t("All Rooms") },
+  ...rooms.value.map(room => ({ value: room.id, name: room.number }))
+]);
 
-const dormitoryOptions = [
-  { value: "a-block", name: "A-Block" },
-  { value: "b-block", name: "B-Block" },
-  { value: "c-block", name: "C-Block" },
-];
+const dormitoryOptions = computed(() => [
+  { value: "", name: t("All Dormitories") },
+  ...dormitories.value.map(dorm => ({ value: dorm.id, name: dorm.name }))
+]);
 
 // Message Input
 const message = ref<string>("");
 
-// Message History
-const messageHistory = ref<Message[]>([
-  new Message(
-    "Admin",
-    "All",
-    "Welcome",
-    "01-09-2024 11:34",
-    "Welcome to the dormitory management system!",
-  ),
-  new Message(
-    "Admin",
-    "Faculty",
-    "Meeting Reminder",
-    "02-09-2024 09:00",
-    "Don't forget about the faculty meeting tomorrow at 10 AM.",
-  ),
-]);
+// Filtered messages
+const filteredMessages = computed(() => {
+  if (!messages.value.length) return [];
+  return messages.value.filter(msg => {
+    const facultyMatch = !filters.value.faculty || msg.faculty === filters.value.faculty;
+    const roomMatch = !filters.value.room || msg.room_id === parseInt(filters.value.room);
+    const dormMatch = !filters.value.dormitory || msg.dormitory_id === parseInt(filters.value.dormitory);
+    return facultyMatch && roomMatch && dormMatch;
+  });
+});
 
 // Selected Message
 const selectedMessage = ref<string>("");
 const selectedMessageIndex = ref<number | null>(null);
 
 // Send Message
-const sendMessage = (): void => {
-  console.log("Message sent:", message.value);
-  // Add logic to send the message
+const sendMessage = async (): Promise<void> => {
+  if (!message.value.trim()) return;
+  
+  try {
+    const messageData = {
+      content: message.value,
+      subject: t('New Message'),
+      faculty: filters.value.faculty,
+      room_id: filters.value.room ? parseInt(filters.value.room) : null,
+      dormitory_id: filters.value.dormitory ? parseInt(filters.value.dormitory) : null,
+    };
+    
+    await messageService.create(messageData);
+    message.value = '';
+    await loadData(); // Reload messages
+    showSuccess(t('Message sent successfully'));
+  } catch (err) {
+    showError(t('Failed to send message'));
+  }
 };
 
 // Select Message
-const selectMessage = (message: Message, index: number): void => {
-  selectedMessage.value = message.content;
+const selectMessage = (msg: any, index: number): void => {
+  selectedMessage.value = msg.content || msg.message || '';
   selectedMessageIndex.value = index;
+  
+  // Mark as read if not already read
+  if (!msg.is_read && msg.id) {
+    const markAsReadPromise = messageService.markAsRead(msg.id);
+    if (markAsReadPromise && typeof markAsReadPromise.catch === 'function') {
+      markAsReadPromise.catch(err => {
+        showError(t('Failed to mark message as read'));
+      });
+    }
+  }
+};
+
+// Format date helper
+const formatDate = (dateString: string) => {
+  if (!dateString) return '-';
+  return new Date(dateString).toLocaleString();
 };
 
 // Set the first message as active on component mount
-onMounted(() => {
-  if (messageHistory.value.length > 0) {
-    selectMessage(messageHistory.value[0], 0);
+const setFirstMessageActive = () => {
+  if (filteredMessages.value.length > 0) {
+    selectMessage(filteredMessages.value[0], 0);
   }
-});
+};
+
+// Watch for filtered messages changes
+watch(filteredMessages, () => {
+  setFirstMessageActive();
+}, { immediate: true });
 </script>
 
 <style scoped>

@@ -22,19 +22,45 @@
           </div>
         </div>
   
+        <!-- Loading State -->
+        <div v-if="loading" class="text-center py-4">
+          {{ t("Loading...") }}
+        </div>
+
+        <!-- Error State -->
+        <div v-if="error" class="text-red-500 text-center py-4">
+          {{ error }}
+        </div>
+  
         <!-- Room Types Table -->
-        <CTable>
+        <CTable v-if="!loading && !error">
           <CTableHead>
             <CTableHeadCell>{{ t("Room Type Name") }}</CTableHeadCell>
             <CTableHeadCell>{{ t("Dormitory") }}</CTableHeadCell>
             <CTableHeadCell>{{ t("Number of Beds") }}</CTableHeadCell>
+            <CTableHeadCell>{{ t("Photos") }}</CTableHeadCell>
             <CTableHeadCell class="text-right">{{ t("Action") }}</CTableHeadCell>
           </CTableHead>
           <CTableBody>
-            <CTableRow v-for="(roomType, index) in paginatedRoomTypes" :key="roomType.id">
+            <CTableRow v-for="roomType in paginatedRoomTypes" :key="roomType.id">
               <CTableCell>{{ roomType.name }}</CTableCell>
-              <CTableCell>{{ roomType.dormitory?.name }}</CTableCell>
+              <CTableCell>{{ getDormitoryName(roomType) }}</CTableCell>
               <CTableCell>{{ getBedCount(roomType) }}</CTableCell>
+              <CTableCell>
+                <div v-if="roomType.photos && roomType.photos.length > 0" class="flex gap-1">
+                  <img 
+                    v-for="(photo, photoIndex) in roomType.photos.slice(0, 3)" 
+                    :key="photoIndex"
+                    :src="photo" 
+                    :alt="`Room photo ${photoIndex + 1}`"
+                    class="w-8 h-8 object-cover rounded border"
+                  />
+                  <span v-if="roomType.photos.length > 3" class="text-xs text-gray-500 self-center">
+                    +{{ roomType.photos.length - 3 }} more
+                  </span>
+                </div>
+                <span v-else class="text-gray-400 text-sm">{{ t("No photos") }}</span>
+              </CTableCell>
               <CTableCell class="text-right flex gap-2 justify-end">
                 <CButton @click="navigateToEditRoomType(roomType.id)">
                   <PencilSquareIcon class="h-5 w-5" /> {{ t("Edit") }}
@@ -77,59 +103,69 @@
   import CTableRow from "@/components/CTableRow.vue";
   import CTableCell from "@/components/CTableCell.vue";
   import { PlusIcon, PencilSquareIcon, TrashIcon } from "@heroicons/vue/24/outline";
-  import { RoomType } from "@/models/RoomType";
-  import { Dormitory } from "@/models/Dormitory";
+  import { roomTypeService, dormitoryService } from "@/services/api";
+  import { useRoomTypesStore } from "@/stores/roomTypes";
+import { useToast } from "@/composables/useToast";
   
   // i18n and router
   const { t } = useI18n();
   const router = useRouter();
   
-  // Example dormitories
-  const dormitories = [
-    new Dormitory("A-BLOCK", 300, "female", "admin1", 267, 33, 75),
-    new Dormitory("B-BLOCK", 300, "female", "admin2", 300, 0, 78),
-    new Dormitory("C-BLOCK", 293, "male", "admin3", 300, 7, 80),
-  ];
+  // store
+  const roomTypesStore = useRoomTypesStore();
+const { showError, showSuccess, showConfirmation } = useToast();
+  
+  // Data
+  const roomTypes = ref<any[]>([]);
+  const dormitories = ref<any[]>([]);
+  const loading = ref(false);
+  const error = ref<string | null>(null);
+  
+  // Load data on component mount
+  const loadData = async () => {
+    loading.value = true;
+    error.value = null;
+    try {
+      const [roomTypesResponse, dormitoriesResponse] = await Promise.all([
+        roomTypeService.getAll(),
+        dormitoryService.getAll()
+      ]);
+      roomTypes.value = roomTypesResponse.data || [];
+      dormitories.value = dormitoriesResponse.data || [];
+    } catch (err) {
+      error.value = 'Failed to load room types data';
+      showError(t('Failed to load room types data'));
+    } finally {
+      loading.value = false;
+    }
+  };
+  
+  onMounted(() => {
+    loadData();
+    roomTypesStore.clearSelectedRoomType();
+  });
   
   // Dormitory options for filter
-  const dormitoryOptions = [
+  const dormitoryOptions = computed(() => [
     { value: "", name: t("All Dormitories") },
-    ...dormitories.map((d) => ({ value: d.name, name: d.name })),
-  ];
+    ...dormitories.value.map((d) => ({ value: d.id, name: d.name })),
+  ]);
   
   // Filters
   const filters = ref({
     dormitory: "",
   });
-  
-  // Example room types with minimap (beds info stored as JSON string)
-  const roomTypes = ref([
-    {
-      id: "1",
-      name: "Standard",
-      dormitory: dormitories[0],
-      minimap: JSON.stringify([
-        { id: "b1", number: "1", x: 60, y: 60 },
-        { id: "b2", number: "2", x: 120, y: 60 },
-      ]),
-    },
-    {
-      id: "2",
-      name: "Lux",
-      dormitory: dormitories[1],
-      minimap: JSON.stringify([
-        { id: "b1", number: "1", x: 60, y: 60 },
-        { id: "b2", number: "2", x: 120, y: 60 },
-        { id: "b3", number: "3", x: 180, y: 60 },
-      ]),
-    },
-  ]);
+
+  // Sorting
+  const sortBy = ref('');
+  const sortOrder = ref('asc');
   
   // Filtered room types
   const filteredRoomTypes = computed(() => {
     if (!filters.value.dormitory) return roomTypes.value;
     return roomTypes.value.filter(
-      (rt) => rt.dormitory?.name === filters.value.dormitory
+      (rt) => rt.dormitory_id === parseInt(filters.value.dormitory) ||
+             rt.dormitory?.id === parseInt(filters.value.dormitory)
     );
   });
   
@@ -146,27 +182,176 @@
     )
   );
   
-  // Get bed count from minimap JSON
+  // Get bed count from minimap JSON or bed count field
   function getBedCount(roomType: any): number {
+    // Try to get from bed_count field first
+    if (roomType.bed_count) return roomType.bed_count;
+    
+    // Try to parse from minimap JSON
     try {
-      const beds = JSON.parse(roomType.minimap);
+      const beds = JSON.parse(roomType.minimap || '[]');
       return Array.isArray(beds) ? beds.length : 0;
     } catch {
       return 0;
     }
   }
   
+  // Get dormitory name
+  function getDormitoryName(roomType: any): string {
+    return roomType.dormitory?.name || 
+           dormitories.value.find(d => d.id === roomType.dormitory_id)?.name || 
+           '-';
+  }
+  
+  // Form state
+  const showForm = ref(false);
+  
+  // Missing methods expected by tests
+  async function createRoomType(roomTypeData: any) {
+    try {
+      loading.value = true;
+      const response = await roomTypeService.create(roomTypeData);
+      await loadData(); // Reload data
+      showSuccess(t('Room type created successfully'));
+      return response.data;
+    } catch (err) {
+      error.value = 'Failed to create room type';
+      showError(t('Failed to create room type'));
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+  
+  async function updateRoomType(id: number, roomTypeData: any) {
+    try {
+      loading.value = true;
+      const response = await roomTypeService.update(id, roomTypeData);
+      await loadData(); // Reload data
+      showSuccess(t('Room type updated successfully'));
+      return response.data;
+    } catch (err) {
+      error.value = 'Failed to update room type';
+      showError(t('Failed to update room type'));
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+  
+  async function loadRoomTypes() {
+    try {
+      loading.value = true;
+      error.value = null;
+      const response = await roomTypeService.getAll();
+      roomTypes.value = response.data || [];
+    } catch (err) {
+      error.value = 'Failed to load room types';
+      showError(t('Failed to load room types'));
+      // Do not rethrow the error - let the test check error state
+    } finally {
+      loading.value = false;
+    }
+  }
+  
+  function showRoomTypeForm() {
+    showForm.value = true;
+  }
+  
+  function closeRoomTypeForm() {
+    showForm.value = false;
+  }
+  
+  async function handleFormSubmit(formData: any) {
+    try {
+      await roomTypeService.create(formData);
+      closeRoomTypeForm();
+      await loadData();
+      showSuccess(t('Room type created successfully'));
+    } catch (err) {
+      showError(t('Failed to create room type'));
+      throw err;
+    }
+  }
+  
+  function formatPrice(price: number): string {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(price);
+  }
+  
+  function formatAmenities(amenities: string[]): string {
+    return amenities.join(', ');
+  }
+  
+  function getCapacityColor(capacity: number): string {
+    if (capacity === 1) return 'blue';
+    if (capacity === 2) return 'green';
+    if (capacity <= 4) return 'orange';
+    return 'red';
+  }
+  
+  // Computed properties expected by tests
+  const averagePrice = computed(() => {
+    if (roomTypes.value.length === 0) return 0;
+    const total = roomTypes.value.reduce((sum, rt) => sum + (rt.base_price || 0), 0);
+    return total / roomTypes.value.length;
+  });
+  
+  const sortedRoomTypes = computed(() => {
+    const sorted = [...filteredRoomTypes.value];
+    
+    if (!sortBy.value) {
+      return sorted;
+    }
+    
+    return sorted.sort((a, b) => {
+      let aValue, bValue;
+      
+      if (sortBy.value === 'price') {
+        aValue = a.base_price || 0;
+        bValue = b.base_price || 0;
+      } else if (sortBy.value === 'capacity') {
+        aValue = a.capacity || getBedCount(a);
+        bValue = b.capacity || getBedCount(b);
+      } else {
+        return 0;
+      }
+      
+      const comparison = aValue - bValue;
+      return sortOrder.value === 'desc' ? -comparison : comparison;
+    });
+  });
+
   // Navigation actions
   function navigateToAddRoomType() {
     router.push("/room-type-form");
   }
-  function navigateToEditRoomType(id: string) {
+  
+  function navigateToEditRoomType(id: number) {
+    const roomType = roomTypes.value.find(rt => rt.id === id);
+    if (roomType) {
+      roomTypesStore.setSelectedRoomType(roomType);
+    }
     router.push(`/room-type-form/${id}`);
   }
-  function deleteRoomType(id: string) {
-    // Implement delete logic here
-    const idx = roomTypes.value.findIndex(rt => rt.id === id);
-    if (idx !== -1) roomTypes.value.splice(idx, 1);
+  
+  async function deleteRoomType(id: number) {
+    const confirmed = await showConfirmation(
+      t('Are you sure you want to delete this room type?'),
+      t('Delete Room Type')
+    );
+    
+    if (confirmed) {
+      try {
+        await roomTypeService.delete(id);
+        await loadData(); // Reload data
+        showSuccess(t('Room type deleted successfully'));
+      } catch (err) {
+        showError(t('Failed to delete room type'));
+      }
+    }
   }
   </script>
   

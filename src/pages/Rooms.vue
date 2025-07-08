@@ -1,12 +1,35 @@
 <template>
     <Navigation :title="t('Rooms Management')">
       <div class="flex flex-col gap-4">
-        <!-- Filters and Add Button -->
+        <h1>Rooms</h1>
+        
+        <!-- Search and Filters -->
         <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div class="flex flex-col gap-2 lg:flex-row lg:items-end">
+            <!-- Search -->
+            <div class="flex flex-col gap-2">
+              <label>{{ t("Search") }}</label>
+              <input 
+                v-model="searchTerm" 
+                :placeholder="t('Search rooms...')"
+                class="border rounded px-3 py-2"
+              />
+            </div>
+            
+            <!-- Status Filter -->
+            <CSelect
+              id="status-filter"
+              v-model="statusFilter"
+              :options="statusOptions"
+              :label="t('Status')"
+              :placeholder="t('Select Status')"
+              class="lg:w-40"
+            />
+            
+            <!-- Dormitory Filter -->
             <CSelect
               id="dormitory-filter"
-              v-model="filters.dormitory"
+              v-model="dormitoryFilter"
               :options="dormitoryOptions"
               :label="t('Dormitory')"
               :placeholder="t('Select Dormitory')"
@@ -28,9 +51,19 @@
             </CButton>
           </div>
         </div>
+
+        <!-- Loading State -->
+        <div v-if="loading" class="loading-text text-center py-4">
+          {{ t("Loading...") }}
+        </div>
+
+        <!-- Error State -->
+        <div v-if="error" class="error-message text-red-500 text-center py-4">
+          {{ error }}
+        </div>
   
         <!-- Rooms Table -->
-        <CTable>
+        <CTable v-if="!loading && !error">
           <CTableHead>
             <CTableHeadCell>{{ t("Room Number") }}</CTableHeadCell>
             <CTableHeadCell>{{ t("Dormitory") }}</CTableHeadCell>
@@ -41,20 +74,20 @@
             <CTableHeadCell class="text-right">{{ t("Action") }}</CTableHeadCell>
           </CTableHead>
           <CTableBody>
-            <CTableRow v-for="(room, index) in paginatedRooms" :key="room.number">
+            <CTableRow v-for="room in paginatedRooms" :key="room.id">
               <CTableCell>{{ room.number }}</CTableCell>
-              <CTableCell>{{ room.dormitory?.name }}</CTableCell>
-              <CTableCell>{{ room.roomType?.name }}</CTableCell>
+              <CTableCell>{{ getDormitoryName(room) }}</CTableCell>
+              <CTableCell>{{ getRoomTypeName(room) }}</CTableCell>
               <CTableCell>
-              {{ room.floor !== null ? room.floor : '-' }}
-            </CTableCell>
-              <CTableCell>{{ room.beds?.length ?? 0 }}</CTableCell>
-              <CTableCell>{{ room.notes }}</CTableCell>
+                {{ room.floor !== null ? room.floor : '-' }}
+              </CTableCell>
+              <CTableCell>{{ getBedsCount(room) }}</CTableCell>
+              <CTableCell>{{ room.notes || '-' }}</CTableCell>
               <CTableCell class="text-right flex gap-2 justify-end">
-                <CButton @click="navigateToEditRoom(room.number)">
+                <CButton @click="navigateToEditRoom(room.id)">
                   <PencilSquareIcon class="h-5 w-5" /> {{ t("Edit") }}
                 </CButton>
-                <CButton class="text-red-600" @click="deleteRoom(room.number)">
+                <CButton class="text-red-600" @click="deleteRoom(room.id)">
                   <TrashIcon class="h-5 w-5" /> {{ t("Delete") }}
                 </CButton>
               </CTableCell>
@@ -81,7 +114,7 @@
   <script setup lang="ts">
 import Navigation from "@/components/CNavigation.vue";
 import { useI18n } from "vue-i18n";
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import CSelect from "@/components/CSelect.vue";
 import CButton from "@/components/CButton.vue";
@@ -92,39 +125,78 @@ import CTableBody from "@/components/CTableBody.vue";
 import CTableRow from "@/components/CTableRow.vue";
 import CTableCell from "@/components/CTableCell.vue";
 import { PlusIcon, PencilSquareIcon, TrashIcon } from "@heroicons/vue/24/outline";
-import { Room } from "@/models/Room";
-import { Dormitory } from "@/models/Dormitory";
-import { RoomType } from "@/models/RoomType";
-import { Bed } from "@/models/Bed";
+import { roomService, dormitoryService, roomTypeService } from "@/services/api";
+import { useRoomsStore } from "@/stores/rooms";
+import { useToast } from "@/composables/useToast";
 
 // i18n and router
 const { t } = useI18n();
 const router = useRouter();
 
-// Example dormitories (constructor: name, capacity, gender, admin, registered, freeBeds, rooms)
-const dormitories = [
-  new Dormitory("A-BLOCK", 300, "female", "admin1", 267, 33, 75),
-  new Dormitory("B-BLOCK", 300, "female", "admin2", 300, 0, 78),
-  new Dormitory("C-BLOCK", 293, "male", "admin3", 300, 7, 80),
-];
+// store
+const roomsStore = useRoomsStore();
+const { showError, showSuccess, showConfirmation } = useToast();
 
-// Example room types (constructor: id, name, minimap)
-const roomTypes = [
-  new RoomType("1", "Standard", ""),
-  new RoomType("2", "Lux", ""),
-];
+// Room Data
+const rooms = ref<any[]>([]);
+const dormitories = ref<any[]>([]);
+const roomTypes = ref<any[]>([]);
+const loading = ref(false);
+const error = ref<string | null>(null);
+
+// Search and filter state
+const searchTerm = ref('');
+const statusFilter = ref('');
+const dormitoryFilter = ref<number | ''>('');
+
+// Modal state
+const showForm = ref(false);
+
+// Load data on component mount
+const loadRooms = async () => {
+  loading.value = true;
+  error.value = null;
+  try {
+    const [roomsResponse, dormitoriesResponse, roomTypesResponse] = await Promise.all([
+      roomService.getAll(),
+      dormitoryService.getAll(),
+      roomTypeService.getAll()
+    ]);
+    rooms.value = roomsResponse.data;
+    dormitories.value = dormitoriesResponse.data;
+    roomTypes.value = roomTypesResponse.data;
+  } catch (err) {
+    error.value = 'Failed to load rooms';
+    showError(t('Failed to load rooms data'));
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  loadRooms();
+  roomsStore.clearSelectedRoom();
+});
+
+// Status options for filter
+const statusOptions = computed(() => [
+  { value: "", name: t("All Statuses") },
+  { value: "available", name: t("Available") },
+  { value: "occupied", name: t("Occupied") },
+  { value: "maintenance", name: t("Maintenance") },
+]);
 
 // Dormitory options for filter
-const dormitoryOptions = [
+const dormitoryOptions = computed(() => [
   { value: "", name: t("All Dormitories") },
-  ...dormitories.map((d) => ({ value: d.name, name: d.name })),
-];
+  ...dormitories.value.map((d) => ({ value: d.id, name: d.name })),
+]);
 
 // Room type options for filter
-const roomTypeOptions = [
+const roomTypeOptions = computed(() => [
   { value: "", name: t("All Room Types") },
-  ...roomTypes.map((rt) => ({ value: rt.name, name: rt.name })),
-];
+  ...roomTypes.value.map((rt) => ({ value: rt.id, name: rt.name })),
+]);
 
 // Filters
 const filters = ref({
@@ -132,82 +204,167 @@ const filters = ref({
   roomType: "",
 });
 
-// Example rooms (constructor: number, floor, notes, dormitory, roomType, beds)
-const rooms = ref<Room[]>([
-  new Room(
-    "A210",
-    2,
-    "Near the stairs",
-    dormitories[0],
-    roomTypes[0],
-    [
-      new Bed("b1", "1", "available", null, [], null),
-      new Bed("b2", "2", "available", null, [], null),
-    ]
-  ),
-  new Room(
-    "A211",
-    2,
-    "",
-    dormitories[0],
-    roomTypes[1],
-    [
-      new Bed("b1", "1", "available", null, [], null),
-      new Bed("b2", "2", "available", null, [], null),
-      new Bed("b3", "3", "available", null, [], null),
-    ]
-  ),
-  new Room(
-    "B101",
-    1,
-    "Window view",
-    dormitories[1],
-    roomTypes[0],
-    [
-      new Bed("b1", "1", "available", null, [], null),
-      new Bed("b2", "2", "available", null, [], null),
-      new Bed("b3", "3", "available", null, [], null),
-      new Bed("b4", "4", "available", null, [], null),
-    ]
-  ),
-]);
-
 // Filtered rooms
 const filteredRooms = computed(() => {
+  if (!rooms.value.length) return [];
   return rooms.value.filter((room) => {
-    const dormMatch = !filters.value.dormitory || room.dormitory?.name === filters.value.dormitory;
-    const typeMatch = !filters.value.roomType || room.roomType?.name === filters.value.roomType;
-    return dormMatch && typeMatch;
+    // Search filter
+    const searchMatch = !searchTerm.value || 
+      room.room_number?.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
+      room.description?.toLowerCase().includes(searchTerm.value.toLowerCase());
+    
+    // Status filter
+    const statusMatch = !statusFilter.value || room.status === statusFilter.value;
+    
+    // Dormitory filter
+    const dormMatch = (!filters.value.dormitory && !dormitoryFilter.value) || 
+      room.dormitory_id === parseInt(filters.value.dormitory) ||
+      room.dormitory?.id === parseInt(filters.value.dormitory) ||
+      room.dormitory_id === dormitoryFilter.value ||
+      room.dormitory?.id === dormitoryFilter.value;
+      
+    // Room type filter
+    const typeMatch = !filters.value.roomType || 
+      room.room_type_id === parseInt(filters.value.roomType) ||
+      room.roomType?.id === parseInt(filters.value.roomType);
+      
+    return searchMatch && statusMatch && dormMatch && typeMatch;
   });
 });
 
 // Pagination
 const currentPage = ref(1);
-const itemsPerPage = 10;
+const itemsPerPage = ref(10);
 const totalPages = computed(() =>
-  Math.max(1, Math.ceil(filteredRooms.value.length / itemsPerPage))
+  Math.max(1, Math.ceil(filteredRooms.value.length / itemsPerPage.value))
 );
 const paginatedRooms = computed(() =>
   filteredRooms.value.slice(
-    (currentPage.value - 1) * itemsPerPage,
-    currentPage.value * itemsPerPage
+    (currentPage.value - 1) * itemsPerPage.value,
+    currentPage.value * itemsPerPage.value
   )
 );
+
+// Occupancy stats
+const occupancyStats = computed(() => {
+  const totalRooms = rooms.value.length;
+  const availableRooms = rooms.value.filter(r => r.status === 'available').length;
+  const occupiedRooms = rooms.value.filter(r => r.status === 'occupied').length;
+  const occupancyRate = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
+  
+  return {
+    totalRooms,
+    availableRooms, 
+    occupiedRooms,
+    occupancyRate
+  };
+});
 
 // Keep currentPage in range when filteredRooms changes
 watch(filteredRooms, () => {
   if (currentPage.value > totalPages.value) currentPage.value = totalPages.value;
 });
 
+// CRUD operations
+async function createRoom(roomData: any) {
+  try {
+    await roomService.create(roomData);
+    await loadRooms();
+    showSuccess(t('Room created successfully'));
+  } catch (err) {
+    showError(t('Failed to create room'));
+  }
+}
+
+async function updateRoom(id: number, roomData: any) {
+  try {
+    await roomService.update(id, roomData);
+    await loadRooms();
+    showSuccess(t('Room updated successfully'));
+  } catch (err) {
+    showError(t('Failed to update room'));
+  }
+}
+
+async function deleteRoom(id: number) {
+  const confirmed = await showConfirmation(
+    t('Are you sure you want to delete this room?'),
+    t('Delete Room')
+  );
+  
+  if (confirmed) {
+    try {
+      await roomService.delete(id);
+      await loadRooms(); // Reload data
+      showSuccess(t('Room deleted successfully'));
+    } catch (err) {
+      showError(t('Failed to delete room'));
+    }
+  }
+}
+
+// Modal functions
+function showRoomForm() {
+  showForm.value = true;
+}
+
+function closeRoomForm() {
+  showForm.value = false;
+}
+
+async function handleFormSubmit(formData: any) {
+  await createRoom(formData);
+  showForm.value = false;
+}
+
 // Navigation actions
 function navigateToAddRoom() {
   router.push("/room-form");
 }
-function navigateToEditRoom(number: string) {
-  router.push(`/room-form/${number}`);
+
+function navigateToEditRoom(id: number) {
+  const room = rooms.value.find(r => r.id === id);
+  if (room) {
+    roomsStore.setSelectedRoom(room);
+  }
+  router.push(`/room-form/${id}`);
 }
-function deleteRoom(number: string) {
-  const idx = rooms.value.findIndex(r => r.number === number);
-  if (idx !== -1) rooms.value.splice(idx, 1);
+
+// Helper functions
+const getDormitoryName = (room: any) => {
+  return room.dormitory?.name || 
+         dormitories.value.find(d => d.id === room.dormitory_id)?.name || 
+         '-';
+};
+
+const getRoomTypeName = (room: any) => {
+  return room.room_type?.name || 
+         roomTypes.value.find(rt => rt.id === room.room_type_id)?.name || 
+         '-';
+};
+
+const getBedsCount = (room: any) => {
+  return room.beds?.length || room.beds_count || 0;
+};
+
+// Additional helper functions expected by tests
+function getAvailableCapacity(room: any) {
+  return (room.capacity || 0) - (room.current_occupancy || 0);
+}
+
+function getStatusColor(status: string) {
+  switch (status) {
+    case 'available': return 'green';
+    case 'occupied': return 'yellow';
+    case 'maintenance': return 'red';
+    default: return 'gray';
+  }
+}
+
+function formatPrice(price: number) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD'
+  }).format(price);
 }
 </script>

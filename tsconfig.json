@@ -1,14 +1,24 @@
 {
   "compilerOptions": {
-    "target": "ES5",
+    "target": "ESNext",
     "module": "ESNext",
-    "lib": ["ES2015", "DOM"],
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "types": ["vitest/globals", "node"],
     "paths": {
       "@/*": ["./src/*"]
     }
   },
+  "include": ["src/**/*", "tests/**/*"],
   "exclude": ["node_modules", "dist"]
 }

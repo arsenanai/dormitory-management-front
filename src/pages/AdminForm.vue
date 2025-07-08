@@ -92,21 +92,28 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted, computed } from "vue";
 import { useI18n } from "vue-i18n";
+import { useRoute } from "vue-router";
 import Navigation from "@/components/CNavigation.vue";
 import CInput from "@/components/CInput.vue";
 import CSelect from "@/components/CSelect.vue";
 import CButton from "@/components/CButton.vue";
 import { Dormitory } from "@/models/Dormitory";
 import { useUserStore } from "@/stores/user";
+import { userService } from "@/services/api";
+import { useToast } from "@/composables/useToast";
 import { PlusIcon, TrashIcon } from "@heroicons/vue/24/outline";
 
 // i18n
 const { t } = useI18n();
+const route = useRoute();
 const userStore = useUserStore();
-userStore.restoreSelectedUser();
-console.log("Selected User 1:", userStore.selectedUser);
+const { showError, showSuccess } = useToast();
+
+// Check if we're editing (ID in route params)
+const userId = computed(() => route.params.id ? Number(route.params.id) : null);
+const isEditing = computed(() => !!userId.value);
 
 // Example dormitory list
 const dormitories = [
@@ -162,14 +169,43 @@ const removePhoneNumber = (index: number) => {
 // Submit the form
 const submitForm = (): void => {
   if (admin.value.phoneNumbers.length === 0) {
-    alert(t("At least one phone number is required."));
+    showError(t("At least one phone number is required."));
     return;
   }
   console.log("Admin submitted:", admin.value);
+  showSuccess(t("Admin data submitted successfully!"));
   // Add logic to save or update admin data
 };
-onMounted(() => {
+
+// Load user from API if editing
+const loadUser = async (id: number) => {
+  try {
+    const response = await userService.getById(id);
+    const userData = response.data;
+    
+    // Populate form with API data
+    admin.value = {
+      name: userData.name || userData.first_name || "",
+      surname: userData.surname || userData.last_name || "",
+      dormitory: dormitoryOptions.find(d => d.value.name === userData.dormitory?.name) || dormitoryOptions[0]?.value || null,
+      email: userData.email || "",
+      phoneNumbers: userData.phone_numbers?.length ? [...userData.phone_numbers] : [""],
+    };
+    showSuccess(t("Admin data loaded successfully"));
+  } catch (error) {
+    console.error('Failed to load user:', error);
+    showError(t("Failed to load admin data"));
+  }
+};
+
+onMounted(async () => {
+  // First try to restore from store
   userStore.restoreSelectedUser();
+  
+  // If editing and no data in store, load from API
+  if (isEditing.value && !userStore.selectedUser) {
+    await loadUser(userId.value!);
+  }
 });
 </script>
 

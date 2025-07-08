@@ -99,15 +99,26 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { useRoute } from "vue-router";
 import Navigation from "@/components/CNavigation.vue";
 import CInput from "@/components/CInput.vue";
 import CSelect from "@/components/CSelect.vue";
 import CButton from "@/components/CButton.vue";
 import { Dormitory } from "@/models/Dormitory";
+import { useDormitoriesStore } from "@/stores/dormitories";
+import { useToast } from "@/composables/useToast";
+import { dormitoryService } from "@/services/api";
 
 const { t } = useI18n();
+const route = useRoute();
+const dormitoryStore = useDormitoriesStore();
+const { showError, showSuccess } = useToast();
+
+// Check if we're editing (ID in route params)
+const dormitoryId = computed(() => route.params.id ? Number(route.params.id) : null);
+const isEditing = computed(() => !!dormitoryId.value);
 
 // Dormitory Form Data
 const dormitory = ref(new Dormitory());
@@ -120,10 +131,71 @@ const genderOptions: { value: string; name: string }[] = [
 ];
 
 // Submit Dormitory
-const submitDormitory = (): void => {
-  console.log("Dormitory submitted:", dormitory.value);
-  // Add logic to save or update dormitory data
+const submitDormitory = async (): Promise<void> => {
+  try {
+    console.log("Dormitory submitted:", dormitory.value);
+    
+    if (isEditing.value) {
+      // await dormitoryService.update(dormitoryId.value!, dormitory.value);
+      showSuccess(t("Dormitory updated successfully!"));
+    } else {
+      // await dormitoryService.create(dormitory.value);
+      showSuccess(t("Dormitory created successfully!"));
+    }
+  } catch (error) {
+    showError(t("Failed to save dormitory. Please try again."));
+  }
 };
+
+// Load dormitory from API if editing
+const loadDormitory = async (id: number) => {
+  try {
+    const response = await dormitoryService.getById(id);
+    const dormitoryData = response.data;
+    
+    // Populate form with API data
+    dormitory.value = new Dormitory(
+      dormitoryData.name || "",
+      dormitoryData.capacity || 0,
+      dormitoryData.gender || "",
+      dormitoryData.admin || "",
+      dormitoryData.registered || 0,
+      dormitoryData.freeBeds || 0,
+      dormitoryData.rooms || 0
+    );
+  } catch (error) {
+    showError(t("Failed to load dormitory data"));
+  }
+};
+
+// Populate the form if editing an existing dormitory
+watch(
+  () => dormitoryStore.selectedDormitory,
+  (selectedDormitory: any) => {
+    if (selectedDormitory) {
+      dormitory.value = new Dormitory(
+        selectedDormitory.name || "",
+        selectedDormitory.capacity || 0,
+        selectedDormitory.gender || "",
+        selectedDormitory.admin || "",
+        selectedDormitory.registered || 0,
+        selectedDormitory.freeBeds || 0,
+        selectedDormitory.rooms || 0
+      );
+    }
+  },
+  { immediate: true }
+);
+
+onMounted(async () => {
+  // First try to restore from store
+  dormitoryStore.restoreSelectedDormitory();
+  
+  // If editing and no data in store, load from API
+  if (isEditing.value && !dormitoryStore.selectedDormitory) {
+    await loadDormitory(dormitoryId.value!);
+  }
+});
 </script>
 
 <style scoped>

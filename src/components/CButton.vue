@@ -1,6 +1,37 @@
 <template>
-  <button type="button" :class="[baseClasses, variantClasses]">
-    <slot></slot>
+  <button
+    :type="type"
+    :disabled="disabled || loading"
+    :title="tooltip"
+    :class="buttonClasses"
+    @click="handleClick"
+  >
+    <div v-if="icon && iconPosition === 'left'" :class="iconClasses">
+      {{ icon }}
+    </div>
+    
+    <div v-if="loading" class="loading-spinner">
+      <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+    </div>
+
+    <span v-if="label && !$slots.default">{{ label }}</span>
+    <slot v-else></slot>
+
+    <div v-if="icon && iconPosition === 'right'" :class="iconClasses">
+      {{ icon }}
+    </div>
+
+    <button
+      v-if="clearable && modelValue"
+      type="button"
+      class="clear-button ml-2 text-gray-400 hover:text-gray-600"
+      @click.stop="handleClear"
+    >
+      ×
+    </button>
   </button>
 </template>
 
@@ -9,27 +40,141 @@ import { computed } from "vue";
 
 // Define props using TypeScript
 interface Props {
-  variant?: "default" | "primary" | "secondary-circle" | "transparent";
+  label?: string;
+  variant?: "default" | "primary" | "secondary" | "secondary-circle" | "transparent" | "danger";
+  size?: "small" | "medium" | "large";
+  type?: "button" | "submit" | "reset";
+  disabled?: boolean;
+  loading?: boolean;
+  icon?: string;
+  iconPosition?: "left" | "right";
+  outline?: boolean;
+  block?: boolean;
+  rounded?: boolean;
+  tooltip?: string;
+  confirm?: string;
+  clearable?: boolean;
+  modelValue?: any;
 }
 
+// Define emits
+const emit = defineEmits<{
+  click: [event: MouseEvent];
+  clear: [];
+  'update:modelValue': [value: any];
+}>();
+
 // Define props with TypeScript
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  variant: "default",
+  size: "medium",
+  type: "button",
+  disabled: false,
+  loading: false,
+  iconPosition: "left",
+  outline: false,
+  block: false,
+  rounded: false,
+});
 
 // Base classes for all buttons
 const baseClasses =
   "font-medium inline-flex items-center gap-2 disabled:cursor-not-allowed disabled:text-gray-400 disabled:bg-white focus:outline-none transition-all";
 
-// Computed property for variant-specific classes
-const variantClasses = computed(() => {
-  switch (props.variant) {
-    case "primary":
-      return "text-primary-500 border border-primary-500 bg-transparent hover:bg-primary-500 hover:text-white focus:ring-4 focus:ring-primary-300 dark:text-primary-400 dark:border-primary-400 dark:hover:bg-primary-500 dark:hover:text-white dark:focus:ring-primary-700 rounded-lg px-4 py-2 text-base";
-    case "secondary-circle":
-      return "text-secondary-500 border border-secondary-500 bg-transparent hover:bg-secondary-500 hover:text-white focus:ring-4 focus:ring-secondary-300 dark:border-secondary-400 dark:text-secondary-400 dark:hover:bg-secondary-500 dark:hover:text-white dark:focus:ring-secondary-700 rounded-lg p-3";
-    case "transparent":
-      return "text-gray-900 bg-transparent hover:text-gray-700 focus:ring-4 focus:ring-gray-200 dark:text-white dark:bg-transparent dark:hover:text-gray-300 dark:focus:ring-gray-700 px-4 py-2 text-base";
-    default:
-      return "text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700 rounded-lg px-4 py-2 text-base";
+// Computed property for button classes
+const buttonClasses = computed(() => {
+  const classes = [baseClasses];
+  
+  // Variant classes
+  if (props.variant === 'primary') {
+    classes.push('primary');
+    if (props.outline) {
+      classes.push('text-primary-500 border border-primary-500 bg-transparent hover:bg-primary-500 hover:text-white');
+    } else {
+      classes.push('text-white bg-primary-500 hover:bg-primary-600 border border-primary-500');
+    }
+  } else if (props.variant === 'secondary') {
+    classes.push('secondary');
+    if (props.outline) {
+      classes.push('text-secondary-500 border border-secondary-500 bg-transparent hover:bg-secondary-500 hover:text-white');
+    } else {
+      classes.push('text-white bg-secondary-500 hover:bg-secondary-600 border border-secondary-500');
+    }
+  } else if (props.variant === 'danger') {
+    classes.push('danger');
+    if (props.outline) {
+      classes.push('text-red-500 border border-red-500 bg-transparent hover:bg-red-500 hover:text-white');
+    } else {
+      classes.push('text-white bg-red-500 hover:bg-red-600 border border-red-500');
+    }
+  } else if (props.variant === 'secondary-circle') {
+    classes.push('secondary-circle');
+    classes.push('text-secondary-500 border border-secondary-500 bg-transparent hover:bg-secondary-500 hover:text-white focus:ring-4 focus:ring-secondary-300 rounded-lg p-3');
+  } else if (props.variant === 'transparent') {
+    classes.push('transparent');
+    classes.push('text-gray-900 bg-transparent hover:text-gray-700 focus:ring-4 focus:ring-gray-200');
+  } else {
+    classes.push('default');
+    classes.push('text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:ring-gray-200');
   }
+
+  // Size classes
+  if (props.size === 'small') {
+    classes.push('small', 'px-2 py-1 text-sm');
+  } else if (props.size === 'large') {
+    classes.push('large', 'px-6 py-3 text-lg');
+  } else {
+    classes.push('medium', 'px-4 py-2 text-base');
+  }
+
+  // Additional classes
+  if (props.disabled) {
+    classes.push('disabled');
+  }
+  if (props.outline) {
+    classes.push('outline');
+  }
+  if (props.block) {
+    classes.push('block', 'w-full');
+  }
+  if (props.rounded) {
+    classes.push('rounded', 'rounded-full');
+  } else {
+    classes.push('rounded-lg');
+  }
+
+  return classes.join(' ');
 });
+
+// Icon classes
+const iconClasses = computed(() => {
+  const classes = [];
+  if (props.iconPosition === 'left') {
+    classes.push('icon-left');
+  } else {
+    classes.push('icon-right');
+  }
+  return classes.join(' ');
+});
+
+// Handle click events
+const handleClick = (event: MouseEvent) => {
+  if (props.disabled || props.loading) {
+    return;
+  }
+
+  if (props.confirm) {
+    if (confirm(props.confirm)) {
+      emit('click', event);
+    }
+  } else {
+    emit('click', event);
+  }
+};
+
+// Handle clear
+const handleClear = () => {
+  emit('clear');
+  emit('update:modelValue', '');
+};
 </script>

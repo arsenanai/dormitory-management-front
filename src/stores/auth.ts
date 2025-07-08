@@ -1,124 +1,179 @@
-// // src/stores/auth.ts
-// import { defineStore } from 'pinia'
-// import { ref, computed } from 'vue'
-// import { useRouter } from 'vue-router'
-// import { useI18n } from 'vue-i18n'
-// import api from '@/services/api'
+// src/stores/auth.ts
+import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import api from '@/services/api'
 
-// export const useAuthStore = defineStore('auth', () => {
-//   const router = useRouter()
-//   const { t } = useI18n()
+interface User {
+  id: number
+  name?: string
+  first_name?: string
+  last_name?: string
+  email: string
+  role?: {
+    name: string
+  }
+}
 
-//   // State
-//   const user = ref(null)
-//   const token = ref(localStorage.getItem('token') || null)
-//   const isLoading = ref(false)
-//   const error = ref(null)
+interface LoginCredentials {
+  email: string
+  password: string
+}
 
-//   // Getters
-//   const isAuthenticated = computed(() => !!token.value)
-//   const userRole = computed(() => user.value?.role || null)
-//   const fullName = computed(() =>
-//     user.value ? `${user.value.firstName} ${user.value.lastName}` : ''
-//   )
+export const useAuthStore = defineStore('auth', () => {
+  const router = useRouter()
 
-//   // Actions
-//   const login = async (credentials) => {
-//     try {
-//       isLoading.value = true
-//       error.value = null
+  // State
+  const user = ref<User | null>(null)
+  const token = ref<string | null>(null)
+  const loading = ref(false)
+  const error = ref<string | null>(null)
 
-//       const response = await api.post('/auth/login', credentials)
+  // Getters
+  const isAuthenticated = computed(() => !!token.value)
+  const userRole = computed(() => user.value?.role?.name || null)
+  const fullName = computed(() =>
+    user.value ? `${user.value.first_name || user.value.name || ''} ${user.value.last_name || ''}`.trim() : ''
+  )
 
-//       token.value = response.data.token
-//       user.value = response.data.user
+  // Actions
+  const login = async (credentials: LoginCredentials) => {
+    try {
+      loading.value = true
+      error.value = null
 
-//       // Store token in localStorage
-//       localStorage.setItem('token', token.value)
+      const response = await api.post('/login', credentials)
 
-//       // Redirect based on role
-//       const redirectPath = router.currentRoute.value.query.redirect || '/dashboard'
-//       router.push(redirectPath)
-//     } catch (err) {
-//       error.value = err.response?.data?.message || t('auth.login_error')
-//       throw err
-//     } finally {
-//       isLoading.value = false
-//     }
-//   }
+      token.value = response.data.token
+      user.value = response.data.user
 
-//   const register = async (userData) => {
-//     try {
-//       isLoading.value = true
-//       error.value = null
+      // Store token in localStorage
+      if (token.value) {
+        localStorage.setItem('token', token.value)
+      }
 
-//       const response = await api.post('/auth/register', userData)
+      // Redirect based on role
+      const redirectPath = '/'
+      router.push(redirectPath)
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Login failed'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
 
-//       token.value = response.data.token
-//       user.value = response.data.user
+  const register = async (userData: any) => {
+    try {
+      loading.value = true
+      error.value = null
 
-//       localStorage.setItem('token', token.value)
-//       router.push('/dashboard')
-//     } catch (err) {
-//       error.value = err.response?.data?.message || t('auth.register_error')
-//       throw err
-//     } finally {
-//       isLoading.value = false
-//     }
-//   }
+      const response = await api.post('/register', userData)
 
-//   const logout = () => {
-//     token.value = null
-//     user.value = null
-//     localStorage.removeItem('token')
-//     router.push('/login')
-//   }
+      return response.data
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Registration failed'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
 
-//   const checkAuth = async () => {
-//     if (!token.value) return
+  const logout = () => {
+    token.value = null
+    user.value = null
+    localStorage.removeItem('token')
+    router.push('/login')
+  }
 
-//     try {
-//       const response = await api.get('/auth/me')
-//       user.value = response.data
-//     } catch (err) {
-//       logout()
-//     }
-//   }
+  const loadProfile = async () => {
+    try {
+      loading.value = true
+      error.value = null
 
-//   const resetPassword = async (email) => {
-//     try {
-//       isLoading.value = true
-//       error.value = null
+      const response = await api.get('/users/profile')
+      user.value = response.data
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Failed to load profile'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
 
-//       await api.post('/auth/reset-password', { email })
-//     } catch (err) {
-//       error.value = err.response?.data?.message || t('auth.reset_password_error')
-//       throw err
-//     } finally {
-//       isLoading.value = false
-//     }
-//   }
+  const updateProfile = async (profileData: any) => {
+    try {
+      loading.value = true
+      error.value = null
 
-//   // Initialize auth check on store creation
-//   checkAuth()
+      const response = await api.put('/users/profile', profileData)
+      user.value = response.data
 
-//   return {
-//     // State
-//     user,
-//     token,
-//     isLoading,
-//     error,
+      return response.data
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Failed to update profile'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
 
-//     // Getters
-//     isAuthenticated,
-//     userRole,
-//     fullName,
+  const initializeAuth = () => {
+    const storedToken = localStorage.getItem('token')
+    if (storedToken) {
+      token.value = storedToken
+      loadProfile().catch(() => {
+        // If loading profile fails, logout
+        logout()
+      })
+    }
+  }
 
-//     // Actions
-//     login,
-//     register,
-//     logout,
-//     checkAuth,
-//     resetPassword
-//   }
-// })
+  const checkAuth = async () => {
+    if (!token.value) return
+
+    try {
+      const response = await api.get('/users/profile')
+      user.value = response.data
+    } catch (err) {
+      logout()
+    }
+  }
+
+  const resetPassword = async (email: string) => {
+    try {
+      loading.value = true
+      error.value = null
+
+      await api.post('/auth/reset-password', { email })
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Password reset failed'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return {
+    // State
+    user,
+    token,
+    loading,
+    error,
+
+    // Getters
+    isAuthenticated,
+    userRole,
+    fullName,
+
+    // Actions
+    login,
+    register,
+    logout,
+    loadProfile,
+    updateProfile,
+    initializeAuth,
+    checkAuth,
+    resetPassword
+  }
+})

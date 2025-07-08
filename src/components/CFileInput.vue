@@ -64,6 +64,7 @@
         class="hidden"
         :name="formatName(name)"
         :accept="allowedExtensions.map((ext) => `.${ext}`).join(',')"
+        :multiple="multiple"
         @change="handleFileChange"
         ref="fileInput"
       />
@@ -72,7 +73,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, withDefaults } from "vue";
 import { useI18n } from "vue-i18n";
 import { PaperClipIcon } from "@heroicons/vue/24/outline";
 
@@ -83,9 +84,19 @@ interface Props {
   maxFileSize?: number;
   name?: string;
   allowedExtensions?: string[];
+  multiple?: boolean; // Support multiple files
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  multiple: false,
+  allowedExtensions: () => ["jpg", "jpeg", "png", "gif", "pdf"],
+  maxFileSize: 5 * 1024 * 1024,
+});
+
+// Define emits
+const emit = defineEmits<{
+  change: [value: File | FileList | null];
+}>();
 
 // i18n
 const { t } = useI18n();
@@ -106,8 +117,16 @@ const labelClass = computed(() => {
 // Methods
 const handleFileChange = (event: Event) => {
   const target = event.target as HTMLInputElement;
-  const file = target.files?.[0] || null;
-  validateFile(file);
+  const files = target.files;
+  
+  if (props.multiple) {
+    validateMultipleFiles(files);
+    emit('change', files);
+  } else {
+    const file = files?.[0] || null;
+    validateFile(file);
+    emit('change', file);
+  }
 };
 
 const focusFileInput = () => {
@@ -131,11 +150,19 @@ const formatName = (name: string | undefined) => {
 
 const handleDrop = (event: DragEvent) => {
   isDragging.value = false;
-  const file = event.dataTransfer?.files[0] || null;
-  validateFile(file);
+  const files = event.dataTransfer?.files || null;
+  
+  if (props.multiple) {
+    validateMultipleFiles(files);
+    emit('change', files);
+  } else {
+    const file = files?.[0] || null;
+    validateFile(file);
+    emit('change', file);
+  }
 };
 
-// File Validation
+// File Validation for single file
 const validateFile = (file: File | null) => {
   if (!file) {
     validationMessage.value = "";
@@ -147,24 +174,18 @@ const validateFile = (file: File | null) => {
   const fileExtension = file.name.split(".").pop()?.toLowerCase() || "";
 
   // Check file size
-  if (fileSize > (props.maxFileSize || 5 * 1024 * 1024)) {
+  if (fileSize > props.maxFileSize) {
     validationMessage.value = t("fileInput.invalidSize", {
-      maxSize: (props.maxFileSize || 5 * 1024 * 1024) / (1024 * 1024),
+      maxSize: props.maxFileSize / (1024 * 1024),
     });
     selectedFile.value = null;
     return;
   }
 
   // Check file extension
-  if (
-    !(props.allowedExtensions || ["jpg", "jpeg", "png", "gif", "pdf"]).includes(
-      fileExtension,
-    )
-  ) {
+  if (!props.allowedExtensions.includes(fileExtension)) {
     validationMessage.value = t("fileInput.invalidExtension", {
-      extensions: (
-        props.allowedExtensions || ["jpg", "jpeg", "png", "gif", "pdf"]
-      ).join(", "),
+      extensions: props.allowedExtensions.join(", "),
     });
     selectedFile.value = null;
     return;
@@ -173,5 +194,46 @@ const validateFile = (file: File | null) => {
   // Valid file
   validationMessage.value = "";
   selectedFile.value = file.name;
+};
+
+// File Validation for multiple files
+const validateMultipleFiles = (files: FileList | null) => {
+  if (!files || files.length === 0) {
+    validationMessage.value = "";
+    selectedFile.value = null;
+    return;
+  }
+
+  const fileNames: string[] = [];
+  
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const fileSize = file.size;
+    const fileExtension = file.name.split(".").pop()?.toLowerCase() || "";
+
+    // Check file size
+    if (fileSize > props.maxFileSize) {
+      validationMessage.value = t("fileInput.invalidSize", {
+        maxSize: props.maxFileSize / (1024 * 1024),
+      });
+      selectedFile.value = null;
+      return;
+    }
+
+    // Check file extension
+    if (!props.allowedExtensions.includes(fileExtension)) {
+      validationMessage.value = t("fileInput.invalidExtension", {
+        extensions: props.allowedExtensions.join(", "),
+      });
+      selectedFile.value = null;
+      return;
+    }
+
+    fileNames.push(file.name);
+  }
+
+  // All files are valid
+  validationMessage.value = "";
+  selectedFile.value = files.length === 1 ? fileNames[0] : `${files.length} files selected`;
 };
 </script>

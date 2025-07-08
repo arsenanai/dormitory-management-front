@@ -79,8 +79,9 @@
 </template>
   
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { useRoute } from "vue-router";
 import Navigation from "@/components/CNavigation.vue";
 import CInput from "@/components/CInput.vue";
 import CSelect from "@/components/CSelect.vue";
@@ -89,9 +90,19 @@ import { Room } from "@/models/Room";
 import { Dormitory } from "@/models/Dormitory";
 import { RoomType } from "@/models/RoomType";
 import { Bed } from "@/models/Bed";
+import { useRoomsStore } from "@/stores/rooms";
+import { useToast } from "@/composables/useToast";
+import { roomService } from "@/services/api";
 
-// i18n
+// i18n, router, and stores
 const { t } = useI18n();
+const route = useRoute();
+const roomStore = useRoomsStore();
+const { showError, showSuccess } = useToast();
+
+// Check if we're editing (ID in route params)
+const roomId = computed(() => route.params.id ? Number(route.params.id) : null);
+const isEditing = computed(() => !!roomId.value);
 
 // Mock dormitories (use real store/api in production)
 const dormitories = [
@@ -139,9 +150,67 @@ const bedsPreview = computed(() => {
 });
 
 // Submit handler
-function submitRoom() {
-  // You can add validation and API call here
-  console.log("Room submitted:", room.value);
-  alert(t("Room saved!"));
+async function submitRoom() {
+  try {
+    // You can add validation and API call here
+    console.log("Room submitted:", room.value);
+    
+    // If editing, update the room, otherwise create new
+    if (isEditing.value) {
+      // await roomService.update(roomId.value!, room.value);
+      showSuccess(t("Room updated successfully!"));
+    } else {
+      // await roomService.create(room.value);
+      showSuccess(t("Room created successfully!"));
+    }
+  } catch (error) {
+    showError(t("Failed to save room. Please try again."));
+  }
 }
+
+// Load room from API if editing
+const loadRoom = async (id: number) => {
+  try {
+    const response = await roomService.getById(id);
+    const roomData = response.data;
+    
+    // Populate form with API data
+    room.value = {
+      number: roomData.number || "",
+      floor: roomData.floor || "",
+      notes: roomData.notes || "",
+      dormitory: roomData.dormitory || dormitories[0],
+      roomType: roomData.roomType || null,
+    };
+  } catch (error) {
+    showError(t("Failed to load room data"));
+  }
+};
+
+// Populate the form if editing an existing room
+watch(
+  () => roomStore.selectedRoom,
+  (selectedRoom) => {
+    if (selectedRoom) {
+      room.value = {
+        number: selectedRoom.number || "",
+        floor: selectedRoom.floor || "",
+        notes: selectedRoom.notes || "",
+        dormitory: selectedRoom.dormitory || dormitories[0],
+        roomType: selectedRoom.roomType || null,
+      };
+    }
+  },
+  { immediate: true }
+);
+
+onMounted(async () => {
+  // First try to restore from store
+  roomStore.restoreSelectedRoom();
+  
+  // If editing and no data in store, load from API
+  if (isEditing.value && !roomStore.selectedRoom) {
+    await loadRoom(roomId.value!);
+  }
+});
 </script>

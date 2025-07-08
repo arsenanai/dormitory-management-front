@@ -16,7 +16,7 @@
       <div
         class="flex flex-col items-stretch gap-4 lg:flex-row lg:items-center"
       >
-        <CButton variant="default">
+        <CButton variant="default" @click="exportToExcel">
           <ArrowDownTrayIcon class="h-5 w-5" />
           {{ t("Export to Excel") }}
         </CButton>
@@ -27,8 +27,18 @@
       </div>
     </div>
 
+    <!-- Loading State -->
+    <div v-if="loading" class="text-center py-4" data-testid="loading">
+      {{ t("Loading...") }}
+    </div>
+
+    <!-- Error State -->
+    <div v-if="error" class="text-red-500 text-center py-4">
+      {{ error }}
+    </div>
+
     <!-- Dormitory Table -->
-    <CTable>
+    <CTable v-if="!loading && !error">
       <CTableHead>
         <CTableHeadCell>
           <CCheckbox id="select-all-checkbox"/>
@@ -43,19 +53,19 @@
         <CTableHeadCell>{{ t("EDIT") }}</CTableHeadCell>
       </CTableHead>
       <CTableBody>
-        <CTableRow v-for="(dorm, index) in paginatedDorms" :key="index">
+        <CTableRow v-for="(dorm, index) in paginatedDorms" :key="dorm.id">
           <CTableCell>
             <CCheckbox :id="'checkbox-' + index" />
           </CTableCell>
           <CTableCell>{{ dorm.name }}</CTableCell>
-          <CTableCell>{{ dorm.capacity }}</CTableCell>
+          <CTableCell>{{ dorm.quota || dorm.capacity }}</CTableCell>
           <CTableCell>{{ dorm.gender }}</CTableCell>
-          <CTableCell>{{ dorm.admin }}</CTableCell>
-          <CTableCell>{{ dorm.registered }}</CTableCell>
+          <CTableCell>{{ dorm.admin?.username || dorm.admin || '-' }}</CTableCell>
+          <CTableCell>{{ dorm.registered || '-' }}</CTableCell>
           <CTableCell :class="{ 'text-red-500': dorm.freeBeds === 0 }">
-            {{ dorm.freeBeds }}
+            {{ dorm.freeBeds || '-' }}
           </CTableCell>
-          <CTableCell>{{ dorm.rooms }}</CTableCell>
+          <CTableCell>{{ dorm.rooms?.length || dorm.rooms || '-' }}</CTableCell>
           <CTableCell class="text-center">
             <CButton
               variant="default"
@@ -95,7 +105,7 @@
 <script setup lang="ts">
 import Navigation from "@/components/CNavigation.vue";
 import { useI18n } from "vue-i18n";
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { ArrowDownTrayIcon, PlusIcon } from "@heroicons/vue/24/outline";
 import CInput from "@/components/CInput.vue";
@@ -108,10 +118,16 @@ import CTableHeadCell from "@/components/CTableHeadCell.vue";
 import CTableBody from "@/components/CTableBody.vue";
 import CTableRow from "@/components/CTableRow.vue";
 import CTableCell from "@/components/CTableCell.vue";
-import { Dormitory } from "@/models/Dormitory";
+import { dormitoryService } from "@/services/api";
+import { useDormitoriesStore } from "@/stores/dormitories";
+import { useToast } from "@/composables/useToast";
 
 const { t } = useI18n();
 const router = useRouter();
+
+// store
+const dormitoriesStore = useDormitoriesStore();
+const { showError, showSuccess } = useToast();
 
 const searchQuery = ref<string>("");
 const bulkAction = ref<string>("");
@@ -120,27 +136,43 @@ const bulkActionOptions = [
   { value: "export", name: t("Export Selected") },
 ];
 
-// Dormitory Data (all numeric fields are numbers, not strings)
-const dorms = ref<Dormitory[]>([
-  new Dormitory("A-Block", 300, "Female", "admin1", 267, 33, 75),
-  new Dormitory("B-Block", 300, "Female", "admin2", 300, 0, 78),
-  new Dormitory("C-Block", 293, "Male", "admin3", 300, 7, 80),
-]);
+// Dormitory Data
+const dorms = ref<any[]>([]);
+const loading = ref(false);
+const error = ref<string | null>(null);
 
-// Education Settings
-const educationSettings = ref({
-  faculty: "Engineering and natural sciences",
-  specialist: "Computer Science",
-  informationSystems: "",
+// Load dormitories on component mount
+const loadDormitories = async () => {
+  loading.value = true;
+  error.value = null;
+  try {
+    const response = await dormitoryService.getAll();
+    dorms.value = response.data;
+  } catch (err) {
+    error.value = 'Failed to load dormitories';
+    showError(t('Failed to load dormitories'));
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  loadDormitories();
+  dormitoriesStore.clearSelectedDormitory();
 });
 
 // Filtered Dormitories
-const filteredDorms = computed<Dormitory[]>(() => {
+const filteredDorms = computed(() => {
   if (!searchQuery.value) return dorms.value;
   return dorms.value.filter(
     (dorm) =>
       dorm.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      dorm.admin.toLowerCase().includes(searchQuery.value.toLowerCase()),
+      (dorm.admin && 
+        (typeof dorm.admin === 'string' 
+          ? dorm.admin.toLowerCase().includes(searchQuery.value.toLowerCase())
+          : dorm.admin.username?.toLowerCase().includes(searchQuery.value.toLowerCase())
+        )
+      ),
   );
 });
 
@@ -150,12 +182,29 @@ const itemsPerPage = 10;
 const totalPages = computed<number>(() =>
   Math.ceil(filteredDorms.value.length / itemsPerPage),
 );
-const paginatedDorms = computed<Dormitory[]>(() =>
+const paginatedDorms = computed(() =>
   filteredDorms.value.slice(
     (currentPage.value - 1) * itemsPerPage,
     currentPage.value * itemsPerPage,
   ),
 );
+
+// Export function
+const exportToExcel = async () => {
+  try {
+    const response = await dormitoryService.export();
+    // Create blob link to download
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'dormitories.xlsx');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  } catch (err) {
+    showError(t('Failed to export dormitories'));
+  }
+};
 
 // Navigation Functions
 const navigateToAddDormitory = (): void => {
@@ -163,6 +212,10 @@ const navigateToAddDormitory = (): void => {
 };
 
 const navigateToEditDormitory = (id: number): void => {
+  const dormitory = dorms.value.find(d => d.id === id);
+  if (dormitory) {
+    dormitoriesStore.setSelectedDormitory(dormitory);
+  }
   router.push(`/dormitory-form/${id}`);
 };
 </script>

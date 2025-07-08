@@ -199,6 +199,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
+import { useRoute } from "vue-router";
 import Navigation from "@/components/CNavigation.vue";
 import CInput from "@/components/CInput.vue";
 import CSelect from "@/components/CSelect.vue";
@@ -210,6 +211,8 @@ import { City } from "@/models/City";
 import { Room } from "@/models/Room";
 import { Dormitory } from "@/models/Dormitory";
 import { useStudentStore } from "@/stores/student";
+import { studentService } from "@/services/api";
+import { useToast } from "@/composables/useToast";
 
 // --- Mock models (same as Students.vue) ---
 class DormitoryMock {
@@ -240,8 +243,13 @@ const rooms = ref([roomA210, roomA211, roomB101]);
 
 // i18n and store
 const { t } = useI18n();
+const route = useRoute();
 const studentStore = useStudentStore();
-studentStore.restoreSelectedStudent();
+const { showError, showSuccess } = useToast();
+
+// Check if we're editing (ID in route params)
+const studentId = computed(() => route.params.id ? Number(route.params.id) : null);
+const isEditing = computed(() => !!studentId.value);
 
 // Sample data for countries, regions, and cities
 const countries = ref<Country[]>([
@@ -396,10 +404,50 @@ const addPhoneField = (): void => {
 // Submit Form
 const submitForm = (): void => {
   console.log("Form submitted:", student.value);
+  showSuccess(t("Student data submitted successfully!"));
 };
 
-onMounted(() => {
+// Load student from API if editing
+const loadStudent = async (id: number) => {
+  try {
+    const response = await studentService.getById(id);
+    const studentData = response.data;
+    
+    // Populate form with API data
+    student.value = {
+      iin: studentData.iin || "",
+      name: studentData.name || "",
+      surname: studentData.surname || studentData.last_name || "",
+      faculty: studentData.faculty || "",
+      specialist: studentData.specialist || studentData.specialty || "",
+      enrollmentYear: studentData.enrollment_year || studentData.enrollmentYear || "",
+      gender: studentData.gender || "",
+      email: studentData.email || "",
+      phoneNumbers: studentData.phone_numbers?.length ? [...studentData.phone_numbers] : [""],
+      city: studentData.city || null,
+      dealNumber: studentData.deal_number || studentData.dealNumber || "",
+      room: studentData.room
+        ? rooms.value.find(
+            r =>
+              r.number === studentData.room.number &&
+              r.dormitory.name === studentData.room.dormitory.name
+          ) || null
+        : null,
+    };
+    showSuccess(t("Student data loaded successfully"));
+  } catch (error) {
+    showError(t("Failed to load student data"));
+  }
+};
+
+onMounted(async () => {
+  // First try to restore from store
   studentStore.restoreSelectedStudent();
+  
+  // If editing and no data in store, load from API
+  if (isEditing.value && !studentStore.selectedStudent) {
+    await loadStudent(studentId.value!);
+  }
 });
 </script>
 

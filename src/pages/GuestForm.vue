@@ -176,12 +176,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { useRoute } from "vue-router";
 import Navigation from "@/components/CNavigation.vue";
 import CInput from "@/components/CInput.vue";
 import CSelect from "@/components/CSelect.vue";
 import CButton from "@/components/CButton.vue";
+import { useToast } from "@/composables/useToast";
 
 // Define the type for a payment
 interface Payment {
@@ -207,6 +209,12 @@ interface Guest {
 }
 
 const { t } = useI18n();
+const route = useRoute();
+const { showError, showSuccess } = useToast();
+
+// Check if we're editing (ID in route params)
+const guestId = computed(() => route.params.id ? Number(route.params.id) : null);
+const isEditing = computed(() => !!guestId.value);
 
 // Guest Form Data
 const guest = ref<Guest>({
@@ -238,9 +246,41 @@ const roomOptions: { value: string; name: string }[] = [
 ];
 
 // Submit Form
-const submitForm = (): void => {
-  console.log("Form submitted:", guest.value);
+const submitForm = async (): Promise<void> => {
+  try {
+    console.log("Guest form submitted:", guest.value);
+    
+    if (isEditing.value) {
+      // await guestService.update(guestId.value!, guest.value);
+      showSuccess(t("Guest information updated successfully!"));
+    } else {
+      // await guestService.create(guest.value);
+      showSuccess(t("Guest information created successfully!"));
+    }
+  } catch (error) {
+    showError(t("Failed to save guest information. Please try again."));
+  }
 };
+
+// Load guest from API if editing
+const loadGuest = async (id: number) => {
+  try {
+    // const response = await guestService.getById(id);
+    // const guestData = response.data;
+    
+    // For now, just show info message since guestService doesn't exist yet
+    showError(t("Guest service not implemented yet"));
+  } catch (error) {
+    showError(t("Failed to load guest data"));
+  }
+};
+
+onMounted(async () => {
+  // If editing, load from API
+  if (isEditing.value) {
+    await loadGuest(guestId.value!);
+  }
+});
 </script>
 
 <style scoped>

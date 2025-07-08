@@ -3,39 +3,39 @@
   <div :id="`${id}-input-wrapper`">
     <!-- Label -->
     <label v-if="label" :for="id" class="block text-sm font-medium" :class="labelClass">
-      {{ label }}
+      {{ label }}{{ required ? '*' : '' }}
     </label>
-    <div
-      class="relative"
-      v-bind="$attrs"
-    >
-      <!-- Search Icon -->
-      <component
-        v-if="type === 'search'"
-        :is="MagnifyingGlassIcon"
-        class="pointer-events-none absolute top-1/2 left-0 h-8 w-8 -translate-y-1/2 pl-3 text-gray-500 dark:text-gray-400"
-      />
-      <!-- Email Icon -->
-      <component
-        v-else-if="type === 'email'"
-        :is="EnvelopeIcon"
-        class="pointer-events-none absolute top-1/2 left-0 h-8 w-8 -translate-y-1/2 pl-3 text-gray-500 dark:text-gray-400"
-      />
-      <!-- Mobile Icon -->
-      <component
-        v-else-if="type === 'tel'"
-        :is="DevicePhoneMobileIcon"
-        class="pointer-events-none absolute top-1/2 left-0 h-8 w-8 -translate-y-1/2 pl-3 text-gray-500 dark:text-gray-400"
-      />
+    <div class="relative" v-bind="$attrs">
+      <!-- Prefix Icon -->
+      <div v-if="prefix || type === 'search' || type === 'email' || type === 'tel'" class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <component
+          v-if="type === 'search'"
+          :is="MagnifyingGlassIcon"
+          class="h-5 w-5 text-gray-500 dark:text-gray-400 prefix-icon"
+        />
+        <component
+          v-else-if="type === 'email'"
+          :is="EnvelopeIcon"
+          class="h-5 w-5 text-gray-500 dark:text-gray-400 prefix-icon"
+        />
+        <component
+          v-else-if="type === 'tel'"
+          :is="DevicePhoneMobileIcon"
+          class="h-5 w-5 text-gray-500 dark:text-gray-400 prefix-icon"
+        />
+        <span v-else-if="prefix" class="prefix-icon">{{ prefix }}</span>
+      </div>
+
       <!-- Custom Icon -->
       <component
-        v-else-if="icon"
+        v-if="icon"
         :is="icon"
         class="pointer-events-none absolute top-1/2 left-0 h-8 w-8 -translate-y-1/2 pl-3 text-gray-500 dark:text-gray-400"
         :class="iconClass"
       />
+      
       <span
-        v-else-if="prependText"
+        v-if="prependText"
         class="absolute inset-y-0 left-0 flex items-center rounded-l-md border border-gray-300 bg-gray-200 px-3 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-400"
       >
         {{ prependText }}
@@ -48,13 +48,50 @@
         :placeholder="placeholder"
         :value="modelValue"
         @input="onInput"
+        @focus="onFocus"
+        @blur="onBlur"
+        @keydown.enter="onEnter"
+        @keydown.escape="onEscape"
         :class="inputClass"
         :required="required"
+        :disabled="disabled || loading"
+        :readonly="readonly"
         :pattern="pattern"
         :autocomplete="autocomplete"
-        :readonly="readonly"
+        :minlength="minLength"
+        :maxlength="maxLength"
       />
+
+      <!-- Suffix elements -->
+      <div v-if="suffix || clearable || loading" class="absolute inset-y-0 right-0 flex items-center pr-3">
+        <!-- Loading spinner -->
+        <div v-if="loading" class="loading-spinner animate-spin rounded-full h-4 w-4 border-b-2 border-gray-500 mr-2"></div>
+        
+        <!-- Clear button -->
+        <button
+          v-if="clearable && modelValue && !loading"
+          @click="onClear"
+          type="button"
+          class="clear-button text-gray-400 hover:text-gray-600 focus:outline-none"
+        >
+          ×
+        </button>
+        
+        <!-- Suffix icon -->
+        <span v-if="suffix" class="suffix-icon text-gray-500">{{ suffix }}</span>
+      </div>
     </div>
+
+    <!-- Error Message -->
+    <p v-if="error" class="error-message text-sm text-red-600 dark:text-red-500 mt-1">
+      {{ error }}
+    </p>
+
+    <!-- Help Text -->
+    <p v-if="help" class="help-text text-sm text-gray-500 dark:text-gray-400 mt-1">
+      {{ help }}
+    </p>
+
     <!-- Validation Message -->
     <p v-if="validationMessage" :id="`${id}-validation`" :class="validationMessageClass">
       <span class="font-medium">{{ validationMessagePrefix }}</span>
@@ -73,11 +110,12 @@ import {
 
 const props = defineProps({
   id: String,
-  type: String,
+  type: { type: String, default: 'text' },
   label: String,
   placeholder: String,
   modelValue: [String, Number],
   required: Boolean,
+  disabled: Boolean,
   readonly: Boolean,
   pattern: String,
   validationState: String,
@@ -86,30 +124,108 @@ const props = defineProps({
   icon: [Object, Function],
   autocomplete: String,
   mask: String,
+  error: String,
+  help: String,
+  minLength: [String, Number],
+  maxLength: [String, Number],
+  size: String,
+  prefix: String,
+  suffix: String,
+  clearable: Boolean,
+  loading: Boolean,
+  class: String
 });
-const emit = defineEmits(["update:modelValue"]);
+
+const emit = defineEmits([
+  "update:modelValue", 
+  "focus", 
+  "blur", 
+  "enter", 
+  "escape", 
+  "clear", 
+  "validation"
+]);
+
 const $attrs = useAttrs();
 
 function onInput(event: Event) {
   const value = (event.target as HTMLInputElement).value;
-  emit(
-    "update:modelValue",
-    props.mask ? applyMask(value, props.mask) : value
-  );
+  const finalValue = props.mask ? applyMask(value, props.mask) : value;
+  emit("update:modelValue", finalValue);
+}
+
+function onFocus(event: Event) {
+  emit("focus", event);
+}
+
+function onBlur(event: Event) {
+  emit("blur", event);
+  validateInput();
+}
+
+function onEnter(event: Event) {
+  emit("enter", event);
+}
+
+function onEscape(event: Event) {
+  emit("escape", event);
+}
+
+function onClear() {
+  emit("update:modelValue", "");
+  emit("clear");
+}
+
+function validateInput() {
+  const value = props.modelValue;
+  let isValid = true;
+  
+  if (props.type === 'email' && value) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    isValid = emailRegex.test(String(value));
+  } else if (props.type === 'number' && value) {
+    isValid = !isNaN(Number(value));
+  }
+  
+  emit("validation", { valid: isValid, value });
 }
 
 const baseInputClass =
   "bg-gray-50 border text-gray-900 text-sm rounded-lg focus:ring-4 focus:ring-primary-300 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500";
 
 const validationClass = computed(() => {
+  if (props.error) {
+    return "bg-red-50 border-red-500 text-red-900 placeholder-red-700 focus:ring-red-500 focus:border-red-500 dark:bg-gray-700 dark:border-red-500 dark:text-red-500 dark:placeholder-red-500 error";
+  }
+  
   switch (props.validationState) {
     case "success":
       return "bg-green-50 border-green-500 text-green-900 placeholder-green-700 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:border-green-500 dark:text-green-400 dark:placeholder-green-500";
     case "error":
-      return "bg-red-50 border-red-500 text-red-900 placeholder-red-700 focus:ring-red-500 focus:border-red-500 dark:bg-gray-700 dark:border-red-500 dark:text-red-500 dark:placeholder-red-500";
+      return "bg-red-50 border-red-500 text-red-900 placeholder-red-700 focus:ring-red-500 focus:border-red-500 dark:bg-gray-700 dark:border-red-500 dark:text-red-500 dark:placeholder-red-500 error";
     default:
       return "border-gray-300";
   }
+});
+
+const sizeClass = computed(() => {
+  switch (props.size) {
+    case 'small':
+      return 'small p-1.5 text-xs';
+    case 'large':
+      return 'large p-3 text-base';
+    default:
+      return '';
+  }
+});
+
+const stateClasses = computed(() => {
+  const classes = [];
+  
+  if (props.disabled) classes.push('disabled opacity-50 cursor-not-allowed');
+  if (props.readonly) classes.push('readonly bg-gray-100');
+  
+  return classes.join(' ');
 });
 
 const validationMessageClass = computed(() => {
@@ -123,6 +239,10 @@ const validationMessagePrefix = computed(() => {
 });
 
 const labelClass = computed(() => {
+  if (props.error) {
+    return "text-red-700 dark:text-red-500";
+  }
+  
   return props.validationState === "success"
     ? "text-green-700 dark:text-green-500"
     : props.validationState === "error"
@@ -141,9 +261,13 @@ const iconClass = computed(() => {
 const inputClass = computed(() => [
   baseInputClass,
   validationClass.value,
-  (props.icon || props.prependText || props.type === 'search' || props.type === 'email' || props.type === 'tel') ? 'pl-10' : '',
+  sizeClass.value,
+  stateClasses.value,
+  (props.icon || props.prependText || props.prefix || props.type === 'search' || props.type === 'email' || props.type === 'tel') ? 'pl-10' : '',
+  (props.suffix || props.clearable || props.loading) ? 'pr-10' : '',
+  props.class,
   $attrs.class
-]);
+].filter(Boolean).join(' '));
 
 // Example mask function (replace with your actual logic)
 function applyMask(value: string, mask: string): string {

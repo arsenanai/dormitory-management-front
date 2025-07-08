@@ -35,6 +35,7 @@
                   required
                   autocomplete="email"
                   :validationState="credentialsValidationState.email"
+                  validationstate-attr="validationstate"
                   :validationMessage="credentialsValidationMessage.email"
                   pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
                 />
@@ -49,6 +50,7 @@
                   required
                   autocomplete="password"
                   :validationState="credentialsValidationState.password"
+                  validationstate-attr="validationstate"
                   :validationMessage="credentialsValidationMessage.password"
                   pattern=".{6,}"
                 />
@@ -314,9 +316,11 @@ import CButton from "@/components/CButton.vue";
 import CCheckbox from "@/components/CCheckbox.vue";
 import CFileInput from "@/components/CFileInput.vue";
 import { User, UserStatus } from "@/models/User";
+import { useToast } from "@/composables/useToast";
 
 const { t } = useI18n();
 const router = useRouter();
+const { showError, showSuccess } = useToast();
 
 const selectedLanguage = ref("en");
 const languageOptions = [
@@ -537,8 +541,9 @@ const handleLogin = async () => {
   // Proceed with login
   try {
     router.push("/main");
+    showSuccess(t("Login successful"));
   } catch (error) {
-    console.error("Login failed:", error);
+    showError(t("Login failed"));
   }
 };
 </script>

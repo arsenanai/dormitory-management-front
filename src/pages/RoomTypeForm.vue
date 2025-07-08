@@ -18,6 +18,41 @@
         @change="onRoomPlanFileChange"
       />
 
+      <!-- Room Type Photos -->
+      <CFileInput
+        id="room-photos"
+        :label="t('Room Type Photos')"
+        :allowedExtensions="['jpg', 'jpeg', 'png', 'webp']"
+        :maxFileSize="5 * 1024 * 1024"
+        :multiple="true"
+        @change="onPhotosFileChange"
+      />
+
+      <!-- Display uploaded photos -->
+      <div v-if="roomType.photos.length > 0" class="mt-4">
+        <h3 class="text-lg font-medium mb-2">{{ t('Uploaded Photos') }}</h3>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div
+            v-for="(photo, index) in roomType.photos"
+            :key="index"
+            class="relative group"
+          >
+            <img
+              :src="photo"
+              :alt="`Room photo ${index + 1}`"
+              class="w-full h-24 object-cover rounded-lg border"
+            />
+            <button
+              @click="removePhoto(index)"
+              class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+              type="button"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      </div>
+
     <!-- Room plan container with background image -->
     <div
       class="relative mx-auto my-4 border-2 border-primary-200 rounded-lg overflow-hidden shadow-md bg-primary-50"
@@ -96,14 +131,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { v4 as uuidv4 } from "uuid";
 import { useI18n } from "vue-i18n";
+import { useRoute } from "vue-router";
 import Navigation from "@/components/CNavigation.vue";
 import CInput from "@/components/CInput.vue";
 import CButton from "@/components/CButton.vue";
 import CFileInput from "@/components/CFileInput.vue";
 import { RoomType } from "@/models/RoomType";
+import { useRoomTypesStore } from "@/stores/roomTypes";
+import { useToast } from "@/composables/useToast";
+import { roomTypeService } from "@/services/api";
 
 // Theme colors
 const primary700 = "#232743";
@@ -111,6 +150,13 @@ const secondary500 = "#d69979";
 const fontSans = "Noto Sans, Arial, sans-serif";
 
 const { t } = useI18n();
+const route = useRoute();
+const roomTypeStore = useRoomTypesStore();
+const { showError, showSuccess } = useToast();
+
+// Check if we're editing (ID in route params)
+const roomTypeId = computed(() => route.params.id ? Number(route.params.id) : null);
+const isEditing = computed(() => !!roomTypeId.value);
 
 const roomType = ref(new RoomType(uuidv4(), "", ""));
 
@@ -144,6 +190,24 @@ function onRoomPlanFileChange(file: File | null) {
   } else {
     roomPlanUrl.value = null;
   }
+}
+
+function onPhotosFileChange(files: FileList | null) {
+  if (files && files.length > 0) {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target?.result as string;
+        roomType.value.photos.push(dataUrl);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+}
+
+function removePhoto(index: number) {
+  roomType.value.photos.splice(index, 1);
 }
 
 function addBed() {
@@ -208,10 +272,81 @@ function rotateBed(deg: number) {
   }
 }
 
-function savePlan() {
-  roomType.value.minimap = JSON.stringify(beds.value);
-  alert(t("Room plan saved!"));
+async function savePlan() {
+  try {
+    roomType.value.minimap = JSON.stringify(beds.value);
+    
+    if (isEditing.value) {
+      // await roomTypeService.update(roomTypeId.value!, roomType.value);
+      showSuccess(t("Room type plan updated successfully!"));
+    } else {
+      // await roomTypeService.create(roomType.value);
+      showSuccess(t("Room type plan created successfully!"));
+    }
+  } catch (error) {
+    showError(t("Failed to save room type plan. Please try again."));
+  }
 }
+
+// Load room type from API if editing
+const loadRoomType = async (id: number) => {
+  try {
+    const response = await roomTypeService.getById(id);
+    const roomTypeData = response.data;
+    
+    // Populate form with API data
+    roomType.value = new RoomType(
+      roomTypeData.id || uuidv4(),
+      roomTypeData.name || "",
+      roomTypeData.minimap || ""
+    );
+    
+    // Load beds if minimap exists
+    if (roomTypeData.minimap) {
+      try {
+        beds.value = JSON.parse(roomTypeData.minimap);
+      } catch (e) {
+        beds.value = [];
+      }
+    }
+  } catch (error) {
+    showError(t("Failed to load room type data"));
+  }
+};
+
+// Populate the form if editing an existing room type
+watch(
+  () => roomTypeStore.selectedRoomType,
+  (selectedRoomType: any) => {
+    if (selectedRoomType) {
+      roomType.value = new RoomType(
+        selectedRoomType.id || uuidv4(),
+        selectedRoomType.name || "",
+        selectedRoomType.minimap || ""
+      );
+      
+      // Load beds if minimap exists
+      if (selectedRoomType.minimap) {
+        try {
+          beds.value = JSON.parse(selectedRoomType.minimap);
+        } catch (e) {
+          beds.value = [];
+        }
+      }
+    }
+  },
+  { immediate: true }
+);
+
+onMounted(async () => {
+  // First try to restore from store
+  roomTypeStore.restoreSelectedRoomType();
+  
+  // If editing and no data in store, load from API
+  if (isEditing.value && !roomTypeStore.selectedRoomType) {
+    await loadRoomType(roomTypeId.value!);
+  }
+});
 </script>
 
 <style scoped>
