@@ -32,6 +32,15 @@ vi.mock('@/composables/useToast', () => ({
   })
 }))
 
+// Mock Navigation component
+vi.mock('@/components/CNavigation.vue', () => ({
+  default: {
+    name: 'Navigation',
+    template: '<div class="navigation"><slot></slot></div>',
+    props: ['title']
+  }
+}))
+
 describe('RoomTypes.vue', () => {
   let wrapper: any
   let router: any

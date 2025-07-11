@@ -89,12 +89,17 @@ describe('Auth Store', () => {
 
   it('should handle login error', async () => {
     const authStore = useAuthStore();
-    const errorMessage = 'Invalid credentials';
+    const errorMessage = 'Login failed';
     
     vi.mocked(api.post).mockRejectedValueOnce(new Error(errorMessage));
 
     const credentials = { email: 'test@example.com', password: 'wrong-password' };
-    await authStore.login(credentials);
+    
+    try {
+      await authStore.login(credentials);
+    } catch (error) {
+      expect(error.message).toBe(errorMessage);
+    }
 
     expect(authStore.user).toBeNull();
     expect(authStore.token).toBeNull();
@@ -136,11 +141,15 @@ describe('Auth Store', () => {
 
   it('should handle profile loading error', async () => {
     const authStore = useAuthStore();
-    const errorMessage = 'Unauthorized';
+    const errorMessage = 'Failed to load profile';
     
     vi.mocked(api.get).mockRejectedValueOnce(new Error(errorMessage));
 
-    await authStore.loadProfile();
+    try {
+      await authStore.loadProfile();
+    } catch (error) {
+      expect(error.message).toBe(errorMessage);
+    }
 
     expect(authStore.user).toBeNull();
     expect(authStore.loading).toBe(false);

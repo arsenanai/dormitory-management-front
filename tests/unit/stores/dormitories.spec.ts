@@ -45,6 +45,8 @@ describe('dormitories store', () => {
     vi.clearAllMocks()
     // Get store instance
     store = useDormitoriesStore()
+    // Reset store state to initial values
+    store.$reset()
   })
   
   afterEach(() => {
@@ -278,7 +280,34 @@ describe('dormitories store', () => {
   })
 
   it('filters dormitories by search term', () => {
-    store.dormitories = mockDormitories
+    // Use completely fresh data for this test
+    const freshMockData = [
+      {
+        id: 1,
+        name: 'Main Dormitory',
+        address: '123 Main St',
+        city: 'College Town',
+        state: 'CA',
+        postal_code: '12345',
+        phone: '+1234567890',
+        email: 'main@university.edu',
+        capacity: 150,
+        current_occupancy: 120
+      },
+      {
+        id: 2,
+        name: 'North Dormitory',
+        address: '456 North Ave',
+        city: 'College Town',
+        state: 'CA',
+        postal_code: '12345',
+        phone: '+1234567891',
+        email: 'north@university.edu',
+        capacity: 200,
+        current_occupancy: 130
+      }
+    ]
+    store.dormitories = freshMockData
     const filtered = store.filterDormitories('Main')
     expect(filtered).toHaveLength(1)
     expect(filtered[0].name).toBe('Main Dormitory')
@@ -298,7 +327,34 @@ describe('dormitories store', () => {
   })
 
   it('sorts dormitories by name', () => {
-    store.dormitories = mockDormitories
+    // Use completely fresh data for this test
+    const freshMockData = [
+      {
+        id: 2,
+        name: 'North Dormitory',
+        address: '456 North Ave',
+        city: 'College Town',
+        state: 'CA',
+        postal_code: '12345',
+        phone: '+1234567891',
+        email: 'north@university.edu',
+        capacity: 200,
+        current_occupancy: 130
+      },
+      {
+        id: 1,
+        name: 'Main Dormitory',
+        address: '123 Main St',
+        city: 'College Town',
+        state: 'CA',
+        postal_code: '12345',
+        phone: '+1234567890',
+        email: 'main@university.edu',
+        capacity: 150,
+        current_occupancy: 120
+      }
+    ]
+    store.dormitories = freshMockData
     const sorted = store.sortDormitories('name', 'asc')
     expect(sorted[0].name).toBe('Main Dormitory')
     expect(sorted[1].name).toBe('North Dormitory')
