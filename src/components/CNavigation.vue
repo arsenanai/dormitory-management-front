@@ -83,9 +83,9 @@
               @click="toggleUserMenu"
               class="user-menu flex items-center space-x-2 p-2 rounded hover:bg-gray-100"
             >
-              <div v-if="user" class="text-right user-info">
-                <p class="text-sm font-medium">{{ user.name }}</p>
-                <p class="text-xs text-gray-500">{{ user.email }}</p>
+              <div v-if="currentUser" class="text-right user-info">
+                <p class="text-sm font-medium">{{ currentUser.name }}</p>
+                <p class="text-xs text-gray-500">{{ currentUser.email }}</p>
               </div>
               <div v-else class="text-right">
                 <p class="text-sm font-medium">IBRAHIM TUNCER</p>
@@ -101,8 +101,20 @@
               v-show="userMenuOpen"
               class="dropdown-menu open absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border z-50"
             >
-              <a href="#" class="block px-4 py-2 text-sm hover:bg-gray-100">Profile</a>
-              <a href="#" class="block px-4 py-2 text-sm hover:bg-gray-100">Settings</a>
+              <button 
+                @click="handleProfileClick"
+                data-testid="profile-link"
+                class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+              >
+                Profile
+              </button>
+              <a 
+                href="#" 
+                data-testid="settings-link"
+                class="block px-4 py-2 text-sm hover:bg-gray-100"
+              >
+                Settings
+              </a>
               <hr class="my-1">
               <button
                 @click="handleLogout"
@@ -227,9 +239,13 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Bars3Icon } from '@heroicons/vue/24/outline';
+import { useAuthStore } from '@/stores/auth';
 
 // Define component name for test recognition
 defineOptions({ name: 'CNavigation' });
+
+// Auth store
+const authStore = useAuthStore();
 
 // Props interface
 interface BreadcrumbItem {
@@ -277,6 +293,18 @@ const emit = defineEmits<{
   'theme-toggle': [];
   navigate: [item: NavItem];
 }>();
+
+// Computed user from auth store or fallback to prop
+const currentUser = computed(() => {
+  // Prioritize auth store user over prop
+  if (authStore.user) {
+    return {
+      name: authStore.fullName || authStore.user.name || 'Unknown User',
+      email: authStore.user.email || 'No email'
+    };
+  }
+  return props.user;
+});
 
 // Router composables
 const route = useRoute();
@@ -340,7 +368,27 @@ const toggleUserMenu = () => {
 
 const handleLogout = () => {
   userMenuOpen.value = false;
-  emit('logout');
+  // Use auth store logout instead of emit
+  authStore.logout();
+};
+
+const handleProfileClick = () => {
+  userMenuOpen.value = false;
+  
+  // Navigate to appropriate form based on user role
+  if (authStore.user) {
+    const userRole = authStore.userRole;
+    const userId = authStore.user.id;
+    
+    if (userRole === 'admin') {
+      router.push(`/admin-form/${userId}`);
+    } else if (userRole === 'student') {
+      router.push(`/student-form/${userId}`);
+    } else {
+      // Default to admin form for other roles
+      router.push(`/admin-form/${userId}`);
+    }
+  }
 };
 
 const handleSearch = () => {

@@ -72,6 +72,7 @@ watch(
   (newValue) => {
     internalValue.value = newValue;
   },
+  { immediate: true }
 );
 
 // Emit changes to modelValue when internalValue changes

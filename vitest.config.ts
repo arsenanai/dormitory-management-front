@@ -8,6 +8,10 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./tests/urlPolyfill.js', './tests/setupMocks.ts', './tests/setup.ts'],
+    exclude: ['**/e2e/**', '**/node_modules/**'],
+    env: {
+      VITE_API_BASE_URL: 'http://127.0.0.1:8000/api'
+    }
   },
   resolve: {
     alias: {

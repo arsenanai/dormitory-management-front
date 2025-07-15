@@ -4,7 +4,38 @@ import { Room } from "./Room";
 
 export type UserStatus = "pending" | "active" | "passive";
 
-export class User {
+export interface User {
+  id: number;
+  name: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone?: string | null;
+  phone_numbers?: string | null; // JSON string from backend
+  role: Role;
+  room?: Room | null;
+  dormitory?: any | null; // Can be typed more specifically later
+  status: UserStatus;
+  created_at: string;
+  updated_at: string;
+  
+  // Student-specific fields (present when user role is 'student')
+  student_id?: string | null;
+  faculty?: string | null;
+  specialty?: string | null;
+  course?: number | null;
+  year_of_study?: number | null;
+  enrollment_year?: string | null;
+  graduation_year?: string | null;
+  blood_type?: string | null;
+  emergency_contact?: string | null;
+  emergency_phone?: string | null;
+  has_meal_plan?: number | boolean;
+  violations?: any | null;
+}
+
+// Legacy User class for forms/registration (kept for compatibility)
+export class UserRegistration {
   iin: string;
   name: string;
   faculty: string;

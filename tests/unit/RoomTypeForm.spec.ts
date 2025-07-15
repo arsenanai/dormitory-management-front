@@ -1,6 +1,10 @@
+
 import { describe, it, expect, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
-import RoomTypeForm from '@/pages/RoomTypeForm.vue';
+// Mock the api module before importing the component
+import * as api from '@/services/api';
+// @ts-expect-error: Vue SFC import for test
+import RoomTypeForm from '../../src/pages/RoomTypeForm.vue';
 import { createRouterMock, injectRouterMock } from 'vue-router-mock';
 import i18n from '@/i18n';
 
@@ -53,5 +57,106 @@ describe('RoomTypeForm', () => {
     // Filter out the bed icons and focus on uploaded photos
     const photoImages = images.filter(img => img.attributes('alt')?.includes('Room photo'));
     expect(photoImages.length).toBe(2);
+  });
+
+  it('validates required fields', async () => {
+    const wrapper = mount(RoomTypeForm, {
+      global: { plugins: [router, i18n] }
+    });
+    const component = wrapper.vm as any;
+    component.roomType.name = '';
+    component.roomType.description = '';
+    const isValid = component.validateForm();
+    expect(isValid).toBe(false);
+    expect(component.errors.name).toBe('Name is required');
+    expect(component.errors.description).toBe('Description is required');
+  });
+
+  it('submits form and handles success', async () => {
+    const createSpy = vi.spyOn(api.roomTypeService, 'create').mockResolvedValue({
+      data: { id: 1, name: 'Deluxe' },
+      status: 201,
+      statusText: 'Created',
+      headers: {},
+      config: { headers: {} },
+    });
+    router.setParams({});
+    try {
+      const wrapper = mount(RoomTypeForm, {
+        props: { roomTypeService: api.roomTypeService },
+        global: { plugins: [router, i18n] }
+      });
+      const component = wrapper.vm as any;
+      component.existingNames = [];
+      await wrapper.find('#room-type-name').setValue('Deluxe');
+      await wrapper.find('#room-type-description').setValue('Spacious');
+      await wrapper.find('form').trigger('submit.prevent');
+      await wrapper.vm.$nextTick();
+      await wrapper.vm.$nextTick();
+      expect(createSpy).toHaveBeenCalled();
+    } finally {
+      createSpy.mockRestore();
+    }
+  });
+
+  it('handles form submission error', async () => {
+    const createSpy = vi.spyOn(api.roomTypeService, 'create').mockRejectedValue(new Error('API Error'));
+    router.setParams({});
+    try {
+      const wrapper = mount(RoomTypeForm, {
+        props: { roomTypeService: api.roomTypeService },
+        global: { plugins: [router, i18n] }
+      });
+      const component = wrapper.vm as any;
+      component.existingNames = [];
+      await wrapper.find('#room-type-name').setValue('Deluxe');
+      await wrapper.find('#room-type-description').setValue('Spacious');
+      await wrapper.find('form').trigger('submit.prevent');
+      await wrapper.vm.$nextTick();
+      await wrapper.vm.$nextTick();
+      const errorBox = wrapper.find('.bg-red-100');
+      expect(errorBox.exists()).toBe(true);
+      expect(errorBox.text()).toMatch(/API Error/);
+    } finally {
+      createSpy.mockRestore();
+    }
+  });
+
+  it('validates file type and size', async () => {
+    const wrapper = mount(RoomTypeForm, {
+      global: { plugins: [router, i18n] }
+    });
+    const component = wrapper.vm as any;
+    // Simulate invalid file type
+    const invalidFile = { type: 'text/plain', size: 1000 };
+    const valid = component.validatePhoto(invalidFile);
+    expect(valid).toBe(false);
+    expect(component.errors.photos).toBe('Invalid file type');
+    // Simulate large file
+    const largeFile = { type: 'image/jpeg', size: 10 * 1024 * 1024 };
+    const valid2 = component.validatePhoto(largeFile);
+    expect(valid2).toBe(false);
+    expect(component.errors.photos).toBe('File is too large');
+  });
+
+  it('has accessible labels for inputs', () => {
+    const wrapper = mount(RoomTypeForm, {
+      global: { plugins: [router, i18n] }
+    });
+    expect(wrapper.find('label[for="room-type-name"]').exists()).toBe(true);
+    expect(wrapper.find('label[for="room-type-description"]').exists()).toBe(true);
+    expect(wrapper.find('label[for="room-photos"]').exists()).toBe(true);
+  });
+
+  it('prevents duplicate room type names', async () => {
+    const wrapper = mount(RoomTypeForm, {
+      global: { plugins: [router, i18n] }
+    });
+    const component = wrapper.vm as any;
+    component.existingNames = ['Deluxe'];
+    component.roomType.name = 'Deluxe';
+    const isValid = component.validateForm();
+    expect(isValid).toBe(false);
+    expect(component.errors.name).toBe('Room type name already exists');
   });
 });

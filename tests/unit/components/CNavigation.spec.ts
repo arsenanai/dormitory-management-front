@@ -71,10 +71,16 @@ describe('CNavigation.vue', () => {
   })
 
   it('handles logout action', async () => {
+    // Mock the auth store
+    const { useAuthStore } = await import('@/stores/auth')
+    const authStore = useAuthStore()
+    authStore.logout = vi.fn()
+    
     const logoutButton = wrapper.find('.logout-button')
     await logoutButton.trigger('click')
     
-    expect(wrapper.emitted('logout')).toBeTruthy()
+    // Should call auth store logout instead of emitting event
+    expect(authStore.logout).toHaveBeenCalled()
   })
 
   it('displays user information when authenticated', async () => {

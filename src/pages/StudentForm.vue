@@ -211,7 +211,7 @@ import { City } from "@/models/City";
 import { Room } from "@/models/Room";
 import { Dormitory } from "@/models/Dormitory";
 import { useStudentStore } from "@/stores/student";
-import { studentService } from "@/services/api";
+import { studentService, authService } from "@/services/api";
 import { useToast } from "@/composables/useToast";
 
 // --- Mock models (same as Students.vue) ---
@@ -402,28 +402,61 @@ const addPhoneField = (): void => {
 };
 
 // Submit Form
-const submitForm = (): void => {
-  console.log("Form submitted:", student.value);
-  showSuccess(t("Student data submitted successfully!"));
+const submitForm = async (): Promise<void> => {
+  if (student.value.phoneNumbers.length === 0 || !student.value.phoneNumbers[0]) {
+    showError(t("At least one phone number is required."));
+    return;
+  }
+  
+  try {
+    console.log("Student submitted:", student.value);
+    
+    // Map form data to API format
+    const profileData = {
+      first_name: student.value.name,
+      last_name: student.value.surname,
+      email: student.value.email,
+      phone: student.value.phoneNumbers[0], // Take first phone number
+      dormitory_id: student.value.room?.dormitory?.id || null,
+      faculty: student.value.faculty,
+      specialist: student.value.specialist,
+      enrollment_year: student.value.enrollmentYear,
+      gender: student.value.gender,
+      deal_number: student.value.dealNumber,
+    };
+
+    // Use authService to update profile for current user
+    if (isEditing.value) {
+      await authService.updateProfile(profileData);
+      showSuccess(t("Student profile updated successfully!"));
+    } else {
+      await studentService.create(profileData);
+      showSuccess(t("Student created successfully!"));
+    }
+  } catch (error: any) {
+    console.error('Profile update failed:', error);
+    showError(error.response?.data?.message || t("Failed to save student data"));
+  }
 };
 
 // Load student from API if editing
 const loadStudent = async (id: number) => {
   try {
-    const response = await studentService.getById(id);
+    // Use profile endpoint for current user's own data to avoid permission issues
+    const response = await authService.getProfile();
     const studentData = response.data;
     
     // Populate form with API data
     student.value = {
       iin: studentData.iin || "",
-      name: studentData.name || "",
-      surname: studentData.surname || studentData.last_name || "",
+      name: studentData.first_name || studentData.name || "",
+      surname: studentData.last_name || studentData.surname || "",
       faculty: studentData.faculty || "",
       specialist: studentData.specialist || studentData.specialty || "",
       enrollmentYear: studentData.enrollment_year || studentData.enrollmentYear || "",
       gender: studentData.gender || "",
       email: studentData.email || "",
-      phoneNumbers: studentData.phone_numbers?.length ? [...studentData.phone_numbers] : [""],
+      phoneNumbers: studentData.phone_numbers?.length ? [...studentData.phone_numbers] : studentData.phone ? [studentData.phone] : [""],
       city: studentData.city || null,
       dealNumber: studentData.deal_number || studentData.dealNumber || "",
       room: studentData.room

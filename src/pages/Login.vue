@@ -59,6 +59,11 @@
               <CButton type="submit" class="mt-4 w-full" variant="primary">
                 {{ t("Login") }}
               </CButton>
+              
+              <!-- Password Reset Component -->
+              <div class="mt-4">
+                <PasswordReset />
+              </div>
             </form>
           </CTab>
 
@@ -308,6 +313,7 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
+import { useAuthStore } from "@/stores/auth";
 import CSelect from "@/components/CSelect.vue";
 import CTabs from "@/components/CTabs.vue";
 import CTab from "@/components/CTab.vue";
@@ -315,11 +321,13 @@ import CInput from "@/components/CInput.vue";
 import CButton from "@/components/CButton.vue";
 import CCheckbox from "@/components/CCheckbox.vue";
 import CFileInput from "@/components/CFileInput.vue";
-import { User, UserStatus } from "@/models/User";
+import PasswordReset from "@/components/PasswordReset.vue";
+import { UserRegistration, UserStatus } from "@/models/User";
 import { useToast } from "@/composables/useToast";
 
 const { t } = useI18n();
 const router = useRouter();
+const authStore = useAuthStore();
 const { showError, showSuccess } = useToast();
 
 const selectedLanguage = ref("en");
@@ -351,7 +359,7 @@ const credentialsValidationMessage = ref({
 
 // Registration Form Data
 const registration = ref(
-  new User(
+  new UserRegistration(
     "", // iin
     "", // name
     "", // faculty
@@ -540,7 +548,8 @@ const handleLogin = async () => {
 
   // Proceed with login
   try {
-    router.push("/main");
+    await authStore.login(credentials.value);
+    // The auth store will handle the redirect
     showSuccess(t("Login successful"));
   } catch (error) {
     showError(t("Login failed"));

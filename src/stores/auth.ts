@@ -3,17 +3,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/services/api'
-
-interface User {
-  id: number
-  name?: string
-  first_name?: string
-  last_name?: string
-  email: string
-  role?: {
-    name: string
-  }
-}
+import { User } from '@/models/User'
 
 interface LoginCredentials {
   email: string
@@ -53,7 +43,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
       // Redirect based on role
-      const redirectPath = '/'
+      const redirectPath = '/main'
       router.push(redirectPath)
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Login failed'
@@ -80,10 +70,10 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const logout = () => {
-    token.value = null
-    user.value = null
-    localStorage.removeItem('token')
-    router.push('/login')
+  token.value = null
+  user.value = null
+  localStorage.removeItem('token')
+  router.push('/')
   }
 
   const loadProfile = async () => {

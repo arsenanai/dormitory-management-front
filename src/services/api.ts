@@ -54,6 +54,12 @@ export const authService = {
   
   changePassword: (data: { current_password: string; password: string; password_confirmation: string }) => 
     api.put('/users/change-password', data),
+  
+  sendPasswordResetLink: (email: string) => 
+    api.post('/password/reset-link', { email }),
+  
+  resetPassword: (data: { email: string; token: string; password: string; password_confirmation: string }) => 
+    api.post('/password/reset', data),
 };
 
 export const studentService = {

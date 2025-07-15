@@ -2,7 +2,7 @@
   <Teleport to="body">
     <div 
       v-if="isVisible" 
-      :class="toastClasses"
+      :class="[toastClasses, `toast-${type}`]"
       class="fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out max-w-sm"
       role="alert"
       @click="close"

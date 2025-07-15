@@ -66,8 +66,36 @@ The app will be available at [http://localhost:5173](http://localhost:5173) (or 
 
 ### Testing
 
-    
-    npm run test:unit
+#### Unit Tests
+```
+npm run test:unit
+```
+
+#### End-to-End (E2E) Tests
+```
+# Run E2E tests in headless mode
+npm run test:e2e
+
+# Run E2E tests with browser UI (interactive)
+npm run test:e2e:ui
+
+# Run E2E tests in headed mode (visible browser)
+npm run test:e2e:headed
+```
+
+**E2E Test Requirements:**
+- Backend server must be running on `http://localhost:8000`
+- Frontend development server must be running on `http://localhost:5173`
+- Database should be seeded with test data
+
+**E2E Test Coverage:**
+- User authentication flows
+- Admin profile management
+- Student profile management
+- Navigation and routing
+- Form interactions and validations
+- Payment management workflows
+- Dormitory and room management
     
 
 ### Build for Production

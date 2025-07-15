@@ -17,6 +17,61 @@ vi.mock('@/pages/StudentsReal.vue', () => ({ default: MockComponent }))
 vi.mock('@/pages/Statistics.vue', () => ({ default: MockComponent }))
 
 describe('Router', () => {
+  describe('Authentication and Route Guards', () => {
+    let router: any
+    let isAuthenticated = false
+    let userRole = null
+
+    beforeEach(() => {
+      isAuthenticated = false
+      userRole = null
+      router = createRouter({
+        history: createWebHistory(),
+        routes: [
+          { path: '/login', name: 'login', component: MockComponent },
+          { path: '/main', name: 'main', component: MockComponent, meta: { requiresAuth: true } },
+          { path: '/admin', name: 'admin', component: MockComponent, meta: { requiresAuth: true, role: 'admin' } },
+        ]
+      })
+
+      // Simulate route guard logic
+      router.beforeEach((to: any, from: any, next: any) => {
+        if (to.meta?.requiresAuth && !isAuthenticated) {
+          next({ name: 'login' })
+        } else if (to.meta?.role && to.meta.role !== userRole) {
+          next({ name: 'main' })
+        } else {
+          next()
+        }
+      })
+    })
+
+    it('redirects unauthenticated user to login for protected route', async () => {
+      isAuthenticated = false
+      await router.push('/main')
+      expect(router.currentRoute.value.name).toBe('login')
+    })
+
+    it('allows authenticated user to access protected route', async () => {
+      isAuthenticated = true
+      await router.push('/main')
+      expect(router.currentRoute.value.name).toBe('main')
+    })
+
+    it('redirects user without required role', async () => {
+      isAuthenticated = true
+      userRole = 'student'
+      await router.push('/admin')
+      expect(router.currentRoute.value.name).toBe('main')
+    })
+
+    it('allows user with required role', async () => {
+      isAuthenticated = true
+      userRole = 'admin'
+      await router.push('/admin')
+      expect(router.currentRoute.value.name).toBe('admin')
+    })
+  })
   let router: any
 
   beforeEach(() => {

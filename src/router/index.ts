@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
+import { useAuthStore } from '@/stores/auth';
 import Login from '@/pages/Login.vue';
 import Main from '@/pages/Statistics.vue';
 import {
@@ -249,9 +250,16 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   document.title = 'SDU Dormitory | ' + (to.meta?.title ?? '');
-  const isAuthenticated = true; // Replace with actual authentication logic
+  
+  // Initialize auth store in the context of the navigation guard
+  const authStore = useAuthStore();
+  const isAuthenticated = authStore.isAuthenticated;
+  
   if (to.meta?.requiresAuth && !isAuthenticated) {
     next({ name: 'login' });
+  } else if (to.name === 'login' && isAuthenticated) {
+    // Redirect authenticated users away from login page
+    next({ path: '/main' });
   } else {
     next();
   }
