@@ -60,16 +60,23 @@
                 {{ t("Login") }}
               </CButton>
               
-              <!-- Password Reset Component -->
-              <div class="mt-4">
-                <PasswordReset />
+              <div class="mt-2 flex justify-end">
+                <CButton
+                  variant="link"
+                  class="p-0 h-auto min-w-0 text-blue-700 underline"
+                  @click="showPasswordReset = true"
+                  data-testid="forgot-password"
+                >
+                  {{ t('Forgot password') }}
+                </CButton>
               </div>
+              <PasswordReset v-model="showPasswordReset" />
             </form>
           </CTab>
 
           <!-- Registration Tab -->
           <CTab name="registration" :title="t('Registration')">
-            <form class="flex flex-col gap-4">
+            <form class="flex flex-col gap-4" @submit.prevent="handleRegistration">
               <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <div>
                   <CInput
@@ -254,7 +261,20 @@
           </CTab>
 
           <CTab name="guests" :title="t('Guests')">
-            <form class="flex flex-col gap-2">
+            <form class="flex flex-col gap-2" @submit.prevent="handleGuestRegistration">
+const handleGuestRegistration = async () => {
+  try {
+    const payload = {
+      ...guest.value,
+      user_type: 'guest',
+    };
+    await authStore.register(payload);
+    showSuccess(t('Guest registration successful'));
+    activeTab.value = 'login';
+  } catch (error) {
+    showError(t('Registration failed'));
+  }
+};
               <div>
                 <CSelect
                   id="guest-room-type"
@@ -324,12 +344,28 @@ import CFileInput from "@/components/CFileInput.vue";
 import PasswordReset from "@/components/PasswordReset.vue";
 import { UserRegistration, UserStatus } from "@/models/User";
 import { useToast } from "@/composables/useToast";
+import { ref } from 'vue';
 
 const { t } = useI18n();
 const router = useRouter();
 const authStore = useAuthStore();
 const { showError, showSuccess } = useToast();
 
+const handleRegistration = async () => {
+  // TODO: Add validation logic for registration fields
+  try {
+    const payload = {
+      ...registration.value,
+      user_type: 'student',
+    };
+    await authStore.register(payload);
+    showSuccess(t('Registration successful'));
+    // Optionally switch to login tab or clear form
+    activeTab.value = 'login';
+  } catch (error) {
+    showError(t('Registration failed'));
+  }
+};
 const selectedLanguage = ref("en");
 const languageOptions = [
   { value: "en", name: "English" },
@@ -356,6 +392,7 @@ const credentialsValidationMessage = ref({
   email: "",
   password: "",
 });
+const showPasswordReset = ref(false);
 
 // Registration Form Data
 const registration = ref(

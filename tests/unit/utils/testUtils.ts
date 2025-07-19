@@ -20,7 +20,11 @@ export function createAxiosResponse(
     status,
     statusText,
     headers,
-    config: {},
+    config: {
+      headers: {},
+      method: 'get',
+      url: '',
+    },
   };
 }
 

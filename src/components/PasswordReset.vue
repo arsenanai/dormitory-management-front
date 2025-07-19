@@ -1,104 +1,63 @@
 <template>
-  <div v-if="!showResetForm" class="text-center">
-    <button 
-      @click="showResetForm = true"
-      class="text-sm text-blue-600 hover:text-blue-500 underline"
-    >
-      {{ t("Forgot your password?") }}
-    </button>
-  </div>
-
-  <div v-else class="space-y-4">
-    <div v-if="!resetLinkSent">
-      <h3 class="text-lg font-semibold mb-4">{{ t("Reset Password") }}</h3>
+  <CModal v-model="show" title="Reset Password">
+    <form @submit.prevent="onSubmit" class="flex flex-col gap-4">
       <CInput
-        id="reset-email"
-        v-model="resetEmail"
+        v-model="email"
         type="email"
-        :label="t('Email Address')"
-        placeholder="Enter your email"
+        label="Email"
         required
+        autocomplete="email"
+        :error="emailError"
+        data-testid="reset-email"
       />
-      <div class="flex gap-2 mt-4">
-        <CButton 
-          type="button" 
-          variant="primary" 
-          @click="sendResetLink"
-          :disabled="loading"
-        >
-          {{ loading ? t("Sending...") : t("Send Reset Link") }}
-        </CButton>
-        <CButton 
-          type="button" 
-          variant="secondary" 
-          @click="cancelReset"
-        >
-          {{ t("Cancel") }}
-        </CButton>
+      <div v-if="successMessage" class="text-green-600">{{ successMessage }}</div>
+      <div v-if="errorMessage" class="text-red-600">{{ errorMessage }}</div>
+      <div class="flex justify-end gap-2 mt-2">
+        <CButton type="button" variant="secondary" @click="close">Cancel</CButton>
+        <CButton type="submit" variant="primary">Send Reset Link</CButton>
       </div>
-    </div>
-
-    <div v-else class="text-center">
-      <p class="text-green-600 mb-4">{{ t("Reset link sent! Check your email.") }}</p>
-      <button 
-        @click="resetLinkSent = false"
-        class="text-sm text-blue-600 hover:text-blue-500 underline"
-      >
-        {{ t("Try again") }}
-      </button>
-    </div>
-  </div>
+    </form>
+  </CModal>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import { useI18n } from "vue-i18n";
-import CInput from "@/components/CInput.vue";
-import CButton from "@/components/CButton.vue";
-import { authService } from "@/services/api";
-import { useToast } from "@/composables/useToast";
+import { ref, defineProps, defineEmits, watch } from 'vue'
+import { useAuthStore } from '@/stores/authStore'
 
-const { t } = useI18n();
-const { showError, showSuccess } = useToast();
+const props = defineProps<{ modelValue: boolean }>()
+const emit = defineEmits(['update:modelValue'])
 
-const showResetForm = ref(false);
-const resetLinkSent = ref(false);
-const resetEmail = ref("");
-const loading = ref(false);
+const show = ref(props.modelValue)
+watch(() => props.modelValue, v => (show.value = v))
+watch(show, v => emit('update:modelValue', v))
 
-const sendResetLink = async () => {
-  if (!resetEmail.value) {
-    showError(t("Email is required"));
-    return;
+const email = ref('')
+const emailError = ref('')
+const errorMessage = ref('')
+const successMessage = ref('')
+const authStore = useAuthStore()
+
+function close() {
+  show.value = false
+  email.value = ''
+  emailError.value = ''
+  errorMessage.value = ''
+  successMessage.value = ''
+}
+
+async function onSubmit() {
+  emailError.value = ''
+  errorMessage.value = ''
+  successMessage.value = ''
+  if (!email.value || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.value)) {
+    emailError.value = 'Invalid email'
+    return
   }
-
-  // Email validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(resetEmail.value)) {
-    showError(t("Please enter a valid email address"));
-    return;
-  }
-
-  loading.value = true;
   try {
-    const response = await authService.sendPasswordResetLink(resetEmail.value);
-    showSuccess(response.data.message);
-    resetLinkSent.value = true;
-    
-    // In development, also show the debug token
-    if (response.data.debug_token) {
-      console.log("Debug reset token:", response.data.debug_token);
-    }
-  } catch (error: any) {
-    showError(error.response?.data?.message || t("Failed to send reset link"));
-  } finally {
-    loading.value = false;
+    await authStore.resetPassword(email.value)
+    successMessage.value = 'Check your email for the reset link.'
+  } catch (e: any) {
+    errorMessage.value = e?.message || 'Failed to send reset link.'
   }
-};
-
-const cancelReset = () => {
-  showResetForm.value = false;
-  resetEmail.value = "";
-  resetLinkSent.value = false;
-};
+}
 </script>

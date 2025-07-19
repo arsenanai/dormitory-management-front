@@ -70,4 +70,36 @@ test.describe('Authentication Flow', () => {
     // Should be redirected to login
     await expect(page).toHaveURL('http://localhost:5173/');
   });
+  
+  test('should successfully register a student', async ({ page }) => {
+    await page.click('button[role="tab"]:has-text("Registration")');
+    await page.fill('#registration-iin', '123456789012');
+    await page.fill('#registration-name', 'Test Student');
+    await page.selectOption('#registration-faculty', 'engineering');
+    await page.selectOption('#registration-specialist', 'computer_sciences');
+    await page.fill('#registration-enrollment-year', '2023');
+    await page.selectOption('#registration-gender', 'male');
+    await page.fill('#registration-email', 'student@example.com');
+    await page.fill('#registration-password', 'password');
+    await page.fill('#registration-confirm-password', 'password');
+    await page.selectOption('#registration-dormitory', 'a_block');
+    await page.selectOption('#registration-room', 'a210');
+    await page.setInputFiles('#registration-file-0', 'public/favicon.ico');
+    await page.setInputFiles('#registration-file-1', 'public/favicon.ico');
+    await page.setInputFiles('#registration-file-2', 'public/favicon.ico');
+    await page.setInputFiles('#registration-file-3', 'public/favicon.ico');
+    await page.click('#registration-agree-rules');
+    await page.click('button[type="submit"]:has-text("Register")');
+    // Expect success toast or redirect (adjust selector as needed)
+    await expect(page.locator('body')).toContainText(/success|registered|pending/i);
+  });
+
+  test('should successfully register a guest', async ({ page }) => {
+    await page.click('button[role="tab"]:has-text("Guests")');
+    await page.selectOption('#guest-room-type', 'single');
+    await page.fill('#guest-name', 'Guest User');
+    await page.setInputFiles('#guest-file-0', 'public/favicon.ico');
+    await page.click('button[type="submit"]:has-text("Book Room")');
+    await expect(page.locator('body')).toContainText(/success|booked|pending/i);
+  });
 });

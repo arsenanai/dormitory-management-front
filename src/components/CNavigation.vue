@@ -82,6 +82,7 @@
             <button
               @click="toggleUserMenu"
               class="user-menu flex items-center space-x-2 p-2 rounded hover:bg-gray-100"
+              data-testid="user-menu-button"
             >
               <div v-if="currentUser" class="text-right user-info">
                 <p class="text-sm font-medium">{{ currentUser.name }}</p>
