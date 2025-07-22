@@ -5,34 +5,28 @@
     <label v-if="label" :for="id" class="block text-sm font-medium" :class="labelClass">
       {{ label }}{{ required ? '*' : '' }}
     </label>
-    <div class="relative" v-bind="$attrs">
+    <div class="relative">
       <!-- Prefix Icon -->
       <div v-if="prefix || type === 'search' || type === 'email' || type === 'tel'" class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
         <component
           v-if="type === 'search'"
           :is="MagnifyingGlassIcon"
           class="h-5 w-5 text-gray-500 dark:text-gray-400 prefix-icon"
+          :class="iconClass"
         />
         <component
           v-else-if="type === 'email'"
           :is="EnvelopeIcon"
           class="h-5 w-5 text-gray-500 dark:text-gray-400 prefix-icon"
+          :class="iconClass"
         />
         <component
           v-else-if="type === 'tel'"
           :is="DevicePhoneMobileIcon"
           class="h-5 w-5 text-gray-500 dark:text-gray-400 prefix-icon"
+          :class="iconClass"
         />
-        <span v-else-if="prefix" class="prefix-icon">{{ prefix }}</span>
       </div>
-
-      <!-- Custom Icon -->
-      <component
-        v-if="icon"
-        :is="icon"
-        class="pointer-events-none absolute top-1/2 left-0 h-8 w-8 -translate-y-1/2 pl-3 text-gray-500 dark:text-gray-400"
-        :class="iconClass"
-      />
       
       <span
         v-if="prependText"
@@ -43,8 +37,11 @@
 
       <!-- Input -->
       <input
+        v-bind="$attrs"
+        data-test="visible"
+        :data-testid="dataTestId"
+        :id="idProp"
         :type="type"
-        :id="id"
         :placeholder="placeholder"
         :value="modelValue"
         @input="onInput"
@@ -110,6 +107,7 @@ import {
 
 const props = defineProps({
   id: String,
+  dataTestId: String,
   type: { type: String, default: 'text' },
   label: String,
   placeholder: String,
@@ -147,6 +145,9 @@ const emit = defineEmits([
 ]);
 
 const $attrs = useAttrs();
+
+const dataTestId = props.dataTestId || $attrs['data-testid'] || undefined;
+const idProp = props.id || $attrs['id'] || undefined;
 
 function onInput(event: Event) {
   const value = (event.target as HTMLInputElement).value;
@@ -265,8 +266,7 @@ const inputClass = computed(() => [
   stateClasses.value,
   (props.icon || props.prependText || props.prefix || props.type === 'search' || props.type === 'email' || props.type === 'tel') ? 'pl-10' : '',
   (props.suffix || props.clearable || props.loading) ? 'pr-10' : '',
-  props.class,
-  $attrs.class
+  props.class
 ].filter(Boolean).join(' '));
 
 // Example mask function (replace with your actual logic)

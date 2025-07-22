@@ -89,9 +89,9 @@ const buttonClasses = computed(() => {
   if (props.variant === 'primary') {
     classes.push('primary');
     if (props.outline) {
-      classes.push('text-primary-500 border border-primary-500 bg-transparent hover:bg-primary-500 hover:text-white');
+      classes.push('text-primary-500 border border-primary-500 bg-transparent hover:bg-primary-500 hover:text-white focus:ring-4 focus:ring-primary-200');
     } else {
-      classes.push('text-white bg-primary-500 hover:bg-primary-600 border border-primary-500');
+      classes.push('text-white bg-primary-500 hover:bg-primary-600 border border-primary-500 focus:ring-4 focus:ring-primary-200');
     }
   } else if (props.variant === 'secondary') {
     classes.push('secondary');

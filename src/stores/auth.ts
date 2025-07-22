@@ -1,8 +1,8 @@
-// src/stores/auth.ts
+
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import api from '@/services/api'
+import api, { authService } from '@/services/api'
 import { User } from '@/models/User'
 
 interface LoginCredentials {
@@ -21,6 +21,24 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Getters
   const isAuthenticated = computed(() => !!token.value)
+  const resetPasswordConfirm = async (token: string, password: string, password_confirmation: string, email: string) => {
+    try {
+      loading.value = true;
+      error.value = null;
+      const response = await authService.resetPassword({
+        token,
+        password,
+        password_confirmation,
+        email,
+      });
+      return response.data;
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Failed to reset password.';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
   const userRole = computed(() => user.value?.role?.name || null)
   const fullName = computed(() =>
     user.value ? `${user.value.first_name || user.value.name || ''} ${user.value.last_name || ''}`.trim() : ''
@@ -135,7 +153,7 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = true
       error.value = null
 
-      await api.post('/auth/reset-password', { email })
+      await authService.sendPasswordResetLink(email)
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Password reset failed'
       throw err
@@ -164,6 +182,7 @@ export const useAuthStore = defineStore('auth', () => {
     updateProfile,
     initializeAuth,
     checkAuth,
-    resetPassword
+    resetPassword,
+    resetPasswordConfirm
   }
 })

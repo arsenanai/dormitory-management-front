@@ -1,7 +1,7 @@
 # Page snapshot
 
 ```yaml
-- text: Language
+- text: E2E Marker Language
 - combobox "Language":
   - option "English" [selected]
   - option "Қазақша"
@@ -12,14 +12,11 @@
   - tab "Guests"
 - tabpanel:
   - text: Email*
-  - textbox "Email*": admin@sdu.edu.kz
+  - textbox "Email*"
   - text: Password*
-  - textbox "Password*": password
+  - textbox "Password*"
   - button "Login"
-  - button "Forgot your password?"
+  - button "Forgot password"
 - img
 - img
-- alert:
-  - paragraph: Login failed
-  - button "Close"
 ```

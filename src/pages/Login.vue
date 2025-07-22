@@ -59,19 +59,23 @@
               <CButton type="submit" class="mt-4 w-full" variant="primary">
                 {{ t("Login") }}
               </CButton>
-              
-              <div class="mt-2 flex justify-end">
-                <CButton
-                  variant="link"
-                  class="p-0 h-auto min-w-0 text-blue-700 underline"
-                  @click="showPasswordReset = true"
-                  data-testid="forgot-password"
-                >
-                  {{ t('Forgot password') }}
-                </CButton>
-              </div>
-              <PasswordReset v-model="showPasswordReset" />
             </form>
+            <div class="mt-2 flex justify-end">
+              <a
+                class="text-primary-800 hover:underline cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary-300 rounded"
+                data-testid="forgot-password"
+                @click="showPasswordReset = true"
+                tabindex="0"
+                role="button"
+                @keydown.enter="showPasswordReset = true"
+                @keydown.space.prevent="showPasswordReset = true"
+              >
+                {{ t('Forgot password') }}
+              </a>
+            </div>
+            <Teleport to="body">
+              <PasswordReset v-model="showPasswordReset" />
+            </Teleport>
           </CTab>
 
           <!-- Registration Tab -->
@@ -262,19 +266,6 @@
 
           <CTab name="guests" :title="t('Guests')">
             <form class="flex flex-col gap-2" @submit.prevent="handleGuestRegistration">
-const handleGuestRegistration = async () => {
-  try {
-    const payload = {
-      ...guest.value,
-      user_type: 'guest',
-    };
-    await authStore.register(payload);
-    showSuccess(t('Guest registration successful'));
-    activeTab.value = 'login';
-  } catch (error) {
-    showError(t('Registration failed'));
-  }
-};
               <div>
                 <CSelect
                   id="guest-room-type"
@@ -330,7 +321,6 @@ const handleGuestRegistration = async () => {
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { useAuthStore } from "@/stores/auth";
@@ -341,7 +331,7 @@ import CInput from "@/components/CInput.vue";
 import CButton from "@/components/CButton.vue";
 import CCheckbox from "@/components/CCheckbox.vue";
 import CFileInput from "@/components/CFileInput.vue";
-import PasswordReset from "@/components/PasswordReset.vue";
+import PasswordReset from "@/features/auth/PasswordReset.vue";
 import { UserRegistration, UserStatus } from "@/models/User";
 import { useToast } from "@/composables/useToast";
 import { ref } from 'vue';
@@ -392,7 +382,9 @@ const credentialsValidationMessage = ref({
   email: "",
   password: "",
 });
+import { ref } from 'vue';
 const showPasswordReset = ref(false);
+// Debug watcher removed
 
 // Registration Form Data
 const registration = ref(
@@ -590,6 +582,19 @@ const handleLogin = async () => {
     showSuccess(t("Login successful"));
   } catch (error) {
     showError(t("Login failed"));
+  }
+};
+const handleGuestRegistration = async () => {
+  try {
+    const payload = {
+      ...guest.value,
+      user_type: 'guest',
+    };
+    await authStore.register(payload);
+    showSuccess(t('Guest registration successful'));
+    activeTab.value = 'login';
+  } catch (error) {
+    showError(t('Registration failed'));
   }
 };
 </script>

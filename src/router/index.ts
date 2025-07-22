@@ -28,6 +28,15 @@ type AppRouteRecordRaw = RouteRecordRaw & {
 
 const routes: AppRouteRecordRaw[] = [
   {
+    path: '/reset-password/:token',
+    name: 'ResetPassword',
+    component: () => import('@/pages/ResetPassword.vue'),
+    meta: {
+      title: 'Reset Password',
+      requiresAuth: false,
+    },
+  },
+  {
     path: '/',
     name: 'login',
     component: Login,
