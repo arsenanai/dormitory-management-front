@@ -1,4 +1,4 @@
-import { test as base } from '@playwright/test';
+import { test as base, expect as baseExpect } from '@playwright/test';
 
 export const test = base.extend({
   page: async ({ page }, use) => {
@@ -8,3 +8,5 @@ export const test = base.extend({
     await use(page);
   },
 });
+
+export const expect = baseExpect;

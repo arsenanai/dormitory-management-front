@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test';
 
 test.describe('Navigation and Routing', () => {
   test('should redirect to login when not authenticated', async ({ page }) => {

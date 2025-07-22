@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test';
 
 test.describe('Profile Form Functionality - TDD E2E Tests', () => {
   

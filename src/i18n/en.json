@@ -112,5 +112,17 @@
     "Book Room": "Book Room",
     "Open sidebar menu": "Open sidebar menu",
     "Previous page": "Previous page",
-    "Next page": "Next page"
+    "Next page": "Next page",
+    "Forgot password": "Forgot password",
+    "Reset Password": "Reset Password",
+    "Send Reset Link": "Send Reset Link",
+    "Cancel": "Cancel",
+    "Close": "Close",
+    "Check your email for the reset link.": "Check your email for the reset link.",
+    "Invalid email": "Invalid email",
+    "Sending...": "Sending...",
+    "Network Error": "Network Error",
+    "Reserved": "Reserved",
+    "Indoor": "Indoor",
+    "Outdoor": "Outdoor"
 }

@@ -2,8 +2,9 @@
 <template>
   <CModal :modelValue="props.modelValue" @update:modelValue="emit('update:modelValue', $event)" :title="t('Reset Password')">
     <div role="dialog" id="playwright-reset-modal" class="">
-      <form @submit.prevent="onSubmit" class="flex flex-col gap-4 pt-2" id="reset-modal-marker">
+      <form @submit.prevent="onSubmit" class="flex flex-col gap-4 pt-2" id="reset-modal-marker" novalidate>
         <h2 class="text-xl font-semibold text-center">{{ t('Reset Password') }}</h2>
+        <div v-if="emailError" class="text-red-600 text-center" data-testid="reset-email-error">{{ emailError }}</div>
         <CInput
           v-model="email"
           type="email"
@@ -28,7 +29,7 @@
 
 
 <script setup lang="ts">
-import { ref, defineProps, defineEmits } from 'vue'
+import { ref, defineProps, defineEmits, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CModal from '../../components/CModal.vue'
 import CInput from '../../components/CInput.vue'
@@ -61,12 +62,14 @@ async function onSubmit() {
   successMessage.value = ''
   if (!email.value || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.value)) {
     emailError.value = t('Invalid email')
+    console.log('DEBUG: emailError after invalid email submit:', emailError.value)
+    await nextTick()
     return
   }
   loading.value = true
   try {
     await authStore.resetPassword(email.value)
-    successMessage.value = 'Check your email for the reset link.'
+    successMessage.value = t('Check your email for the reset link.')
   } catch (e: any) {
     errorMessage.value = e?.message ? t(e.message) : t('Failed to send reset link.')
   } finally {

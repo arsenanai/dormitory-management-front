@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test';
 
 test.describe('Debug Login', () => {
   test('should debug login flow with network and console logs', async ({ page }) => {
