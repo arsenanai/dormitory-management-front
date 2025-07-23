@@ -1,10 +1,8 @@
 <template>
   <Navigation :title="t('Dashboard')">
-    <!-- Main Content -->
-    <div
-      class="grid h-full grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6"
-    >
-      <!-- Cards -->
+    <div v-if="dashboardStore.loading" class="text-center py-8 text-lg">{{ t('Loading...') }}</div>
+    <div v-else-if="dashboardStore.error" class="text-center py-8 text-red-600">{{ dashboardStore.error }}</div>
+    <div v-else class="grid h-full grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
       <div
         v-for="(card, index) in cards"
         :key="index"
@@ -61,15 +59,19 @@ import {
   NoSymbolIcon,
   AcademicCapIcon,
 } from "@heroicons/vue/24/outline";
-import { Card } from "@/models/Card"; // Import the Card interface
+import { onMounted, computed } from 'vue';
+import { useDashboardStore } from '@/stores/dashboard';
 
-// Import the `t` function from vue-i18n
 const { t } = useI18n();
+const dashboardStore = useDashboardStore();
 
-// Card data array
-const cards: Card[] = [
+onMounted(() => {
+  dashboardStore.fetchStats();
+});
+
+const cards = computed(() => [
   {
-    value: 4,
+    value: dashboardStore.stats.dormitories,
     description: t("Number of dormitories"),
     bgClass: "bg-yellow-50",
     textClass: "text-yellow-600",
@@ -78,7 +80,7 @@ const cards: Card[] = [
     iconTextClass: "text-yellow-600",
   },
   {
-    value: 268,
+    value: dashboardStore.stats.rooms,
     description: t("Number of rooms"),
     bgClass: "bg-orange-50",
     textClass: "text-orange-600",
@@ -87,7 +89,7 @@ const cards: Card[] = [
     iconTextClass: "text-orange-600",
   },
   {
-    value: 1200,
+    value: dashboardStore.stats.beds,
     description: t("Total number of beds"),
     bgClass: "bg-green-50",
     textClass: "text-green-600",
@@ -96,7 +98,7 @@ const cards: Card[] = [
     iconTextClass: "text-green-600",
   },
   {
-    value: 112,
+    value: dashboardStore.stats.vacantBeds,
     description: t("Vacant beds"),
     bgClass: "bg-red-50",
     textClass: "text-red-600",
@@ -105,7 +107,7 @@ const cards: Card[] = [
     iconTextClass: "text-red-600",
   },
   {
-    value: 1088,
+    value: dashboardStore.stats.registeredStudents,
     description: t("Registered students"),
     bgClass: "bg-blue-50",
     textClass: "text-blue-600",
@@ -114,7 +116,7 @@ const cards: Card[] = [
     iconTextClass: "text-blue-600",
   },
   {
-    value: 1758,
+    value: dashboardStore.stats.currentPresence,
     description: t("Current presence in dormitory"),
     bgClass: "bg-purple-50",
     textClass: "text-purple-600",
@@ -123,7 +125,7 @@ const cards: Card[] = [
     iconTextClass: "text-purple-600",
   },
   {
-    value: 1088,
+    value: dashboardStore.stats.mealPaying,
     description: t("Meal paying students"),
     bgClass: "bg-yellow-100",
     textClass: "text-yellow-700",
@@ -132,7 +134,7 @@ const cards: Card[] = [
     iconTextClass: "text-yellow-700",
   },
   {
-    value: 0,
+    value: dashboardStore.stats.withoutMeal,
     description: t("Students without meal"),
     bgClass: "bg-pink-50",
     textClass: "text-pink-600",
@@ -141,7 +143,7 @@ const cards: Card[] = [
     iconTextClass: "text-pink-600",
   },
   {
-    value: 32,
+    value: dashboardStore.stats.quotaStudents,
     description: t("Number of quota students"),
     bgClass: "bg-green-50",
     textClass: "text-green-800",
@@ -149,7 +151,7 @@ const cards: Card[] = [
     iconBgClass: "bg-green-100",
     iconTextClass: "text-green-800",
   },
-];
+]);
 </script>
 
 <style scoped>

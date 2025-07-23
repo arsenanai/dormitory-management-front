@@ -57,11 +57,11 @@ const routes: AppRouteRecordRaw[] = [
     },
   },
   {
-    path: '/users',
-    name: 'Users',
-    component: () => import('@/pages/Users.vue'),
+    path: '/admins',
+    name: 'Admins',
+    component: () => import('@/pages/Admins.vue'),
     meta: {
-      title: 'Users',
+      title: 'Admins',
       requiresAuth: true,
       sidebar: true,
       icon: UserGroupIcon,
@@ -76,7 +76,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: PencilSquareIcon,
-      parent: 'Users',
+      parent: 'Admins',
     },
   },
   {
@@ -249,6 +249,11 @@ const routes: AppRouteRecordRaw[] = [
       sidebar: true,
       icon: PencilSquareIcon,
     },
+  },
+  {
+    path: '/modal-test',
+    name: 'ModalTest',
+    component: () => import('@/pages/ModalTest.vue'),
   },
 ];
 

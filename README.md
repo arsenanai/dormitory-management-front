@@ -150,3 +150,18 @@ This project is private and for SDU internal use only.
 
 **SDU Dormitory Management System**  
 Contact: [info@sdu.edu.kz](mailto:info@sdu.edu.kz)
+
+## Running E2E Tests
+
+1. Install dependencies (including dotenv-cli):
+   ```sh
+   npm install --save-dev dotenv-cli
+   ```
+
+2. Create and configure `.env.testing` in the crm-front directory with the required variables (e.g., ADMIN_EMAIL, ADMIN_PASSWORD, VITE_API_BASE_URL).
+
+3. Run E2E tests with:
+   ```sh
+   npm run test:e2e
+   ```
+   This will automatically load environment variables from `.env.testing` for Playwright tests.

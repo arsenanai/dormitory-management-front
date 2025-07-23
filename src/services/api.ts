@@ -216,4 +216,17 @@ export const dashboardService = {
     api.get(`/dashboard/dormitory/${dormitoryId}`),
 };
 
+export const adminService = {
+  getAll: (params?: any) => 
+    api.get('/admins', { params }),
+  getById: (id: number) => 
+    api.get(`/admins/${id}`),
+  create: (data: any) => 
+    api.post('/admins', data),
+  update: (id: number, data: any) => 
+    api.put(`/admins/${id}`, data),
+  delete: (id: number) => 
+    api.delete(`/admins/${id}`),
+};
+
 export default api;

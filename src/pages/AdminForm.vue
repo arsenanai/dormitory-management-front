@@ -40,6 +40,26 @@
         required
       />
 
+      <!-- Password Fields (only when adding) -->
+      <template v-if="!isEditing">
+        <CInput
+          id="admin-password"
+          v-model="admin.password"
+          type="password"
+          :label="t('Password')"
+          placeholder="Enter Password"
+          required
+        />
+        <CInput
+          id="admin-confirm-password"
+          v-model="admin.confirmPassword"
+          type="password"
+          :label="t('Confirm Password')"
+          placeholder="Confirm Password"
+          required
+        />
+      </template>
+
       <!-- Phone Number Field -->
       <div class="col-span-2">
         <label class="block text-sm font-medium text-gray-700">
@@ -59,7 +79,7 @@
 
     <!-- Submit Button -->
     <div class="mt-6 flex flex-row items-end justify-end gap-2">
-      <CButton type="button" variant="secondary" @click="showPasswordForm = !showPasswordForm">
+      <CButton v-if="isEditing" type="default" variant="secondary" @click="showPasswordForm = !showPasswordForm">
         {{ t("Change Password") }}
       </CButton>
       <CButton type="submit" variant="primary" @click="submitForm">
@@ -112,20 +132,21 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import Navigation from "@/components/CNavigation.vue";
 import CInput from "@/components/CInput.vue";
 import CSelect from "@/components/CSelect.vue";
 import CButton from "@/components/CButton.vue";
 import { Dormitory } from "@/models/Dormitory";
 import { useUserStore } from "@/stores/user";
-import { userService, authService, dormitoryService } from "@/services/api";
+import { adminService, dormitoryService, userService, authService } from "@/services/api";
 import { useToast } from "@/composables/useToast";
 import { PlusIcon, TrashIcon } from "@heroicons/vue/24/outline";
 
 // i18n
 const { t } = useI18n();
 const route = useRoute();
+const router = useRouter();
 const userStore = useUserStore();
 const { showError, showSuccess } = useToast();
 
@@ -149,6 +170,8 @@ const admin = ref({
   dormitory: null, // Will store dormitory ID
   email: "",
   phoneNumbers: [""], // Initialize with one empty phone number
+  password: "", // Added for new admin
+  confirmPassword: "", // Added for new admin
 });
 
 // Password change form
@@ -186,11 +209,11 @@ const submitForm = async (): Promise<void> => {
     
     // Map form data to API format
     const profileData = {
-      first_name: admin.value.name,
-      last_name: admin.value.surname,
+      name: admin.value.name + ' ' + admin.value.surname,
       email: admin.value.email,
-      phone: admin.value.phoneNumbers[0], // Take first phone number
-      dormitory_id: admin.value.dormitory // Already contains the ID
+      password: admin.value.password,
+      password_confirmation: admin.value.confirmPassword,
+      gender: 'male', // set a default or add a field to the form
     };
 
     // Use authService to update profile for current user
@@ -198,8 +221,9 @@ const submitForm = async (): Promise<void> => {
       await authService.updateProfile(profileData);
       showSuccess(t("Admin profile updated successfully!"));
     } else {
-      await userService.create(profileData);
+      await adminService.create(profileData);
       showSuccess(t("Admin created successfully!"));
+      router.push('/admins');
     }
   } catch (error: any) {
     console.error('Profile update failed:', error);
