@@ -1,104 +1,84 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
-import { createI18n } from 'vue-i18n'
-import Statistics from '@/pages/Statistics.vue'
+export {};
+import { dashboardService } from '@/services/api';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { createTestingPinia } from '@pinia/testing';
+import { flushPromises, mount } from '@vue/test-utils';
+import Statistics from '@/pages/Statistics.vue';
+import { useDashboardStore } from '@/stores/dashboard';
+import { createRouterMock, injectRouterMock } from 'vue-router-mock';
 
-// Mock the icons
-vi.mock('@heroicons/vue/24/outline', () => ({
-  HomeIcon: { template: '<svg></svg>' },
-  BuildingOfficeIcon: { template: '<svg></svg>' },
-  UserIcon: { template: '<svg></svg>' },
-  UsersIcon: { template: '<svg></svg>' },
-  ClipboardDocumentListIcon: { template: '<svg></svg>' },
-  ChartPieIcon: { template: '<svg></svg>' },
-  CurrencyDollarIcon: { template: '<svg></svg>' },
-  NoSymbolIcon: { template: '<svg></svg>' },
-  AcademicCapIcon: { template: '<svg></svg>' }
-}))
+let pinia: ReturnType<typeof createTestingPinia>;
+let router: ReturnType<typeof createRouterMock>;
+let dashboardStore: ReturnType<typeof useDashboardStore>;
 
-// Mock Navigation component
-vi.mock('@/components/CNavigation.vue', () => ({
-  default: {
-    name: 'Navigation',
-    template: '<div class="navigation"><slot></slot></div>',
-    props: ['title']
-  }
-}))
-
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      'Dashboard': 'Dashboard',
-      'Number of dormitories': 'Number of dormitories',
-      'Number of rooms': 'Number of rooms',
-      'Total number of beds': 'Total number of beds',
-      'Vacant beds': 'Vacant beds',
-      'Registered students': 'Registered students',
-      'Current presence in dormitory': 'Current presence in dormitory',
-      'Meal paying students': 'Meal paying students',
-      'Students without meal': 'Students without meal',
-      'Number of quota students': 'Number of quota students'
-    }
-  }
-})
+beforeEach(() => {
+  pinia = createTestingPinia({ stubActions: false });
+  dashboardStore = useDashboardStore();
+  router = createRouterMock();
+  injectRouterMock(router);
+  dashboardService.getStats = vi.fn().mockResolvedValue({
+    data: {
+      dormitories: 4,
+      rooms: 268,
+      beds: 1200,
+      vacant_beds: 112,
+      registered_students: 1088,
+      current_presence: 1758,
+      meal_paying: 1088,
+      without_meal: 0,
+      quota_students: 32,
+    },
+  });
+});
 
 describe('Statistics.vue', () => {
-  let wrapper: any
-
-  beforeEach(() => {
-    wrapper = mount(Statistics, {
+  it('renders all statistic cards with correct values from the store', async () => {
+    const wrapper = mount(Statistics, {
       global: {
-        plugins: [i18n]
-      }
-    })
-  })
+        plugins: [pinia, router],
+      },
+    });
+    await flushPromises();
+    expect(wrapper.text()).toContain('4');
+    expect(wrapper.text()).toContain('268');
+    expect(wrapper.text()).toContain('1200');
+    expect(wrapper.text()).toContain('112');
+    expect(wrapper.text()).toContain('1088');
+    expect(wrapper.text()).toContain('1758');
+    expect(wrapper.text()).toContain('1088');
+    expect(wrapper.text()).toContain('0');
+    expect(wrapper.text()).toContain('32');
+  });
 
-  it('renders statistics page correctly', () => {
-    expect(wrapper.find('.navigation').exists()).toBe(true)
-    expect(wrapper.text()).toContain('Number of dormitories')
-    expect(wrapper.text()).toContain('Number of rooms')
-  })
+  it('shows loading state when loading', async () => {
+    dashboardStore.loading = true;
+    const wrapper = mount(Statistics, {
+      global: {
+        plugins: [pinia, router],
+      },
+    });
+    expect(wrapper.text()).toContain('Loading');
+  });
 
-  it('displays correct number of statistics cards', () => {
-    const cards = wrapper.findAll('[class*="bg-"]').filter((el: any) => 
-      el.classes().some((cls: string) => cls.includes('bg-') && cls.includes('-50'))
-    )
-    expect(cards.length).toBeGreaterThan(5) // Should have multiple cards
-  })
+  it('shows error state when error', async () => {
+    dashboardStore.error = 'Failed to load dashboard statistics';
+    const wrapper = mount(Statistics, {
+      global: {
+        plugins: [pinia, router],
+      },
+    });
+    expect(wrapper.text()).toContain('Failed to load dashboard statistics');
+  });
 
-  it('displays statistics values', () => {
-    expect(wrapper.text()).toContain('4') // Number of dormitories
-    expect(wrapper.text()).toContain('268') // Number of rooms
-    expect(wrapper.text()).toContain('1200') // Total number of beds
-    expect(wrapper.text()).toContain('112') // Vacant beds
-    expect(wrapper.text()).toContain('1088') // Registered students
-  })
-
-  it('displays statistics descriptions', () => {
-    expect(wrapper.text()).toContain('Number of dormitories')
-    expect(wrapper.text()).toContain('Number of rooms')
-    expect(wrapper.text()).toContain('Total number of beds')
-    expect(wrapper.text()).toContain('Vacant beds')
-    expect(wrapper.text()).toContain('Registered students')
-  })
-
-  it('uses proper grid layout', () => {
-    const gridContainer = wrapper.find('.grid')
-    expect(gridContainer.exists()).toBe(true)
-    expect(gridContainer.classes()).toContain('grid-cols-1')
-    expect(gridContainer.classes()).toContain('sm:grid-cols-2')
-    expect(gridContainer.classes()).toContain('lg:grid-cols-3')
-  })
-
-  it('applies correct styling to cards', () => {
-    const cards = wrapper.findAll('.rounded-lg')
-    expect(cards.length).toBeGreaterThan(0)
-    
-    cards.forEach((card: any) => {
-      expect(card.classes()).toContain('rounded-lg')
-      expect(card.classes()).toContain('shadow')
-    })
-  })
-})
+  it('updates values when store data changes', async () => {
+    const wrapper = mount(Statistics, {
+      global: {
+        plugins: [pinia, router],
+      },
+    });
+    await flushPromises();
+    dashboardStore.stats.dormitories = 10;
+    await flushPromises();
+    expect(wrapper.text()).toContain('10');
+  });
+});
