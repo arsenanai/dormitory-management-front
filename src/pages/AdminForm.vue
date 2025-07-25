@@ -5,7 +5,7 @@
       <!-- Name Field -->
       <CInput
         id="admin-name"
-        v-model="admin.name"
+        v-model="user.name"
         :label="t('Name')"
         placeholder="Enter Name"
         required
@@ -14,7 +14,7 @@
       <!-- Surname Field -->
       <CInput
         id="admin-surname"
-        v-model="admin.surname"
+        v-model="user.surname"
         type="text"
         :label="t('Surname')"
         placeholder="Enter Surname"
@@ -24,7 +24,7 @@
       <!-- Dormitory Field -->
       <CSelect
         id="admin-dormitory"
-        v-model="admin.dormitory"
+        v-model="user.dormitory"
         :options="dormitoryOptions"
         :label="t('Dormitory')"
         required
@@ -33,7 +33,7 @@
       <!-- Email Field -->
       <CInput
         id="admin-email"
-        v-model="admin.email"
+        v-model="user.email"
         type="email"
         :label="t('E-mail')"
         placeholder="Enter E-mail"
@@ -44,7 +44,7 @@
       <template v-if="!isEditing">
         <CInput
           id="admin-password"
-          v-model="admin.password"
+          v-model="user.password"
           type="password"
           :label="t('Password')"
           placeholder="Enter Password"
@@ -52,7 +52,7 @@
         />
         <CInput
           id="admin-confirm-password"
-          v-model="admin.confirmPassword"
+          v-model="user.confirmPassword"
           type="password"
           :label="t('Confirm Password')"
           placeholder="Confirm Password"
@@ -68,13 +68,39 @@
         <div class="flex items-center gap-2">
           <CInput
             id="admin-phone"
-            v-model="admin.phoneNumbers[0]"
+            v-model="user.phone_numbers[0]"
             type="tel"
             placeholder="Enter Phone Number"
             required
           />
         </div>
       </div>
+
+      <!-- Admin Profile Fields -->
+      <CInput
+        id="admin-position"
+        v-model="adminProfile.position"
+        :label="t('Position')"
+        placeholder="Enter Position"
+      />
+      <CInput
+        id="admin-department"
+        v-model="adminProfile.department"
+        :label="t('Department')"
+        placeholder="Enter Department"
+      />
+      <CInput
+        id="admin-office-phone"
+        v-model="adminProfile.office_phone"
+        :label="t('Office Phone')"
+        placeholder="Enter Office Phone"
+      />
+      <CInput
+        id="admin-office-location"
+        v-model="adminProfile.office_location"
+        :label="t('Office Location')"
+        placeholder="Enter Office Location"
+      />
     </div>
 
     <!-- Submit Button -->
@@ -142,6 +168,8 @@ import { useUserStore } from "@/stores/user";
 import { adminService, dormitoryService, userService, authService } from "@/services/api";
 import { useToast } from "@/composables/useToast";
 import { PlusIcon, TrashIcon } from "@heroicons/vue/24/outline";
+import type { User } from "@/models/User";
+import type { AdminProfile } from "@/models/AdminProfile";
 
 // i18n
 const { t } = useI18n();
@@ -163,15 +191,19 @@ const dormitoryOptions = computed(() =>
   }))
 );
 
-// Admin Form Data
-const admin = ref({
+// Admin Form Data (split into user and adminProfile)
+const user = ref<Partial<User>>({
   name: "",
-  surname: "",
-  dormitory: null, // Will store dormitory ID
   email: "",
-  phoneNumbers: [""], // Initialize with one empty phone number
-  password: "", // Added for new admin
-  confirmPassword: "", // Added for new admin
+  phone_numbers: [""],
+  password: "",
+  confirmPassword: "",
+});
+const adminProfile = ref<Partial<AdminProfile>>({
+  position: "",
+  department: "",
+  office_phone: "",
+  office_location: "",
 });
 
 // Password change form
@@ -199,29 +231,30 @@ const splitPhoneNumber = (phoneNumber: string): string[] => {
 
 // Submit the form
 const submitForm = async (): Promise<void> => {
-  if (admin.value.phoneNumbers.length === 0) {
+  if (!user.value.phone_numbers?.length || !user.value.phone_numbers[0]) {
     showError(t("At least one phone number is required."));
     return;
   }
   
   try {
-    console.log("Admin submitted:", admin.value);
-    
-    // Map form data to API format
-    const profileData = {
-      name: admin.value.name + ' ' + admin.value.surname,
-      email: admin.value.email,
-      password: admin.value.password,
-      password_confirmation: admin.value.confirmPassword,
-      gender: 'male', // set a default or add a field to the form
+    // Construct payload
+    const payload = {
+      user: {
+        name: user.value.name,
+        email: user.value.email,
+        phone_numbers: user.value.phone_numbers,
+        password: user.value.password,
+        password_confirmation: user.value.confirmPassword,
+      },
+      profile: {
+        ...adminProfile.value,
+      },
     };
-
-    // Use authService to update profile for current user
     if (isEditing.value) {
-      await authService.updateProfile(profileData);
+      await adminService.update(userId.value, payload);
       showSuccess(t("Admin profile updated successfully!"));
     } else {
-      await adminService.create(profileData);
+      await adminService.create(payload);
       showSuccess(t("Admin created successfully!"));
       router.push('/admins');
     }
@@ -272,14 +305,18 @@ watch(
   () => userStore.selectedUser,
   (selectedUser) => {
     if (selectedUser) {
-      // Deep clone to preserve reactivity and structure
-      const userData = JSON.parse(JSON.stringify(selectedUser));
-      admin.value = {
-        name: userData.first_name || userData.name || "",
-        surname: userData.last_name || userData.surname || "",
-        dormitory: userData.dormitory_id || userData.dormitory?.id || null,
-        email: userData.email || "",
-        phoneNumbers: userData.phone_numbers?.length ? [combinePhoneNumber(userData.phone_numbers)] : [""],
+      // Populate user fields
+      user.value = {
+        name: selectedUser.first_name || selectedUser.name || "",
+        email: selectedUser.email || "",
+        phone_numbers: selectedUser.phone_numbers?.length ? [...selectedUser.phone_numbers] : selectedUser.phone ? [selectedUser.phone] : [""]
+      };
+      // Populate adminProfile fields
+      adminProfile.value = {
+        position: selectedUser.admin_profile?.position || "",
+        department: selectedUser.admin_profile?.department || "",
+        office_phone: selectedUser.admin_profile?.office_phone || "",
+        office_location: selectedUser.admin_profile?.office_location || "",
       };
     }
   },
@@ -296,15 +333,19 @@ const loadUser = async (id: number) => {
     console.log('Profile API response:', userData);
     
     // Populate form with API data, properly mapping fields
-    admin.value = {
+    user.value = {
       name: userData.first_name || userData.name || "",
-      surname: userData.last_name || userData.surname || "",
-      dormitory: userData.dormitory_id || userData.dormitory?.id || null,
       email: userData.email || "",
-      phoneNumbers: userData.phone_numbers?.length ? [combinePhoneNumber(userData.phone_numbers)] : userData.phone ? [userData.phone] : [""],
+      phone_numbers: userData.phone_numbers?.length ? [combinePhoneNumber(userData.phone_numbers)] : userData.phone ? [userData.phone] : [""],
+    };
+    adminProfile.value = {
+      position: userData.admin_profile?.position || "",
+      department: userData.admin_profile?.department || "",
+      office_phone: userData.admin_profile?.office_phone || "",
+      office_location: userData.admin_profile?.office_location || "",
     };
     
-    console.log('Admin form data after loading:', admin.value);
+    console.log('Admin form data after loading:', user.value);
     
     showSuccess(t("Admin data loaded successfully"));
   } catch (error) {
@@ -338,7 +379,8 @@ defineExpose({
   splitPhoneNumber,
   submitForm,
   loadUser,
-  admin
+  user,
+  adminProfile
 });
 </script>
 

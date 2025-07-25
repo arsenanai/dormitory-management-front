@@ -77,6 +77,67 @@
         />
       </div>
 
+      <!-- Semester (NEW) -->
+      <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 mt-4">
+        <div>
+          <CInput
+            id="semester"
+            v-model="form.semester"
+            type="text"
+            :label="t('Semester')"
+            placeholder="e.g. 2024-fall"
+          />
+        </div>
+        <!-- Year (NEW) -->
+        <div>
+          <CInput
+            id="year"
+            v-model="form.year"
+            type="number"
+            :label="t('Year')"
+            placeholder="2024"
+          />
+        </div>
+        <!-- Semester Type (NEW) -->
+        <div>
+          <CSelect
+            id="semester-type"
+            v-model="form.semester_type"
+            :options="semesterTypeOptions"
+            :label="t('Semester Type')"
+          />
+        </div>
+        <!-- Due Date (NEW) -->
+        <div>
+          <CInput
+            id="due-date"
+            v-model="form.due_date"
+            type="date"
+            :label="t('Due Date')"
+          />
+        </div>
+      </div>
+      <!-- Payment Notes (NEW) -->
+      <div class="mt-4">
+        <CInput
+          id="payment-notes"
+          v-model="form.payment_notes"
+          type="textarea"
+          :label="t('Payment Notes')"
+          placeholder="Payment notes..."
+        />
+      </div>
+      <!-- Dormitory Notes (NEW) -->
+      <div class="mt-4">
+        <CInput
+          id="dormitory-notes"
+          v-model="form.dormitory_notes"
+          type="textarea"
+          :label="t('Dormitory Notes')"
+          placeholder="Dormitory notes..."
+        />
+      </div>
+
       <!-- Submit Button -->
       <div class="mt-6 flex justify-end gap-2">
         <CButton type="button" variant="secondary" @click="cancel" class="w-full lg:w-auto">
@@ -137,7 +198,14 @@ const form = ref({
   payment_type: '',
   payment_date: '',
   status: '',
-  description: ''
+  description: '',
+  // Semester payment fields
+  semester: '',
+  year: null as number | null,
+  semester_type: '',
+  due_date: '',
+  payment_notes: '',
+  dormitory_notes: '',
 });
 
 // Status options
@@ -171,6 +239,13 @@ const paymentTypeSelectOptions = [
   { value: "utilities", name: "Utilities" },
   { value: "deposit", name: "Deposit" },
   { value: "damage_fee", name: "Damage Fee" },
+];
+
+// Semester type options
+const semesterTypeOptions = [
+  { value: 'fall', name: 'Fall' },
+  { value: 'spring', name: 'Spring' },
+  { value: 'summer', name: 'Summer' },
 ];
 
 // Validation functions
@@ -257,7 +332,14 @@ function clearForm(): void {
     payment_type: '',
     payment_date: '',
     status: '',
-    description: ''
+    description: '',
+    // Semester payment fields
+    semester: '',
+    year: null,
+    semester_type: '',
+    due_date: '',
+    payment_notes: '',
+    dormitory_notes: '',
   };
   errors.value = {};
   hasUnsavedChanges.value = false;
@@ -299,7 +381,14 @@ async function loadPayment(id?: number): Promise<void> {
       payment_type: paymentData.payment_type,
       payment_date: paymentData.payment_date,
       status: paymentData.status,
-      description: paymentData.description || ''
+      description: paymentData.description || '',
+      // Semester payment fields
+      semester: paymentData.semester || '',
+      year: paymentData.year || null,
+      semester_type: paymentData.semester_type || '',
+      due_date: paymentData.due_date || '',
+      payment_notes: paymentData.payment_notes || '',
+      dormitory_notes: paymentData.dormitory_notes || '',
     };
   } catch (err) {
     console.error('Failed to load payment:', err);
@@ -318,14 +407,29 @@ async function submitForm(): Promise<void> {
       return;
     }
 
-    console.log("Payment submitted:", form.value);
-    
-    if (isEditing.value && paymentId.value) {
-      await paymentService.update(paymentId.value, form.value);
-      showSuccess(t("Payment updated successfully!"));
+    // If semester fields are filled, treat as semester payment
+    if (form.value.semester && form.value.year && form.value.semester_type && form.value.due_date) {
+      // Call semester payments API
+      await paymentService.createSemesterPayment({
+        user_id: form.value.user_id,
+        semester: form.value.semester,
+        year: form.value.year,
+        semester_type: form.value.semester_type,
+        amount: form.value.amount,
+        due_date: form.value.due_date,
+        payment_notes: form.value.payment_notes,
+        dormitory_notes: form.value.dormitory_notes,
+      });
+      showSuccess(t("Semester payment created successfully!"));
     } else {
-      await paymentService.create(form.value);
-      showSuccess(t("Payment created successfully!"));
+      // Fallback to regular payment
+      if (isEditing.value && paymentId.value) {
+        await paymentService.update(paymentId.value, form.value);
+        showSuccess(t("Payment updated successfully!"));
+      } else {
+        await paymentService.create(form.value);
+        showSuccess(t("Payment created successfully!"));
+      }
     }
 
     hasUnsavedChanges.value = false;

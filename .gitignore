@@ -29,4 +29,5 @@ coverage
 
 *.tsbuildinfo
 .env
-playwright-report/data/
+test-results
+playwright-report

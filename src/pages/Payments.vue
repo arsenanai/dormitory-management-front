@@ -30,13 +30,57 @@
             :placeholder="t('All Types')" 
             class="lg:w-40" 
           />
+          <!-- Semester Filter (NEW) -->
+          <CInput
+            id="semester-filter"
+            v-model="semesterFilter"
+            :label="t('Semester')"
+            :placeholder="t('e.g. 2024-fall')"
+            class="lg:w-32"
+          />
+          <!-- Year Filter (NEW) -->
+          <CInput
+            id="year-filter"
+            v-model="yearFilter"
+            type="number"
+            :label="t('Year')"
+            :placeholder="t('Year')"
+            class="lg:w-24"
+          />
+          <!-- Date Range Filter (NEW) -->
+          <CInput
+            id="start-date"
+            v-model="startDate"
+            type="date"
+            :label="t('Start Date')"
+            class="lg:w-36"
+          />
+          <CInput
+            id="end-date"
+            v-model="endDate"
+            type="date"
+            :label="t('End Date')"
+            class="lg:w-36"
+          />
+          <!-- Predefined Range Filter (NEW) -->
+          <CSelect
+            id="predefined-range"
+            v-model="predefinedRange"
+            :options="predefinedRangeOptions"
+            :label="t('Range')"
+            class="lg:w-40"
+          />
         </div>
         
-        <!-- Add Payment Button -->
-        <div class="flex-1 flex justify-end">
+        <!-- Add Payment Button and Export Button -->
+        <div class="flex-1 flex justify-end gap-2">
           <CButton variant="primary" @click="showPaymentForm" data-testid="add-payment-button">
             <PencilSquareIcon class="h-5 w-5" />
             {{ t("Add Payment") }}
+          </CButton>
+          <CButton variant="secondary" @click="exportPayments" data-testid="export-payments-button">
+            <span class="material-icons">download</span>
+            {{ t("Export as .xlsx") }}
           </CButton>
         </div>
       </div>
@@ -184,7 +228,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import Navigation from "@/components/CNavigation.vue";
@@ -220,6 +264,18 @@ const currentPage = ref<number>(1);
 const itemsPerPage = ref<number>(10);
 const showForm = ref<boolean>(false);
 const selectedPayment = ref<any>(null);
+const semesterFilter = ref('');
+const yearFilter = ref('');
+const startDate = ref('');
+const endDate = ref('');
+const predefinedRange = ref('');
+const predefinedRangeOptions = [
+  { value: '', name: t('Custom') },
+  { value: '1_semester', name: t('1 Semester') },
+  { value: '1_year', name: t('1 Year') },
+  { value: '2_years', name: t('2 Years') },
+  { value: '4_years', name: t('4 Years') },
+];
 
 // Form data
 const formData = ref({
@@ -250,24 +306,40 @@ const typeFilterOptions = [
 ];
 
 // Load payments on component mount
-const loadPayments = async () => {
+async function loadPayments() {
   loading.value = true;
-  error.value = null;
+  error.value = '';
   try {
-    const response = await paymentService.getAll();
+    const filters: any = {
+      search: searchTerm.value,
+      status: statusFilter.value,
+      type: typeFilter.value,
+      semester: semesterFilter.value,
+      year: yearFilter.value,
+      start_date: startDate.value,
+      end_date: endDate.value,
+      range: predefinedRange.value,
+    };
+    // Remove empty filters
+    Object.keys(filters).forEach(key => {
+      if (!filters[key]) delete filters[key];
+    });
+    const response = await paymentService.getAll(filters);
     payments.value = response.data;
   } catch (err) {
-    error.value = 'Failed to load payments';
-    showError(t('Failed to load payments'));
+    error.value = t('Failed to load payments');
   } finally {
     loading.value = false;
   }
-};
+}
 
 onMounted(() => {
   loadPayments();
   paymentsStore.clearSelectedPayment();
 });
+
+// Watch filters and reload payments
+watch([searchTerm, statusFilter, typeFilter, semesterFilter, yearFilter, startDate, endDate, predefinedRange], loadPayments);
 
 // Filtered payments
 const filteredPayments = computed(() => {
@@ -373,23 +445,37 @@ const deletePayment = async (id: number) => {
   }
 };
 
-const exportPayments = async () => {
+async function exportPayments() {
   try {
-    const response = await paymentService.export();
-    // Handle the export response (e.g., trigger download)
-    const blob = new Blob([response.data], { type: 'application/csv' });
+    const filters: any = {
+      search: searchTerm.value,
+      status: statusFilter.value,
+      type: typeFilter.value,
+      semester: semesterFilter.value,
+      year: yearFilter.value,
+      start_date: startDate.value,
+      end_date: endDate.value,
+      range: predefinedRange.value,
+    };
+    // Remove empty filters
+    Object.keys(filters).forEach(key => {
+      if (!filters[key]) delete filters[key];
+    });
+    const response = await paymentService.export(filters);
+    // Create a blob and trigger download
+    const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'payments.csv';
-    a.click();
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'payments.xlsx');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
-    showSuccess(t('Payments exported successfully'));
   } catch (err) {
     showError(t('Failed to export payments'));
-    throw err;
   }
-};
+}
 
 // Modal and form handling
 const showPaymentForm = () => {

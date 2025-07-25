@@ -7,32 +7,22 @@ export type UserStatus = "pending" | "active" | "passive";
 export interface User {
   id: number;
   name: string;
-  first_name: string;
-  last_name: string;
+  first_name?: string;
+  last_name?: string;
   email: string;
-  phone?: string | null;
-  phone_numbers?: string | null; // JSON string from backend
-  role: Role;
-  room?: Room | null;
-  dormitory?: any | null; // Can be typed more specifically later
-  status: UserStatus;
-  created_at: string;
-  updated_at: string;
-  
-  // Student-specific fields (present when user role is 'student')
-  student_id?: string | null;
-  faculty?: string | null;
-  specialty?: string | null;
-  course?: number | null;
-  year_of_study?: number | null;
-  enrollment_year?: string | null;
-  graduation_year?: string | null;
-  blood_type?: string | null;
-  emergency_contact?: string | null;
-  emergency_phone?: string | null;
-  has_meal_plan?: number | boolean;
-  violations?: any | null;
+  phone_numbers?: string[];
+  room_id?: number;
+  status: string;
+  role_id: number;
+  role?: { id: number; name: string };
+  student_profile?: StudentProfile;
+  admin_profile?: AdminProfile;
+  guest_profile?: GuestProfile;
 }
+
+import type { StudentProfile } from './StudentProfile';
+import type { AdminProfile } from './AdminProfile';
+import type { GuestProfile } from './GuestProfile';
 
 // Legacy User class for forms/registration (kept for compatibility)
 export class UserRegistration {

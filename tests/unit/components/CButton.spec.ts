@@ -1,3 +1,4 @@
+// TODO: Add accessibility (a11y) and color contrast tests for CButton (focus ring, ARIA, contrast, etc.)
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import CButton from '@/components/CButton.vue'

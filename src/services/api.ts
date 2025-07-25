@@ -100,6 +100,18 @@ export const userService = {
   
   delete: (id: number) => 
     api.delete(`/users/${id}`),
+
+  /**
+   * Check if a user (or current user) can access the dormitory
+   * @param userId Optional user ID. If not provided, checks current user.
+   */
+  canAccessDormitory: (userId?: number) => {
+    if (userId) {
+      return api.get(`/users/${userId}/can-access-dormitory`);
+    } else {
+      return api.get('/me/can-access-dormitory');
+    }
+  },
 };
 
 export const paymentService = {
@@ -175,20 +187,12 @@ export const dormitoryService = {
 };
 
 export const roomService = {
-  getAll: (params?: any) => 
-    api.get('/rooms', { params }),
-  
-  getById: (id: number) => 
-    api.get(`/rooms/${id}`),
-  
-  create: (data: any) => 
-    api.post('/rooms', data),
-  
-  update: (id: number, data: any) => 
-    api.put(`/rooms/${id}`, data),
-  
-  delete: (id: number) => 
-    api.delete(`/rooms/${id}`),
+  getAll: (params?: any) => api.get('/rooms', { params }),
+  getById: (id: number) => api.get(`/rooms/${id}`),
+  create: (data: any) => api.post('/rooms', data),
+  update: (id: number, data: any) => api.put(`/rooms/${id}`, data),
+  delete: (id: number) => api.delete(`/rooms/${id}`),
+  getAvailable: () => api.get('/rooms/available'),
 };
 
 export const roomTypeService = {
@@ -227,6 +231,19 @@ export const adminService = {
     api.put(`/admins/${id}`, data),
   delete: (id: number) => 
     api.delete(`/admins/${id}`),
+};
+
+export const dormitoryAccessService = {
+  check: () => api.get('/dormitory-access/check'),
+};
+
+export const guestService = {
+  getAll: (params?: any) => api.get('/guests', { params }),
+  getById: (id: number) => api.get(`/guests/${id}`),
+  create: (data: any) => api.post('/guests', data),
+  update: (id: number, data: any) => api.put(`/guests/${id}`, data),
+  delete: (id: number) => api.delete(`/guests/${id}`),
+  getPayments: (params?: any) => api.get('/guests/payments', { params }),
 };
 
 export default api;

@@ -51,6 +51,15 @@
 
         <!-- User Menu & Actions -->
         <div class="flex items-center space-x-2 lg:space-x-4">
+          <!-- Language Switcher (NEW) -->
+          <CSelect
+            id="language-switcher"
+            v-model="currentLocale"
+            :options="languageOptions"
+            :label="t('Language')"
+            class="w-28"
+            @update:model-value="changeLanguage"
+          />
           <!-- Theme Toggle -->
           <button
             @click="toggleTheme"
@@ -241,6 +250,8 @@ import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Bars3Icon } from '@heroicons/vue/24/outline';
 import { useAuthStore } from '@/stores/auth';
+import { useI18n } from 'vue-i18n';
+import CSelect from '@/components/CSelect.vue';
 
 // Define component name for test recognition
 defineOptions({ name: 'CNavigation' });
@@ -461,9 +472,14 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('resize', checkMobile);
 });
-</script>
 
-<script lang="ts">
-// Add explicit name for test compatibility
-export default { name: 'CNavigation' };
-</script>
+const { t, locale } = useI18n();
+const currentLocale = ref(locale.value);
+const languageOptions = [
+  { value: 'en', name: 'English' },
+  { value: 'kk', name: 'Қазақша' },
+  { value: 'ru', name: 'Русский' },
+];
+function changeLanguage(newLocale: string) {
+  locale.value = newLocale;
+}

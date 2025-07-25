@@ -15,7 +15,14 @@
           class="w-40"
         />
       </div>
-
+    </div>
+    <div v-if="successMessage" class="bg-green-100 text-green-800 p-3 rounded mb-4 w-full max-w-md mx-auto">
+      {{ successMessage }}
+    </div>
+    <div
+      class="w-full max-w-md"
+      :class="activeTab === 'registration' ? 'lg:max-w-5xl' : 'lg:max-w-md'"
+    >
       <div class="rounded-lg bg-white shadow-lg">
         <CTabs v-model="activeTab">
           <!-- Login Tab -->
@@ -317,6 +324,12 @@
         </CTabs>
       </div>
     </div>
+    <div v-if="registrationClosed" class="bg-red-100 text-red-800 p-3 rounded mb-4">
+      {{ t('Registration is closed. Student limit reached.') }}
+    </div>
+    <div v-if="reserveListMessage" class="bg-yellow-100 text-yellow-800 p-3 rounded mb-4">
+      {{ reserveListMessage }}
+    </div>
   </div>
 </template>
 
@@ -334,12 +347,17 @@ import CFileInput from "@/components/CFileInput.vue";
 import PasswordReset from "@/features/auth/PasswordReset.vue";
 import { UserRegistration, UserStatus } from "@/models/User";
 import { useToast } from "@/composables/useToast";
-import { ref } from 'vue';
+import { ref, onMounted, computed } from 'vue';
+import { roomService } from '@/services/api';
 
 const { t } = useI18n();
 const router = useRouter();
 const authStore = useAuthStore();
 const { showError, showSuccess } = useToast();
+
+const registrationClosed = ref(false);
+const reserveListMessage = ref("");
+const successMessage = ref("");
 
 const handleRegistration = async () => {
   // TODO: Add validation logic for registration fields
@@ -348,12 +366,28 @@ const handleRegistration = async () => {
       ...registration.value,
       user_type: 'student',
     };
-    await authStore.register(payload);
-    showSuccess(t('Registration successful'));
-    // Optionally switch to login tab or clear form
+    const response = await authStore.register(payload);
+    if (response && response.message && response.message.includes('reserve list')) {
+      reserveListMessage.value = t('Registration limit reached. You have been added to the reserve list.');
+      showSuccess(reserveListMessage.value);
+      activeTab.value = 'login';
+      return;
+    }
+    if (response && response.message) {
+      successMessage.value = response.message;
+      showSuccess(response.message);
+    } else {
+      successMessage.value = t('Registration successful');
+      showSuccess(successMessage.value);
+    }
     activeTab.value = 'login';
-  } catch (error) {
-    showError(t('Registration failed'));
+  } catch (error: any) {
+    if (error.response && error.response.status === 403 && error.response.data && error.response.data.message && error.response.data.message.includes('closed')) {
+      registrationClosed.value = true;
+      showError(t('Registration is closed. Student limit reached.'));
+    } else {
+      showError(t('Registration failed'));
+    }
   }
 };
 const selectedLanguage = ref("en");
@@ -511,11 +545,37 @@ const dormitoryOptions = [
   { value: "b_block", name: "B-Block" },
 ];
 
-const roomOptions = [
-  { value: "a210", name: "A210" },
-  { value: "a211", name: "A211" },
-  { value: "a212", name: "A212" },
-];
+const availableRooms = ref([]);
+const allAvailableBeds = ref([]);
+const loadingRooms = ref(false);
+
+onMounted(async () => {
+  loadingRooms.value = true;
+  try {
+    const response = await roomService.getAvailable();
+    availableRooms.value = response.data || [];
+    allAvailableBeds.value = availableRooms.value.flatMap(room => room.beds.map(bed => ({ ...bed, room })));
+  } catch (e) {
+    availableRooms.value = [];
+    allAvailableBeds.value = [];
+  } finally {
+    loadingRooms.value = false;
+  }
+});
+
+const roomOptions = computed(() =>
+  availableRooms.value.map((r) => ({ value: r.id, name: r.number }))
+);
+const bedOptions = computed(() => {
+  if (!registration.value.room) return [];
+  return allAvailableBeds.value
+    .filter(b => b.room.id === registration.value.room.id)
+    .map(bed => ({
+      value: bed,
+      name: `Bed ${bed.number}${bed.reserved_for_staff ? ' (Staff Reserved)' : ''}`,
+      disabled: bed.reserved_for_staff
+    }));
+});
 
 const statusOptions = [
   { value: "reserved", name: t("Reserved") },
@@ -590,8 +650,14 @@ const handleGuestRegistration = async () => {
       ...guest.value,
       user_type: 'guest',
     };
-    await authStore.register(payload);
-    showSuccess(t('Guest registration successful'));
+    const response = await authStore.register(payload);
+    if (response && response.message) {
+      successMessage.value = response.message;
+      showSuccess(response.message);
+    } else {
+      successMessage.value = t('Guest registration successful');
+      showSuccess(successMessage.value);
+    }
     activeTab.value = 'login';
   } catch (error) {
     showError(t('Registration failed'));

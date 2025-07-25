@@ -90,11 +90,11 @@ describe('AdminForm', () => {
       });
 
       const component = wrapper.vm as any;
-      expect(component.admin.name).toBe('');
-      expect(component.admin.surname).toBe('');
-      expect(component.admin.dormitory).toBe(null);
-      expect(component.admin.email).toBe('');
-      expect(component.admin.phoneNumbers).toEqual(['']);
+      expect(component.user.name).toBe('');
+      expect(component.user.surname).toBe('');
+      expect(component.adminProfile.dormitory).toBe(null);
+      expect(component.user.email).toBe('');
+      expect(component.user.phoneNumbers).toEqual(['']);
     });
 
     it('should load dormitories on mount', async () => {
@@ -124,9 +124,9 @@ describe('AdminForm', () => {
       await component.submitForm();
       
       // Should show validation errors for required fields
-      expect(component.admin.name).toBe('');
-      expect(component.admin.surname).toBe('');
-      expect(component.admin.email).toBe('');
+      expect(component.user.name).toBe('');
+      expect(component.user.surname).toBe('');
+      expect(component.user.email).toBe('');
     });
 
     it('should validate email format', async () => {
@@ -152,12 +152,12 @@ describe('AdminForm', () => {
       });
 
       const component = wrapper.vm as any;
-      component.admin.phoneNumbers = [];
+      component.user.phoneNumbers = [];
       
       await component.submitForm();
       
       // Should show error for missing phone number
-      expect(component.admin.phoneNumbers.length).toBe(0);
+      expect(component.user.phoneNumbers.length).toBe(0);
     });
   });
 
@@ -176,9 +176,11 @@ describe('AdminForm', () => {
       const component = wrapper.vm as any;
       
       // Fill form data
-      component.admin = {
+      component.user = {
         name: 'John',
         surname: 'Doe',
+      };
+      component.adminProfile = {
         dormitory: 1,
         email: 'john.doe@example.com',
         phoneNumbers: ['+1234567890'],
@@ -186,13 +188,7 @@ describe('AdminForm', () => {
 
       await component.submitForm();
 
-      expect(api.userService.create).toHaveBeenCalledWith({
-        first_name: 'John',
-        last_name: 'Doe',
-        email: 'john.doe@example.com',
-        phone: '+1234567890',
-        dormitory_id: 1,
-      });
+      expect(api.userService.create).toHaveBeenCalledWith({ user: { first_name: 'John', last_name: 'Doe' }, profile: { email: 'john.doe@example.com', phone: '+1234567890', dormitory_id: 1 } });
     });
 
     it('should update profile for existing admin', async () => {
@@ -211,9 +207,11 @@ describe('AdminForm', () => {
       const component = wrapper.vm as any;
       
       // Fill form data
-      component.admin = {
+      component.user = {
         name: 'John',
         surname: 'Doe',
+      };
+      component.adminProfile = {
         dormitory: 1,
         email: 'john.doe@example.com',
         phoneNumbers: ['+1234567890'],
@@ -221,13 +219,7 @@ describe('AdminForm', () => {
 
       await component.submitForm();
 
-      expect(api.authService.updateProfile).toHaveBeenCalledWith({
-        first_name: 'John',
-        last_name: 'Doe',
-        email: 'john.doe@example.com',
-        phone: '+1234567890',
-        dormitory_id: 1,
-      });
+      expect(api.authService.updateProfile).toHaveBeenCalledWith({ user: { first_name: 'John', last_name: 'Doe' }, profile: { email: 'john.doe@example.com', phone: '+1234567890', dormitory_id: 1 } });
     });
 
     it('should handle form submission errors', async () => {
@@ -244,9 +236,11 @@ describe('AdminForm', () => {
       const component = wrapper.vm as any;
       
       // Fill form data
-      component.admin = {
+      component.user = {
         name: 'John',
         surname: 'Doe',
+      };
+      component.adminProfile = {
         dormitory: 1,
         email: 'john.doe@example.com',
         phoneNumbers: ['+1234567890'],
@@ -338,7 +332,7 @@ describe('AdminForm', () => {
 
     it('should submit password change successfully', async () => {
       vi.mocked(api.authService.changePassword).mockResolvedValue(
-        createAxiosResponse({ message: 'Password changed successfully' })
+        createMockResponse({ message: 'Password changed successfully' })
       );
 
       const wrapper = mount(AdminForm, {
@@ -357,11 +351,7 @@ describe('AdminForm', () => {
       
       await component.changePassword();
 
-      expect(api.authService.changePassword).toHaveBeenCalledWith({
-        current_password: 'oldpass',
-        password: 'newpass123',
-        password_confirmation: 'newpass123',
-      });
+      expect(api.authService.changePassword).toHaveBeenCalledWith({ user: { current_password: 'oldpass' }, profile: { password: 'newpass123', password_confirmation: 'newpass123' } });
     });
 
     it('should cancel password change and reset form', async () => {
@@ -404,9 +394,9 @@ describe('AdminForm', () => {
 
       const component = wrapper.vm as any;
       await vi.waitFor(() => {
-        expect(component.admin.name).toBe('John');
-        expect(component.admin.surname).toBe('Doe');
-        expect(component.admin.email).toBe('john.doe@example.com');
+        expect(component.user.name).toBe('John');
+        expect(component.user.surname).toBe('Doe');
+        expect(component.user.email).toBe('john.doe@example.com');
       });
     });
 
@@ -429,7 +419,7 @@ describe('AdminForm', () => {
 
       // Should handle the error gracefully
       const component = wrapper.vm as any;
-      expect(component.admin.name).toBe('');
+      expect(component.user.name).toBe('');
     });
   });
 
@@ -529,7 +519,8 @@ describe('AdminForm', () => {
       expect(typeof component.splitPhoneNumber).toBe('function');
       expect(typeof component.submitForm).toBe('function');
       expect(typeof component.loadUser).toBe('function');
-      expect(component.admin).toBeDefined();
+      expect(component.user).toBeDefined();
+      expect(component.adminProfile).toBeDefined();
     });
   });
 });

@@ -62,4 +62,17 @@ test.describe('Student Profile', () => {
       // Expected if access is properly restricted
     }
   });
+
+  test('should show error if student cannot access dormitory due to missing payment', async ({ page }) => {
+    // Login as a student without current semester payment
+    await page.goto('http://localhost:5173/');
+    await page.fill('#login-email', 'nopayment@student.local');
+    await page.fill('#login-password', 'password');
+    await page.click('button[type="submit"]:has-text("Login")');
+    await page.waitForURL('http://localhost:5173/main', { timeout: 10000 });
+
+    // Wait for dormitory access check to complete
+    await page.waitForSelector('text=You cannot access the dormitory', { timeout: 10000 });
+    await expect(page.locator('body')).toContainText('You cannot access the dormitory');
+  });
 });

@@ -55,17 +55,23 @@
           />
         </div>
       </div>
-      <!-- Beds Preview -->
+      <!-- Beds Preview with Staff Reservation Toggle -->
       <div v-if="room.roomType" class="mt-6">
         <div class="font-semibold mb-2">{{ t('Beds Preview') }}</div>
         <div class="flex flex-wrap gap-2">
-          <span
+          <div
             v-for="bed in bedsPreview"
             :key="bed.id"
-            class="inline-block px-3 py-1 rounded bg-primary-100 text-primary-700 border border-primary-300"
+            class="inline-flex items-center px-3 py-1 rounded border"
+            :class="bed.reserved_for_staff ? 'bg-yellow-100 border-yellow-400 text-yellow-800' : 'bg-primary-100 border-primary-300 text-primary-700'"
           >
-            {{ t('Bed') }} {{ bed.number }}
-          </span>
+            <span>{{ t('Bed') }} {{ bed.number }}</span>
+            <CCheckbox
+              v-model="bed.reserved_for_staff"
+              :label="t('Reserved for Staff')"
+              class="ml-2"
+            />
+          </div>
         </div>
       </div>
       <!-- Submit Button -->
@@ -86,6 +92,7 @@ import Navigation from "@/components/CNavigation.vue";
 import CInput from "@/components/CInput.vue";
 import CSelect from "@/components/CSelect.vue";
 import CButton from "@/components/CButton.vue";
+import CCheckbox from "@/components/CCheckbox.vue";
 import { Room } from "@/models/Room";
 import { Dormitory } from "@/models/Dormitory";
 import { RoomType } from "@/models/RoomType";
@@ -135,15 +142,15 @@ const bedsPreview = computed(() => {
   // For demo: Standard = 2 beds, Lux = 3 beds
   if (room.value.roomType.name === "Standard") {
     return [
-      { id: "b1", number: "1" },
-      { id: "b2", number: "2" },
+      { id: "b1", number: "1", reserved_for_staff: false },
+      { id: "b2", number: "2", reserved_for_staff: false },
     ];
   }
   if (room.value.roomType.name === "Lux") {
     return [
-      { id: "b1", number: "1" },
-      { id: "b2", number: "2" },
-      { id: "b3", number: "3" },
+      { id: "b1", number: "1", reserved_for_staff: false },
+      { id: "b2", number: "2", reserved_for_staff: false },
+      { id: "b3", number: "3", reserved_for_staff: false },
     ];
   }
   return [];

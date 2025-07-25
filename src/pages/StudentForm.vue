@@ -9,7 +9,7 @@
           <div>
             <CInput
               id="student-iin"
-              v-model="student.iin"
+              v-model="studentProfile.iin"
               type="search"
               :label="t('IIN')"
               placeholder="Enter IIN"
@@ -20,7 +20,7 @@
           <div>
             <CInput
               id="student-name"
-              v-model="student.name"
+              v-model="user.name"
               type="text"
               :label="t('Name')"
               placeholder="Enter Name"
@@ -31,7 +31,7 @@
           <div>
             <CInput
               id="student-surname"
-              v-model="student.surname"
+              v-model="user.surname"
               type="text"
               :label="t('Surname')"
               placeholder="Enter Surname"
@@ -42,7 +42,7 @@
           <div>
             <CSelect
               id="student-gender"
-              v-model="student.gender"
+              v-model="studentProfile.gender"
               :options="genderOptions"
               :label="t('Gender')"
               required
@@ -52,7 +52,7 @@
           <div>
             <CInput
               id="student-email"
-              v-model="student.email"
+              v-model="user.email"
               type="email"
               :label="t('E-mail')"
               placeholder="Enter E-mail"
@@ -83,7 +83,7 @@
           <div>
             <CSelect
               id="student-city"
-              :model-value="student.city?.id"
+              :model-value="studentProfile.city?.id"
               :options="cityOptions"
               :label="t('City')"
               @update:model-value="onCityChange"
@@ -97,10 +97,10 @@
             <div class="flex flex-col items-stretch gap-2 lg:flex-row lg:items-end">
               <div class="flex flex-col items-stretch gap-2">
                 <CInput
-                  v-for="(phone, index) in student.phoneNumbers"
+                  v-for="(phone, index) in user.phone_numbers"
                   :key="index"
                   :id="'phone-number-' + index"
-                  v-model="student.phoneNumbers[index]"
+                  v-model="user.phone_numbers[index]"
                   type="tel"
                   placeholder="Enter Phone Number"
                 />
@@ -113,6 +113,55 @@
         </div>
       </fieldset>
 
+      <!-- Family Information -->
+      <fieldset class="border border-gray-200 rounded p-4">
+        <legend class="text-lg font-semibold px-2">{{ t("Family Information") }}</legend>
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <CInput id="parent-name" v-model="studentProfile.parent_name" type="text" :label="t('Parent Name')" placeholder="Enter Parent Name" />
+          <CInput id="parent-phone" v-model="studentProfile.parent_phone" type="tel" :label="t('Parent Phone')" placeholder="Enter Parent Phone" />
+          <CInput id="parent-email" v-model="studentProfile.parent_email" type="email" :label="t('Parent Email')" placeholder="Enter Parent Email" />
+          <CInput id="guardian-name" v-model="studentProfile.guardian_name" type="text" :label="t('Guardian Name')" placeholder="Enter Guardian Name" />
+          <CInput id="guardian-phone" v-model="studentProfile.guardian_phone" type="tel" :label="t('Guardian Phone')" placeholder="Enter Guardian Phone" />
+          <CInput id="mentor-name" v-model="studentProfile.mentor_name" type="text" :label="t('Mentor Name')" placeholder="Enter Mentor Name" />
+          <CInput id="mentor-email" v-model="studentProfile.mentor_email" type="email" :label="t('Mentor Email')" placeholder="Enter Mentor Email" />
+        </div>
+      </fieldset>
+
+      <!-- Health Information -->
+      <fieldset class="border border-gray-200 rounded p-4">
+        <legend class="text-lg font-semibold px-2">{{ t("Health Information") }}</legend>
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <CInput id="blood-type" v-model="studentProfile.blood_type" type="text" :label="t('Blood Type')" placeholder="Enter Blood Type" />
+          <CInput id="medical-conditions" v-model="studentProfile.medical_conditions" type="text" :label="t('Medical Conditions')" placeholder="Enter Medical Conditions" />
+          <CInput id="dietary-restrictions" v-model="studentProfile.dietary_restrictions" type="text" :label="t('Dietary Restrictions')" placeholder="Enter Dietary Restrictions" />
+        </div>
+      </fieldset>
+
+      <!-- Emergency Contact -->
+      <fieldset class="border border-gray-200 rounded p-4">
+        <legend class="text-lg font-semibold px-2">{{ t("Emergency Contact") }}</legend>
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <CInput id="emergency-contact-name" v-model="studentProfile.emergency_contact_name" type="text" :label="t('Emergency Contact Name')" placeholder="Enter Emergency Contact Name" />
+          <CInput id="emergency-contact-phone" v-model="studentProfile.emergency_contact_phone" type="tel" :label="t('Emergency Contact Phone')" placeholder="Enter Emergency Contact Phone" />
+          <CInput id="emergency-contact-relationship" v-model="studentProfile.emergency_contact_relationship" type="text" :label="t('Emergency Contact Relationship')" placeholder="Enter Relationship" />
+        </div>
+      </fieldset>
+
+      <!-- Registration & Status -->
+      <fieldset class="border border-gray-200 rounded p-4">
+        <legend class="text-lg font-semibold px-2">{{ t("Registration & Status") }}</legend>
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <CInput id="program" v-model="studentProfile.program" type="text" :label="t('Program')" placeholder="Enter Program" />
+          <CInput id="year-level" v-model="studentProfile.year_level" type="number" :label="t('Year Level')" placeholder="Enter Year Level" />
+          <CInput id="nationality" v-model="studentProfile.nationality" type="text" :label="t('Nationality')" placeholder="Enter Nationality" />
+          <CInput id="violations" v-model="studentProfile.violations" type="text" :label="t('Violations')" placeholder="Enter Violations" />
+          <CCheckbox id="agree-to-dormitory-rules" v-model="studentProfile.agree_to_dormitory_rules" :label="t('I Agree to Dormitory Rules')" />
+          <CCheckbox id="has-meal-plan" v-model="studentProfile.has_meal_plan" :label="t('Has Meal Plan')" />
+          <CCheckbox id="registration-limit-reached" v-model="studentProfile.registration_limit_reached" :label="t('Registration Limit Reached')" />
+          <CCheckbox id="is-backup-list" v-model="studentProfile.is_backup_list" :label="t('Is Backup List')" />
+        </div>
+      </fieldset>
+
       <!-- Educational Information -->
       <fieldset class="border border-gray-200 rounded p-4">
         <legend class="text-lg font-semibold px-2">{{ t("Educational Information") }}</legend>
@@ -121,7 +170,7 @@
           <div>
             <CSelect
               id="student-faculty"
-              v-model="student.faculty"
+              v-model="studentProfile.faculty"
               :options="facultyOptions"
               :label="t('Faculty')"
               required
@@ -131,7 +180,7 @@
           <div>
             <CSelect
               id="student-specialist"
-              v-model="student.specialist"
+              v-model="studentProfile.specialist"
               :options="specialistOptions"
               :label="t('Specialist')"
               required
@@ -141,7 +190,7 @@
           <div>
             <CInput
               id="student-enrollment-year"
-              v-model="student.enrollmentYear"
+              v-model="studentProfile.enrollment_year"
               type="number"
               :label="t('Enrollment Year')"
               placeholder="Enter Enrollment Year"
@@ -152,7 +201,7 @@
           <div>
             <CInput
               id="student-deal-number"
-              v-model="student.dealNumber"
+              v-model="studentProfile.deal_number"
               type="text"
               :label="t('Deal Number')"
               placeholder="Enter Deal Number"
@@ -173,9 +222,19 @@
           <div>
             <CSelect
               id="student-room"
-              v-model="student.room"
+              v-model="studentProfile.room"
               :options="roomOptions"
               :label="t('Room')"
+              required
+            />
+          </div>
+          <!-- Bed Field (NEW) -->
+          <div v-if="studentProfile.room">
+            <CSelect
+              id="student-bed"
+              v-model="studentProfile.bed"
+              :options="bedOptions"
+              :label="t('Bed')"
               required
             />
           </div>
@@ -204,14 +263,17 @@ import Navigation from "@/components/CNavigation.vue";
 import CInput from "@/components/CInput.vue";
 import CSelect from "@/components/CSelect.vue";
 import CButton from "@/components/CButton.vue";
+import CCheckbox from "@/components/CCheckbox.vue"; // Added CCheckbox import
 import { PlusIcon, PrinterIcon } from "@heroicons/vue/24/outline";
+import type { User } from "@/models/User";
+import type { StudentProfile } from "@/models/StudentProfile";
 import { Country } from "@/models/Country";
 import { Region } from "@/models/Region";
 import { City } from "@/models/City";
 import { Room } from "@/models/Room";
 import { Dormitory } from "@/models/Dormitory";
 import { useStudentStore } from "@/stores/student";
-import { studentService, authService } from "@/services/api";
+import { studentService, authService, roomService } from "@/services/api";
 import { useToast } from "@/composables/useToast";
 
 // --- Mock models (same as Students.vue) ---
@@ -239,7 +301,32 @@ const roomA211 = new RoomMock("A211", dormA, 2, "");
 const roomB101 = new RoomMock("B101", dormB, 1, "Window view");
 
 const dormitories = ref([dormA, dormB]);
-const rooms = ref([roomA210, roomA211, roomB101]);
+const rooms = ref([]);
+const allBeds = ref([]);
+const loadingRooms = ref(false);
+
+onMounted(async () => {
+  loadingRooms.value = true;
+  try {
+    const response = await roomService.getAvailable();
+    rooms.value = response.data || [];
+    // Flatten all available beds for selection
+    allBeds.value = rooms.value.flatMap(room => room.beds.map(bed => ({ ...bed, room })));
+  } catch (e) {
+    // fallback or show error
+    rooms.value = [];
+    allBeds.value = [];
+  } finally {
+    loadingRooms.value = false;
+  }
+  // First try to restore from store
+  studentStore.restoreSelectedStudent();
+  
+  // If editing and no data in store, load from API
+  if (isEditing.value && !studentStore.selectedStudent) {
+    await loadStudent(studentId.value!);
+  }
+});
 
 // i18n and store
 const { t } = useI18n();
@@ -274,31 +361,41 @@ const cities = ref<City[]>([
 const selectedCountry = ref<Country | null>(countries.value[0]);
 const selectedRegion = ref<Region | null>(regions.value[0]);
 
-// Student Form Data
-const student = ref({
-  iin: "",
+// Student Form Data (split into user and studentProfile)
+const user = ref<Partial<User>>({
   name: "",
-  surname: "",
+  email: "",
+  phone_numbers: [""],
+  password: "",
+  confirmPassword: "",
+});
+const studentProfile = ref<Partial<StudentProfile>>({
+  iin: "",
   faculty: "",
   specialist: "",
-  enrollmentYear: "",
+  enrollment_year: undefined,
   gender: "",
-  email: "",
-  phoneNumbers: [""],
-  city: null,
-  dealNumber: "",
-  room: null, // Only room, dormitory is accessed via room.dormitory
+  blood_type: "",
+  parent_name: "",
+  parent_phone: "",
+  parent_email: "",
+  emergency_contact_name: "",
+  emergency_contact_phone: "",
+  deal_number: "",
+  agree_to_dormitory_rules: false,
+  has_meal_plan: false,
+  // ... add all other fields as needed
 });
 
 // Computed for selected dormitory (syncs with student.room)
 const selectedDormitory = computed({
   get() {
-    return student.value.room?.dormitory ?? null;
+    return studentProfile.value.room?.dormitory ?? null;
   },
   set(newDorm) {
     // If the current room is not in the new dormitory, reset room
-    if (!student.value.room || student.value.room.dormitory !== newDorm) {
-      student.value.room = null;
+    if (!studentProfile.value.room || studentProfile.value.room.dormitory !== newDorm) {
+      studentProfile.value.room = null;
     }
   }
 });
@@ -308,25 +405,29 @@ watch(
   () => studentStore.selectedStudent,
   (selectedStudent) => {
     if (selectedStudent) {
-      student.value = {
-        iin: selectedStudent.iin || "",
-        name: selectedStudent.name || "",
-        surname: selectedStudent.surname || "",
-        faculty: selectedStudent.faculty || "",
-        specialist: selectedStudent.specialist || "",
-        enrollmentYear: selectedStudent.enrollmentYear || "",
-        gender: selectedStudent.gender || "",
+      // Populate user fields
+      user.value = {
+        name: selectedStudent.first_name || selectedStudent.name || "",
         email: selectedStudent.email || "",
-        phoneNumbers: selectedStudent.phoneNumbers?.length ? [...selectedStudent.phoneNumbers] : [""],
-        city: selectedStudent.city || null,
-        dealNumber: selectedStudent.dealNumber || "",
-        room: selectedStudent.room
-          ? rooms.value.find(
-              r =>
-                r.number === selectedStudent.room.number &&
-                r.dormitory.name === selectedStudent.room.dormitory.name
-            ) || null
-          : null,
+        phone_numbers: selectedStudent.phone_numbers?.length ? [...selectedStudent.phone_numbers] : selectedStudent.phone ? [selectedStudent.phone] : [""]
+      };
+      // Populate studentProfile fields
+      studentProfile.value = {
+        iin: selectedStudent.student_profile?.iin || "",
+        faculty: selectedStudent.student_profile?.faculty || "",
+        specialist: selectedStudent.student_profile?.specialist || "",
+        enrollment_year: selectedStudent.student_profile?.enrollment_year,
+        gender: selectedStudent.student_profile?.gender || "",
+        blood_type: selectedStudent.student_profile?.blood_type || "",
+        parent_name: selectedStudent.student_profile?.parent_name || "",
+        parent_phone: selectedStudent.student_profile?.parent_phone || "",
+        parent_email: selectedStudent.student_profile?.parent_email || "",
+        emergency_contact_name: selectedStudent.student_profile?.emergency_contact_name || "",
+        emergency_contact_phone: selectedStudent.student_profile?.emergency_contact_phone || "",
+        deal_number: selectedStudent.student_profile?.deal_number || "",
+        agree_to_dormitory_rules: selectedStudent.student_profile?.agree_to_dormitory_rules || false,
+        has_meal_plan: selectedStudent.student_profile?.has_meal_plan || false,
+        // ... add all other fields as needed
       };
     }
   },
@@ -340,14 +441,25 @@ const dormitoryOptions = computed(() =>
 
 const roomOptions = computed(() =>
   rooms.value
-    .filter((r) => !selectedDormitory.value || r.dormitory === selectedDormitory.value)
     .map((r) => ({ value: r, name: r.number }))
 );
 
+// Bed options for selected room
+const bedOptions = computed(() => {
+  if (!studentProfile.value.room) return [];
+  return allBeds.value
+    .filter(b => b.room.id === studentProfile.value.room.id)
+    .map(bed => ({
+      value: bed,
+      name: `${t('Bed')} ${bed.number}${bed.reserved_for_staff ? ' (' + t('Staff Reserved') + ')' : ''}`,
+      disabled: bed.reserved_for_staff // For students, staff-reserved beds are disabled
+    }));
+});
+
 // Watch for changes to selectedDormitory and reset room if needed
 watch(selectedDormitory, (newDorm) => {
-  if (student.value.room && student.value.room.dormitory !== newDorm) {
-    student.value.room = null;
+  if (studentProfile.value.room && studentProfile.value.room.dormitory !== newDorm) {
+    studentProfile.value.room = null;
   }
 });
 
@@ -386,51 +498,50 @@ const cityOptions = computed(() =>
 function onCountryChange(id: number) {
   selectedCountry.value = countries.value.find((c) => c.id === id) || null;
   selectedRegion.value = regionOptions.value[0]?.obj || null;
-  student.value.city = null;
+  studentProfile.value.city = null;
 }
 function onRegionChange(id: number) {
   selectedRegion.value = regions.value.find((r) => r.id === id) || null;
-  student.value.city = null;
+  studentProfile.value.city = null;
 }
 function onCityChange(id: number) {
-  student.value.city = cities.value.find((c) => c.id === id) || null;
+  studentProfile.value.city = cities.value.find((c) => c.id === id) || null;
 }
 
 // Add More Phone Numbers
 const addPhoneField = (): void => {
-  student.value.phoneNumbers.push("");
+  user.value.phone_numbers.push("");
 };
 
 // Submit Form
 const submitForm = async (): Promise<void> => {
-  if (student.value.phoneNumbers.length === 0 || !student.value.phoneNumbers[0]) {
+  if (!user.value.phone_numbers?.length || !user.value.phone_numbers[0]) {
     showError(t("At least one phone number is required."));
     return;
   }
-  
+  if (!studentProfile.value.bed_id) {
+    showError(t("Please select a bed."));
+    return;
+  }
   try {
-    console.log("Student submitted:", student.value);
-    
-    // Map form data to API format
-    const profileData = {
-      first_name: student.value.name,
-      last_name: student.value.surname,
-      email: student.value.email,
-      phone: student.value.phoneNumbers[0], // Take first phone number
-      dormitory_id: student.value.room?.dormitory?.id || null,
-      faculty: student.value.faculty,
-      specialist: student.value.specialist,
-      enrollment_year: student.value.enrollmentYear,
-      gender: student.value.gender,
-      deal_number: student.value.dealNumber,
+    // Construct payload
+    const payload = {
+      user: {
+        name: user.value.name,
+        email: user.value.email,
+        phone_numbers: user.value.phone_numbers,
+        password: user.value.password,
+        password_confirmation: user.value.confirmPassword,
+      },
+      profile: {
+        ...studentProfile.value,
+      },
     };
-
-    // Use authService to update profile for current user
     if (isEditing.value) {
-      await authService.updateProfile(profileData);
+      await studentService.update(studentId.value, payload);
       showSuccess(t("Student profile updated successfully!"));
     } else {
-      await studentService.create(profileData);
+      await studentService.create(payload);
       showSuccess(t("Student created successfully!"));
     }
   } catch (error: any) {
@@ -447,25 +558,32 @@ const loadStudent = async (id: number) => {
     const studentData = response.data;
     
     // Populate form with API data
-    student.value = {
-      iin: studentData.iin || "",
+    user.value = {
       name: studentData.first_name || studentData.name || "",
-      surname: studentData.last_name || studentData.surname || "",
-      faculty: studentData.faculty || "",
-      specialist: studentData.specialist || studentData.specialty || "",
-      enrollmentYear: studentData.enrollment_year || studentData.enrollmentYear || "",
-      gender: studentData.gender || "",
       email: studentData.email || "",
-      phoneNumbers: studentData.phone_numbers?.length ? [...studentData.phone_numbers] : studentData.phone ? [studentData.phone] : [""],
-      city: studentData.city || null,
-      dealNumber: studentData.deal_number || studentData.dealNumber || "",
-      room: studentData.room
-        ? rooms.value.find(
-            r =>
-              r.number === studentData.room.number &&
-              r.dormitory.name === studentData.room.dormitory.name
-          ) || null
-        : null,
+      phone_numbers: studentData.phone_numbers?.length ? [...studentData.phone_numbers] : studentData.phone ? [studentData.phone] : [""]
+    };
+    studentProfile.value = {
+      iin: studentData.student_profile?.iin || "",
+      faculty: studentData.student_profile?.faculty || "",
+      specialist: studentData.student_profile?.specialist || studentData.student_profile?.specialty || "",
+      enrollment_year: studentData.student_profile?.enrollment_year || studentData.enrollment_year,
+      gender: studentData.student_profile?.gender || "",
+      blood_type: studentData.student_profile?.blood_type || "",
+      parent_name: studentData.student_profile?.parent_name || "",
+      parent_phone: studentData.student_profile?.parent_phone || "",
+      parent_email: studentData.student_profile?.parent_email || "",
+      emergency_contact_name: studentData.student_profile?.emergency_contact_name || "",
+      emergency_contact_phone: studentData.student_profile?.emergency_contact_phone || "",
+      emergency_contact_relationship: studentData.student_profile?.emergency_contact_relationship || "",
+      program: studentData.student_profile?.program || "",
+      year_level: studentData.student_profile?.year_level || "",
+      nationality: studentData.student_profile?.nationality || "",
+      violations: studentData.student_profile?.violations || "",
+      agree_to_dormitory_rules: studentData.student_profile?.agree_to_dormitory_rules || false,
+      has_meal_plan: studentData.student_profile?.has_meal_plan || false,
+      registration_limit_reached: studentData.student_profile?.registration_limit_reached || false,
+      is_backup_list: studentData.student_profile?.is_backup_list || false,
     };
     showSuccess(t("Student data loaded successfully"));
   } catch (error) {
@@ -473,15 +591,6 @@ const loadStudent = async (id: number) => {
   }
 };
 
-onMounted(async () => {
-  // First try to restore from store
-  studentStore.restoreSelectedStudent();
-  
-  // If editing and no data in store, load from API
-  if (isEditing.value && !studentStore.selectedStudent) {
-    await loadStudent(studentId.value!);
-  }
-});
 </script>
 
 <style scoped>

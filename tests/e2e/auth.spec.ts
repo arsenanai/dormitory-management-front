@@ -102,4 +102,70 @@ test.describe('Authentication Flow', () => {
     await page.click('button[type="submit"]:has-text("Book Room")');
     await expect(page.locator('body')).toContainText(/success|booked|pending/i);
   });
+
+  test('should prevent registration when student limit is reached and reserve list is enabled', async ({ page }) => {
+    // Simulate dormitory at capacity and reserve list enabled (assume backend is mocked or seeded for this test)
+    await page.click('button[role="tab"]:has-text("Registration")');
+    await page.fill('#registration-iin', '999999999999');
+    await page.fill('#registration-name', 'Reserve Student');
+    await page.selectOption('#registration-faculty', 'engineering');
+    await page.selectOption('#registration-specialist', 'computer_sciences');
+    await page.fill('#registration-enrollment-year', '2023');
+    await page.selectOption('#registration-gender', 'male');
+    await page.fill('#registration-email', `reserve+${Date.now()}@test.local`);
+    await page.fill('#registration-password', 'password');
+    await page.fill('#registration-confirm-password', 'password');
+    await page.selectOption('#registration-dormitory', 'a_block');
+    await page.selectOption('#registration-room', 'a210');
+    await page.setInputFiles('#registration-file-0', 'public/favicon.ico');
+    await page.setInputFiles('#registration-file-1', 'public/favicon.ico');
+    await page.setInputFiles('#registration-file-2', 'public/favicon.ico');
+    await page.setInputFiles('#registration-file-3', 'public/favicon.ico');
+    await page.click('#registration-agree-rules');
+    await page.click('button[type="submit"]:has-text("Register")');
+    // Expect a message about registration being closed or being added to the reserve list
+    await expect(page.locator('body')).toContainText(/registration closed|reserve list|full|not available/i);
+  });
+
+  test('should only show available rooms and beds in registration UI', async ({ page }) => {
+    await page.click('button[role="tab"]:has-text("Registration")');
+    // Wait for room and bed dropdowns to load
+    await page.waitForSelector('#registration-room');
+    await page.waitForSelector('#registration-bed');
+
+    // Get all room options
+    const roomOptions = await page.$$eval('#registration-room option', opts => opts.map(o => ({ value: o.value, text: o.textContent, disabled: o.disabled })));
+    // All unavailable/occupied rooms should be disabled
+    expect(roomOptions.some(opt => opt.disabled)).toBe(true);
+
+    // Select the first available room
+    const availableRoom = roomOptions.find(opt => !opt.disabled && opt.value);
+    expect(availableRoom).toBeDefined();
+    await page.selectOption('#registration-room', availableRoom.value);
+
+    // Get all bed options for the selected room
+    const bedOptions = await page.$$eval('#registration-bed option', opts => opts.map(o => ({ value: o.value, text: o.textContent, disabled: o.disabled })));
+    // All unavailable/occupied beds should be disabled
+    expect(bedOptions.some(opt => opt.disabled)).toBe(true);
+
+    // At least one available bed should be enabled
+    expect(bedOptions.some(opt => !opt.disabled && opt.value)).toBe(true);
+  });
+
+  test('should display guest payments in guest house registration page', async ({ page }) => {
+    // Go to guest registration page
+    await page.goto('http://localhost:5173/guest-form');
+    // Wait for the payments table or loading indicator
+    await page.waitForSelector('text=Guest Payments');
+    // Wait for payments to load (simulate API delay)
+    await page.waitForTimeout(1000);
+    // Check that the payments table is visible and contains at least one row
+    const paymentsTable = page.locator('table');
+    await expect(paymentsTable).toBeVisible();
+    // Check for at least one payment row (excluding header)
+    const paymentRows = paymentsTable.locator('tbody tr');
+    await expect(paymentRows).toHaveCountGreaterThan(0);
+    // Optionally, check for expected columns
+    await expect(paymentsTable).toContainText(/Guest Name|Room|Dormitory|Amount|Status|Check-in|Check-out/i);
+  });
 });
