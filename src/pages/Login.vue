@@ -1,334 +1,326 @@
 <template>
-  <div
-    class="flex min-h-screen items-start justify-center bg-blue-50 py-2 lg:items-center lg:p-4"
-  >
-    <div
-      class="w-full max-w-md"
-      :class="activeTab === 'registration' ? 'lg:max-w-5xl' : 'lg:max-w-md'"
-    >
-      <div class="mb-4 flex justify-center lg:justify-end lg:p-0">
-        <CSelect
-          id="language-selector"
-          v-model="selectedLanguage"
-          :options="languageOptions"
-          :label="t('Language')"
-          class="w-40"
-        />
+  <div class="min-h-screen flex items-center justify-center bg-blue-50 py-2 lg:p-4">
+    <div class="w-full flex flex-col items-center">
+      <div v-if="successMessage" class="bg-green-100 text-green-800 p-3 rounded mb-4 w-full max-w-md mx-auto">
+        {{ successMessage }}
       </div>
-    </div>
-    <div v-if="successMessage" class="bg-green-100 text-green-800 p-3 rounded mb-4 w-full max-w-md mx-auto">
-      {{ successMessage }}
-    </div>
-    <div
-      class="w-full max-w-md"
-      :class="activeTab === 'registration' ? 'lg:max-w-5xl' : 'lg:max-w-md'"
-    >
-      <div class="rounded-lg bg-white shadow-lg">
-        <CTabs v-model="activeTab">
-          <!-- Login Tab -->
-          <CTab name="login" :title="t('Login')">
-            <form
-              class="flex flex-col gap-2"
-              @submit.prevent="handleLogin"
-              novalidate
-            >
-              <div>
-                <CInput
-                  id="login-email"
-                  v-model="credentials.email"
-                  type="email"
-                  :label="t('Email')"
-                  placeholder="example@domain.com"
-                  required
-                  autocomplete="email"
-                  :validationState="credentialsValidationState.email"
-                  validationstate-attr="validationstate"
-                  :validationMessage="credentialsValidationMessage.email"
-                  pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-                />
-              </div>
-
-              <div>
-                <CInput
-                  id="login-password"
-                  v-model="credentials.password"
-                  type="password"
-                  :label="t('Password')"
-                  required
-                  autocomplete="password"
-                  :validationState="credentialsValidationState.password"
-                  validationstate-attr="validationstate"
-                  :validationMessage="credentialsValidationMessage.password"
-                  pattern=".{6,}"
-                />
-              </div>
-
-              <CButton type="submit" class="mt-4 w-full" variant="primary">
-                {{ t("Login") }}
-              </CButton>
-            </form>
-            <div class="mt-2 flex justify-end">
-              <a
-                class="text-primary-800 hover:underline cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary-300 rounded"
-                data-testid="forgot-password"
-                @click="showPasswordReset = true"
-                tabindex="0"
-                role="button"
-                @keydown.enter="showPasswordReset = true"
-                @keydown.space.prevent="showPasswordReset = true"
+      <div class="w-full" :class="activeTab === 'registration' ? 'lg:max-w-5xl' : 'max-w-md'">
+        <div class="mb-4 w-full flex justify-end">
+          <CSelect
+            id="language-selector"
+            v-model="selectedLanguage"
+            :options="languageOptions"
+            :label="t('Language')"
+            class="w-40"
+          />
+        </div>
+        <div class="rounded-lg bg-white shadow-lg">
+          <CTabs v-model="activeTab">
+            <!-- Login Tab -->
+            <CTab name="login" :title="t('Login')">
+              <form
+                class="flex flex-col gap-2"
+                @submit.prevent="handleLogin"
+                novalidate
               >
-                {{ t('Forgot password') }}
-              </a>
-            </div>
-            <Teleport to="body">
-              <PasswordReset v-model="showPasswordReset" />
-            </Teleport>
-          </CTab>
-
-          <!-- Registration Tab -->
-          <CTab name="registration" :title="t('Registration')">
-            <form class="flex flex-col gap-4" @submit.prevent="handleRegistration">
-              <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <div>
                   <CInput
-                    id="registration-iin"
-                    v-model="registration.iin"
-                    type="search"
-                    :label="t('IIN')"
-                    required
-                    :validationState="registrationValidationState.iin"
-                    :validationMessage="registrationValidationMessage.iin"
-                    pattern="\d{12}"
-                  />
-                </div>
-
-                <div>
-                  <CInput
-                    id="registration-name"
-                    v-model="registration.name"
-                    type="text"
-                    :label="t('Fullname')"
-                    :placeholder="t('Fullname')"
-                    required
-                    :validationState="registrationValidationState.name"
-                    :validationMessage="registrationValidationMessage.name"
-                    pattern="^[a-zA-Z\s]+$"
-                  />
-                </div>
-
-                <div>
-                  <CSelect
-                    id="registration-faculty"
-                    v-model="registration.faculty"
-                    :options="facultyOptions"
-                    :label="t('Faculty')"
-                    required
-                    :validationState="registrationValidationState.faculty"
-                    :validationMessage="registrationValidationMessage.faculty"
-                  />
-                </div>
-
-                <div>
-                  <CSelect
-                    id="registration-specialist"
-                    v-model="registration.specialist"
-                    :options="specialistOptions"
-                    :label="t('Specialist')"
-                    required
-                    :validationState="registrationValidationState.specialist"
-                    :validationMessage="
-                      registrationValidationMessage.specialist
-                    "
-                  />
-                </div>
-
-                <div>
-                  <CInput
-                    id="registration-enrollment-year"
-                    v-model="registration.enrollmentYear"
-                    type="text"
-                    :label="t('Enrollment Year')"
-                    required
-                    :validationState="
-                      registrationValidationState.enrollmentYear
-                    "
-                    :validationMessage="
-                      registrationValidationMessage.enrollmentYear
-                    "
-                    pattern="^\d{4}$"
-                  />
-                </div>
-
-                <div>
-                  <CSelect
-                    id="registration-gender"
-                    v-model="registration.gender"
-                    :options="genderOptions"
-                    :label="t('Gender')"
-                    required
-                    :validationState="registrationValidationState.gender"
-                    :validationMessage="registrationValidationMessage.gender"
-                  />
-                </div>
-
-                <div>
-                  <CInput
-                    id="registration-email"
-                    v-model="registration.email"
+                    id="login-email"
+                    v-model="credentials.email"
                     type="email"
-                    :label="t('Login Email')"
+                    :label="t('Email')"
                     placeholder="example@domain.com"
                     required
-                    :validationState="registrationValidationState.email"
-                    :validationMessage="registrationValidationMessage.email"
+                    autocomplete="email"
+                    :validationState="credentialsValidationState.email"
+                    validationstate-attr="validationstate"
+                    :validationMessage="credentialsValidationMessage.email"
                     pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
                   />
                 </div>
 
                 <div>
                   <CInput
-                    id="registration-password"
-                    v-model="registration.password"
+                    id="login-password"
+                    v-model="credentials.password"
                     type="password"
                     :label="t('Password')"
                     required
-                    :validationState="registrationValidationState.password"
-                    :validationMessage="registrationValidationMessage.password"
+                    autocomplete="password"
+                    :validationState="credentialsValidationState.password"
+                    validationstate-attr="validationstate"
+                    :validationMessage="credentialsValidationMessage.password"
                     pattern=".{6,}"
                   />
                 </div>
 
-                <div>
-                  <CInput
-                    id="registration-confirm-password"
-                    v-model="registration.confirmPassword"
-                    type="password"
-                    :label="t('Confirm Password')"
-                    required
-                    :validationState="
-                      registrationValidationState.confirmPassword
-                    "
-                    :validationMessage="
-                      registrationValidationMessage.confirmPassword
-                    "
-                    pattern=".{6,}"
-                  />
-                </div>
-
-                <div>
-                  <CSelect
-                    id="registration-dormitory"
-                    v-model="registration.dormitory"
-                    :options="dormitoryOptions"
-                    :label="t('Select Dormitory')"
-                    required
-                    :validationState="registrationValidationState.dormitory"
-                    :validationMessage="registrationValidationMessage.dormitory"
-                  />
-                </div>
-
-                <div>
-                  <CSelect
-                    id="registration-room"
-                    v-model="registration.room"
-                    :options="roomOptions"
-                    :label="t('Select Room')"
-                    required
-                    :validationState="registrationValidationState.room"
-                    :validationMessage="registrationValidationMessage.room"
-                  />
-                </div>
-              </div>
-
-              <div
-                v-for="(fileLabel, index) in registrationFileLabels"
-                :key="index"
-              >
-                <CFileInput
-                  :id="`registration-file-${index}`"
-                  :name="fileLabel"
-                  :label="t(fileLabel)"
-                  :allowedExtensions="['jpg', 'jpeg', 'png', 'pdf']"
-                  :maxFileSize="2 * 1024 * 1024"
-                  @change="(file) => updateRegistrationFileInput(index, file)"
-                />
-              </div>
-
-              <div>
-                <CCheckbox
-                  id="registration-agree-rules"
-                  v-model="registration.agreeToDormitoryRules"
-                  :label="t('I Agree to Dormitory Rules')"
-                  required
-                />
-              </div>
-
-              <div>
                 <CButton type="submit" class="mt-4 w-full" variant="primary">
-                  {{ t("Register") }}
+                  {{ t("Login") }}
                 </CButton>
+              </form>
+              <div class="mt-2 flex justify-end">
+                <a
+                  class="text-xs text-primary-800 hover:underline cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary-300 rounded"
+                  data-testid="forgot-password"
+                  @click="showPasswordReset = true"
+                  tabindex="0"
+                  role="button"
+                  @keydown.enter="showPasswordReset = true"
+                  @keydown.space.prevent="showPasswordReset = true"
+                >
+                  {{ t('Forgot password') }}
+                </a>
               </div>
-            </form>
-          </CTab>
+              <Teleport to="body">
+                <PasswordReset v-model="showPasswordReset" />
+              </Teleport>
+            </CTab>
 
-          <CTab name="guests" :title="t('Guests')">
-            <form class="flex flex-col gap-2" @submit.prevent="handleGuestRegistration">
-              <div>
-                <CSelect
-                  id="guest-room-type"
-                  v-model="guest.roomType"
-                  :options="roomTypeOptions"
-                  :label="t('Room Type')"
-                  required
-                />
-              </div>
-              <div>
-                <CInput
-                  id="guest-name"
-                  v-model="guest.name"
-                  type="text"
-                  :label="t('Fullname')"
-                  :placeholder="t('Fullname')"
-                  required
-                  pattern="^[a-zA-Z\s]+$"
-                />
-              </div>
-              <div>
-                <div class="flex flex-col gap-2">
-                  <div
-                    v-for="(file, index) in guest.files"
-                    :key="index"
-                    id="documents"
-                  >
-                    <CFileInput
-                      :id="`guest-file-${index}`"
-                      :label="`${t('Document')} ${index + 1}`"
-                      :allowedExtensions="['jpg', 'jpeg', 'png', 'pdf']"
-                      :maxFileSize="2 * 1024 * 1024"
-                      @change="(file) => updateGuestFileInput(index, file)"
+            <!-- Registration Tab -->
+            <CTab name="registration" :title="t('Registration')" data-testid="registration-tab">
+              <form class="flex flex-col gap-4" @submit.prevent="handleRegistration">
+                <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                  <div>
+                    <CInput
+                      id="registration-iin"
+                      v-model="registration.iin"
+                      type="search"
+                      :label="t('IIN')"
+                      required
+                      :validationState="registrationValidationState.iin"
+                      :validationMessage="registrationValidationMessage.iin"
+                      pattern="\d{12}"
                     />
                   </div>
-                  <div class="flex justify-end">
-                    <CButton @click="addGuestFileInput">
-                      {{ t("Upload more files") }}
-                    </CButton>
+
+                  <div>
+                    <CInput
+                      id="registration-name"
+                      v-model="registration.name"
+                      type="text"
+                      :label="t('Fullname')"
+                      :placeholder="t('Fullname')"
+                      required
+                      :validationState="registrationValidationState.name"
+                      :validationMessage="registrationValidationMessage.name"
+                      pattern="^[a-zA-Z\s]+$"
+                    />
+                  </div>
+
+                  <div>
+                    <CSelect
+                      id="registration-faculty"
+                      v-model="registration.faculty"
+                      :options="facultyOptions"
+                      :label="t('Faculty')"
+                      required
+                      :validationState="registrationValidationState.faculty"
+                      :validationMessage="registrationValidationMessage.faculty"
+                    />
+                  </div>
+
+                  <div>
+                    <CSelect
+                      id="registration-specialist"
+                      v-model="registration.specialist"
+                      :options="specialistOptions"
+                      :label="t('Specialist')"
+                      required
+                      :validationState="registrationValidationState.specialist"
+                      :validationMessage="
+                        registrationValidationMessage.specialist
+                      "
+                    />
+                  </div>
+
+                  <div>
+                    <CInput
+                      id="registration-enrollment-year"
+                      v-model="registration.enrollmentYear"
+                      type="text"
+                      :label="t('Enrollment Year')"
+                      required
+                      :validationState="
+                        registrationValidationState.enrollmentYear
+                      "
+                      :validationMessage="
+                        registrationValidationMessage.enrollmentYear
+                      "
+                      pattern="^\d{4}$"
+                    />
+                  </div>
+
+                  <div>
+                    <CSelect
+                      id="registration-gender"
+                      v-model="registration.gender"
+                      :options="genderOptions"
+                      :label="t('Gender')"
+                      required
+                      :validationState="registrationValidationState.gender"
+                      :validationMessage="registrationValidationMessage.gender"
+                    />
+                  </div>
+
+                  <div>
+                    <CInput
+                      id="registration-email"
+                      v-model="registration.email"
+                      type="email"
+                      :label="t('Login Email')"
+                      placeholder="example@domain.com"
+                      required
+                      :validationState="registrationValidationState.email"
+                      :validationMessage="registrationValidationMessage.email"
+                      pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                    />
+                  </div>
+
+                  <div>
+                    <CInput
+                      id="registration-password"
+                      v-model="registration.password"
+                      type="password"
+                      :label="t('Password')"
+                      required
+                      :validationState="registrationValidationState.password"
+                      :validationMessage="registrationValidationMessage.password"
+                      pattern=".{6,}"
+                    />
+                  </div>
+
+                  <div>
+                    <CInput
+                      id="registration-confirm-password"
+                      v-model="registration.confirmPassword"
+                      type="password"
+                      :label="t('Confirm Password')"
+                      required
+                      :validationState="
+                        registrationValidationState.confirmPassword
+                      "
+                      :validationMessage="
+                        registrationValidationMessage.confirmPassword
+                      "
+                      pattern=".{6,}"
+                    />
+                  </div>
+
+                  <div>
+                    <CSelect
+                      id="registration-dormitory"
+                      v-model="registration.dormitory"
+                      :options="dormitoryOptions"
+                      :label="t('Select Dormitory')"
+                      required
+                      :validationState="registrationValidationState.dormitory"
+                      :validationMessage="registrationValidationMessage.dormitory"
+                    />
+                  </div>
+
+                  <div>
+                    <CSelect
+                      id="registration-room"
+                      data-testid="registration-room"
+                      v-model="registration.room"
+                      :options="roomOptions"
+                      :label="t('Select Room')"
+                      :disabled="!registration.dormitory || loadingRooms"
+                      required
+                    />
                   </div>
                 </div>
-              </div>
 
-              <CButton type="submit" class="mt-4 w-full" variant="primary">
-                {{ t("Book Room") }}
-              </CButton>
-            </form>
-          </CTab>
-        </CTabs>
+                <div
+                  v-for="(fileLabel, index) in registrationFileLabels"
+                  :key="index"
+                >
+                  <CFileInput
+                    :id="`registration-file-${index}`"
+                    :name="fileLabel"
+                    :label="t(fileLabel)"
+                    :allowedExtensions="['jpg', 'jpeg', 'png', 'pdf']"
+                    :maxFileSize="2 * 1024 * 1024"
+                    @change="(file) => updateRegistrationFileInput(index, file)"
+                  />
+                </div>
+
+                <div>
+                  <CCheckbox
+                    id="registration-agree-rules"
+                    v-model="registration.agreeToDormitoryRules"
+                    :label="t('I Agree to Dormitory Rules')"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <CButton type="submit" class="mt-4 w-full" variant="primary">
+                    {{ t("Register") }}
+                  </CButton>
+                </div>
+              </form>
+            </CTab>
+
+            <CTab name="guests" :title="t('Guests')">
+              <form class="flex flex-col gap-2" @submit.prevent="handleGuestRegistration">
+                <div>
+                  <CSelect
+                    id="guest-room-type"
+                    v-model="guest.roomType"
+                    :options="roomTypeOptions"
+                    :label="t('Room Type')"
+                    required
+                  />
+                </div>
+                <div>
+                  <CInput
+                    id="guest-name"
+                    v-model="guest.name"
+                    type="text"
+                    :label="t('Fullname')"
+                    :placeholder="t('Fullname')"
+                    required
+                    pattern="^[a-zA-Z\s]+$"
+                  />
+                </div>
+                <div>
+                  <div class="flex flex-col gap-2">
+                    <div
+                      v-for="(file, index) in guest.files"
+                      :key="index"
+                      id="documents"
+                    >
+                      <CFileInput
+                        :id="`guest-file-${index}`"
+                        :label="`${t('Document')} ${index + 1}`"
+                        :allowedExtensions="['jpg', 'jpeg', 'png', 'pdf']"
+                        :maxFileSize="2 * 1024 * 1024"
+                        @change="(file) => updateGuestFileInput(index, file)"
+                      />
+                    </div>
+                    <div class="flex justify-end">
+                      <CButton @click="addGuestFileInput">
+                        {{ t("Upload more files") }}
+                      </CButton>
+                    </div>
+                  </div>
+                </div>
+
+                <CButton type="submit" class="mt-4 w-full" variant="primary">
+                  {{ t("Book Room") }}
+                </CButton>
+              </form>
+            </CTab>
+          </CTabs>
+        </div>
       </div>
-    </div>
-    <div v-if="registrationClosed" class="bg-red-100 text-red-800 p-3 rounded mb-4">
-      {{ t('Registration is closed. Student limit reached.') }}
-    </div>
-    <div v-if="reserveListMessage" class="bg-yellow-100 text-yellow-800 p-3 rounded mb-4">
-      {{ reserveListMessage }}
+      <div v-if="registrationClosed" class="bg-red-100 text-red-800 p-3 rounded mb-4">
+        {{ t('Registration is closed. Student limit reached.') }}
+      </div>
+      <div v-if="reserveListMessage" class="bg-yellow-100 text-yellow-800 p-3 rounded mb-4">
+        {{ reserveListMessage }}
+      </div>
     </div>
   </div>
 </template>
@@ -347,7 +339,7 @@ import CFileInput from "@/components/CFileInput.vue";
 import PasswordReset from "@/features/auth/PasswordReset.vue";
 import { UserRegistration, UserStatus } from "@/models/User";
 import { useToast } from "@/composables/useToast";
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { roomService } from '@/services/api';
 
 const { t } = useI18n();
@@ -549,10 +541,16 @@ const availableRooms = ref([]);
 const allAvailableBeds = ref([]);
 const loadingRooms = ref(false);
 
-onMounted(async () => {
+watch(() => registration.value.dormitory, async (dormitoryId) => {
+  registration.value.room = ""; // Reset room selection
+  if (!dormitoryId) {
+    availableRooms.value = [];
+    allAvailableBeds.value = [];
+    return;
+  }
   loadingRooms.value = true;
   try {
-    const response = await roomService.getAvailable();
+    const response = await roomService.getAvailable({ dormitory_id: dormitoryId });
     availableRooms.value = response.data || [];
     allAvailableBeds.value = availableRooms.value.flatMap(room => room.beds.map(bed => ({ ...bed, room })));
   } catch (e) {

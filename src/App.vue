@@ -1,5 +1,4 @@
 <template>
-  <div id="test-e2e-marker">E2E Marker</div>
   <router-view v-slot="{ Component }" class="">
     <component :is="Component" />
   </router-view>
@@ -25,7 +24,6 @@ watch(
 
 // Initialize Flowbite and auth on component mount
 onMounted(() => {
-  console.log('E2E DEBUG: App.vue mounted');
   initFlowbite();
   authStore.initializeAuth();
 });

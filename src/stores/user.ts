@@ -127,7 +127,18 @@ export const useUserStore = defineStore("userStore", {
     },
 
     filterByGender(gender: string) {
-      return this.users.filter(u => u.gender === gender);
+      return this.users.filter(u => {
+        if (u.role === 'student' && u.student_profile) {
+          return u.student_profile.gender === gender;
+        }
+        if (u.role === 'admin' && u.admin_profile) {
+          return u.admin_profile.gender === gender;
+        }
+        if (u.role === 'guest' && u.guest_profile) {
+          return u.guest_profile.gender === gender;
+        }
+        return false;
+      });
     },
 
     getUsersWithRooms() {

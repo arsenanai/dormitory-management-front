@@ -15,6 +15,7 @@
       v-model="internalValue"
       :class="[baseSelectClass, validationClass]"
       :required="required"
+      :disabled="disabled"
     >
       <option v-if="placeholder" disabled value="">{{ placeholder }}</option>
       <option
@@ -53,6 +54,7 @@ interface Props {
   required?: boolean;
   validationState?: "success" | "error" | "";
   validationMessage?: string;
+  disabled?: boolean;
 }
 
 // Define props

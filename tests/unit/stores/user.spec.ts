@@ -25,12 +25,19 @@ describe('user store', () => {
       name: 'John Doe',
       email: 'john@example.com',
       role: 'student',
-      phone: '+1234567890',
-      address: '123 Main St',
-      date_of_birth: '1995-05-15',
-      gender: 'male',
-      nationality: 'US',
-      emergency_contact: 'Jane Doe (+1234567891)',
+      role_id: 2,
+      student_profile: {
+        user_id: 1,
+        iin: '990101123456',
+        faculty: 'Engineering',
+        course: 2,
+        year_of_study: 2,
+        gender: 'male',
+        parent_name: 'Jane Doe',
+        parent_phone: '+1234567891',
+        emergency_contact_name: 'Jane Doe',
+        emergency_contact_phone: '+1234567891',
+      },
       room_id: 1,
       created_at: '2024-01-01T00:00:00Z',
       updated_at: '2024-01-01T00:00:00Z'
@@ -40,12 +47,29 @@ describe('user store', () => {
       name: 'Jane Smith',
       email: 'jane@example.com',
       role: 'admin',
-      phone: '+1234567892',
-      address: '456 Oak Ave',
-      date_of_birth: '1988-08-22',
-      gender: 'female',
-      nationality: 'CA',
-      emergency_contact: 'Bob Smith (+1234567893)',
+      role_id: 1,
+      admin_profile: {
+        user_id: 2,
+        position: 'Head of Dormitory',
+        department: 'Administration',
+        office_phone: '+1234567892',
+        office_location: 'Building A',
+      },
+      room_id: null,
+      created_at: '2024-01-01T00:00:00Z',
+      updated_at: '2024-01-01T00:00:00Z'
+    },
+    {
+      id: 3,
+      name: 'Guest User',
+      email: 'guest@example.com',
+      role: 'guest',
+      role_id: 3,
+      guest_profile: {
+        user_id: 3,
+        room_type: 'single',
+        files: ['passport.pdf'],
+      },
       room_id: null,
       created_at: '2024-01-01T00:00:00Z',
       updated_at: '2024-01-01T00:00:00Z'
@@ -93,6 +117,10 @@ describe('user store', () => {
     expect(store.users).toEqual(mockUsers)
     expect(store.loading).toBe(false)
     expect(store.error).toBe(null)
+    // Check that student_profile is present for student
+    expect(store.users[0].student_profile).toBeDefined()
+    expect(store.users[1].admin_profile).toBeDefined()
+    expect(store.users[2].guest_profile).toBeDefined()
   })
 
   it('handles fetch users error', async () => {
@@ -136,20 +164,28 @@ describe('user store', () => {
       name: 'Bob Johnson',
       email: 'bob@example.com',
       role: 'student',
-      phone: '+1234567894',
-      address: '789 Pine St',
-      date_of_birth: '1997-03-10',
-      gender: 'male',
-      nationality: 'US',
-      emergency_contact: 'Alice Johnson (+1234567895)'
+      role_id: 2,
+      student_profile: {
+        user_id: 4,
+        iin: '990101123457',
+        faculty: 'Science',
+        course: 1,
+        year_of_study: 1,
+        gender: 'male',
+        parent_name: 'Alice Johnson',
+        parent_phone: '+1234567896',
+        emergency_contact_name: 'Alice Johnson',
+        emergency_contact_phone: '+1234567896',
+      },
+      room_id: 2,
     }
-    mockPost.mockResolvedValue({ data: { id: 3, ...newUser } })
+    mockPost.mockResolvedValue({ data: { id: 4, ...newUser } })
 
     const result = await store.createUser(newUser)
 
     expect(mockPost).toHaveBeenCalledWith('/users', newUser)
-    expect(result).toEqual({ id: 3, ...newUser })
-    expect(store.users).toContainEqual({ id: 3, ...newUser })
+    expect(result).toEqual({ id: 4, ...newUser })
+    expect(store.users).toContainEqual({ id: 4, ...newUser })
   })
 
   it('handles create user error', async () => {
@@ -159,7 +195,21 @@ describe('user store', () => {
     const newUser = {
       name: 'Bob Johnson',
       email: 'bob@example.com',
-      role: 'student'
+      role: 'student',
+      role_id: 2,
+      student_profile: {
+        user_id: 4,
+        iin: '990101123457',
+        faculty: 'Science',
+        course: 1,
+        year_of_study: 1,
+        gender: 'male',
+        parent_name: 'Alice Johnson',
+        parent_phone: '+1234567896',
+        emergency_contact_name: 'Alice Johnson',
+        emergency_contact_phone: '+1234567896',
+      },
+      room_id: 2,
     }
 
     const result = await store.createUser(newUser)
@@ -233,10 +283,15 @@ describe('user store', () => {
     const students = store.getUsersByRole('student')
     expect(students).toHaveLength(1)
     expect(students[0].role).toBe('student')
-    
+    expect(students[0].student_profile).toBeDefined()
     const admins = store.getUsersByRole('admin')
     expect(admins).toHaveLength(1)
     expect(admins[0].role).toBe('admin')
+    expect(admins[0].admin_profile).toBeDefined()
+    const guests = store.getUsersByRole('guest')
+    expect(guests).toHaveLength(1)
+    expect(guests[0].role).toBe('guest')
+    expect(guests[0].guest_profile).toBeDefined()
   })
 
   it('filters users by search term', () => {
@@ -247,12 +302,19 @@ describe('user store', () => {
         name: 'John Doe',
         email: 'john@example.com',
         role: 'student',
-        phone: '+1234567891',
-        address: '123 Main St',
-        date_of_birth: '1995-05-15',
-        gender: 'male',
-        nationality: 'US',
-        emergency_contact: 'Jane Doe (+1234567891)',
+        role_id: 2,
+        student_profile: {
+          user_id: 1,
+          iin: '990101123456',
+          faculty: 'Engineering',
+          course: 2,
+          year_of_study: 2,
+          gender: 'male',
+          parent_name: 'Jane Doe',
+          parent_phone: '+1234567891',
+          emergency_contact_name: 'Jane Doe',
+          emergency_contact_phone: '+1234567891',
+        },
         room_id: 1,
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z'
@@ -262,12 +324,14 @@ describe('user store', () => {
         name: 'Jane Smith',
         email: 'jane@example.com',
         role: 'admin',
-        phone: '+1234567892',
-        address: '456 Oak Ave',
-        date_of_birth: '1988-08-22',
-        gender: 'female',
-        nationality: 'CA',
-        emergency_contact: 'Bob Smith (+1234567893)',
+        role_id: 1,
+        admin_profile: {
+          user_id: 2,
+          position: 'Head of Dormitory',
+          department: 'Administration',
+          office_phone: '+1234567892',
+          office_location: 'Building A',
+        },
         room_id: null,
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z'
@@ -277,17 +341,16 @@ describe('user store', () => {
     const filtered = store.filterUsers('John')
     expect(filtered).toHaveLength(1)
     expect(filtered[0].name).toBe('John Doe')
+    expect(filtered[0].student_profile).toBeDefined()
   })
 
   it('filters users by gender', () => {
     store.users = mockUsers
     const maleUsers = store.filterByGender('male')
     expect(maleUsers).toHaveLength(1)
-    expect(maleUsers[0].gender).toBe('male')
-    
+    expect(maleUsers[0].student_profile?.gender).toBe('male')
     const femaleUsers = store.filterByGender('female')
-    expect(femaleUsers).toHaveLength(1)
-    expect(femaleUsers[0].gender).toBe('female')
+    expect(femaleUsers).toHaveLength(0)
   })
 
   it('gets users with rooms', () => {
@@ -300,14 +363,15 @@ describe('user store', () => {
   it('gets users without rooms', () => {
     store.users = mockUsers
     const usersWithoutRooms = store.getUsersWithoutRooms()
-    expect(usersWithoutRooms).toHaveLength(1)
+    expect(usersWithoutRooms).toHaveLength(2)
     expect(usersWithoutRooms[0].room_id).toBe(null)
+    expect(usersWithoutRooms[1].room_id).toBe(null)
   })
 
   it('calculates user statistics', () => {
     store.users = JSON.parse(JSON.stringify(mockUsers))
     const stats = store.userStats
-    expect(stats.total).toBe(2)
+    expect(stats.total).toBe(3)
     expect(stats.students).toBe(1)
     expect(stats.admins).toBe(1)
     // userStats getter only returns total, students, admins - not withRooms/withoutRooms
@@ -321,12 +385,19 @@ describe('user store', () => {
         name: 'John Doe',
         email: 'john@example.com',
         role: 'student',
-        phone: '+1234567891',
-        address: '123 Main St',
-        date_of_birth: '1995-05-15',
-        gender: 'male',
-        nationality: 'US',
-        emergency_contact: 'Jane Doe (+1234567891)',
+        role_id: 2,
+        student_profile: {
+          user_id: 1,
+          iin: '990101123456',
+          faculty: 'Engineering',
+          course: 2,
+          year_of_study: 2,
+          gender: 'male',
+          parent_name: 'Jane Doe',
+          parent_phone: '+1234567891',
+          emergency_contact_name: 'Jane Doe',
+          emergency_contact_phone: '+1234567891',
+        },
         room_id: 1,
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z'
@@ -336,12 +407,14 @@ describe('user store', () => {
         name: 'Jane Smith',
         email: 'jane@example.com',
         role: 'admin',
-        phone: '+1234567892',
-        address: '456 Oak Ave',
-        date_of_birth: '1988-08-22',
-        gender: 'female',
-        nationality: 'CA',
-        emergency_contact: 'Bob Smith (+1234567893)',
+        role_id: 1,
+        admin_profile: {
+          user_id: 2,
+          position: 'Head of Dormitory',
+          department: 'Administration',
+          office_phone: '+1234567892',
+          office_location: 'Building A',
+        },
         room_id: null,
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z'
@@ -369,14 +442,18 @@ describe('user store', () => {
     const validUser = {
       name: 'John Doe',
       email: 'john@example.com',
-      role: 'student'
+      role: 'student',
+      student_profile: {
+        user_id: 1,
+        iin: '990101123456',
+      }
     }
     expect(store.validateUser(validUser)).toBe(true)
-    
     const invalidUser = {
       name: '',
       email: 'invalid-email',
-      role: ''
+      role: '',
+      student_profile: {}
     }
     expect(store.validateUser(invalidUser)).toBe(false)
   })

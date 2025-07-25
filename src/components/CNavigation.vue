@@ -245,6 +245,7 @@
     </div>
   </div>
 </template>
+
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -483,3 +484,4 @@ const languageOptions = [
 function changeLanguage(newLocale: string) {
   locale.value = newLocale;
 }
+</script>

@@ -26,6 +26,7 @@
             role="tab"
             :aria-controls="tab.name"
             :aria-selected="activeTab === tab.name"
+            :data-testid="`tab-${tab.name}`"
           >
             {{ tab.title }}
           </button>

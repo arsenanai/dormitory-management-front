@@ -1,5 +1,32 @@
 import { mount } from '@vue/test-utils';
 import Login from '@/pages/Login.vue';
+import { vi } from 'vitest';
+
+// Must be at the very top for vi.mock hoisting
+vi.mock('@/services/api', () => {
+  const mockRooms = [
+    {
+      id: 1,
+      number: '101',
+      beds: [
+        { id: 1, number: '1A', is_occupied: false, reserved_for_staff: false, user_id: null, room_id: 1 },
+        { id: 2, number: '1B', is_occupied: false, reserved_for_staff: false, user_id: null, room_id: 1 }
+      ]
+    },
+    {
+      id: 2,
+      number: '102',
+      beds: [
+        { id: 3, number: '2A', is_occupied: false, reserved_for_staff: false, user_id: null, room_id: 2 }
+      ]
+    }
+  ];
+  return {
+    roomService: {
+      getAvailable: vi.fn().mockResolvedValue({ data: mockRooms })
+    }
+  };
+});
 
 describe('Login.vue', () => {
   it('renders login form', () => {
@@ -95,5 +122,59 @@ describe('Login.vue', () => {
   it.skip('supports keyboard navigation (jsdom limitation)', async () => {
     // Skipped: jsdom/component test environment does not reliably update document.activeElement for focus events.
     // This should be covered by E2E tests instead.
+  });
+
+  describe('Registration form room selection', () => {
+    it('disables room select until dormitory is selected', async () => {
+      const wrapper = mount(Login);
+      await wrapper.vm.$nextTick();
+      // Wait for the registration tab button to appear
+      let registrationTab;
+      for (let i = 0; i < 20; i++) {
+        registrationTab = wrapper.find('button[data-testid="tab-registration"]');
+        if (registrationTab.exists()) break;
+        await wrapper.vm.$nextTick();
+      }
+      expect(registrationTab.exists()).toBe(true);
+      await registrationTab.trigger('click');
+      await wrapper.vm.$nextTick();
+      // Wait for the room select to appear
+      let roomSelect;
+      for (let i = 0; i < 20; i++) {
+        roomSelect = wrapper.find('[data-testid="registration-room"]');
+        if (roomSelect.exists()) break;
+        await wrapper.vm.$nextTick();
+      }
+      expect(roomSelect.exists()).toBe(true);
+      expect(roomSelect.find('select').element.disabled).toBe(true);
+    });
+
+    it('fetches available rooms and enables room select when dormitory is selected', async () => {
+      const wrapper = mount(Login);
+      await wrapper.vm.$nextTick();
+      // Wait for the registration tab button to appear
+      let registrationTab;
+      for (let i = 0; i < 20; i++) {
+        registrationTab = wrapper.find('button[data-testid="tab-registration"]');
+        if (registrationTab.exists()) break;
+        await wrapper.vm.$nextTick();
+      }
+      expect(registrationTab.exists()).toBe(true);
+      await registrationTab.trigger('click');
+      await wrapper.vm.$nextTick();
+      // Select a dormitory
+      await wrapper.find('#registration-dormitory').setValue('a_block');
+      await wrapper.vm.$nextTick();
+      // Wait for the room select to appear
+      let roomSelect;
+      for (let i = 0; i < 20; i++) {
+        roomSelect = wrapper.find('[data-testid="registration-room"]');
+        if (roomSelect.exists()) break;
+        await wrapper.vm.$nextTick();
+      }
+      expect(roomSelect.exists()).toBe(true);
+      expect(roomSelect.find('select').element.disabled).toBe(false);
+      expect(roomSelect.findAll('option').length).toBeGreaterThan(0);
+    });
   });
 });
