@@ -51,7 +51,7 @@ describe('API Services', () => {
       const loginData = { email: 'test@example.com', password: 'password' };
       const result = await authService.login(loginData);
 
-      expect(mockedAxios.post).toHaveBeenCalledWith('/login', loginData);
+      expect(mockedAxios.post).toHaveBeenCalledWith('/auth/login', loginData);
       expect(result).toEqual(mockResponse);
     });
 
@@ -62,7 +62,7 @@ describe('API Services', () => {
       const userData = { name: 'New User', email: 'new@example.com', password: 'password' };
       const result = await authService.register(userData);
 
-      expect(mockedAxios.post).toHaveBeenCalledWith('/register', userData);
+      expect(mockedAxios.post).toHaveBeenCalledWith('/auth/register', userData);
       expect(result).toEqual(mockResponse);
     });
 
@@ -72,7 +72,7 @@ describe('API Services', () => {
 
       const result = await authService.getProfile();
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/users/profile');
+      expect(mockedAxios.get).toHaveBeenCalledWith('/auth/profile');
       expect(result).toEqual(mockResponse);
     });
 
@@ -83,13 +83,13 @@ describe('API Services', () => {
       const profileData = { name: 'Updated Name' };
       const result = await authService.updateProfile(profileData);
 
-      expect(mockedAxios.put).toHaveBeenCalledWith('/users/profile', profileData);
+      expect(mockedAxios.put).toHaveBeenCalledWith('/auth/profile', profileData);
       expect(result).toEqual(mockResponse);
     });
 
     it('should change password', async () => {
       const mockResponse = { data: { message: 'Password changed' } };
-      mockedAxios.put.mockResolvedValueOnce(mockResponse);
+      mockedAxios.post.mockResolvedValueOnce(mockResponse);
 
       const passwordData = { 
         current_password: 'old', 
@@ -98,7 +98,7 @@ describe('API Services', () => {
       };
       const result = await authService.changePassword(passwordData);
 
-      expect(mockedAxios.put).toHaveBeenCalledWith('/users/change-password', passwordData);
+      expect(mockedAxios.post).toHaveBeenCalledWith('/auth/change-password', passwordData);
       expect(result).toEqual(mockResponse);
     });
   });
@@ -203,7 +203,7 @@ describe('API Services', () => {
 
       const result = await messageService.getMyMessages();
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/my-messages', { params: undefined });
+      expect(mockedAxios.get).toHaveBeenCalledWith('/messages/my', { params: undefined });
       expect(result).toEqual(mockResponse);
     });
 
@@ -219,11 +219,11 @@ describe('API Services', () => {
 
     it('should mark message as read', async () => {
       const mockResponse = { data: { message: 'Message marked as read' } };
-      mockedAxios.post.mockResolvedValueOnce(mockResponse);
+      mockedAxios.put.mockResolvedValueOnce(mockResponse);
 
       const result = await messageService.markAsRead(1);
 
-      expect(mockedAxios.post).toHaveBeenCalledWith('/messages/1/read');
+      expect(mockedAxios.put).toHaveBeenCalledWith('/messages/1/read');
       expect(result).toEqual(mockResponse);
     });
 
@@ -245,7 +245,7 @@ describe('API Services', () => {
 
       const result = await dashboardService.getStats();
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/dashboard', { params: undefined });
+      expect(mockedAxios.get).toHaveBeenCalledWith('/dashboard');
       expect(result).toEqual(mockResponse);
     });
 

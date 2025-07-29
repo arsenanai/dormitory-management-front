@@ -108,19 +108,17 @@
             <CTableCell>{{ student.phone || '' }}</CTableCell>
             <CTableCell class="text-right">
               <div class="flex justify-end gap-2">
-                <button
-                  @click="editStudent(student)"
-                  class="text-blue-600 hover:text-blue-900"
-                >
+                <CButton @click="editStudent(student)" size="small" variant="secondary">
                   <PencilSquareIcon class="h-4 w-4" />
-                </button>
-                <button
+                </CButton>
+                <CButton
                   v-if="student.status === 'pending'"
                   @click="approveStudent(student.id)"
-                  class="text-green-600 hover:text-green-900"
+                  size="small"
+                  variant="success"
                 >
                   <CheckCircleIcon class="h-4 w-4" />
-                </button>
+                </CButton>
               </div>
             </CTableCell>
           </CTableRow>
@@ -129,25 +127,25 @@
 
       <!-- Pagination -->
       <div v-if="pagination" class="flex justify-between items-center mt-4">
-        <div class="text-sm text-gray-700">
+        <div class="text-sm text-primary-600">
           {{ t('Showing') }} {{ pagination.from || 0 }} {{ t('to') }} {{ pagination.to || 0 }} 
           {{ t('of') }} {{ pagination.total || 0 }} {{ t('results') }}
         </div>
         <div class="flex gap-2">
-          <button
+          <CButton
             @click="previousPage"
             :disabled="!pagination.prev_page_url"
-            class="px-3 py-1 border rounded disabled:opacity-50"
+            size="small"
           >
             {{ t('Previous') }}
-          </button>
-          <button
+          </CButton>
+          <CButton
             @click="nextPage"
             :disabled="!pagination.next_page_url"
-            class="px-3 py-1 border rounded disabled:opacity-50"
+            size="small"
           >
             {{ t('Next') }}
-          </button>
+          </CButton>
         </div>
       </div>
     </div>

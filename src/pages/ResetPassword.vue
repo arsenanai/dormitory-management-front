@@ -1,7 +1,7 @@
 <template>
-  <div class="flex min-h-screen items-center justify-center bg-blue-50">
+  <div class="flex min-h-screen items-center justify-center bg-primary-50">
     <div class="w-full max-w-md bg-white rounded-lg shadow-lg p-6">
-      <h2 class="text-2xl font-bold mb-4 text-center">Reset Password</h2>
+      <h2 class="text-2xl font-bold mb-4 text-center text-primary-700">{{ t('Reset Password') }}</h2>
       <form @submit.prevent="onSubmit" class="flex flex-col gap-4">
         <CInput
           v-model="password"

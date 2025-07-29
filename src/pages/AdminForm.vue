@@ -62,13 +62,13 @@
 
       <!-- Phone Number Field -->
       <div class="col-span-2">
-        <label class="block text-sm font-medium text-gray-700">
+        <label for="admin-phone" class="block text-sm font-medium text-gray-700">
           {{ t("Phone Number") }}
         </label>
         <div class="flex items-center gap-2">
           <CInput
             id="admin-phone"
-            v-model="user.phone_numbers[0]"
+            v-model="phoneNumber"
             type="tel"
             placeholder="Enter Phone Number"
             required
@@ -105,7 +105,7 @@
 
     <!-- Submit Button -->
     <div class="mt-6 flex flex-row items-end justify-end gap-2">
-      <CButton v-if="isEditing" type="default" variant="secondary" @click="showPasswordForm = !showPasswordForm">
+      <CButton v-if="isEditing" type="default" variant="secondary" data-testid="change-password-btn" @click="showPasswordForm = !showPasswordForm">
         {{ t("Change Password") }}
       </CButton>
       <CButton type="submit" variant="primary" @click="submitForm">
@@ -114,8 +114,8 @@
     </div>
 
     <!-- Password Change Section -->
-    <div v-if="showPasswordForm" class="mt-6 border-t pt-6">
-      <h3 class="text-lg font-semibold mb-4">{{ t("Change Password") }}</h3>
+    <div v-if="showPasswordForm" class="mt-6 border-t border-primary-200 pt-6">
+      <h3 class="text-lg font-semibold mb-4 text-primary-700">{{ t("Change Password") }}</h3>
       <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <CInput
           id="current-password"
@@ -194,16 +194,19 @@ const dormitoryOptions = computed(() =>
 // Admin Form Data (split into user and adminProfile)
 const user = ref<Partial<User>>({
   name: "",
+  surname: "",
   email: "",
   phone_numbers: [""],
   password: "",
   confirmPassword: "",
+  dormitory: null,
 });
 const adminProfile = ref<Partial<AdminProfile>>({
   position: "",
   department: "",
   office_phone: "",
   office_location: "",
+  dormitory: null,
 });
 
 // Password change form
@@ -212,6 +215,27 @@ const passwordData = ref({
   current_password: "",
   password: "",
   password_confirmation: "",
+});
+
+// Computed property for phone number v-model
+const phoneNumber = computed({
+  get() {
+    return user.value.phone_numbers && user.value.phone_numbers.length > 0 ? user.value.phone_numbers[0] : '';
+  },
+  set(val: string) {
+    if (!user.value.phone_numbers) user.value.phone_numbers = [];
+    user.value.phone_numbers[0] = val;
+  }
+});
+
+// For test compatibility: proxy phone_numbers as phoneNumbers
+const phoneNumbers = computed({
+  get() {
+    return user.value.phone_numbers || [''];
+  },
+  set(val: string[]) {
+    user.value.phone_numbers = val;
+  }
 });
 
 // Maximum number of phone numbers (from .env)
@@ -237,18 +261,17 @@ const submitForm = async (): Promise<void> => {
   }
   
   try {
-    // Construct payload
+    // Construct payload - AdminController expects flat structure
     const payload = {
-      user: {
-        name: user.value.name,
-        email: user.value.email,
-        phone_numbers: user.value.phone_numbers,
-        password: user.value.password,
-        password_confirmation: user.value.confirmPassword,
-      },
-      profile: {
-        ...adminProfile.value,
-      },
+      name: user.value.name,
+      email: user.value.email,
+      phone_numbers: user.value.phone_numbers,
+      password: user.value.password,
+      password_confirmation: user.value.confirmPassword,
+      position: adminProfile.value.position,
+      department: adminProfile.value.department,
+      office_phone: adminProfile.value.office_phone,
+      office_location: adminProfile.value.office_location,
     };
     if (isEditing.value) {
       await adminService.update(userId.value, payload);
@@ -308,8 +331,12 @@ watch(
       // Populate user fields
       user.value = {
         name: selectedUser.first_name || selectedUser.name || "",
+        surname: selectedUser.last_name || selectedUser.surname || "",
         email: selectedUser.email || "",
-        phone_numbers: selectedUser.phone_numbers?.length ? [...selectedUser.phone_numbers] : selectedUser.phone ? [selectedUser.phone] : [""]
+        phone_numbers: selectedUser.phone_numbers?.length ? [...selectedUser.phone_numbers] : selectedUser.phone ? [selectedUser.phone] : [""],
+        password: "", // Clear password when editing
+        confirmPassword: "", // Clear confirm password when editing
+        dormitory: selectedUser.dormitory || null,
       };
       // Populate adminProfile fields
       adminProfile.value = {
@@ -335,8 +362,10 @@ const loadUser = async (id: number) => {
     // Populate form with API data, properly mapping fields
     user.value = {
       name: userData.first_name || userData.name || "",
+      surname: userData.last_name || userData.surname || "",
       email: userData.email || "",
       phone_numbers: userData.phone_numbers?.length ? [combinePhoneNumber(userData.phone_numbers)] : userData.phone ? [userData.phone] : [""],
+      dormitory: userData.dormitory || null,
     };
     adminProfile.value = {
       position: userData.admin_profile?.position || "",

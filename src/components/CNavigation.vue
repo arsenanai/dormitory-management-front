@@ -34,7 +34,7 @@
           </button>
           
           <img src="/src/assets/sdu logo.png" class="h-12" alt="Logo" />
-          <span class="text-lg font-bold">{{ title }}</span>
+          <span class="text-lg font-bold text-primary-700">{{ title }}</span>
         </div>
 
         <!-- Search Bar -->
@@ -66,17 +66,13 @@
             class="theme-toggle p-2 rounded hover:bg-gray-100"
             :aria-label="'Toggle theme'"
           >
-            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10 2L13.09 8.26L20 9L14 14.74L15.18 21.02L10 17.77L4.82 21.02L6 14.74L0 9L6.91 8.26L10 2Z"/>
-            </svg>
+            <SunIcon class="h-5 w-5" />
           </button>
 
           <!-- Notifications -->
           <div class="relative">
             <button class="p-2 rounded hover:bg-gray-100">
-              <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10 2C7.8 2 6 3.8 6 6v6l-2 2v1h12v-1l-2-2V6c0-2.2-1.8-4-4-4z"/>
-              </svg>
+              <BellIcon class="h-5 w-5" />
               <span 
                 v-if="notifications > 0"
                 class="notification-badge absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
@@ -94,16 +90,14 @@
               data-testid="user-menu-button"
             >
               <div v-if="currentUser" class="text-right user-info">
-                <p class="text-sm font-medium">{{ currentUser.name }}</p>
-                <p class="text-xs text-gray-500">{{ currentUser.email }}</p>
+                <p class="text-sm font-medium text-primary-700">{{ currentUser.name }}</p>
+                <p class="text-xs text-primary-500">{{ currentUser.email }}</p>
               </div>
               <div v-else class="text-right">
-                <p class="text-sm font-medium">IBRAHIM TUNCER</p>
-                <p class="text-xs text-gray-500">Super Admin</p>
+                <p class="text-sm font-medium text-primary-700">IBRAHIM TUNCER</p>
+                <p class="text-xs text-primary-500">Super Admin</p>
               </div>
-              <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
-              </svg>
+              <ChevronDownIcon class="h-4 w-4" />
             </button>
             
             <!-- User Dropdown Menu -->
@@ -150,14 +144,10 @@
                 {{ crumb.name }}
               </router-link>
               <span v-else class="text-gray-500">{{ crumb.name }}</span>
-              <svg
+              <ChevronRightIcon
                 v-if="index < breadcrumbs.length - 1"
                 class="h-4 w-4 text-gray-400 mx-1"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 111.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"/>
-              </svg>
+              />
             </li>
           </ol>
         </nav>
@@ -206,17 +196,12 @@
                 ]"
                 @click.prevent="handleNavClick(item)"
               >
-                <span v-if="item.icon" class="nav-icon mr-3">{{ item.icon }}</span>
+                <component v-if="item.icon" :is="item.icon" class="nav-icon mr-3 h-5 w-5" />
                 <span>{{ item.name }}</span>
-                <svg 
+                <ArrowTopRightOnSquareIcon 
                   v-if="item.external" 
                   class="ml-auto h-4 w-4" 
-                  fill="currentColor" 
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"/>
-                  <path d="M5 5a2 2 0 00-2 2v6a2 2 0 002 2h6a2 2 0 002-2v-2a1 1 0 10-2 0v2H5V7h2a1 1 0 000-2H5z"/>
-                </svg>
+                />
               </a>
             </li>
           </ul>
@@ -230,9 +215,7 @@
               class="external-link flex items-center px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
             >
               External Link
-              <svg class="ml-auto h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"/>
-              </svg>
+              <ArrowTopRightOnSquareIcon class="ml-auto h-4 w-4" />
             </a>
           </div>
         </nav>
@@ -249,7 +232,19 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { Bars3Icon } from '@heroicons/vue/24/outline';
+import { 
+  Bars3Icon, 
+  SunIcon, 
+  BellIcon, 
+  ChevronDownIcon, 
+  ChevronRightIcon,
+  ArrowTopRightOnSquareIcon,
+  HomeIcon,
+  UserGroupIcon,
+  BuildingOfficeIcon,
+  CurrencyDollarIcon,
+  ChatBubbleLeftRightIcon
+} from '@heroicons/vue/24/outline';
 import { useAuthStore } from '@/stores/auth';
 import { useI18n } from 'vue-i18n';
 import CSelect from '@/components/CSelect.vue';
@@ -269,7 +264,7 @@ interface BreadcrumbItem {
 interface NavItem {
   name: string;
   path: string;
-  icon?: string;
+  icon?: any;
   external?: boolean;
   permission?: string;
 }
@@ -331,14 +326,14 @@ const mobileMenuOpen = ref(false);
 const userMenuOpen = ref(false);
 const focusedItem = ref<string | null>(null);
 
-// Default navigation items
+// Default navigation items with Heroicons
 const defaultNavItems: NavItem[] = [
-  { name: 'Home', path: '/', icon: '🏠' },
-  { name: 'Users', path: '/users', icon: '👤', permission: 'users.view' },
-  { name: 'Rooms', path: '/rooms', icon: '🏠', permission: 'rooms.view' },
-  { name: 'Payments', path: '/payments', icon: '💰', permission: 'payments.view' },
-  { name: 'Messages', path: '/messages', icon: '💬' },
-  { name: 'Dormitories', path: '/dormitories', icon: '🏢' }
+  { name: 'Home', path: '/', icon: HomeIcon },
+  { name: 'Users', path: '/users', icon: UserGroupIcon, permission: 'users.view' },
+  { name: 'Rooms', path: '/rooms', icon: BuildingOfficeIcon, permission: 'rooms.view' },
+  { name: 'Payments', path: '/payments', icon: CurrencyDollarIcon, permission: 'payments.view' },
+  { name: 'Messages', path: '/messages', icon: ChatBubbleLeftRightIcon },
+  { name: 'Dormitories', path: '/dormitories', icon: BuildingOfficeIcon }
 ];
 
 // Computed properties
@@ -475,13 +470,13 @@ onUnmounted(() => {
 });
 
 const { t, locale } = useI18n();
-const currentLocale = ref(locale.value);
+const currentLocale = ref(locale?.value || 'en');
 const languageOptions = [
   { value: 'en', name: 'English' },
   { value: 'kk', name: 'Қазақша' },
   { value: 'ru', name: 'Русский' },
 ];
-function changeLanguage(newLocale: string) {
-  locale.value = newLocale;
+function changeLanguage(newLocale: string | number) {
+  locale.value = newLocale as string;
 }
 </script>

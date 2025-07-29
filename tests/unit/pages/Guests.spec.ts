@@ -144,18 +144,14 @@ describe('Guests.vue', () => {
     expect(wrapper.findComponent({ name: 'CTable' }).exists() || wrapper.find('table').exists()).toBe(true)
   })
 
-  it('opens guest creation form/modal and validates required fields', async () => {
+  it('navigates to guest creation form when add button is clicked', async () => {
     // Simulate clicking the add button
     const addButton = wrapper.find('button')
     if (addButton.exists()) {
       await addButton.trigger('click')
-      // Assume form/modal is shown (depends on implementation)
-      expect(wrapper.html()).toMatch(/form|modal/i)
+      // Should navigate to guest form route
+      expect(router.push).toHaveBeenCalledWith('/guest-form')
     }
-    // Simulate form validation (required fields)
-    // Placeholder: try submitting with empty fields and expect error
-    // await wrapper.find('form').trigger('submit.prevent')
-    // expect(wrapper.text()).toContain('required')
   })
 
   it('submits new guest data and handles success', async () => {
@@ -229,7 +225,7 @@ describe('Guests.vue', () => {
 
   it('filters guests by search term', async () => {
     wrapper.vm.guests = mockGuests
-    wrapper.vm.searchTerm = 'Jane'
+    wrapper.vm.searchQuery = 'Jane'
     await wrapper.vm.$nextTick()
     const filteredGuests = wrapper.vm.filteredGuests
     expect(filteredGuests).toHaveLength(1)

@@ -29,7 +29,7 @@
       <div>
         <CInput
           id="guest-phone"
-          v-model="user.phone_numbers"
+          v-model="phoneNumber"
           type="tel"
           :label="t('Tel no')"
           placeholder="+7(___)_______"
@@ -94,22 +94,19 @@
 
       <!-- Information / Reminder -->
       <div class="col-span-1 lg:col-span-2">
-        <label class="block text-sm font-medium text-gray-700">
-          {{ t("Information - Reminder") }}
-        </label>
-        <textarea
+        <CTextarea
           id="guest-reminder"
           v-model="guestProfile.reminder"
-          class="w-full rounded border border-gray-300 p-2 focus:outline-none"
-          placeholder="Enter Information or Reminder"
+          :label="t('Information - Reminder')"
+          :placeholder="t('Enter Information or Reminder')"
           rows="3"
-        ></textarea>
+        />
       </div>
     </div>
 
     <hr class="my-4 border-t border-gray-300" />
-    <div class="text-lg font-medium mb-2">{{ t('Guest Payments') }}</div>
-    <div v-if="loadingPayments" class="text-gray-500">{{ t('Loading payments...') }}</div>
+    <div class="text-lg font-medium text-primary-700">{{ t('Guest Payments') }}</div>
+    <div v-if="loadingPayments" class="text-primary-600">{{ t('Loading payments...') }}</div>
     <div v-else-if="paymentsError" class="text-red-600">{{ paymentsError }}</div>
     <CTable v-else :class="'mb-6'" v-if="guestPayments.length">
       <CTableHead>
@@ -123,17 +120,17 @@
       </CTableHead>
       <CTableBody>
         <CTableRow v-for="(payment, idx) in guestPayments" :key="idx">
-          <CTableCell>{{ payment.guest_name }}</CTableCell>
-          <CTableCell>{{ payment.room }}</CTableCell>
-          <CTableCell>{{ payment.dormitory }}</CTableCell>
-          <CTableCell>{{ payment.amount }}</CTableCell>
-          <CTableCell>{{ payment.status }}</CTableCell>
-          <CTableCell>{{ payment.check_in_date }}</CTableCell>
-          <CTableCell>{{ payment.check_out_date }}</CTableCell>
+                  <CTableCell>{{ t(payment.guest_name) }}</CTableCell>
+        <CTableCell>{{ t(payment.room) }}</CTableCell>
+        <CTableCell>{{ t(payment.dormitory) }}</CTableCell>
+        <CTableCell>{{ t(payment.amount) }}</CTableCell>
+        <CTableCell>{{ t(payment.status) }}</CTableCell>
+        <CTableCell>{{ t(payment.check_in_date) }}</CTableCell>
+        <CTableCell>{{ t(payment.check_out_date) }}</CTableCell>
         </CTableRow>
       </CTableBody>
     </CTable>
-    <div class="text-lg font-medium">{{ t("Payment info") }}</div>
+    <div class="text-lg font-medium text-primary-700">{{ t("Payment info") }}</div>
 
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <!-- Daily Rate -->
@@ -218,6 +215,7 @@ import CTableRow from "@/components/CTableRow.vue";
 import CTableCell from "@/components/CTableCell.vue";
 import type { User } from "@/models/User";
 import type { GuestProfile } from "@/models/GuestProfile";
+import CTextarea from "@/components/CTextarea.vue";
 
 // Define the type for a payment
 interface Payment {
@@ -258,6 +256,16 @@ const user = ref<Partial<User>>({
   password: "",
   confirmPassword: "",
 });
+
+// Computed property for phone number to handle v-model binding
+const phoneNumber = computed({
+  get: () => user.value.phone_numbers && user.value.phone_numbers.length > 0 ? user.value.phone_numbers[0] : '',
+  set: (val: string) => {
+    if (!user.value.phone_numbers) user.value.phone_numbers = [];
+    user.value.phone_numbers[0] = val;
+  }
+});
+
 const guestProfile = ref<Partial<GuestProfile>>({
   room_type: "",
   files: [],

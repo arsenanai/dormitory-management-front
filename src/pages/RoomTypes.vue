@@ -23,7 +23,7 @@
         </div>
   
         <!-- Loading State -->
-        <div v-if="loading" class="text-center py-4">
+        <div v-if="loading" class="text-center py-4 text-primary-600">
           {{ t("Loading...") }}
         </div>
 
@@ -55,11 +55,11 @@
                     :alt="`Room photo ${photoIndex + 1}`"
                     class="w-8 h-8 object-cover rounded border"
                   />
-                  <span v-if="roomType.photos.length > 3" class="text-xs text-gray-500 self-center">
-                    +{{ roomType.photos.length - 3 }} more
+                  <span v-if="roomType.photos.length > 3" class="text-xs text-primary-500 self-center">
+                    +{{ roomType.photos.length - 3 }} {{ t('more') }}
                   </span>
                 </div>
-                <span v-else class="text-gray-400 text-sm">{{ t("No photos") }}</span>
+                <span v-else class="text-primary-400 text-sm">{{ t("No photos") }}</span>
               </CTableCell>
               <CTableCell class="text-right flex gap-2 justify-end">
                 <CButton @click="navigateToEditRoomType(roomType.id)">

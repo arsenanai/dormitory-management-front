@@ -1,9 +1,10 @@
 import { test, expect } from './test';
+import { TestUtils, TEST_USERS, SELECTORS } from './test-utils';
 
 test.describe('Authentication Flow', () => {
   test.beforeEach(async ({ page }) => {
     // Ensure we start on the login page
-    await page.goto('http://localhost:5173/');
+    await page.goto('/');
   });
 
   test('should display login form by default', async ({ page }) => {
@@ -29,26 +30,44 @@ test.describe('Authentication Flow', () => {
     await expect(page.locator('#login-email')).not.toBeVisible();
   });
 
-  test('should successfully login with valid credentials', async ({ page }) => {
-    // Fill in login credentials
-    await page.fill('#login-email', 'alice@student.local');
-    await page.fill('#login-password', 'password');
+  test('should successfully login with admin credentials', async ({ page }) => {
+    // Fill in login credentials using test utilities
+    await TestUtils.login(page, 'admin');
     
-    // Click login button (use submit type to be more specific)
+    // Verify we're on the main page
+    await TestUtils.expectURL(page, /\/main/);
+    
+    // Check for dashboard content (statistics, etc.)
+    await expect(page.locator('body')).toContainText(/\d+/); // Should contain numbers (statistics)
+  });
+
+  test('should successfully login with student credentials', async ({ page }) => {
+    // Fill in login credentials manually (same as debug test that worked)
+    await page.goto('/');
+    await page.fill('#login-email', 'student@email.com');
+    await page.fill('#login-password', 'studentpass');
     await page.click('button[type="submit"]:has-text("Login")');
     
-    // Wait for redirect to main page
-    await page.waitForURL('http://localhost:5173/main', { timeout: 10000 });
+    // Wait for successful login - redirect to main page
+    await page.waitForURL(/\/main/, { timeout: 30000 });
+    await page.waitForLoadState('networkidle');
     
-    // Check that we're on the main page
-    await expect(page).toHaveURL('http://localhost:5173/main');
+    // Verify we're on the main page
+    await TestUtils.expectURL(page, /\/main/);
     
-    // Check for some content that indicates we're on a dashboard (numbers, cards, etc.)
-    await expect(page.locator('body')).toContainText(/\d+/); // Should contain numbers (statistics)
+    // Check for student-specific content
+    await expect(page.locator('body')).toContainText(/student|dashboard/i);
+  });
+
+  test('should successfully login with superadmin credentials', async ({ page }) => {
+    // Fill in login credentials using test utilities
+    await TestUtils.login(page, 'superadmin');
     
-    // Or check for specific dashboard elements like statistics cards
-    const statisticsElements = page.locator('h3');
-    await expect(statisticsElements.first()).toBeVisible();
+    // Verify we're on the main page
+    await TestUtils.expectURL(page, /\/main/);
+    
+    // Check for superadmin-specific content
+    await expect(page.locator('body')).toContainText(/dashboard|admin/i);
   });
 
   test('should show error message with invalid credentials', async ({ page }) => {

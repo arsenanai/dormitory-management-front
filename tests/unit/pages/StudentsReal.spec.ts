@@ -340,9 +340,8 @@ describe('StudentsReal.vue', () => {
     const addButton = wrapper.findAll('button').find(btn => btn.text().includes('Add Student'));
     if (addButton) {
       await addButton.trigger('click');
-      // Assume form/modal is shown (depends on implementation)
-      // For example, check for a form or modal class
-      expect(wrapper.html()).toMatch(/form|modal/i);
+      // Should navigate to student form route
+      expect(router.push).toHaveBeenCalledWith('/students/create');
     }
     // Simulate form validation (required fields)
     // This is a placeholder; adjust selectors as needed

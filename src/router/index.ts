@@ -171,6 +171,17 @@ const routes: AppRouteRecordRaw[] = [
     },
   },
   {
+    path: '/accounting',
+    name: 'Accounting',
+    component: () => import('@/pages/Accounting.vue'),
+    meta: {
+      title: 'Accounting',
+      requiresAuth: true,
+      sidebar: true,
+      icon: ClipboardDocumentListIcon,
+    },
+  },
+  {
     path: '/settings',
     name: 'Settings',
     component: () => import('@/pages/Options.vue'),

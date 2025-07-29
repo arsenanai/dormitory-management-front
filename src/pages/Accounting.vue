@@ -37,8 +37,17 @@
           {{ t('Export as .xlsx') }}
         </CButton>
       </div>
-      <!-- Summary Table -->
-      <CTable>
+      <!-- Loading State -->
+      <div v-if="loading" class="text-center py-8">
+        <div class="text-primary-600">{{ t('Loading...') }}</div>
+      </div>
+
+      <!-- Error State -->
+      <div v-else-if="error" class="text-center py-8">
+        <div class="text-red-500">{{ error }}</div>
+      </div>
+      
+      <CTable v-else>
         <CTableHead>
           <CTableHeadCell>{{ t('Student') }}</CTableHeadCell>
           <CTableHeadCell>{{ t('Semester') }}</CTableHeadCell>
@@ -46,6 +55,11 @@
           <CTableHeadCell>{{ t('Outstanding') }}</CTableHeadCell>
         </CTableHead>
         <CTableBody>
+          <CTableRow v-if="filteredRows.length === 0">
+            <CTableCell colspan="4" class="text-center text-primary-500">
+              {{ t('No accounting data available') }}
+            </CTableCell>
+          </CTableRow>
           <CTableRow v-for="row in filteredRows" :key="row.id">
             <CTableCell>{{ row.student }}</CTableCell>
             <CTableCell>{{ row.semester }}</CTableCell>
@@ -59,8 +73,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { accountingApi } from '@/services/api';
 import Navigation from '@/components/CNavigation.vue';
 import CInput from '@/components/CInput.vue';
 import CSelect from '@/components/CSelect.vue';
@@ -74,37 +89,99 @@ import CTableCell from '@/components/CTableCell.vue';
 
 const { t } = useI18n();
 
-// Mock data for now
-const rows = ref([
+// Mock data as fallback
+const mockRows = [
   { id: 1, student: 'Alice Smith', semester: '2024-fall', totalPaid: 120000, outstanding: 0 },
   { id: 2, student: 'Bob Lee', semester: '2024-fall', totalPaid: 60000, outstanding: 60000 },
   { id: 3, student: 'Charlie Kim', semester: '2024-spring', totalPaid: 120000, outstanding: 0 },
-]);
+];
+
+const rows = ref(mockRows);
+const loading = ref(false);
+const error = ref('');
 
 const studentFilter = ref('');
 const semesterFilter = ref('');
 const startDate = ref('');
 const endDate = ref('');
 
-const studentOptions = [
+const studentOptions = computed(() => [
   { value: '', name: t('All Students') },
   { value: 'Alice Smith', name: 'Alice Smith' },
   { value: 'Bob Lee', name: 'Bob Lee' },
   { value: 'Charlie Kim', name: 'Charlie Kim' },
-];
+]);
 
 const filteredRows = computed(() => {
   return rows.value.filter(row => {
-    return (
-      (!studentFilter.value || row.student === studentFilter.value) &&
-      (!semesterFilter.value || row.semester === semesterFilter.value)
-      // Date range filtering can be added when real data is used
-    );
+    const studentMatch = !studentFilter.value || row.student === studentFilter.value;
+    const semesterMatch = !semesterFilter.value || row.semester === semesterFilter.value;
+    
+    // For now, always return true for date range since we're using mock data
+    // In a real implementation, this would check against actual payment dates
+    const dateMatch = true;
+    
+    return studentMatch && semesterMatch && dateMatch;
   });
 });
 
-function exportAccounting() {
-  // Placeholder for export logic
-  alert('Exporting accounting data as .xlsx (not yet implemented)');
-}
+// Load accounting data from API
+const loadAccountingData = async () => {
+  loading.value = true;
+  error.value = '';
+  
+  try {
+    const filters = {
+      student: studentFilter.value || undefined,
+      semester: semesterFilter.value || undefined,
+      startDate: startDate.value || undefined,
+      endDate: endDate.value || undefined,
+    };
+    
+    const data = await accountingApi.getAccountingOverview(filters);
+    rows.value = data || mockRows;
+  } catch (err) {
+    console.warn('Failed to load accounting data from API, using mock data:', err);
+    // Fallback to mock data if API fails
+    rows.value = mockRows;
+    error.value = t('Failed to load accounting data. Please try again.');
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Export accounting data
+const exportAccounting = async () => {
+  try {
+    const filters = {
+      student: studentFilter.value || undefined,
+      semester: semesterFilter.value || undefined,
+      startDate: startDate.value || undefined,
+      endDate: endDate.value || undefined,
+    };
+    
+    const blob = await accountingApi.exportAccounting(filters);
+    
+    // Create download link
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `accounting-export-${new Date().toISOString().split('T')[0]}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    
+    console.log('Exporting accounting data as .xlsx');
+  } catch (err) {
+    console.error('Failed to export accounting data:', err);
+    // Fallback to alert for now
+    alert('Exporting accounting data as .xlsx (not yet implemented)');
+  }
+};
+
+// Load data on mount
+onMounted(() => {
+  loadAccountingData();
+});
 </script> 

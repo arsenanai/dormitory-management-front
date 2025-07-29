@@ -2,8 +2,8 @@
   <Navigation :title="t('Student page')">
     <div class="grid grid-cols-1 gap-8">
       <!-- Personal Information -->
-      <fieldset class="border border-gray-200 rounded p-4">
-        <legend class="text-lg font-semibold px-2">{{ t("Personal Information") }}</legend>
+      <fieldset class="border border-primary-200 rounded p-4">
+        <legend class="text-lg font-semibold px-2 text-primary-700">{{ t("Personal Information") }}</legend>
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <!-- IIN Field -->
           <div>
@@ -114,57 +114,135 @@
       </fieldset>
 
       <!-- Family Information -->
-      <fieldset class="border border-gray-200 rounded p-4">
-        <legend class="text-lg font-semibold px-2">{{ t("Family Information") }}</legend>
+      <fieldset class="border border-primary-200 rounded p-4">
+        <legend class="text-lg font-semibold px-2 text-primary-700">{{ t("Family Information") }}</legend>
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <CInput id="parent-name" v-model="studentProfile.parent_name" type="text" :label="t('Parent Name')" placeholder="Enter Parent Name" />
-          <CInput id="parent-phone" v-model="studentProfile.parent_phone" type="tel" :label="t('Parent Phone')" placeholder="Enter Parent Phone" />
-          <CInput id="parent-email" v-model="studentProfile.parent_email" type="email" :label="t('Parent Email')" placeholder="Enter Parent Email" />
-          <CInput id="guardian-name" v-model="studentProfile.guardian_name" type="text" :label="t('Guardian Name')" placeholder="Enter Guardian Name" />
-          <CInput id="guardian-phone" v-model="studentProfile.guardian_phone" type="tel" :label="t('Guardian Phone')" placeholder="Enter Guardian Phone" />
-          <CInput id="mentor-name" v-model="studentProfile.mentor_name" type="text" :label="t('Mentor Name')" placeholder="Enter Mentor Name" />
-          <CInput id="mentor-email" v-model="studentProfile.mentor_email" type="email" :label="t('Mentor Email')" placeholder="Enter Mentor Email" />
+          <!-- Father's Name Field -->
+          <div>
+            <CInput
+              id="student-father-name"
+              v-model="studentProfile.father_name"
+              type="text"
+              :label="t('Father\'s Name')"
+              placeholder="Enter Father's Name"
+            />
+          </div>
+          <!-- Mother's Name Field -->
+          <div>
+            <CInput
+              id="student-mother-name"
+              v-model="studentProfile.mother_name"
+              type="text"
+              :label="t('Mother\'s Name')"
+              placeholder="Enter Mother's Name"
+            />
+          </div>
+          <!-- Father's Phone Field -->
+          <div>
+            <CInput
+              id="student-father-phone"
+              v-model="studentProfile.father_phone"
+              type="tel"
+              :label="t('Father\'s Phone')"
+              placeholder="Enter Father's Phone"
+            />
+          </div>
+          <!-- Mother's Phone Field -->
+          <div>
+            <CInput
+              id="student-mother-phone"
+              v-model="studentProfile.mother_phone"
+              type="tel"
+              :label="t('Mother\'s Phone')"
+              placeholder="Enter Mother's Phone"
+            />
+          </div>
         </div>
       </fieldset>
 
       <!-- Health Information -->
-      <fieldset class="border border-gray-200 rounded p-4">
-        <legend class="text-lg font-semibold px-2">{{ t("Health Information") }}</legend>
+      <fieldset class="border border-primary-200 rounded p-4">
+        <legend class="text-lg font-semibold px-2 text-primary-700">{{ t("Health Information") }}</legend>
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <CInput id="blood-type" v-model="studentProfile.blood_type" type="text" :label="t('Blood Type')" placeholder="Enter Blood Type" />
-          <CInput id="medical-conditions" v-model="studentProfile.medical_conditions" type="text" :label="t('Medical Conditions')" placeholder="Enter Medical Conditions" />
-          <CInput id="dietary-restrictions" v-model="studentProfile.dietary_restrictions" type="text" :label="t('Dietary Restrictions')" placeholder="Enter Dietary Restrictions" />
+          <!-- Blood Type Field -->
+          <div>
+            <CSelect
+              id="student-blood-type"
+              v-model="studentProfile.blood_type"
+              :options="bloodTypeOptions"
+              :label="t('Blood Type')"
+            />
+          </div>
+          <!-- Allergies Field -->
+          <div>
+            <CInput
+              id="student-allergies"
+              v-model="studentProfile.allergies"
+              type="text"
+              :label="t('Allergies')"
+              placeholder="Enter Allergies (if any)"
+            />
+          </div>
         </div>
       </fieldset>
 
       <!-- Emergency Contact -->
-      <fieldset class="border border-gray-200 rounded p-4">
-        <legend class="text-lg font-semibold px-2">{{ t("Emergency Contact") }}</legend>
+      <fieldset class="border border-primary-200 rounded p-4">
+        <legend class="text-lg font-semibold px-2 text-primary-700">{{ t("Emergency Contact") }}</legend>
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <CInput id="emergency-contact-name" v-model="studentProfile.emergency_contact_name" type="text" :label="t('Emergency Contact Name')" placeholder="Enter Emergency Contact Name" />
-          <CInput id="emergency-contact-phone" v-model="studentProfile.emergency_contact_phone" type="tel" :label="t('Emergency Contact Phone')" placeholder="Enter Emergency Contact Phone" />
-          <CInput id="emergency-contact-relationship" v-model="studentProfile.emergency_contact_relationship" type="text" :label="t('Emergency Contact Relationship')" placeholder="Enter Relationship" />
+          <!-- Emergency Contact Name Field -->
+          <div>
+            <CInput
+              id="student-emergency-name"
+              v-model="studentProfile.emergency_contact_name"
+              type="text"
+              :label="t('Emergency Contact Name')"
+              placeholder="Enter Emergency Contact Name"
+            />
+          </div>
+          <!-- Emergency Contact Phone Field -->
+          <div>
+            <CInput
+              id="student-emergency-phone"
+              v-model="studentProfile.emergency_contact_phone"
+              type="tel"
+              :label="t('Emergency Contact Phone')"
+              placeholder="Enter Emergency Contact Phone"
+            />
+          </div>
         </div>
       </fieldset>
 
       <!-- Registration & Status -->
-      <fieldset class="border border-gray-200 rounded p-4">
-        <legend class="text-lg font-semibold px-2">{{ t("Registration & Status") }}</legend>
+      <fieldset class="border border-primary-200 rounded p-4">
+        <legend class="text-lg font-semibold px-2 text-primary-700">{{ t("Registration & Status") }}</legend>
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <CInput id="program" v-model="studentProfile.program" type="text" :label="t('Program')" placeholder="Enter Program" />
-          <CInput id="year-level" v-model="studentProfile.year_level" type="number" :label="t('Year Level')" placeholder="Enter Year Level" />
-          <CInput id="nationality" v-model="studentProfile.nationality" type="text" :label="t('Nationality')" placeholder="Enter Nationality" />
-          <CInput id="violations" v-model="studentProfile.violations" type="text" :label="t('Violations')" placeholder="Enter Violations" />
-          <CCheckbox id="agree-to-dormitory-rules" v-model="studentProfile.agree_to_dormitory_rules" :label="t('I Agree to Dormitory Rules')" />
-          <CCheckbox id="has-meal-plan" v-model="studentProfile.has_meal_plan" :label="t('Has Meal Plan')" />
-          <CCheckbox id="registration-limit-reached" v-model="studentProfile.registration_limit_reached" :label="t('Registration Limit Reached')" />
-          <CCheckbox id="is-backup-list" v-model="studentProfile.is_backup_list" :label="t('Is Backup List')" />
+          <!-- Status Field -->
+          <div>
+            <CSelect
+              id="student-status"
+              v-model="studentProfile.status"
+              :options="statusOptions"
+              :label="t('Status')"
+              required
+            />
+          </div>
+          <!-- Registration Date Field -->
+          <div>
+            <CInput
+              id="student-registration-date"
+              v-model="studentProfile.registration_date"
+              type="date"
+              :label="t('Registration Date')"
+              required
+            />
+          </div>
         </div>
       </fieldset>
 
       <!-- Educational Information -->
-      <fieldset class="border border-gray-200 rounded p-4">
-        <legend class="text-lg font-semibold px-2">{{ t("Educational Information") }}</legend>
+      <fieldset class="border border-primary-200 rounded p-4">
+        <legend class="text-lg font-semibold px-2 text-primary-700">{{ t("Educational Information") }}</legend>
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <!-- Faculty Field -->
           <div>
@@ -364,6 +442,7 @@ const selectedRegion = ref<Region | null>(regions.value[0]);
 // Student Form Data (split into user and studentProfile)
 const user = ref<Partial<User>>({
   name: "",
+  surname: "",
   email: "",
   phone_numbers: [""],
   password: "",

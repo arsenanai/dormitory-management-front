@@ -13,7 +13,9 @@
     @input="updateValue($event.target.value)"
     :class="[
       baseTextareaClass,
-      isValid ? validationClass : errorClass,
+      validationState === 'success' ? successClass : 
+      validationState === 'error' ? errorClass : 
+      validationClass,
     ]"
     :readonly="readonly"
   ></textarea>
@@ -34,6 +36,8 @@ const {
   validationMessage,
   readonly,
   modelValue,
+  required = false,
+  validationState = "",
 } = defineProps({
   id: {
     type: String,
@@ -60,6 +64,14 @@ const {
     default: false,
   },
   modelValue: {
+    type: String,
+    default: "",
+  },
+  required: {
+    type: Boolean,
+    default: false,
+  },
+  validationState: {
     type: String,
     default: "",
   },
@@ -92,11 +104,14 @@ const validateInput = () => {
 
 // Classes
 const baseTextareaClass =
-  "block p-2.5 w-full text-sm rounded-lg border focus:ring-4 focus:outline-none";
+  "block p-2.5 w-full text-sm rounded-lg border focus:ring-4 focus:outline-none transition-colors";
 
 const validationClass =
   "border-gray-300 text-gray-900 bg-gray-50 focus:ring-primary-300 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500";
 
 const errorClass =
   "border-red-500 text-red-900 bg-red-50 focus:ring-red-500 focus:border-red-500 dark:bg-gray-700 dark:border-red-500 dark:text-red-500 dark:focus:ring-red-500 dark:focus:border-red-500";
+
+const successClass =
+  "border-green-500 text-green-900 bg-green-50 focus:ring-green-300 focus:border-green-500 dark:bg-green-900 dark:border-green-400 dark:text-green-400 dark:focus:ring-green-800 dark:focus:border-green-400";
 </script>

@@ -29,32 +29,14 @@
         <PaperClipIcon
           class="pointer-events-none absolute top-1/2 left-0 h-8 w-8 -translate-y-1/2 pl-3 text-gray-500 dark:text-gray-400"
         />
-        <p class="text-base text-gray-500 dark:text-gray-400">
-          <!-- Selected File Name -->
-          <span
-            v-if="selectedFile && !validationMessage"
-            class="text-gray-900 dark:text-gray-50"
+        <p class="text-base text-primary-500 dark:text-primary-400">
+          {{ t('Drag and drop your file here, or') }}
+          <label
+            :for="id"
+            class="text-primary-600 dark:text-primary-400 hover:text-primary-800 cursor-pointer"
           >
-            {{ selectedFile }}
-          </span>
-          <!-- Validation message -->
-          <span
-            v-else-if="validationMessage"
-            class="text-red-600 dark:text-red-500"
-          >
-            {{ validationMessage }}
-          </span>
-          <!-- Instructional Text -->
-          <span v-else-if="isDragging">
-            {{ t("fileInput.dropHere") }}
-          </span>
-          <!-- Instructional Text -->
-          <span v-else>
-            {{ t("fileInput.click") }}
-            <span class="hidden lg:inline-block">{{
-              t("fileInput.orDrag")
-            }}</span>
-          </span>
+            {{ t('browse') }}
+          </label>
         </p>
       </div>
       <!-- Hidden File Input -->

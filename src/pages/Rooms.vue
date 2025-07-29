@@ -1,20 +1,19 @@
 <template>
     <Navigation :title="t('Rooms Management')">
       <div class="flex flex-col gap-4">
-        <h1>Rooms</h1>
+        <h1>{{ t('Rooms') }}</h1>
         
         <!-- Search and Filters -->
         <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div class="flex flex-col gap-2 lg:flex-row lg:items-end">
             <!-- Search -->
-            <div class="flex flex-col gap-2">
-              <label>{{ t("Search") }}</label>
-              <input 
-                v-model="searchTerm" 
-                :placeholder="t('Search rooms...')"
-                class="border rounded px-3 py-2"
-              />
-            </div>
+            <CInput
+              id="search-rooms"
+              v-model="searchTerm" 
+              :placeholder="t('Search rooms...')"
+              :label="t('Search')"
+              type="search"
+            />
             
             <!-- Status Filter -->
             <CSelect
@@ -128,6 +127,7 @@ import { PlusIcon, PencilSquareIcon, TrashIcon } from "@heroicons/vue/24/outline
 import { roomService, dormitoryService, roomTypeService } from "@/services/api";
 import { useRoomsStore } from "@/stores/rooms";
 import { useToast } from "@/composables/useToast";
+import CInput from "@/components/CInput.vue";
 
 // i18n and router
 const { t } = useI18n();

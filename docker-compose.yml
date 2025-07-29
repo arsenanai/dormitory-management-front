@@ -1,4 +1,7 @@
+version: '3.8'
+
 services:
+  # Development services
   init:
     image: node:18-alpine
     container_name: dormitory-management-front-init
@@ -7,24 +10,32 @@ services:
       - .:/app
       - node_modules:/app/node_modules
     command: sh -c "npm install"
+    profiles:
+      - dev
+      - test
+      - build
 
-  app:
+  # Development server
+  dev:
     image: node:18-alpine
-    container_name: dormitory-management-front
+    container_name: dormitory-management-front-dev
     working_dir: /app
     volumes:
       - .:/app
       - node_modules:/app/node_modules
     ports:
-      - "8080:5173"
+      - "5173:5173"
     environment:
       - NODE_ENV=development
+      - VITE_API_BASE_URL=http://localhost:8000/api
+      - VITE_APP_NAME="SDU Dormitory Management"
     depends_on:
       - init
-    command: sh -c "npm run dev"
+    command: sh -c "npm run dev -- --host 0.0.0.0"
     profiles:
       - dev
 
+  # Unit testing
   test:
     image: node:18-alpine
     container_name: dormitory-management-front-test
@@ -34,12 +45,33 @@ services:
       - node_modules:/app/node_modules
     environment:
       - NODE_ENV=test
+      - VITE_API_BASE_URL=http://localhost:8000/api
     depends_on:
       - init
     command: sh -c "npm run test:unit -- --run"
     profiles:
       - test
 
+  # E2E testing
+  test-e2e:
+    image: mcr.microsoft.com/playwright:v1.40.0-focal
+    container_name: dormitory-management-front-test-e2e
+    working_dir: /app
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    environment:
+      - NODE_ENV=test
+      - VITE_API_BASE_URL=http://localhost:8000/api
+      - ADMIN_EMAIL=admin@sdu.edu.kz
+      - ADMIN_PASSWORD=admin123
+    depends_on:
+      - init
+    command: sh -c "npm run test:e2e"
+    profiles:
+      - test-e2e
+
+  # Build for production
   build:
     image: node:18-alpine
     container_name: dormitory-management-front-build
@@ -47,22 +79,53 @@ services:
     volumes:
       - .:/app
       - node_modules:/app/node_modules
+      - build_output:/app/dist
     environment:
       - NODE_ENV=production
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost:8000/api}
+      - VITE_APP_NAME=${VITE_APP_NAME:-"SDU Dormitory Management"}
     depends_on:
       - init
     command: sh -c "npm run build"
+    profiles:
+      - build
 
+  # Production server
   serve:
     image: nginx:alpine
     container_name: dormitory-management-front-serve
     ports:
-      - "8080:80"
+      - "80:80"
+      - "443:443"
     volumes:
-      - ./dist:/usr/share/nginx/html:ro
+      - build_output:/usr/share/nginx/html:ro
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certs:/etc/nginx/certs:ro
     depends_on:
       - build
+    profiles:
+      - production
+
+  # Development with hot reload (alternative)
+  dev-hot:
+    image: node:18-alpine
+    container_name: dormitory-management-front-dev-hot
+    working_dir: /app
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - VITE_API_BASE_URL=http://localhost:8000/api
+      - VITE_APP_NAME="SDU Dormitory Management"
+    depends_on:
+      - init
+    command: sh -c "npm run dev -- --host 0.0.0.0 --port 3000"
+    profiles:
+      - dev-hot
 
 volumes:
   node_modules:
+  build_output:

@@ -1,78 +1,103 @@
-SDU Dormitory Management Frontend
-=================================
+# SDU Dormitory Management Frontend
 
-This is the frontend for the SDU Dormitory Management System, built with Vue 3, TypeScript, Tailwind CSS, and Pinia. It provides an admin interface for managing students, guests, rooms, dormitories, payments, and more.
+This is the frontend for the SDU Dormitory Management System, built with Vue 3, TypeScript, Tailwind CSS, and Pinia. It provides a comprehensive admin interface for managing students, guests, rooms, dormitories, payments, and more.
 
-Features
---------
+## 🚀 Features
 
-*   **Authentication**: Secure login for admins.
-*   **Student & Guest Management**: Add, edit, and view students and guests.
-*   **Room & Dormitory Management**: Manage rooms, room types, and dormitories.
-*   **Payments**: Track and manage student and guest payments.
-*   **Messaging**: Send and receive messages within the system.
-*   **Responsive UI**: Built with Tailwind CSS and Flowbite for a modern, responsive design.
-*   **Multi-language Support**: English, Kazakh, and Russian (see `/src/i18n/`).
+### Core Management
+- **Authentication & Authorization**: Secure login with role-based access control (admin, student, guest)
+- **Student Management**: Complete CRUD operations for student profiles with comprehensive data tracking
+- **Guest Management**: Guest house registration and management system
+- **Room & Dormitory Management**: Room types, room allocation, bed management with staff reservations
+- **Payment System**: Semester payment tracking, accounting, and financial management
+- **Messaging System**: Internal communication platform for announcements and notifications
 
-Project Structure
------------------
+### User Experience
+- **Responsive Design**: Modern, mobile-first interface built with Tailwind CSS
+- **Multi-language Support**: English, Kazakh, and Russian localization
+- **Accessibility (a11y)**: WCAG 2.1 compliant with keyboard navigation, screen reader support
+- **Real-time Updates**: Dynamic data loading and state management with Pinia
+- **Form Validation**: Comprehensive client-side and server-side validation
 
+### Technical Features
+- **TypeScript**: Full type safety and better development experience
+- **Component Library**: Reusable C* components for consistent UI/UX
+- **Testing**: Comprehensive unit and E2E test coverage (Vitest + Playwright)
+- **Internationalization**: Vue I18n with JSON-based translations
+- **State Management**: Pinia stores for centralized state management
+
+## 📁 Project Structure
+
+```
 src/
-  assets/           # Images and static assets
-  components/       # Reusable Vue components (inputs, tables, buttons, etc.)
-  models/           # TypeScript models for data structures
-  pages/            # Main page components (Students, Guests, Payments, etc.)
-  router/           # Vue Router configuration
-  services/         # API and business logic (if any)
-  stores/           # Pinia stores for state management
-  i18n/             # Localization files
-  index.css         # Tailwind and custom CSS
-  main.ts           # App entry point
+├── assets/           # Images and static assets
+├── components/       # Reusable Vue components (CButton, CModal, CInput, etc.)
+├── models/           # TypeScript interfaces and type definitions
+├── pages/            # Main page components (Students, Guests, Payments, etc.)
+├── router/           # Vue Router configuration with route guards
+├── services/         # API services and business logic
+├── stores/           # Pinia stores for state management
+├── i18n/             # Localization files (en.json, kk.json, ru.json)
+├── utils/            # Utility functions and helpers
+├── index.css         # Tailwind CSS and custom styles
+└── main.ts           # Application entry point
+```
 
-Getting Started
----------------
+## 🛠️ Getting Started
 
 ### Prerequisites
 
-*   [Node.js](https://nodejs.org/) (v18+ recommended)
-*   [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
-*   [Docker](https://www.docker.com/) (optional, for containerized development)
+- [Node.js](https://nodejs.org/) (v18+ recommended)
+- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
+- [Docker](https://www.docker.com/) (optional, for containerized development)
 
 ### Installation
 
-    
-    # Install dependencies
-    npm install
-    # or
-    yarn install
-    
+```bash
+# Install dependencies
+npm install
+# or
+yarn install
+```
 
 ### Development
 
-    
-    npm run dev
-    # or
-    yarn dev
-    
-
-The app will be available at [http://localhost:5173](http://localhost:5173) (or as configured).
-
-### Linting & Formatting
-
-    
-    npm run lint
-    npm run format
-    
-
-### Testing
-
-#### Unit Tests
+```bash
+# Start development server
+npm run dev
+# or
+yarn dev
 ```
+
+The application will be available at [http://localhost:5173](http://localhost:5173).
+
+### Environment Configuration
+
+Create a `.env` file in the root directory:
+
+```env
+VITE_API_BASE_URL=http://localhost:8000/api
+VITE_APP_NAME="SDU Dormitory Management"
+```
+
+## 🧪 Testing
+
+### Unit Tests (Vitest)
+
+```bash
+# Run all unit tests
 npm run test:unit
+
+# Run tests in watch mode
+npm run test:unit:watch
+
+# Generate coverage report
+npm run test:unit:coverage
 ```
 
-#### End-to-End (E2E) Tests
-```
+### End-to-End Tests (Playwright)
+
+```bash
 # Run E2E tests in headless mode
 npm run test:e2e
 
@@ -89,79 +114,238 @@ npm run test:e2e:headed
 - Database should be seeded with test data
 
 **E2E Test Coverage:**
-- User authentication flows
-- Admin profile management
-- Student profile management
-- Navigation and routing
+- User authentication flows (login, logout, password reset)
+- Admin profile management (CRUD operations)
+- Student profile management (registration, editing, validation)
+- Guest management workflows
+- Navigation and routing (sidebar, breadcrumbs)
 - Form interactions and validations
 - Payment management workflows
 - Dormitory and room management
-    
+- Messaging system
+- Accessibility testing (keyboard navigation, screen readers)
 
-### Build for Production
+### Test Configuration
 
-    
-    npm run build
-    
+Create `.env.testing` for E2E tests:
+
+```env
+ADMIN_EMAIL=admin@sdu.edu.kz
+ADMIN_PASSWORD=supersecret
+VITE_API_BASE_URL=http://localhost:8000/api
+```
+
+## 🏗️ Build & Deployment
+
+### Production Build
+
+```bash
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+```
 
 ### Docker Usage
 
-You can use Docker Compose for development, testing, and production builds:
+```bash
+# Install dependencies
+docker compose run --rm init
 
-    
-    # Install dependencies
-    docker compose run --rm init
-    
-    # Start development server
-    docker compose --profile dev up
-    
-    # Run unit tests
-    docker compose --profile test up
-    
-    # Build for production
-    docker compose --profile build up
-    
-    # Serve production build with Nginx
-    docker compose --profile serve up
-    
+# Start development server
+docker compose --profile dev up
 
-Customization
--------------
+# Run unit tests
+docker compose --profile test up
 
-*   **Theme Colors**: See `/src/index.css` for SDU color palette and font settings.
-*   **Localization**: Edit `/src/i18n/en.json`, `kk.json`, `ru.json` for translations.
-*   **Component Library**: Uses custom components in `/src/components/` and Flowbite for UI.
+# Build for production
+docker compose --profile build up
 
-Contributing
-------------
+# Serve production build with Nginx
+docker compose --profile serve up
+```
 
-1.  Fork the repository
-2.  Create your feature branch (`git checkout -b feature/YourFeature`)
-3.  Commit your changes (`git commit -am 'Add some feature'`)
-4.  Push to the branch (`git push origin feature/YourFeature`)
-5.  Create a new Pull Request
+## 🎨 Customization
 
-License
--------
+### Theme & Styling
+
+- **Colors**: SDU brand colors defined in `/src/index.css`
+- **Components**: Custom C* components in `/src/components/`
+- **Typography**: Inter font family with responsive sizing
+- **Spacing**: Tailwind CSS utility classes for consistent spacing
+
+### Internationalization
+
+Edit translation files in `/src/i18n/`:
+- `en.json` - English translations
+- `kk.json` - Kazakh translations  
+- `ru.json` - Russian translations
+
+### Component Library
+
+All UI components follow the C* naming convention:
+- `CButton` - Buttons with variants (primary, secondary, danger)
+- `CInput` - Form inputs with validation
+- `CModal` - Modal dialogs with accessibility features
+- `CTable` - Data tables with sorting and filtering
+- `CSelect` - Dropdown selects with search
+- `CToast` - Notification toasts
+- `CSidebar` - Navigation sidebar
+
+## 🔧 Development Guidelines
+
+### Code Style
+
+```bash
+# Linting
+npm run lint
+
+# Formatting
+npm run format
+
+# Type checking
+npm run type-check
+```
+
+### Component Development
+
+1. **Use C* components**: Always use existing C* components for consistency
+2. **TypeScript**: Write all components in TypeScript with proper interfaces
+3. **Testing**: Write unit tests for all components (TDD approach)
+4. **Accessibility**: Ensure WCAG 2.1 compliance with proper ARIA attributes
+5. **Internationalization**: Use `t()` function for all user-facing text
+
+### State Management
+
+- **Pinia Stores**: Use Pinia for global state management
+- **Component State**: Use Vue 3 Composition API for local state
+- **API Integration**: Centralize API calls in service files
+
+### Testing Strategy
+
+- **Unit Tests**: Test individual components and functions
+- **Integration Tests**: Test component interactions
+- **E2E Tests**: Test complete user workflows
+- **Accessibility Tests**: Ensure a11y compliance
+
+## 📚 API Integration
+
+### Authentication
+
+```typescript
+// Login
+POST /api/login
+{
+  "email": "user@example.com",
+  "password": "password"
+}
+
+// Get user profile
+GET /api/users/profile
+
+// Update profile
+PUT /api/users/profile
+```
+
+### Student Management
+
+```typescript
+// Get students with filters
+GET /api/students?faculty=engineering&status=active
+
+// Create student
+POST /api/students
+{
+  "iin": "123456789012",
+  "name": "John Doe",
+  "email": "john@example.com",
+  // ... other fields
+}
+```
+
+### Payment Management
+
+```typescript
+// Get payments with filters
+GET /api/payments?status=completed&date_from=2024-01-01
+
+// Create payment
+POST /api/payments
+{
+  "user_id": 1,
+  "amount": 150000,
+  "semester": "fall",
+  "year": 2024
+}
+```
+
+## 🔒 Security Features
+
+- **Role-based Access Control**: Different permissions for admin, student, guest
+- **Route Guards**: Protected routes with authentication checks
+- **Input Validation**: Client-side and server-side validation
+- **CSRF Protection**: Built-in CSRF token handling
+- **Secure Headers**: Security headers configured
+
+## ♿ Accessibility Features
+
+- **Keyboard Navigation**: Full keyboard accessibility
+- **Screen Reader Support**: Proper ARIA labels and roles
+- **Color Contrast**: WCAG 2.1 AA compliant color ratios
+- **Focus Management**: Visible focus indicators
+- **Semantic HTML**: Proper HTML structure for assistive technologies
+
+## 🚀 Performance Optimization
+
+- **Code Splitting**: Route-based code splitting
+- **Lazy Loading**: Component lazy loading
+- **Image Optimization**: Optimized image loading
+- **Bundle Analysis**: Webpack bundle analyzer
+- **Caching**: Proper caching strategies
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/YourFeature`)
+3. Write tests first (TDD approach)
+4. Implement the feature
+5. Ensure all tests pass
+6. Commit your changes (`git commit -am 'Add some feature'`)
+7. Push to the branch (`git push origin feature/YourFeature`)
+8. Create a new Pull Request
+
+### Code Review Checklist
+
+- [ ] Does this follow all conventions from `design guidelines.md`?
+- [ ] Are all business rules enforced and tested?
+- [ ] Is the code accessible (a11y compliant)?
+- [ ] Are there comprehensive tests (unit + E2E)?
+- [ ] Is the code properly documented?
+- [ ] Does it follow TypeScript best practices?
+
+## 📄 License
 
 This project is private and for SDU internal use only.
 
-* * *
+---
 
 **SDU Dormitory Management System**  
 Contact: [info@sdu.edu.kz](mailto:info@sdu.edu.kz)
 
-## Running E2E Tests
+## 🆘 Troubleshooting
 
-1. Install dependencies (including dotenv-cli):
-   ```sh
-   npm install --save-dev dotenv-cli
-   ```
+### Common Issues
 
-2. Create and configure `.env.testing` in the crm-front directory with the required variables (e.g., ADMIN_EMAIL, ADMIN_PASSWORD, VITE_API_BASE_URL).
+1. **CORS Errors**: Ensure backend CORS configuration allows frontend origin
+2. **Authentication Issues**: Check API base URL and credentials
+3. **Test Failures**: Ensure both frontend and backend servers are running
+4. **Build Errors**: Check Node.js version and dependency compatibility
 
-3. Run E2E tests with:
-   ```sh
-   npm run test:e2e
-   ```
-   This will automatically load environment variables from `.env.testing` for Playwright tests.
+### Development Tips
+
+- Use Vue DevTools for debugging
+- Check browser console for API errors
+- Use TypeScript strict mode for better type safety
+- Run tests frequently during development
+- Follow the established component patterns

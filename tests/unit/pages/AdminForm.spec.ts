@@ -22,6 +22,10 @@ vi.mock('@/services/api', () => ({
     getProfile: vi.fn(),
     changePassword: vi.fn(),
   },
+  adminService: {
+    create: vi.fn(),
+    update: vi.fn(),
+  },
   dormitoryService: {
     getAll: vi.fn(),
   },
@@ -94,7 +98,7 @@ describe('AdminForm', () => {
       expect(component.user.surname).toBe('');
       expect(component.adminProfile.dormitory).toBe(null);
       expect(component.user.email).toBe('');
-      expect(component.user.phoneNumbers).toEqual(['']);
+      expect(component.user.phone_numbers).toEqual(['']);
     });
 
     it('should load dormitories on mount', async () => {
@@ -179,20 +183,23 @@ describe('AdminForm', () => {
       component.user = {
         name: 'John',
         surname: 'Doe',
+        email: 'john.doe@example.com',
+        phone_numbers: ['+1234567890'],
+        password: 'password123',
+        confirmPassword: 'password123',
       };
       component.adminProfile = {
-        dormitory: 1,
-        email: 'john.doe@example.com',
-        phoneNumbers: ['+1234567890'],
+        position: 'Manager',
+        department: 'IT',
       };
 
       await component.submitForm();
 
-      expect(api.userService.create).toHaveBeenCalledWith({ user: { first_name: 'John', last_name: 'Doe' }, profile: { email: 'john.doe@example.com', phone: '+1234567890', dormitory_id: 1 } });
+      expect(api.adminService.create).toHaveBeenCalledWith({ name: 'John', email: 'john.doe@example.com', phone_numbers: ['+1234567890'], password: 'password123', password_confirmation: 'password123', position: 'Manager', department: 'IT', office_phone: undefined, office_location: undefined });
     });
 
     it('should update profile for existing admin', async () => {
-      vi.mocked(api.authService.updateProfile).mockResolvedValue(
+      vi.mocked(api.adminService.update).mockResolvedValue(
         createMockResponse({ message: 'Profile updated successfully' })
       );
 
@@ -210,22 +217,28 @@ describe('AdminForm', () => {
       component.user = {
         name: 'John',
         surname: 'Doe',
+        email: 'john.doe@example.com',
+        phone_numbers: ['+1234567890'],
+        password: 'password123',
+        confirmPassword: 'password123',
       };
       component.adminProfile = {
-        dormitory: 1,
-        email: 'john.doe@example.com',
-        phoneNumbers: ['+1234567890'],
+        position: 'Manager',
+        department: 'IT',
       };
 
       await component.submitForm();
 
-      expect(api.authService.updateProfile).toHaveBeenCalledWith({ user: { first_name: 'John', last_name: 'Doe' }, profile: { email: 'john.doe@example.com', phone: '+1234567890', dormitory_id: 1 } });
+      expect(api.adminService.update).toHaveBeenCalledWith(1, { name: 'John', email: 'john.doe@example.com', phone_numbers: ['+1234567890'], password: 'password123', password_confirmation: 'password123', position: 'Manager', department: 'IT', office_phone: undefined, office_location: undefined });
     });
 
     it('should handle form submission errors', async () => {
-      vi.mocked(api.userService.create).mockRejectedValue(
+      vi.mocked(api.adminService.create).mockRejectedValue(
         new Error('API Error')
       );
+
+      // Mock route to not have an ID (so we're not in editing mode)
+      router.currentRoute.value.params = {};
 
       const wrapper = mount(AdminForm, {
         global: {
@@ -235,33 +248,76 @@ describe('AdminForm', () => {
 
       const component = wrapper.vm as any;
       
+      // Debug: Check if we're in editing mode
+      console.log('isEditing:', component.isEditing);
+      console.log('userId:', component.userId);
+      
       // Fill form data
       component.user = {
         name: 'John',
         surname: 'Doe',
+        email: 'john.doe@example.com',
+        phone_numbers: ['+1234567890'],
+        password: 'password123',
+        confirmPassword: 'password123',
       };
       component.adminProfile = {
-        dormitory: 1,
-        email: 'john.doe@example.com',
-        phoneNumbers: ['+1234567890'],
+        position: 'Manager',
+        department: 'IT',
       };
 
-      await component.submitForm();
+      // Debug: Check phone number validation
+      console.log('Phone number validation check:', {
+        phone_numbers: component.user.phone_numbers,
+        length: component.user.phone_numbers?.length,
+        first: component.user.phone_numbers?.[0],
+        isTruthy: !!component.user.phone_numbers?.[0],
+      });
+
+      // Mock the showError function to prevent it from throwing
+      const showErrorSpy = vi.spyOn(component, 'showError').mockImplementation(() => {});
+
+      // Debug: Check form data before submission
+      console.log('Form data before submission:', {
+        phone_numbers: component.user.phone_numbers,
+        name: component.user.name,
+        email: component.user.email,
+        password: component.user.password,
+        confirmPassword: component.user.confirmPassword,
+      });
+
+      // Debug: Check if submitForm method exists
+      console.log('submitForm method exists:', typeof component.submitForm);
+      console.log('submitForm method:', component.submitForm);
+
+      try {
+        await component.submitForm();
+        console.log('submitForm completed successfully');
+      } catch (error) {
+        console.log('submitForm threw an error:', error);
+      }
+
+      // Debug: Check if showError was called
+      console.log('showError called:', showErrorSpy.mock.calls.length);
+      console.log('showError calls:', showErrorSpy.mock.calls);
 
       // Should handle the error gracefully
-      expect(api.userService.create).toHaveBeenCalled();
+      expect(api.adminService.create).toHaveBeenCalled();
     });
   });
 
   describe('Password Change Functionality', () => {
     it('should show password change form when button is clicked', async () => {
+      // Mock route to have an ID (so we're in editing mode)
+      router.currentRoute.value.params = { id: '1' };
+
       const wrapper = mount(AdminForm, {
         global: {
           plugins: [router, i18n],
         },
       });
 
-      const passwordButton = wrapper.find('button:contains("Change Password")');
+      const passwordButton = wrapper.find('[data-testid="change-password-btn"]');
       await passwordButton.trigger('click');
 
       expect(wrapper.find('#current-password').exists()).toBe(true);
@@ -351,7 +407,7 @@ describe('AdminForm', () => {
       
       await component.changePassword();
 
-      expect(api.authService.changePassword).toHaveBeenCalledWith({ user: { current_password: 'oldpass' }, profile: { password: 'newpass123', password_confirmation: 'newpass123' } });
+      expect(api.authService.changePassword).toHaveBeenCalledWith({ current_password: 'oldpass', password: 'newpass123', password_confirmation: 'newpass123' });
     });
 
     it('should cancel password change and reset form', async () => {

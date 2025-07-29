@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-blue-50 py-2 lg:p-4">
+  <div class="min-h-screen flex items-center justify-center bg-primary-50 py-2 lg:p-4">
     <div class="w-full flex flex-col items-center">
       <div v-if="successMessage" class="bg-green-100 text-green-800 p-3 rounded mb-4 w-full max-w-md mx-auto">
         {{ successMessage }}
@@ -7,7 +7,7 @@
       <div class="w-full" :class="activeTab === 'registration' ? 'lg:max-w-5xl' : 'max-w-md'">
         <div class="mb-4 w-full flex justify-end">
           <CSelect
-            id="language-selector"
+            id="language-switcher"
             v-model="selectedLanguage"
             :options="languageOptions"
             :label="t('Language')"
@@ -29,7 +29,7 @@
                     v-model="credentials.email"
                     type="email"
                     :label="t('Email')"
-                    placeholder="example@domain.com"
+                    :placeholder="emailPlaceholder"
                     required
                     autocomplete="email"
                     :validationState="credentialsValidationState.email"
@@ -60,7 +60,7 @@
               </form>
               <div class="mt-2 flex justify-end">
                 <a
-                  class="text-xs text-primary-800 hover:underline cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary-300 rounded"
+                  class="text-xs text-primary-600 hover:text-primary-800 hover:underline cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary-300 rounded"
                   data-testid="forgot-password"
                   @click="showPasswordReset = true"
                   tabindex="0"
@@ -168,7 +168,7 @@
                       v-model="registration.email"
                       type="email"
                       :label="t('Login Email')"
-                      placeholder="example@domain.com"
+                      :placeholder="emailPlaceholder"
                       required
                       :validationState="registrationValidationState.email"
                       :validationMessage="registrationValidationMessage.email"
@@ -340,7 +340,8 @@ import PasswordReset from "@/features/auth/PasswordReset.vue";
 import { UserRegistration, UserStatus } from "@/models/User";
 import { useToast } from "@/composables/useToast";
 import { ref, onMounted, computed, watch } from 'vue';
-import { roomService } from '@/services/api';
+import { roomService, dormitoryService } from '@/services/api';
+import i18n from '@/i18n';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -352,7 +353,34 @@ const reserveListMessage = ref("");
 const successMessage = ref("");
 
 const handleRegistration = async () => {
-  // TODO: Add validation logic for registration fields
+  // Validate registration fields
+  const validationErrors = [];
+  
+  if (!registration.value.name?.trim()) {
+    validationErrors.push(t('Name is required'));
+  }
+  
+  if (!registration.value.email?.trim()) {
+    validationErrors.push(t('Email is required'));
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(registration.value.email)) {
+    validationErrors.push(t('Please enter a valid email address'));
+  }
+  
+  if (!registration.value.password?.trim()) {
+    validationErrors.push(t('Password is required'));
+  } else if (registration.value.password.length < 6) {
+    validationErrors.push(t('Password must be at least 6 characters'));
+  }
+  
+  if (registration.value.password !== registration.value.confirmPassword) {
+    validationErrors.push(t('Passwords do not match'));
+  }
+  
+  if (validationErrors.length > 0) {
+    showError(validationErrors.join(', '));
+    return;
+  }
+  
   try {
     const payload = {
       ...registration.value,
@@ -437,10 +465,10 @@ const registration = ref(
 
 // Fixed file input labels
 const registrationFileLabels = [
-  "063 Form",
-  "075 Form",
-  "ID Check",
-  "Bank Check",
+  t("063 Form"),
+  t("075 Form"),
+  t("ID Check"),
+  t("Bank Check"),
 ];
 
 const registrationValidationState = ref<{
@@ -501,11 +529,28 @@ const guest = ref({
   files: [null],
 });
 
-const roomTypeOptions = [
-  { value: "single", name: "Single Room" },
-  { value: "double", name: "Double Room" },
-  { value: "suite", name: "Suite" },
-];
+import { roomTypeService } from '@/services/api';
+import { RoomType } from '@/models/RoomType';
+const roomTypeOptions = ref<{ value: string; name: string }[]>([]);
+
+async function fetchRoomTypes() {
+  try {
+    const response = await roomTypeService.getAll();
+    // Only allow 'standard' and 'lux' (case-insensitive)
+    const allowed = ['standard', 'lux'];
+    roomTypeOptions.value = (response.data as RoomType[])
+      .filter(rt => allowed.includes(rt.name.toLowerCase()))
+      .map(rt => ({
+        value: rt.id,
+        name: t(rt.name.charAt(0).toUpperCase() + rt.name.slice(1)),
+      }));
+  } catch (e) {
+    roomTypeOptions.value = [];
+  }
+}
+
+onMounted(fetchRoomTypes);
+watch(() => i18n.global.locale.value, fetchRoomTypes);
 
 const addGuestFileInput = (event) => {
   guest.value.files.push(null);
@@ -532,10 +577,24 @@ const genderOptions = [
   { value: "female", name: "Female" },
 ];
 
-const dormitoryOptions = [
-  { value: "a_block", name: "A-Block" },
-  { value: "b_block", name: "B-Block" },
-];
+const dormitoryOptions = ref([]);
+
+// Fetch dormitories on component mount
+onMounted(async () => {
+  try {
+    const response = await dormitoryService.getAll();
+    dormitoryOptions.value = response.data.map(dorm => ({
+      value: dorm.id.toString(),
+      name: dorm.name
+    }));
+  } catch (error) {
+    console.error('Failed to fetch dormitories:', error);
+    // Fallback to hardcoded options if API fails
+    dormitoryOptions.value = [
+      { value: "4", name: "A Block" },
+    ];
+  }
+});
 
 const availableRooms = ref([]);
 const allAvailableBeds = ref([]);
@@ -661,4 +720,21 @@ const handleGuestRegistration = async () => {
     showError(t('Registration failed'));
   }
 };
+
+// Computed email placeholder based on selected language
+const emailPlaceholder = computed(() => {
+  switch (selectedLanguage.value) {
+    case 'kk':
+      return 'мысалы: user@mysdu.kz';
+    case 'ru':
+      return 'например: user@mysdu.kz';
+    default:
+      return 'example@domain.com';
+  }
+});
+
+// Watch for language change and update i18n locale
+watch(selectedLanguage, (newLocale) => {
+  i18n.global.locale.value = newLocale;
+});
 </script>

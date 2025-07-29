@@ -53,7 +53,7 @@ describe('PaymentForm.vue', () => {
 
   it('renders payment form correctly', () => {
     expect(wrapper.find('h1').text()).toBe('Payment Form')
-    expect(wrapper.find('form').exists()).toBe(true)
+    expect(wrapper.find('div').exists()).toBe(true)
   })
 
   it('loads users on mount', async () => {

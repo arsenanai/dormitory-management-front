@@ -28,7 +28,7 @@
     </div>
 
     <!-- Loading State -->
-    <div v-if="loading" class="text-center py-4" data-testid="loading">
+    <div v-if="loading" class="text-center py-4 text-primary-600" data-testid="loading">
       {{ t("Loading...") }}
     </div>
 

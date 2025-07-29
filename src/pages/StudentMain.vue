@@ -1,26 +1,27 @@
 <template>
   <Navigation :title="t('Student\'s page')">
     <!-- Dormitory Access Status (NEW) -->
-    <div v-if="dormitoryAccessLoading" class="mb-4">
-      <div class="bg-gray-100 text-gray-800 p-3 rounded animate-pulse">
-        {{ t('Checking dormitory access...') }}
-      </div>
+    <div v-if="dormitoryAccessLoading" class="bg-primary-100 text-primary-800 p-3 rounded animate-pulse">
+      {{ t('Loading dormitory access information...') }}
     </div>
-    <div v-else-if="dormitoryAccessChecked" class="mb-4">
-      <div v-if="!canAccessDormitory" class="bg-red-100 text-red-800 p-3 rounded">
-        {{ t('You cannot access the dormitory. Please check your payment status.') }}
-        <div class="text-xs mt-1">{{ dormitoryAccessReason }}</div>
-      </div>
-      <div v-else class="bg-green-100 text-green-800 p-3 rounded">
-        {{ t('You have access to the dormitory.') }}
-      </div>
+
+    <div v-if="!canAccessDormitory" class="bg-red-100 text-red-800 p-3 rounded">
+      {{ t('Access Denied') }}
+      <div class="text-xs mt-1">{{ dormitoryAccessReason }}</div>
     </div>
+    <div v-else class="bg-green-100 text-green-800 p-3 rounded">
+      {{ t('Access Granted') }}
+      <div class="text-xs mt-1">{{ t('You have access to the dormitory.') }}</div>
+    </div>
+
+    <h2 class="text-lg font-bold text-primary-700 mt-6 mb-4">
+      {{ t('Dormitory Information') }}
+    </h2>
     <!-- Registration Status -->
     <div class="mb-6">
-      <h2 class="text-lg font-bold text-gray-800">
-        {{ t("REGISTRATION STATUS") }}:
-        <span class="font-normal">{{ t("Enrolled or pending") }}</span>
-      </h2>
+      <h3 class="text-sm font-medium text-primary-600 mb-2">
+        {{ t('Registration Status') }}
+      </h3>
     </div>
 
     <!-- Messages Section -->
@@ -35,28 +36,13 @@
       </h2>
 
       <!-- Messages Table -->
-      <CTable>
-        <CTableHead>
-          <CTableHeadCell>{{ t("FROM") }}</CTableHeadCell>
-          <CTableHeadCell>{{ t("SUBJECT") }}</CTableHeadCell>
-          <CTableHeadCell>{{ t("DATE-TIME") }}</CTableHeadCell>
-        </CTableHead>
-        <CTableBody>
-          <CTableRow
-            v-for="(message, index) in messages"
-            :key="index"
-            @click="selectMessage(message, index)"
-            :class="{
-              'bg-gray-100 text-gray-900': selectedMessageIndex === index,
-              'cursor-pointer hover:bg-gray-50': selectedMessageIndex !== index,
-            }"
-          >
-            <CTableCell>{{ message.from }}</CTableCell>
-            <CTableCell>{{ message.subject }}</CTableCell>
-            <CTableCell>{{ message.dateTime }}</CTableCell>
-          </CTableRow>
-        </CTableBody>
-      </CTable>
+      <CTable 
+        :columns="messageColumns" 
+        :data="messages" 
+        :loading="false"
+        hoverable
+        @row-click="handleMessageClick"
+      />
     </div>
 
     <!-- Selected Message -->
@@ -84,16 +70,18 @@ import { ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import Navigation from "@/components/CNavigation.vue";
 import CTable from "@/components/CTable.vue";
-import CTableHead from "@/components/CTableHead.vue";
-import CTableHeadCell from "@/components/CTableHeadCell.vue";
-import CTableBody from "@/components/CTableBody.vue";
-import CTableRow from "@/components/CTableRow.vue";
-import CTableCell from "@/components/CTableCell.vue";
 import CTextarea from "@/components/CTextarea.vue";
 import { Message } from "@/models/Message"; // Import the Message class
 import { dormitoryAccessService } from '@/services/api';
 
 const { t } = useI18n();
+
+// Message table columns
+const messageColumns = [
+  { key: 'from', label: t('FROM') },
+  { key: 'subject', label: t('SUBJECT') },
+  { key: 'dateTime', label: t('DATE-TIME') },
+];
 
 // Messages Data
 const messages = ref<Message[]>([
@@ -127,6 +115,14 @@ const dormitoryAccessLoading = ref<boolean>(true);
 const selectMessage = (message: Message, index: number): void => {
   selectedMessage.value = message;
   selectedMessageIndex.value = index;
+};
+
+// Handle message row click
+const handleMessageClick = (message: Message): void => {
+  const index = messages.value.findIndex(m => m === message);
+  if (index !== -1) {
+    selectMessage(message, index);
+  }
 };
 
 // Set the latest message as active on component mount

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { dashboardService } from '@/services/api';
+import { useAuthStore } from '@/stores/auth';
 
 export interface DashboardStats {
   dormitories: number;
@@ -33,7 +34,16 @@ export const useDashboardStore = defineStore('dashboard', () => {
     loading.value = true;
     error.value = null;
     try {
-      const response = await dashboardService.getStats();
+      const authStore = useAuthStore();
+      let response;
+      
+      // Call appropriate endpoint based on user role
+      if (authStore.user?.role?.name === 'student') {
+        response = await dashboardService.getStudentStats();
+      } else {
+        response = await dashboardService.getStats();
+      }
+      
       console.log('DEBUG: dashboardService.getStats response:', response);
       const data = response.data || {};
       stats.value = {

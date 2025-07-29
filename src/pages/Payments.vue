@@ -1,7 +1,7 @@
 <template>
   <Navigation :title="t('Payment Management')">
     <div class="flex flex-col gap-4">
-      <h1>Payments</h1>
+      <h1>{{ t('Payments') }}</h1>
       
       <!-- Filter and Add Payment Button Section -->
       <div class="flex flex-col items-stretch gap-4 lg:flex-row lg:items-end lg:justify-between w-full">
@@ -160,17 +160,18 @@
       </div>
 
       <!-- Total Amount Display -->
-      <div v-if="payments.length > 0" class="mt-4 p-4 bg-gray-100 rounded">
-        <h3 class="text-lg font-semibold">{{ t('Total Amount') }}: ${{ totalAmount.toFixed(2) }}</h3>
+      <div v-if="payments.length > 0" class="mt-4 p-4 bg-primary-50 rounded">
+        <h3 class="text-lg font-semibold text-primary-700">{{ t('Total Amount') }}: ${{ totalAmount.toFixed(2) }}</h3>
       </div>
     </div>
 
     <!-- Payment Form Modal -->
-    <div v-if="showForm" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white p-6 rounded-lg max-w-md w-full mx-4">
-        <h2 class="text-xl font-bold mb-4">
+    <CModal v-if="showForm" v-model="showForm">
+      <template #header>
+        <h2 class="text-xl font-bold text-primary-700">
           {{ selectedPayment ? t('Edit Payment') : t('Add Payment') }}
         </h2>
+      </template>
         
         <form @submit.prevent="handleFormSubmit(formData)">
           <div class="space-y-4">
@@ -222,8 +223,7 @@
             </CButton>
           </div>
         </form>
-      </div>
-    </div>
+      </CModal>
   </Navigation>
 </template>
 
@@ -241,6 +241,7 @@ import CTableBody from "@/components/CTableBody.vue";
 import CTableRow from "@/components/CTableRow.vue";
 import CTableCell from "@/components/CTableCell.vue";
 import CButton from "@/components/CButton.vue";
+import CModal from "@/components/CModal.vue"; // Added CModal import
 import { PencilSquareIcon } from "@heroicons/vue/24/outline";
 import { paymentService } from "@/services/api";
 import { usePaymentsStore } from "@/stores/payments";

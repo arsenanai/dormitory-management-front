@@ -48,7 +48,7 @@
 
       <!-- Display uploaded photos -->
       <div v-if="roomType.photos.length > 0" class="mt-4">
-        <h3 class="text-lg font-medium mb-2">{{ t('Uploaded Photos') }}</h3>
+        <h3 class="text-lg font-medium mb-2 text-primary-700">{{ t('Uploaded Photos') }}</h3>
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           <div
             v-for="(photo, index) in roomType.photos"
@@ -60,13 +60,15 @@
               :alt="`Room photo ${index + 1}`"
               class="w-full h-24 object-cover rounded-lg border"
             />
-            <button
+            <CButton
               @click="removePhoto(index)"
-              class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+              size="small"
+              variant="danger"
+              class="absolute top-1 right-1 w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
               type="button"
             >
               ×
-            </button>
+            </CButton>
           </div>
         </div>
       </div>
@@ -122,7 +124,7 @@
 
       <!-- Bed controls and info -->
       <div class="flex flex-col md:flex-row md:items-center md:gap-4 mb-2">
-        <div class="text-gray-500 text-sm flex-1">
+        <div class="text-primary-500 text-sm flex-1">
           {{ t('Double-click a bed to remove it. Drag beds to reposition. Select a bed and use the rotate buttons.') }}
         </div>
         <div v-if="selectedBedIdx !== null" class="flex gap-2 items-center mt-2 md:mt-0">
@@ -228,8 +230,24 @@ const roomPlanStyle = computed(() => ({
 }));
 
 
-// For duplicate name check (simulate store or API)
-const existingNames = ref<string[]>(["Deluxe"]); // TODO: Replace with real fetch
+// For duplicate name check (fetch from API)
+const existingNames = ref<string[]>([]);
+
+// Load existing room type names for duplicate checking
+const loadExistingNames = async () => {
+  try {
+    const response = await roomTypeService.getAll();
+    existingNames.value = response.data.map((roomType: any) => roomType.name);
+  } catch (error) {
+    console.error('Failed to load existing room type names:', error);
+    existingNames.value = [];
+  }
+};
+
+// Load existing names on component mount
+onMounted(() => {
+  loadExistingNames();
+});
 
 function validatePhoto(file: File) {
   const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];

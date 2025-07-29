@@ -4,7 +4,7 @@
     <label
       v-if="label"
       :for="id"
-      class="block text-sm font-medium text-gray-900 dark:text-white"
+      :class="['block text-sm font-medium', disabled ? 'text-gray-400' : 'text-gray-900 dark:text-white']"
     >
       {{ label }}
     </label>
@@ -13,13 +13,18 @@
     <select
       :id="id"
       v-model="internalValue"
-      :class="[baseSelectClass, validationClass]"
+      :class="[
+        baseSelectClass,
+        validationClass,
+        disabled ? disabledSelectClass : '',
+      ]"
       :required="required"
       :disabled="disabled"
     >
       <option v-if="placeholder" disabled value="">{{ placeholder }}</option>
+      <!-- options must always have a defined value (string | number) -->
       <option
-        v-for="option in options"
+        v-for="option in safeOptions"
         :key="option.value"
         :value="option.value"
       >
@@ -36,7 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch, type ComputedRef } from "vue";
 
 // Define the type for options
 interface Option {
@@ -59,6 +64,11 @@ interface Props {
 
 // Define props
 const props = defineProps<Props>();
+
+// Computed property to filter out options with undefined/null value
+const safeOptions: ComputedRef<Array<{ value: string | number; name: string }>> = computed(() =>
+  (props.options || []).filter((o): o is { value: string | number; name: string } => o.value !== undefined && o.value !== null)
+);
 
 // Emit events
 const emit = defineEmits<{
@@ -85,6 +95,9 @@ watch(internalValue, (newValue) => {
 // Base Classes
 const baseSelectClass =
   "bg-gray-50 border text-gray-900 text-sm rounded-lg focus:ring-4 focus:ring-primary-300 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-700 dark:focus:border-primary-500";
+
+// Disabled Classes
+const disabledSelectClass = 'cursor-not-allowed bg-gray-100 border-gray-300 text-gray-400';
 
 // Validation Classes
 const validationClass = computed(() => {

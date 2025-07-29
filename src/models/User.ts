@@ -10,16 +10,39 @@ export interface User {
   first_name?: string;
   last_name?: string;
   email: string;
+  email_verified_at?: string;
   phone_numbers?: string[];
   room_id?: number;
-  status: string;
-  role_id: number;
-  role?: { id: number; name: string };
+  password?: string;
+  status: UserStatus;
+  role_id?: number;
+  role?: Role;
+  room?: Room;
+  city?: City;
+  // Student-specific fields (some may be moved to StudentProfile)
+  student_id?: string;
+  birth_date?: string;
+  blood_type?: string;
+  course?: string;
+  faculty?: string;
+  specialty?: string;
+  enrollment_year?: number;
+  graduation_year?: number;
+  gender?: 'male' | 'female';
+  emergency_contact?: string;
+  emergency_phone?: string;
+  violations?: string;
+  // Profile relationships
   student_profile?: StudentProfile;
   admin_profile?: AdminProfile;
   guest_profile?: GuestProfile;
+  // Timestamps
+  created_at?: string;
+  updated_at?: string;
+  deleted_at?: string;
 }
 
+// Import types after the interface to avoid circular imports
 import type { StudentProfile } from './StudentProfile';
 import type { AdminProfile } from './AdminProfile';
 import type { GuestProfile } from './GuestProfile';

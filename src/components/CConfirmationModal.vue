@@ -14,14 +14,14 @@
       >
         <!-- Header -->
         <div class="px-6 py-4 border-b border-gray-200">
-          <h3 :id="titleId" class="text-lg font-semibold text-gray-900">
-            {{ title || $t?.('Confirm Action') || 'Confirm Action' }}
+          <h3 :id="titleId" class="text-lg font-semibold text-primary-700">
+            {{ title }}
           </h3>
         </div>
         
         <!-- Body -->
         <div class="px-6 py-4">
-          <p :id="messageId" class="text-gray-600">
+          <p :id="messageId" class="text-primary-600">
             {{ message }}
           </p>
         </div>

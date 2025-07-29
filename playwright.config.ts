@@ -1,6 +1,25 @@
 import 'dotenv/config';
 import { config as dotenvConfig } from 'dotenv';
-dotenvConfig({ path: '.env.testing' });
+import { existsSync } from 'fs';
+
+// Load .env.testing if it exists, otherwise use default values
+if (existsSync('.env.testing')) {
+  dotenvConfig({ path: '.env.testing' });
+} else {
+  // Set default test environment variables
+  process.env.VITE_API_BASE_URL = 'http://localhost:8000/api';
+  process.env.VITE_APP_NAME = 'SDU Dormitory Test';
+  process.env.ADMIN_EMAIL = 'admin@example.com';
+  process.env.ADMIN_PASSWORD = 'password';
+  process.env.STUDENT_EMAIL = 'student@example.com';
+  process.env.STUDENT_PASSWORD = 'password';
+  process.env.SUPERADMIN_EMAIL = 'superadmin@example.com';
+  process.env.SUPERADMIN_PASSWORD = 'password';
+  process.env.VITE_TEST_MODE = 'true';
+  process.env.VITE_MOCK_EXTERNAL_SERVICES = 'true';
+  process.env.VITE_DEFAULT_LOCALE = 'en';
+  process.env.VITE_FALLBACK_LOCALE = 'en';
+}
 import { defineConfig, devices } from '@playwright/test';
 
 /**
@@ -34,40 +53,9 @@ export default defineConfig({
   /* Configure projects for major browsers */
   projects: [
     {
-      name: 'chromium',
+      name: 'chrome',
       use: { ...devices['Desktop Chrome'] },
     },
-
-    // Disable other browsers for faster testing during development
-    // {
-    //   name: 'firefox',
-    //   use: { ...devices['Desktop Firefox'] },
-    // },
-
-    // {
-    //   name: 'webkit',
-    //   use: { ...devices['Desktop Safari'] },
-    // },
-
-    /* Test against mobile viewports. */
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
-    // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
-    // },
-
-    /* Test against branded browsers. */
-    // {
-    //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    // },
-    // {
-    //   name: 'Google Chrome',
-    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-    // },
   ],
 
   /* Run your local dev server before starting the tests */

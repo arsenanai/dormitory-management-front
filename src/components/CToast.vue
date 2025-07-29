@@ -18,8 +18,8 @@
         
         <!-- Content -->
         <div class="flex-1 min-w-0">
-          <p v-if="title" class="text-sm font-medium">{{ title }}</p>
-          <p class="text-sm" :class="{ 'mt-1': title }">{{ message }}</p>
+          <p v-if="title" class="text-sm font-medium text-primary-700">{{ title }}</p>
+          <p class="text-sm text-primary-600" :class="{ 'mt-1': title }">{{ message }}</p>
         </div>
         
         <!-- Close button -->

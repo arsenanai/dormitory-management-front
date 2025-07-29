@@ -54,7 +54,7 @@
     </h2>
 
     <!-- Loading State -->
-    <div v-if="loading" class="text-center py-4">
+    <div v-if="loading" class="text-center py-4 text-primary-600">
       {{ t("Loading...") }}
     </div>
 

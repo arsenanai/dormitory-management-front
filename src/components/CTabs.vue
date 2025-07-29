@@ -28,12 +28,12 @@
             :aria-selected="activeTab === tab.name"
             :data-testid="`tab-${tab.name}`"
           >
-            {{ tab.title }}
+            {{ t(tab.title) }}
           </button>
         </li>
       </ul>
-      <p v-else class="text-center text-gray-500 dark:text-gray-400">
-        {{ t("tabs.noTabsAvailable") }}
+      <p v-else class="text-center text-primary-500 dark:text-primary-400">
+        {{ t('No tabs available') }}
       </p>
     </div>
 
