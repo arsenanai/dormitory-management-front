@@ -35,7 +35,6 @@
                     :validationState="credentialsValidationState.email"
                     validationstate-attr="validationstate"
                     :validationMessage="credentialsValidationMessage.email"
-                    pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
                   />
                 </div>
 
@@ -172,7 +171,6 @@
                       required
                       :validationState="registrationValidationState.email"
                       :validationMessage="registrationValidationMessage.email"
-                      pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
                     />
                   </div>
 
@@ -383,7 +381,21 @@ const handleRegistration = async () => {
   
   try {
     const payload = {
-      ...registration.value,
+      iin: registration.value.iin,
+      name: registration.value.name,
+      faculty: registration.value.faculty,
+      specialist: registration.value.specialist,
+      enrollment_year: parseInt(registration.value.enrollmentYear),
+      gender: registration.value.gender,
+      email: registration.value.email,
+      phone_numbers: registration.value.phoneNumbers.filter(p => p && p.trim() !== ''),
+      room_id: registration.value.room?.id || null,
+      password: registration.value.password,
+      password_confirmation: registration.value.confirmPassword,
+      deal_number: registration.value.dealNumber,
+      city_id: registration.value.city?.id || null,
+      files: registration.value.files.filter(f => f !== null && f instanceof File),
+      agree_to_dormitory_rules: registration.value.agreeToDormitoryRules,
       user_type: 'student',
     };
     const response = await authStore.register(payload);
@@ -660,7 +672,7 @@ const handleLogin = async () => {
   credentialsValidationMessage.value.password = "";
 
   // Email validation
-  const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const emailPattern = /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   if (!credentials.value.email) {
     credentialsValidationState.value.email = "error";
     credentialsValidationMessage.value.email = t("Email is required.");

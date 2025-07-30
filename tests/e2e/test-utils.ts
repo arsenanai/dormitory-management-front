@@ -88,6 +88,8 @@ export class TestUtils {
     await page.click(SELECTORS.loginButton);
     
     // Wait for successful login - redirect to main page
+    // First wait for success message, then wait for redirect
+    await page.waitForSelector('[data-testid="success-toast"], .toast-success', { timeout: 10000 });
     await page.waitForURL(/\/main/, { timeout: 30000 });
     await page.waitForLoadState('networkidle');
   }
