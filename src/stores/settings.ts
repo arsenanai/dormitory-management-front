@@ -55,7 +55,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const installedLanguages = ref<string[]>([]);
   const systemLogs = ref<SystemLog[]>([]);
   const loading = ref(false);
-  const error = ref<string | null>(null);
+  const error = ref<Error | null>(null);
 
   // Computed
   const hasSmtpSettings = computed(() => smtpSettings.value !== null);
@@ -70,9 +70,10 @@ export const useSettingsStore = defineStore('settings', () => {
       error.value = null;
       const response = await api.get('/configurations/smtp');
       smtpSettings.value = response.data;
+      error.value = null;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to fetch SMTP settings';
-      showToast('error', error.value);
+      error.value = err;
+      showToast('error', err.response?.data?.message || 'Failed to fetch SMTP settings');
     } finally {
       loading.value = false;
     }
@@ -84,11 +85,12 @@ export const useSettingsStore = defineStore('settings', () => {
       error.value = null;
       const response = await api.put('/configurations/smtp', settings);
       smtpSettings.value = response.data;
+      error.value = null;
       showToast('success', 'SMTP settings updated successfully');
       return response.data;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to update SMTP settings';
-      showToast('error', error.value);
+      error.value = err;
+      showToast('error', err.response?.data?.message || 'Failed to update SMTP settings');
       throw err;
     } finally {
       loading.value = false;
@@ -101,9 +103,10 @@ export const useSettingsStore = defineStore('settings', () => {
       error.value = null;
       const response = await api.get('/configurations/card-reader');
       cardReaderSettings.value = response.data;
+      error.value = null;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to fetch card reader settings';
-      showToast('error', error.value);
+      error.value = err;
+      showToast('error', err.response?.data?.message || 'Failed to fetch card reader settings');
     } finally {
       loading.value = false;
     }
@@ -115,11 +118,12 @@ export const useSettingsStore = defineStore('settings', () => {
       error.value = null;
       const response = await api.put('/configurations/card-reader', settings);
       cardReaderSettings.value = response.data;
+      error.value = null;
       showToast('success', 'Card reader settings updated successfully');
       return response.data;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to update card reader settings';
-      showToast('error', error.value);
+      error.value = err;
+      showToast('error', err.response?.data?.message || 'Failed to update card reader settings');
       throw err;
     } finally {
       loading.value = false;
@@ -132,9 +136,10 @@ export const useSettingsStore = defineStore('settings', () => {
       error.value = null;
       const response = await api.get('/configurations/onec');
       onecSettings.value = response.data;
+      error.value = null;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to fetch 1C settings';
-      showToast('error', error.value);
+      error.value = err;
+      showToast('error', err.response?.data?.message || 'Failed to fetch 1C settings');
     } finally {
       loading.value = false;
     }
@@ -146,11 +151,12 @@ export const useSettingsStore = defineStore('settings', () => {
       error.value = null;
       const response = await api.put('/configurations/onec', settings);
       onecSettings.value = response.data;
+      error.value = null;
       showToast('success', '1C settings updated successfully');
       return response.data;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to update 1C settings';
-      showToast('error', error.value);
+      error.value = err;
+      showToast('error', err.response?.data?.message || 'Failed to update 1C settings');
     } finally {
       loading.value = false;
     }
@@ -162,9 +168,10 @@ export const useSettingsStore = defineStore('settings', () => {
       error.value = null;
       const response = await api.get('/configurations/dormitory');
       dormitorySettings.value = response.data;
+      error.value = null;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to fetch dormitory settings';
-      showToast('error', error.value);
+      error.value = err;
+      showToast('error', err.response?.data?.message || 'Failed to fetch dormitory settings');
     } finally {
       loading.value = false;
     }
@@ -176,11 +183,12 @@ export const useSettingsStore = defineStore('settings', () => {
       error.value = null;
       const response = await api.put('/configurations/dormitory', settings);
       dormitorySettings.value = response.data;
+      error.value = null;
       showToast('success', 'Dormitory settings updated successfully');
       return response.data;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to update dormitory settings';
-      showToast('error', error.value);
+      error.value = err;
+      showToast('error', err.response?.data?.message || 'Failed to update dormitory settings');
       throw err;
     } finally {
       loading.value = false;
@@ -193,9 +201,10 @@ export const useSettingsStore = defineStore('settings', () => {
       error.value = null;
       const response = await api.get('/configurations/languages');
       installedLanguages.value = response.data;
+      error.value = null;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to fetch installed languages';
-      showToast('error', error.value);
+      error.value = err;
+      showToast('error', err.response?.data?.message || 'Failed to fetch installed languages');
     } finally {
       loading.value = false;
     }
@@ -216,11 +225,12 @@ export const useSettingsStore = defineStore('settings', () => {
       });
       
       await fetchInstalledLanguages();
+      error.value = null;
       showToast('success', 'Language file uploaded successfully');
       return response.data;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to upload language file';
-      showToast('error', error.value);
+      error.value = err;
+      showToast('error', err.response?.data?.message || 'Failed to upload language file');
       throw err;
     } finally {
       loading.value = false;
@@ -235,9 +245,10 @@ export const useSettingsStore = defineStore('settings', () => {
         params: { type, limit }
       });
       systemLogs.value = response.data;
+      error.value = null;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to fetch system logs';
-      showToast('error', error.value);
+      error.value = err;
+      showToast('error', err.response?.data?.message || 'Failed to fetch system logs');
     } finally {
       loading.value = false;
     }
@@ -249,10 +260,11 @@ export const useSettingsStore = defineStore('settings', () => {
       error.value = null;
       await api.delete('/configurations/logs');
       systemLogs.value = [];
+      error.value = null;
       showToast('success', 'System logs cleared successfully');
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to clear system logs';
-      showToast('error', error.value);
+      error.value = err;
+      showToast('error', err.response?.data?.message || 'Failed to clear system logs');
       throw err;
     } finally {
       loading.value = false;
@@ -264,10 +276,11 @@ export const useSettingsStore = defineStore('settings', () => {
       loading.value = true;
       error.value = null;
       await api.post('/configurations/initialize');
+      error.value = null;
       showToast('success', 'Default configurations initialized successfully');
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to initialize defaults';
-      showToast('error', error.value);
+      error.value = err;
+      showToast('error', err.response?.data?.message || 'Failed to initialize defaults');
       throw err;
     } finally {
       loading.value = false;

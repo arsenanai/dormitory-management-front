@@ -1,11 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { setActivePinia, createPinia } from 'pinia';
 import { useSettingsStore, type SmtpSettings, type CardReaderSettings, type OneCSettings, type DormitorySettings } from '@/stores/settings';
-import { api } from '@/services/api';
 
-// Mock the API service
+// Mock the API service as a default export
 vi.mock('@/services/api', () => ({
-  api: {
+  default: {
     get: vi.fn(),
     put: vi.fn(),
     post: vi.fn(),
@@ -91,6 +90,7 @@ describe('Settings Store', () => {
         mail_from_name: 'Test System',
       };
 
+      const api = (await import('@/services/api')).default;
       vi.mocked(api.get).mockResolvedValueOnce({ data: mockSmtpSettings });
 
       const store = useSettingsStore();
@@ -104,13 +104,16 @@ describe('Settings Store', () => {
 
     it('should handle SMTP settings fetch error', async () => {
       const error = new Error('Network error');
+      const api = (await import('@/services/api')).default;
       vi.mocked(api.get).mockRejectedValueOnce(error);
 
       const store = useSettingsStore();
       await store.fetchSmtpSettings();
 
-      expect(store.error).toBe('Failed to fetch SMTP settings');
+      expect(api.get).toHaveBeenCalledWith('/configurations/smtp');
+      expect(store.smtpSettings).toBeNull();
       expect(store.loading).toBe(false);
+      expect(store.error).toBe(error);
     });
 
     it('should update SMTP settings successfully', async () => {
@@ -124,6 +127,7 @@ describe('Settings Store', () => {
         mail_from_name: 'Test System',
       };
 
+      const api = (await import('@/services/api')).default;
       vi.mocked(api.put).mockResolvedValueOnce({ data: mockSmtpSettings });
 
       const store = useSettingsStore();
@@ -144,9 +148,10 @@ describe('Settings Store', () => {
         card_reader_host: '192.168.1.100',
         card_reader_port: 8080,
         card_reader_timeout: 30,
-        card_reader_locations: ['Main Entrance', 'Back Entrance'],
+        card_reader_locations: ['Main Entrance', 'Back Door'],
       };
 
+      const api = (await import('@/services/api')).default;
       vi.mocked(api.get).mockResolvedValueOnce({ data: mockCardReaderSettings });
 
       const store = useSettingsStore();
@@ -164,9 +169,10 @@ describe('Settings Store', () => {
         card_reader_host: '192.168.1.100',
         card_reader_port: 8080,
         card_reader_timeout: 30,
-        card_reader_locations: ['Main Entrance'],
+        card_reader_locations: ['Main Entrance', 'Back Door'],
       };
 
+      const api = (await import('@/services/api')).default;
       vi.mocked(api.put).mockResolvedValueOnce({ data: mockCardReaderSettings });
 
       const store = useSettingsStore();
@@ -191,6 +197,7 @@ describe('Settings Store', () => {
         onec_sync_interval: 3600,
       };
 
+      const api = (await import('@/services/api')).default;
       vi.mocked(api.get).mockResolvedValueOnce({ data: mockOnecSettings });
 
       const store = useSettingsStore();
@@ -212,6 +219,7 @@ describe('Settings Store', () => {
         onec_sync_interval: 3600,
       };
 
+      const api = (await import('@/services/api')).default;
       vi.mocked(api.put).mockResolvedValueOnce({ data: mockOnecSettings });
 
       const store = useSettingsStore();
@@ -228,13 +236,14 @@ describe('Settings Store', () => {
   describe('Dormitory Settings', () => {
     it('should fetch dormitory settings successfully', async () => {
       const mockDormitorySettings: DormitorySettings = {
-        max_students_per_dormitory: 500,
+        max_students_per_dormitory: 100,
+        default_room_price: 50000,
+        payment_deadline_days: 30,
         registration_enabled: true,
         backup_list_enabled: true,
-        payment_deadline_days: 30,
-        default_room_price: 50000,
       };
 
+      const api = (await import('@/services/api')).default;
       vi.mocked(api.get).mockResolvedValueOnce({ data: mockDormitorySettings });
 
       const store = useSettingsStore();
@@ -248,13 +257,14 @@ describe('Settings Store', () => {
 
     it('should update dormitory settings successfully', async () => {
       const mockDormitorySettings: DormitorySettings = {
-        max_students_per_dormitory: 500,
+        max_students_per_dormitory: 100,
+        default_room_price: 50000,
+        payment_deadline_days: 30,
         registration_enabled: true,
         backup_list_enabled: true,
-        payment_deadline_days: 30,
-        default_room_price: 50000,
       };
 
+      const api = (await import('@/services/api')).default;
       vi.mocked(api.put).mockResolvedValueOnce({ data: mockDormitorySettings });
 
       const store = useSettingsStore();
@@ -272,6 +282,7 @@ describe('Settings Store', () => {
     it('should fetch installed languages successfully', async () => {
       const mockLanguages = ['en', 'ru', 'kk'];
 
+      const api = (await import('@/services/api')).default;
       vi.mocked(api.get).mockResolvedValueOnce({ data: mockLanguages });
 
       const store = useSettingsStore();
@@ -284,18 +295,18 @@ describe('Settings Store', () => {
     });
 
     it('should upload language file successfully', async () => {
-      const mockFile = new File(['{"hello": "world"}'], 'test.json', { type: 'application/json' });
       const mockResponse = {
         message: 'Language file uploaded successfully',
         language: 'fr',
         file_path: 'languages/fr.json',
       };
 
+      const api = (await import('@/services/api')).default;
       vi.mocked(api.post).mockResolvedValueOnce({ data: mockResponse });
-      vi.mocked(api.get).mockResolvedValueOnce({ data: ['en', 'ru', 'kk', 'fr'] });
 
       const store = useSettingsStore();
-      const result = await store.uploadLanguageFile(mockFile, 'fr');
+      const file = new File(['{"hello": "bonjour"}'], 'fr.json', { type: 'application/json' });
+      const result = await store.uploadLanguageFile('fr', file);
 
       expect(api.post).toHaveBeenCalledWith('/configurations/languages/upload', expect.any(FormData), {
         headers: {
@@ -311,9 +322,11 @@ describe('Settings Store', () => {
   describe('System Logs', () => {
     it('should fetch system logs successfully', async () => {
       const mockLogs = [
-        { file: 'laravel.log', content: 'Test log entry', timestamp: '2024-01-01 12:00:00' },
+        { file: 'laravel.log', content: 'Error message', timestamp: '2024-01-01 12:00:00' },
+        { file: 'access.log', content: 'Access log entry', timestamp: '2024-01-01 12:01:00' },
       ];
 
+      const api = (await import('@/services/api')).default;
       vi.mocked(api.get).mockResolvedValueOnce({ data: mockLogs });
 
       const store = useSettingsStore();
@@ -328,11 +341,11 @@ describe('Settings Store', () => {
     });
 
     it('should clear system logs successfully', async () => {
-      vi.mocked(api.delete).mockResolvedValueOnce({ data: { message: 'System logs cleared successfully' } });
+      const api = (await import('@/services/api')).default;
+      vi.mocked(api.delete).mockResolvedValueOnce({});
 
       const store = useSettingsStore();
       store.systemLogs = [{ file: 'test.log', content: 'test', timestamp: '2024-01-01 12:00:00' }];
-      
       await store.clearSystemLogs();
 
       expect(api.delete).toHaveBeenCalledWith('/configurations/logs');
@@ -344,7 +357,8 @@ describe('Settings Store', () => {
 
   describe('Initialize Defaults', () => {
     it('should initialize defaults successfully', async () => {
-      vi.mocked(api.post).mockResolvedValueOnce({ data: { message: 'Default configurations initialized successfully' } });
+      const api = (await import('@/services/api')).default;
+      vi.mocked(api.post).mockResolvedValueOnce({});
 
       const store = useSettingsStore();
       await store.initializeDefaults();
@@ -357,12 +371,44 @@ describe('Settings Store', () => {
 
   describe('Fetch All Settings', () => {
     it('should fetch all settings successfully', async () => {
-      const mockSmtpSettings = { smtp_host: 'test' };
-      const mockCardReaderSettings = { card_reader_enabled: false };
-      const mockOnecSettings = { onec_enabled: false };
-      const mockDormitorySettings = { max_students_per_dormitory: 500 };
+      const mockSmtpSettings: SmtpSettings = {
+        smtp_host: 'smtp.gmail.com',
+        smtp_port: 587,
+        smtp_username: 'test@example.com',
+        smtp_password: 'password',
+        smtp_encryption: 'tls',
+        mail_from_address: 'noreply@example.com',
+        mail_from_name: 'Test System',
+      };
+
+      const mockCardReaderSettings: CardReaderSettings = {
+        card_reader_enabled: true,
+        card_reader_host: '192.168.1.100',
+        card_reader_port: 8080,
+        card_reader_timeout: 30,
+        card_reader_locations: ['Main Entrance'],
+      };
+
+      const mockOnecSettings: OneCSettings = {
+        onec_enabled: true,
+        onec_host: '192.168.1.200',
+        onec_database: 'testdb',
+        onec_username: 'admin',
+        onec_password: 'password',
+        onec_sync_interval: 3600,
+      };
+
+      const mockDormitorySettings: DormitorySettings = {
+        max_students_per_dormitory: 100,
+        default_room_price: 50000,
+        payment_deadline_days: 30,
+        registration_enabled: true,
+        backup_list_enabled: true,
+      };
+
       const mockLanguages = ['en', 'ru', 'kk'];
 
+      const api = (await import('@/services/api')).default;
       vi.mocked(api.get)
         .mockResolvedValueOnce({ data: mockSmtpSettings })
         .mockResolvedValueOnce({ data: mockCardReaderSettings })
@@ -379,6 +425,8 @@ describe('Settings Store', () => {
       expect(store.onecSettings).toEqual(mockOnecSettings);
       expect(store.dormitorySettings).toEqual(mockDormitorySettings);
       expect(store.installedLanguages).toEqual(mockLanguages);
+      expect(store.loading).toBe(false);
+      expect(store.error).toBeNull();
     });
   });
 }); 

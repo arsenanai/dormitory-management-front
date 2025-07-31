@@ -53,7 +53,7 @@ vi.mock('vue-router', () => ({
   })
 }))
 
-describe.skip('Profile Management Comprehensive Tests', () => {
+describe('Profile Management Comprehensive Tests', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     
@@ -100,15 +100,15 @@ describe.skip('Profile Management Comprehensive Tests', () => {
       await emailInput.setValue('newemail@example.com')
 
       // Submit form
-      await wrapper.vm.submitForm()
+      await wrapper.vm.updateProfile()
 
       // Verify API was called with new email
       expect(authService.updateProfile).toHaveBeenCalledWith({
         first_name: expect.any(String),
         last_name: expect.any(String),
         email: 'newemail@example.com',
-        phone: expect.any(String),
-        dormitory_id: expect.any(Number),
+        phone_numbers: expect.any(Array),
+        dormitory_id: 1,
       })
     })
 
@@ -141,14 +141,14 @@ describe.skip('Profile Management Comprehensive Tests', () => {
       wrapper.vm.admin.dormitory = 2
 
       // Submit form
-      await wrapper.vm.submitForm()
+      await wrapper.vm.updateProfile()
 
       // Verify API was called with new dormitory_id
       expect(authService.updateProfile).toHaveBeenCalledWith({
         first_name: expect.any(String),
         last_name: expect.any(String),
         email: expect.any(String),
-        phone: expect.any(String),
+        phone_numbers: expect.any(Array),
         dormitory_id: 2,
       })
     })
@@ -303,7 +303,7 @@ describe.skip('Profile Management Comprehensive Tests', () => {
         last_name: 'Doe',
         email: 'john@example.com',
         phone: '+77001234567',
-        dormitory_id: 2,
+        dormitory_id: 1,
       }
 
       vi.mocked(authService.getProfile).mockResolvedValue({
@@ -322,8 +322,8 @@ describe.skip('Profile Management Comprehensive Tests', () => {
         name: 'John',
         surname: 'Doe',
         email: 'john@example.com',
-        phoneNumbers: ['+77001234567'],
-        dormitory: 2,
+        phone_numbers: ['+77001234567'],
+        dormitory: 1,
       })
     })
 
@@ -348,7 +348,7 @@ describe.skip('Profile Management Comprehensive Tests', () => {
         dormitory: 1,
       }
 
-      await wrapper.vm.submitForm()
+      await wrapper.vm.updateProfile()
 
       // Should not throw and should handle error
       expect(authService.updateProfile).toHaveBeenCalled()
@@ -383,7 +383,7 @@ describe.skip('Profile Management Comprehensive Tests', () => {
         dormitory: 1,
       }
 
-      await wrapper.vm.submitForm()
+      await wrapper.vm.updateProfile()
 
       expect(authService.updateProfile).toHaveBeenCalled()
     })

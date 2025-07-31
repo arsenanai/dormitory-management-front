@@ -34,10 +34,12 @@
           </div>
           <div class="flex gap-4">
             <CCheckbox
+              id="registration-enabled"
               v-model="dormitoryForm.registration_enabled"
               :label="t('Enable Registration')"
             />
             <CCheckbox
+              id="backup-list-enabled"
               v-model="dormitoryForm.backup_list_enabled"
               :label="t('Enable Backup List')"
             />
@@ -76,6 +78,7 @@
               required
             />
             <CSelect
+              id="smtp-encryption"
               v-model="smtpForm.smtp_encryption"
               :label="t('Encryption')"
               :options="encryptionOptions"
@@ -104,6 +107,7 @@
         <h2 class="text-lg font-semibold mb-4 text-primary-700">{{ t('Card Reader Configuration') }}</h2>
         <form @submit.prevent="saveCardReaderSettings" class="space-y-4">
           <CCheckbox
+            id="card-reader-enabled"
             v-model="cardReaderForm.card_reader_enabled"
             :label="t('Enable Card Reader')"
           />
@@ -157,6 +161,7 @@
         <h2 class="text-lg font-semibold mb-4 text-primary-700">{{ t('1C Integration Configuration') }}</h2>
         <form @submit.prevent="saveOnecSettings" class="space-y-4">
           <CCheckbox
+            id="onec-enabled"
             v-model="onecForm.onec_enabled"
             :label="t('Enable 1C Integration')"
           />
@@ -214,12 +219,14 @@
           <form @submit.prevent="uploadLanguage" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <CSelect
+                id="language-select"
                 v-model="languageForm.language"
                 :label="t('Language')"
                 :options="languageOptions"
                 required
               />
               <CFileInput
+                id="language-file"
                 v-model="languageForm.file"
                 :label="t('Language File (JSON)')"
                 accept=".json"
@@ -350,6 +357,17 @@ const logTypeOptions = [
 
 // Computed
 const { loading, systemLogs, installedLanguages } = settingsStore;
+
+// Additional reactive properties
+const loadingLogs = ref(false);
+const refreshLogs = async () => {
+  loadingLogs.value = true;
+  try {
+    await fetchLogs();
+  } finally {
+    loadingLogs.value = false;
+  }
+};
 
 // Methods
 const loadSettings = async () => {

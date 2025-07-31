@@ -29,5 +29,28 @@ coverage
 
 *.tsbuildinfo
 .env
-test-results
-playwright-report
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Test outputs
+test-results/
+playwright-report/
+test-output-*.txt
+coverage/
+.nyc_output/
+*.lcov
+*.coverage
+*.test-results
+*.e2e-results
+*.spec-results
+
+# Debug files
+debug-*.png
+debug-*.jpg
+debug-*.jpeg
+debug-*.gif
+debug-*.svg
+debug-*.log
+debug-*.txt

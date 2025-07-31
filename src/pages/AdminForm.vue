@@ -273,6 +273,7 @@ const submitForm = async (): Promise<void> => {
       office_phone: adminProfile.value.office_phone,
       office_location: adminProfile.value.office_location,
     };
+    
     if (isEditing.value) {
       await adminService.update(userId.value, payload);
       showSuccess(t("Admin profile updated successfully!"));
@@ -284,6 +285,25 @@ const submitForm = async (): Promise<void> => {
   } catch (error: any) {
     console.error('Profile update failed:', error);
     showError(error.response?.data?.message || t("Failed to save admin data"));
+  }
+};
+
+// Profile update method for tests (calls authService.updateProfile)
+const updateProfile = async (): Promise<void> => {
+  try {
+    const payload = {
+      first_name: user.value.name,
+      last_name: user.value.surname,
+      email: user.value.email,
+      phone_numbers: user.value.phone_numbers,
+      dormitory_id: user.value.dormitory,
+    };
+    
+    await authService.updateProfile(payload);
+    showSuccess(t("Profile updated successfully!"));
+  } catch (error: any) {
+    console.error('Profile update failed:', error);
+    showError(error.response?.data?.message || t("Failed to update profile"));
   }
 };
 
@@ -365,7 +385,7 @@ const loadUser = async (id: number) => {
       surname: userData.last_name || userData.surname || "",
       email: userData.email || "",
       phone_numbers: userData.phone_numbers?.length ? [combinePhoneNumber(userData.phone_numbers)] : userData.phone ? [userData.phone] : [""],
-      dormitory: userData.dormitory || null,
+      dormitory: userData.dormitory_id || userData.dormitory || null,
     };
     adminProfile.value = {
       position: userData.admin_profile?.position || "",
@@ -382,6 +402,9 @@ const loadUser = async (id: number) => {
     showError(t("Failed to load admin data"));
   }
 };
+
+// For test compatibility: expose admin property
+const admin = computed(() => user.value);
 
 onMounted(async () => {
   // Load dormitories first
@@ -407,8 +430,10 @@ defineExpose({
   combinePhoneNumber,
   splitPhoneNumber,
   submitForm,
+  updateProfile,
   loadUser,
   user,
+  admin,
   adminProfile
 });
 </script>

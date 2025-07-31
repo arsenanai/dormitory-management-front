@@ -334,7 +334,7 @@ import CInput from "@/components/CInput.vue";
 import CButton from "@/components/CButton.vue";
 import CCheckbox from "@/components/CCheckbox.vue";
 import CFileInput from "@/components/CFileInput.vue";
-import PasswordReset from "@/features/auth/PasswordReset.vue";
+import PasswordReset from "@/components/PasswordReset.vue";
 import { UserRegistration, UserStatus } from "@/models/User";
 import { useToast } from "@/composables/useToast";
 import { ref, onMounted, computed, watch } from 'vue';
@@ -562,7 +562,7 @@ async function fetchRoomTypes() {
 }
 
 onMounted(fetchRoomTypes);
-watch(() => i18n.global.locale.value, fetchRoomTypes);
+watch(() => i18n.global.locale, fetchRoomTypes);
 
 const addGuestFileInput = (event) => {
   guest.value.files.push(null);

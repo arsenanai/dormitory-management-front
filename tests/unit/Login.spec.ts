@@ -57,8 +57,10 @@ describe('Login.vue Registration', () => {
       faculty: 'engineering',
       specialist: 'computer_sciences',
       gender: 'female',
-      dormitory: 'a_block',
-      room: '101',
+      phoneNumbers: ['1234567890'],
+      dealNumber: 'DEAL123',
+      city: null,
+      files: [],
       agreeToDormitoryRules: true
     };
     

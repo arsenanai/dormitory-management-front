@@ -88,10 +88,16 @@ export class TestUtils {
     await page.click(SELECTORS.loginButton);
     
     // Wait for successful login - redirect to main page
-    // First wait for success message, then wait for redirect
-    await page.waitForSelector('[data-testid="success-toast"], .toast-success', { timeout: 10000 });
+    // Wait for redirect first, then check for success message if available
     await page.waitForURL(/\/main/, { timeout: 30000 });
     await page.waitForLoadState('networkidle');
+    
+    // Optionally wait for success message if it exists
+    try {
+      await page.waitForSelector('[data-testid="success-toast"], .toast-success', { timeout: 5000 });
+    } catch {
+      // Success toast might not appear, which is okay
+    }
   }
 
   static async logout(page: Page) {

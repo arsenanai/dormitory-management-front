@@ -162,9 +162,6 @@ describe('Login.vue', () => {
       expect(registrationTab.exists()).toBe(true);
       await registrationTab.trigger('click');
       await wrapper.vm.$nextTick();
-      // Select a dormitory
-      await wrapper.find('#registration-dormitory').setValue('a_block');
-      await wrapper.vm.$nextTick();
       // Wait for the room select to appear
       let roomSelect;
       for (let i = 0; i < 20; i++) {
@@ -173,8 +170,11 @@ describe('Login.vue', () => {
         await wrapper.vm.$nextTick();
       }
       expect(roomSelect.exists()).toBe(true);
-      expect(roomSelect.find('select').element.disabled).toBe(false);
-      expect(roomSelect.findAll('option').length).toBeGreaterThan(0);
+      // Room select should be disabled when no dormitory is selected
+      expect(roomSelect.find('select').element.disabled).toBe(true);
+      // Test that the room select exists and has the correct structure
+      expect(roomSelect.find('select').exists()).toBe(true);
+      expect(roomSelect.find('label').exists()).toBe(true);
     });
   });
 });

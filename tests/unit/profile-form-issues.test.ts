@@ -36,7 +36,7 @@ const mockRouter = createRouter({
   ]
 });
 
-describe.skip('Profile Form Issues', () => {
+describe('Profile Form Issues', () => {
   let wrapper: any;
   let authStore: any;
 
@@ -121,7 +121,7 @@ describe.skip('Profile Form Issues', () => {
       } as any);
 
       // Submit form
-      await wrapper.find('button[type="submit"]').trigger('click');
+      await wrapper.vm.submitForm();
 
       // This test should FAIL initially because the form doesn't properly map
       // name/surname to first_name/last_name for API calls
@@ -230,7 +230,7 @@ describe.skip('Profile Form Issues', () => {
 
     it('should handle form submission errors gracefully', async () => {
       // Mock API error
-      vi.mocked(authService.updateProfile).mockRejectedValue(new Error('API Error'));
+      vi.mocked(adminService.update).mockRejectedValue(new Error('API Error'));
 
       await mockRouter.push('/admin-form/1');
       await wrapper.vm.$nextTick();
