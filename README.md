@@ -147,23 +147,202 @@ npm run build
 npm run preview
 ```
 
-### Docker Usage
+## 🐳 Docker Installation & Usage
+
+### Prerequisites
+
+- [Docker](https://www.docker.com/get-started) and [Docker Compose](https://docs.docker.com/compose/install/) installed
+- Git for cloning the repository
+
+### Development Environment Setup
+
+#### 1. Clone and Setup Project
 
 ```bash
-# Install dependencies
+# Clone the repository
+git clone <repository-url>
+cd crm-front
+
+# Copy environment file
+cp .env.example .env
+```
+
+#### 2. Configure Environment
+
+Edit the `.env` file with your API settings:
+
+```env
+VITE_API_BASE_URL=http://localhost:8000/api
+VITE_APP_NAME="SDU Dormitory Management"
+```
+
+For E2E testing, create `.env.testing`:
+
+```env
+ADMIN_EMAIL=admin@sdu.edu.kz
+ADMIN_PASSWORD=supersecret
+VITE_API_BASE_URL=http://localhost:8000/api
+```
+
+#### 3. Start Development Environment
+
+```bash
+# Start development server
+docker compose --profile dev up -d
+
+# Install dependencies (if needed)
 docker compose run --rm init
 
-# Start development server
-docker compose --profile dev up
+# Verify setup
+curl http://localhost:5173
+```
+
+#### 4. Access Development Environment
+
+- **Frontend Application**: http://localhost:5173
+- **Backend API**: http://localhost:8000/api (ensure backend is running)
+
+#### 5. Development Commands
+
+```bash
+# View logs
+docker compose logs dev
 
 # Run unit tests
 docker compose --profile test up
 
-# Build for production
-docker compose --profile build up
+# Run E2E tests
+docker compose --profile test-e2e up -d
+docker compose exec test-e2e npx playwright test
 
-# Serve production build with Nginx
-docker compose --profile serve up
+# Access container shell
+docker compose exec dev sh
+
+# Restart services
+docker compose restart dev
+```
+
+### Production Environment Setup
+
+#### 1. Clone and Setup Project
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd crm-front
+
+# Copy environment file
+cp .env.example .env
+```
+
+#### 2. Configure Production Environment
+
+Edit the `.env` file for production:
+
+```env
+VITE_API_BASE_URL=https://your-api-domain.com/api
+VITE_APP_NAME="SDU Dormitory Management"
+```
+
+#### 3. Build and Deploy
+
+```bash
+# Build for production
+docker compose --profile build up -d
+
+# Serve production build
+docker compose --profile serve up -d
+```
+
+#### 4. Production Access
+
+- **Web Application**: http://your-domain.com
+- **API**: https://your-api-domain.com/api
+
+#### 5. Production Maintenance
+
+```bash
+# View logs
+docker compose logs serve
+
+# Update application
+git pull
+docker compose --profile build up -d --build
+docker compose --profile serve up -d
+
+# Monitor services
+docker compose ps
+```
+
+### Service Profiles
+
+- **Development**: `docker compose --profile dev up -d`
+  - Includes: dev, init
+- **Testing**: `docker compose --profile test up -d`
+  - Includes: test
+- **E2E Testing**: `docker compose --profile test-e2e up -d`
+  - Includes: test-e2e, init
+- **Build**: `docker compose --profile build up -d`
+  - Includes: build
+- **Serve**: `docker compose --profile serve up -d`
+  - Includes: serve
+
+### E2E Testing Setup
+
+#### Prerequisites
+
+1. **Backend server** must be running on `http://localhost:8000`
+2. **Frontend development server** must be running on `http://localhost:5173`
+3. **Database** should be seeded with test data
+
+#### Running E2E Tests
+
+```bash
+# Start E2E test environment
+docker compose --profile test-e2e up -d
+
+# Run all E2E tests
+docker compose exec test-e2e npx playwright test
+
+# Run specific test file
+docker compose exec test-e2e npx playwright test simple-login.spec.ts
+
+# Run tests with specific browser
+docker compose exec test-e2e npx playwright test --project=chrome
+
+# View test results
+docker compose logs test-e2e
+```
+
+### Troubleshooting
+
+#### Common Issues
+
+1. **Port conflicts**: Ensure ports 5173, 8000 are available
+2. **CORS errors**: Check API base URL and backend CORS configuration
+3. **E2E test failures**: Ensure both frontend and backend servers are running
+4. **Build errors**: Check Node.js version and dependency compatibility
+
+#### Useful Commands
+
+```bash
+# Clean up containers and volumes
+docker compose down -v
+
+# Rebuild services
+docker compose --profile dev up -d --build
+
+# View service status
+docker compose ps
+
+# Check service logs
+docker compose logs [service-name]
+
+# Install dependencies manually
+docker compose exec dev npm install
+
+# Clear cache
+docker compose exec dev npm run build --force
 ```
 
 ## 🎨 Customization

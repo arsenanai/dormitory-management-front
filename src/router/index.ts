@@ -80,7 +80,7 @@ const routes: AppRouteRecordRaw[] = [
       sidebar: true,
       icon: PencilSquareIcon,
       parent: 'Admins',
-      roles: ['sudo'],
+      roles: ['sudo', 'admin'],
     },
   },
   {
@@ -105,7 +105,7 @@ const routes: AppRouteRecordRaw[] = [
       sidebar: true,
       icon: PencilSquareIcon,
       parent: 'Students',
-      roles: ['sudo', 'admin'],
+      roles: ['sudo', 'admin', 'student'],
     },
   },
   {

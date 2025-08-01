@@ -596,6 +596,24 @@ export const cardReaderService = {
     api.get("/card-reader/export", { params, responseType: "blob" }),
 };
 
+// Accounting service
+export const accountingApi = {
+  getAccountingData: (params?: FilterParams): Promise<ApiResponse<PaginatedResponse<Record<string, unknown>>>> =>
+    api.get("/accounting", { params }),
+  
+  getStudentAccounting: (studentId: number, params?: FilterParams): Promise<ApiResponse<Record<string, unknown>>> =>
+    api.get(`/accounting/student/${studentId}`, { params }),
+  
+  getSemesterAccounting: (semester: string, params?: FilterParams): Promise<ApiResponse<PaginatedResponse<Record<string, unknown>>>> =>
+    api.get(`/accounting/semester/${semester}`, { params }),
+  
+  exportAccounting: (params?: FilterParams): Promise<Blob> =>
+    api.get("/accounting/export", { params, responseType: "blob" }),
+  
+  getAccountingStats: (params?: FilterParams): Promise<ApiResponse<Record<string, unknown>>> =>
+    api.get("/accounting/stats", { params }),
+};
+
 // Dormitory access service
 export const dormitoryAccessService = {
   checkAccess: (userId: number): Promise<ApiResponse<{ can_access: boolean; reason?: string }>> =>

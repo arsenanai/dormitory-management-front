@@ -1,131 +1,82 @@
 version: '3.8'
 
 services:
-  # Development services
-  init:
-    image: node:18-alpine
-    container_name: dormitory-management-front-init
-    working_dir: /app
-    volumes:
-      - .:/app
-      - node_modules:/app/node_modules
-    command: sh -c "npm install"
-    profiles:
-      - dev
-      - test
-      - build
-
-  # Development server
-  dev:
-    image: node:18-alpine
-    container_name: dormitory-management-front-dev
-    working_dir: /app
-    volumes:
-      - .:/app
-      - node_modules:/app/node_modules
+  # Frontend Development
+  frontend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: crm-frontend-dev
+    restart: unless-stopped
     ports:
       - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
     environment:
-      - NODE_ENV=development
-      - VITE_API_BASE_URL=http://localhost:8000/api
-      - VITE_APP_NAME="SDU Dormitory Management"
-    depends_on:
-      - init
-    command: sh -c "npm run dev -- --host 0.0.0.0"
+      NODE_ENV: development
+      VITE_API_BASE_URL: http://crm-api-dev:8000/api
+      VITE_APP_NAME: "SDU Dormitory Management"
+    networks:
+      - crm-network
     profiles:
       - dev
 
-  # Unit testing
-  test:
-    image: node:18-alpine
-    container_name: dormitory-management-front-test
-    working_dir: /app
-    volumes:
-      - .:/app
-      - node_modules:/app/node_modules
-    environment:
-      - NODE_ENV=test
-      - VITE_API_BASE_URL=http://localhost:8000/api
-    depends_on:
-      - init
-    command: sh -c "npm run test:unit -- --run"
-    profiles:
-      - test
-
-  # E2E testing
-  test-e2e:
-    image: mcr.microsoft.com/playwright:v1.40.0-focal
-    container_name: dormitory-management-front-test-e2e
-    working_dir: /app
-    volumes:
-      - .:/app
-      - node_modules:/app/node_modules
-    environment:
-      - NODE_ENV=test
-      - VITE_API_BASE_URL=http://localhost:8000/api
-      - ADMIN_EMAIL=admin@sdu.edu.kz
-      - ADMIN_PASSWORD=admin123
-    depends_on:
-      - init
-    command: sh -c "npm run test:e2e"
-    profiles:
-      - test-e2e
-
-  # Build for production
-  build:
-    image: node:18-alpine
-    container_name: dormitory-management-front-build
-    working_dir: /app
-    volumes:
-      - .:/app
-      - node_modules:/app/node_modules
-      - build_output:/app/dist
-    environment:
-      - NODE_ENV=production
-      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost:8000/api}
-      - VITE_APP_NAME=${VITE_APP_NAME:-"SDU Dormitory Management"}
-    depends_on:
-      - init
-    command: sh -c "npm run build"
-    profiles:
-      - build
-
-  # Production server
-  serve:
-    image: nginx:alpine
-    container_name: dormitory-management-front-serve
+  # Frontend Production
+  frontend-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: crm-frontend-prod
+    restart: unless-stopped
     ports:
       - "80:80"
-      - "443:443"
-    volumes:
-      - build_output:/usr/share/nginx/html:ro
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./certs:/etc/nginx/certs:ro
-    depends_on:
-      - build
+    environment:
+      VITE_API_BASE_URL: http://crm-api-prod:80/api
+      VITE_APP_NAME: "SDU Dormitory Management"
+    networks:
+      - crm-network
     profiles:
       - production
 
-  # Development with hot reload (alternative)
-  dev-hot:
-    image: node:18-alpine
-    container_name: dormitory-management-front-dev-hot
+  # E2E Testing
+  e2e-test:
+    image: mcr.microsoft.com/playwright:v1.40.0-focal
+    container_name: crm-e2e-test
     working_dir: /app
     volumes:
       - .:/app
-      - node_modules:/app/node_modules
-    ports:
-      - "3000:3000"
     environment:
-      - NODE_ENV=development
-      - VITE_API_BASE_URL=http://localhost:8000/api
-      - VITE_APP_NAME="SDU Dormitory Management"
+      NODE_ENV: test
+      VITE_API_BASE_URL: http://crm-api-dev:8000/api
+      ADMIN_EMAIL: admin@sdu.edu.kz
+      ADMIN_PASSWORD: supersecret
+    command: sh -c "npm install && npm run test:e2e"
     depends_on:
-      - init
-    command: sh -c "npm run dev -- --host 0.0.0.0 --port 3000"
+      - frontend-dev
+    networks:
+      - crm-network
     profiles:
-      - dev-hot
+      - test-e2e
 
-volumes:
-  node_modules:
-  build_output:
+  # Unit Testing
+  unit-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: crm-unit-test
+    command: npm run test:unit
+    environment:
+      NODE_ENV: test
+      VITE_API_BASE_URL: http://crm-api-dev:8000/api
+    networks:
+      - crm-network
+    profiles:
+      - test
+
+networks:
+  crm-network:
+    external: true
