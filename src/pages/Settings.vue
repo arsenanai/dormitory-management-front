@@ -240,6 +240,49 @@
         </div>
       </section>
 
+      <!-- User Interface Settings Section -->
+      <section class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold mb-4 text-primary-700">{{ t('User Interface Settings') }}</h2>
+        <div class="space-y-6">
+          <!-- Language Settings -->
+          <div>
+            <h3 class="text-md font-medium mb-3 text-primary-600">{{ t('Language Settings') }}</h3>
+            <div class="space-y-4">
+              <CSelect
+                id="interface-language"
+                v-model="interfaceForm.language"
+                :label="t('Interface Language')"
+                :options="languageOptions"
+                @update:model-value="changeLanguage"
+              />
+              <p class="text-sm text-gray-600">{{ t('language.description') }}</p>
+            </div>
+          </div>
+
+          <!-- Theme Settings -->
+          <div>
+            <h3 class="text-md font-medium mb-3 text-primary-600">{{ t('Theme Settings') }}</h3>
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <div>
+                  <label class="text-sm font-medium text-gray-700">{{ t('Dark Mode') }}</label>
+                  <p class="text-sm text-gray-600">{{ t('theme.description') }}</p>
+                </div>
+                <CCheckbox
+                  id="dark-mode-toggle"
+                  v-model="interfaceForm.darkMode"
+                  @update:model-value="toggleTheme"
+                />
+              </div>
+            </div>
+          </div>
+
+          <CButton @click="saveInterfaceSettings" :loading="loading">
+            {{ t('Save Interface Settings') }}
+          </CButton>
+        </div>
+      </section>
+
       <!-- System Logs Section -->
       <section class="bg-white rounded-lg shadow p-6">
         <h2 class="text-lg font-semibold text-primary-700">{{ t('System Logs') }}</h2>
@@ -325,6 +368,11 @@ const onecForm = reactive<OneCSettings>({
 const languageForm = reactive({
   language: 'en',
   file: null as File | null,
+});
+
+const interfaceForm = reactive({
+  language: 'en',
+  darkMode: false,
 });
 
 const logsForm = reactive({
@@ -460,9 +508,38 @@ const removeLocation = (index: number) => {
   cardReaderForm.card_reader_locations.splice(index, 1);
 };
 
+const changeLanguage = (newLanguage: string) => {
+  interfaceForm.language = newLanguage;
+  const { locale } = useI18n();
+  locale.value = newLanguage;
+  console.log('Language changed to:', newLanguage);
+};
+
+const toggleTheme = (darkMode: boolean) => {
+  interfaceForm.darkMode = darkMode;
+  // In a real implementation, this would toggle the theme
+  console.log('Theme toggled:', darkMode ? 'dark' : 'light');
+};
+
+const saveInterfaceSettings = async () => {
+  try {
+    // Save interface settings logic here
+    console.log('Saving interface settings:', interfaceForm);
+  } catch (error) {
+    console.error('Failed to save interface settings:', error);
+  }
+};
+
 // Lifecycle
 onMounted(() => {
   loadSettings();
   fetchLogs();
+  
+  // Load current interface settings
+  const { locale } = useI18n();
+  interfaceForm.language = locale.value || 'en';
+  
+  // Load current theme (in a real app, this would come from a theme store)
+  interfaceForm.darkMode = false; // Default to light theme
 });
 </script> 

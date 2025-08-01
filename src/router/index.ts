@@ -20,6 +20,7 @@ interface RouteMeta {
   sidebar?: boolean;
   icon?: any;
   parent?: string;
+  roles?: string[]; // Roles that can access this route
 }
 
 type AppRouteRecordRaw = RouteRecordRaw & {
@@ -54,6 +55,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: HomeIcon,
+      roles: ['sudo', 'admin', 'student', 'guest'],
     },
   },
   {
@@ -65,6 +67,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: UserGroupIcon,
+      roles: ['sudo'],
     },
   },
   {
@@ -77,6 +80,7 @@ const routes: AppRouteRecordRaw[] = [
       sidebar: true,
       icon: PencilSquareIcon,
       parent: 'Admins',
+      roles: ['sudo'],
     },
   },
   {
@@ -88,6 +92,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: UserGroupIcon,
+      roles: ['sudo', 'admin'],
     },
   },
   {
@@ -100,6 +105,7 @@ const routes: AppRouteRecordRaw[] = [
       sidebar: true,
       icon: PencilSquareIcon,
       parent: 'Students',
+      roles: ['sudo', 'admin'],
     },
   },
   {
@@ -111,6 +117,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: HomeIcon,
+      roles: ['student'],
     },
   },
   {
@@ -122,6 +129,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: BuildingOfficeIcon,
+      roles: ['sudo', 'admin'],
     },
   },
   {
@@ -134,6 +142,19 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: PencilSquareIcon,
+      roles: ['sudo', 'admin'],
+    },
+  },
+  {
+    path: '/guest-home',
+    name: 'Guest Home',
+    component: () => import('@/pages/GuestHome.vue'),
+    meta: {
+      title: 'Guest Home',
+      requiresAuth: true,
+      sidebar: true,
+      icon: HomeIcon,
+      roles: ['guest'],
     },
   },
   {
@@ -145,6 +166,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: ChatBubbleLeftRightIcon,
+      roles: ['sudo', 'admin', 'student', 'guest'],
     },
   },
   {
@@ -156,6 +178,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: ClipboardDocumentListIcon,
+      roles: ['sudo', 'admin'],
     },
   },
   {
@@ -168,6 +191,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: PencilSquareIcon,
+      roles: ['sudo', 'admin'],
     },
   },
   {
@@ -179,6 +203,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: ClipboardDocumentListIcon,
+      roles: ['sudo', 'admin'],
     },
   },
   {
@@ -190,6 +215,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: Cog6ToothIcon,
+      roles: ['sudo', 'admin'],
     },
   },
   {
@@ -201,6 +227,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: Cog6ToothIcon,
+      roles: ['sudo'],
     },
   },
   {
@@ -209,10 +236,11 @@ const routes: AppRouteRecordRaw[] = [
     component: () => import('@/pages/DormitoryForm.vue'),
     meta: {
       title: 'Dormitory Form',
-      parent: 'settings',
+      parent: 'Dormitories',
       requiresAuth: true,
       sidebar: true,
       icon: PencilSquareIcon,
+      roles: ['sudo'],
     },
   },
   {
@@ -224,6 +252,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: BuildingOfficeIcon,
+      roles: ['sudo', 'admin'],
     },
   },
   {
@@ -236,6 +265,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: PencilSquareIcon,
+      roles: ['sudo', 'admin'],
     },
   },
   {
@@ -247,6 +277,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: BuildingOfficeIcon,
+      roles: ['sudo'],
     },
   },
   {
@@ -259,6 +290,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: PencilSquareIcon,
+      roles: ['sudo'],
     },
   },
   {
@@ -285,6 +317,15 @@ router.beforeEach((to, from, next) => {
   } else if (to.name === 'login' && isAuthenticated) {
     // Redirect authenticated users away from login page
     next({ path: '/main' });
+  } else if (to.meta?.roles && to.meta.roles.length > 0) {
+    // Check role-based access
+    const userRole = authStore.userRole;
+    if (!userRole || !to.meta.roles.includes(userRole)) {
+      // Redirect to main page if user doesn't have required role
+      next({ path: '/main' });
+    } else {
+      next();
+    }
   } else {
     next();
   }

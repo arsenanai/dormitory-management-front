@@ -70,7 +70,7 @@
               required
             />
           </div>
-          <CButton type="submit" :loading="loading">
+          <CButton type="submit" variant="default" :loading="loading">
             {{ t('Change Password') }}
           </CButton>
         </form>

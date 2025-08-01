@@ -88,6 +88,55 @@
     "Login": "Login",
     "Student Registration": "Student Registration",
     "Guest Home": "Guest Home",
+    "User Interface Settings": "User Interface Settings",
+    "Language Settings": "Language Settings",
+    "Interface Language": "Interface Language",
+    "Theme Settings": "Theme Settings",
+    "Dark Mode": "Dark Mode",
+    "Save Interface Settings": "Save Interface Settings",
+    "language": {
+        "description": "Choose your preferred language for the interface"
+    },
+    "theme": {
+        "description": "Toggle between light and dark themes"
+    },
+    "common": {
+        "notAvailable": "Not Available"
+    },
+    "guest": {
+        "home": {
+            "title": "Guest Dashboard",
+            "subtitle": "Welcome to your guest accommodation dashboard",
+            "livingRoom": {
+                "title": "Living Room Information",
+                "roomNumber": "Room Number",
+                "dormitory": "Dormitory",
+                "floor": "Floor",
+                "capacity": "Capacity",
+                "noRoomAssigned": "No room assigned yet"
+            },
+            "rental": {
+                "title": "Rental Information",
+                "dailyRate": "Daily Rate",
+                "checkInDate": "Check-in Date",
+                "checkOutDate": "Check-out Date",
+                "totalDays": "Total Days",
+                "totalAmount": "Total Amount"
+            },
+            "reception": {
+                "title": "Reception Contacts",
+                "mainContact": "Main Contact",
+                "emergency": "Emergency Contact",
+                "emergencyAvailable": "Available 24/7"
+            },
+            "quickActions": {
+                "title": "Quick Actions",
+                "messages": "Messages",
+                "profile": "My Profile",
+                "contactReception": "Contact Reception"
+            }
+        }
+    },
     "Email or Username": "Email or Username",
     "Password": "Password",
     "IIN": "IIN",

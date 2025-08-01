@@ -98,7 +98,24 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
       // Redirect based on role
-      const redirectPath = '/main'
+      let redirectPath = '/main'
+      
+      if (user.value?.role?.name) {
+        switch (user.value.role.name) {
+          case 'student':
+            redirectPath = '/student-main'
+            break
+          case 'guest':
+            redirectPath = '/guest-home'
+            break
+          case 'sudo':
+          case 'admin':
+          default:
+            redirectPath = '/main'
+            break
+        }
+      }
+      
       router.push(redirectPath)
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Login failed'

@@ -37,50 +37,11 @@
           <span class="text-lg font-bold text-primary-700">{{ title }}</span>
         </div>
 
-        <!-- Search Bar -->
-        <div class="flex flex-1 max-w-md mx-4">
-          <input
-            v-model="searchQuery"
-            @keyup.enter="handleSearch"
-            @keydown.enter.prevent="handleSearch"
-            type="search"
-            placeholder="Search..."
-            class="search-input w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+        <!-- Spacer -->
+        <div class="flex flex-1"></div>
 
         <!-- User Menu & Actions -->
         <div class="flex items-center space-x-2 lg:space-x-4">
-          <!-- Language Switcher (NEW) -->
-          <CSelect
-            id="language-switcher"
-            v-model="currentLocale"
-            :options="languageOptions"
-            :label="t('Language')"
-            class="w-28"
-            @update:model-value="changeLanguage"
-          />
-          <!-- Theme Toggle -->
-          <button
-            @click="toggleTheme"
-            class="theme-toggle p-2 rounded hover:bg-gray-100"
-            :aria-label="'Toggle theme'"
-          >
-            <SunIcon class="h-5 w-5" />
-          </button>
-
-          <!-- Notifications -->
-          <div class="relative">
-            <button class="p-2 rounded hover:bg-gray-100">
-              <BellIcon class="h-5 w-5" />
-              <span 
-                v-if="notifications > 0"
-                class="notification-badge absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
-              >
-                {{ notifications }}
-              </span>
-            </button>
-          </div>
 
           <!-- User Info & Menu -->
           <div class="relative">
@@ -112,13 +73,13 @@
               >
                 Profile
               </button>
-              <a 
-                href="#" 
+              <button 
+                @click="navigateToSettings"
                 data-testid="settings-link"
-                class="block px-4 py-2 text-sm hover:bg-gray-100"
+                class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
               >
                 Settings
-              </a>
+              </button>
               <hr class="my-1">
               <button
                 @click="handleLogout"
@@ -234,8 +195,6 @@ import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { 
   Bars3Icon, 
-  SunIcon, 
-  BellIcon, 
   ChevronDownIcon, 
   ChevronRightIcon,
   ArrowTopRightOnSquareIcon,
@@ -297,8 +256,6 @@ const props = withDefaults(defineProps<Props>(), {
 // Emits
 const emit = defineEmits<{
   logout: [];
-  search: [query: string];
-  'theme-toggle': [];
   navigate: [item: NavItem];
 }>();
 
@@ -319,7 +276,6 @@ const route = useRoute();
 const router = useRouter();
 
 // Reactive state
-const searchQuery = ref('');
 const isCollapsed = ref(false);
 const isMobile = ref(false);
 const mobileMenuOpen = ref(false);
@@ -399,12 +355,9 @@ const handleProfileClick = () => {
   }
 };
 
-const handleSearch = () => {
-  emit('search', searchQuery.value.trim());
-};
-
-const toggleTheme = () => {
-  emit('theme-toggle');
+const navigateToSettings = () => {
+  userMenuOpen.value = false;
+  router.push('/settings');
 };
 
 const isActive = (path: string) => {
@@ -469,14 +422,5 @@ onUnmounted(() => {
   window.removeEventListener('resize', checkMobile);
 });
 
-const { t, locale } = useI18n();
-const currentLocale = ref(locale?.value || 'en');
-const languageOptions = [
-  { value: 'en', name: 'English' },
-  { value: 'kk', name: 'Қазақша' },
-  { value: 'ru', name: 'Русский' },
-];
-function changeLanguage(newLocale: string | number) {
-  locale.value = newLocale as string;
-}
+const { t } = useI18n();
 </script>

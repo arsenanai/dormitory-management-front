@@ -86,6 +86,56 @@
     "Dashboard": "Главная",
     "Students": "Студенты",
     "Guest House": "Гостиница",
+    "Guest Home": "Гостевая панель",
+    "User Interface Settings": "Настройки пользовательского интерфейса",
+    "Language Settings": "Настройки языка",
+    "Interface Language": "Язык интерфейса",
+    "Theme Settings": "Настройки темы",
+    "Dark Mode": "Темный режим",
+    "Save Interface Settings": "Сохранить настройки интерфейса",
+    "language": {
+        "description": "Выберите предпочитаемый язык для интерфейса"
+    },
+    "theme": {
+        "description": "Переключение между светлой и темной темами"
+    },
+    "common": {
+        "notAvailable": "Недоступно"
+    },
+    "guest": {
+        "home": {
+            "title": "Гостевая панель",
+            "subtitle": "Добро пожаловать в панель управления гостевого размещения",
+            "livingRoom": {
+                "title": "Информация о комнате",
+                "roomNumber": "Номер комнаты",
+                "dormitory": "Общежитие",
+                "floor": "Этаж",
+                "capacity": "Вместимость",
+                "noRoomAssigned": "Комната еще не назначена"
+            },
+            "rental": {
+                "title": "Информация об аренде",
+                "dailyRate": "Дневная ставка",
+                "checkInDate": "Дата заезда",
+                "checkOutDate": "Дата выезда",
+                "totalDays": "Всего дней",
+                "totalAmount": "Общая сумма"
+            },
+            "reception": {
+                "title": "Контакты ресепшена",
+                "mainContact": "Основной контакт",
+                "emergency": "Экстренный контакт",
+                "emergencyAvailable": "Доступно 24/7"
+            },
+            "quickActions": {
+                "title": "Быстрые действия",
+                "messages": "Сообщения",
+                "profile": "Мой профиль",
+                "contactReception": "Связаться с ресепшеном"
+            }
+        }
+    },
     "Messages": "Сообщения",
     "Accounting": "Бухгалтерия",
     "Configuration": "Конфигурация",

@@ -75,6 +75,56 @@
     "Dashboard": "Басты бет",
     "Students": "Студенттер",
     "Guest House": "Қонақ үйі",
+    "Guest Home": "Қонақ басты беті",
+    "User Interface Settings": "Пайдаланушы интерфейсінің баптаулары",
+    "Language Settings": "Тіл баптаулары",
+    "Interface Language": "Интерфейс тілі",
+    "Theme Settings": "Тақырып баптаулары",
+    "Dark Mode": "Қараңғы режим",
+    "Save Interface Settings": "Интерфейс баптауларын сақтау",
+    "language": {
+        "description": "Интерфейс үшін қалаған тілді таңдаңыз"
+    },
+    "theme": {
+        "description": "Жарық және қараңғы тақырыптар арасында ауысу"
+    },
+    "common": {
+        "notAvailable": "Қолжетімді емес"
+    },
+    "guest": {
+        "home": {
+            "title": "Қонақ бақылау тақтасы",
+            "subtitle": "Қонақ орналастыру бақылау тақтасына қош келдіңіз",
+            "livingRoom": {
+                "title": "Тұрғын бөлме ақпараты",
+                "roomNumber": "Бөлме нөмірі",
+                "dormitory": "Жатақхана",
+                "floor": "Қабат",
+                "capacity": "Сыйымдылық",
+                "noRoomAssigned": "Бөлме әлі тағайындалмаған"
+            },
+            "rental": {
+                "title": "Жалдау ақпараты",
+                "dailyRate": "Күндізгі тариф",
+                "checkInDate": "Кіру күні",
+                "checkOutDate": "Шығу күні",
+                "totalDays": "Жалпы күндер",
+                "totalAmount": "Жалпы сома"
+            },
+            "reception": {
+                "title": "Қабылдау контактілері",
+                "mainContact": "Негізгі контакт",
+                "emergency": "Төтенше контакт",
+                "emergencyAvailable": "24/7 қолжетімді"
+            },
+            "quickActions": {
+                "title": "Жылдам әрекеттер",
+                "messages": "Хабарламалар",
+                "profile": "Менің профилім",
+                "contactReception": "Қабылдаумен байланысу"
+            }
+        }
+    },
     "Messages": "Хабарламалар",
     "Accounting": "Есеп",
     "Configuration": "Конфигурация",

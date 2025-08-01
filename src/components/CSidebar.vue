@@ -28,7 +28,14 @@
             "
             aria-hidden="true"
           />
-          {{ t(menu.meta.title) }}
+          <span class="flex-1">{{ t(menu.meta.title) }}</span>
+          <!-- Badge for messages -->
+          <span 
+            v-if="menu.name === 'Messages' && unreadMessagesCount > 0"
+            class="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center min-w-[20px]"
+          >
+            {{ unreadMessagesCount > 99 ? '99+' : unreadMessagesCount }}
+          </span>
         </router-link>
 
         <!-- Submenus -->
@@ -71,9 +78,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref, watch, computed } from "vue";
 import { useRoute, useRouter, RouteLocationMatched } from "vue-router";
 import { useI18n } from "vue-i18n";
+import { useAuthStore } from "@/stores/auth";
 
 // Define the type for a menu item
 interface Menu {
@@ -84,6 +92,7 @@ interface Menu {
     icon: object | (() => void);
     sidebar?: boolean;
     parent?: string;
+    roles?: string[];
   };
   submenus?: Menu[];
 }
@@ -94,6 +103,12 @@ const router = useRouter();
 
 // Import the `t` function from vue-i18n
 const { t } = useI18n();
+
+// Get auth store for role-based access
+const authStore = useAuthStore();
+
+// Mock unread messages count (in real app, this would come from a messages store)
+const unreadMessagesCount = ref(3);
 
 // State to control visibility
 const isVisible = ref(true);
@@ -107,6 +122,7 @@ const mapRouteToMenu = (route: any): Menu => ({
     icon: (route.meta?.icon as object | (() => void)) || (() => {}),
     sidebar: (route.meta?.sidebar as boolean) || false,
     parent: (route.meta?.parent as string) || "",
+    roles: (route.meta?.roles as string[]) || [],
   },
   submenus: [],
 });
@@ -117,18 +133,32 @@ const mapSubmenus = (menuName: string): Menu[] => {
     .filter(
       (submenu) => submenu.meta?.parent === menuName && submenu.meta?.sidebar,
     )
+    .filter((submenu) => {
+      // Check role-based access
+      if (submenu.meta?.roles && submenu.meta.roles.length > 0) {
+        return submenu.meta.roles.includes(authStore.userRole || '');
+      }
+      return true;
+    })
     .map(mapRouteToMenu);
 };
 
-// Filter top-level menus
-const topLevelMenus = ref<Menu[]>(
-  router.options.routes
+// Filter top-level menus with role-based access
+const topLevelMenus = computed<Menu[]>(() => {
+  return router.options.routes
     .filter((route) => route.meta?.sidebar && !route.meta?.parent)
+    .filter((route) => {
+      // Check role-based access
+      if (route.meta?.roles && route.meta.roles.length > 0) {
+        return route.meta.roles.includes(authStore.userRole || '');
+      }
+      return true;
+    })
     .map((menu) => ({
       ...mapRouteToMenu(menu),
       submenus: mapSubmenus(menu.name as string),
-    })),
-);
+    }));
+});
 
 // Check if any submenu is active
 const isSubmenuActive = (submenus: Menu[]): boolean => {
@@ -147,17 +177,11 @@ const isSubmenuHighlighted = (submenu: Menu): boolean => {
   );
 };
 
-// Watch for route changes to update the sidebar dynamically
+// Watch for route changes and user role changes to update the sidebar dynamically
 watch(
-  () => route.path,
+  [() => route.path, () => authStore.userRole],
   () => {
-    // Recompute top-level menus and submenus when the route changes
-    topLevelMenus.value = router.options.routes
-      .filter((route) => route.meta?.sidebar && !route.meta?.parent)
-      .map((menu) => ({
-        ...mapRouteToMenu(menu),
-        submenus: mapSubmenus(menu.name as string),
-      }));
+    // The computed property will automatically update when dependencies change
   },
 );
 </script>

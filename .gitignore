@@ -35,8 +35,8 @@ coverage
 .env.production.local
 
 # Test outputs
-test-results/
-playwright-report/
+test-results
+playwright-report
 test-output-*.txt
 coverage/
 .nyc_output/
