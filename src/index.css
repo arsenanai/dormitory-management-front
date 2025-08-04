@@ -36,3 +36,118 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @source "../node_modules/flowbite-vue/dist";
+
+/* Accessibility Mode Styles */
+.accessibility-mode {
+  /* Remove black borders and use shadows for focus indicators */
+}
+
+.accessibility-mode *:focus {
+  outline: none !important;
+  border-color: transparent !important;
+  box-shadow: 0 0 0 3px rgba(47, 52, 89, 0.3) !important; /* SDU Blue with opacity */
+}
+
+.accessibility-mode button:focus,
+.accessibility-mode input:focus,
+.accessibility-mode select:focus,
+.accessibility-mode textarea:focus,
+.accessibility-mode a:focus {
+  box-shadow: 0 0 0 3px rgba(47, 52, 89, 0.3) !important;
+}
+
+.accessibility-mode .focus\:ring-4:focus {
+  box-shadow: 0 0 0 3px rgba(47, 52, 89, 0.3) !important;
+}
+
+.accessibility-mode .focus\:ring-primary-300:focus {
+  box-shadow: 0 0 0 3px rgba(47, 52, 89, 0.3) !important;
+}
+
+.accessibility-mode .focus\:ring-gray-200:focus {
+  box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.3) !important;
+}
+
+/* Remove borders from dropdowns in accessibility mode */
+.accessibility-mode .user-menu-dropdown {
+  border: none !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+.accessibility-mode .user-menu-dropdown * {
+  border-color: transparent !important;
+}
+
+/* More specific selectors for dropdown borders */
+.accessibility-mode div[class*="border"] {
+  border-color: transparent !important;
+}
+
+.accessibility-mode .border {
+  border: none !important;
+}
+
+.accessibility-mode .shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Force remove all borders in accessibility mode */
+.accessibility-mode * {
+  border-color: transparent !important;
+}
+
+.accessibility-mode .border,
+.accessibility-mode [class*="border"] {
+  border: none !important;
+  border-color: transparent !important;
+  border-width: 0 !important;
+}
+
+/* High Contrast Mode */
+.high-contrast {
+  --color-primary-500: #000000;
+  --color-primary-600: #000000;
+  --color-primary-700: #000000;
+  --color-secondary-500: #ffffff;
+  --color-secondary-600: #ffffff;
+  --color-secondary-700: #ffffff;
+}
+
+.high-contrast * {
+  border-color: #000000 !important;
+  color: #000000 !important;
+  background-color: #ffffff !important;
+}
+
+.high-contrast button,
+.high-contrast input,
+.high-contrast select,
+.high-contrast textarea {
+  border: 2px solid #000000 !important;
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Reduced Motion */
+.reduced-motion * {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* Large Text */
+.large-text {
+  font-size: 1.2em !important;
+}
+
+.large-text * {
+  font-size: 1.2em !important;
+}
+
+.large-text button,
+.large-text input,
+.large-text select,
+.large-text textarea {
+  font-size: 1.2em !important;
+  padding: 0.75em !important;
+}

@@ -47,7 +47,7 @@
           <div class="relative">
             <button
               @click="toggleUserMenu"
-              class="flex items-center space-x-2 p-2 rounded hover:bg-gray-100"
+              class="flex items-center space-x-2 p-2 rounded hover:bg-gray-100 user-menu-button"
               data-testid="user-menu-button"
             >
               <div v-if="currentUser" class="text-right">
@@ -64,7 +64,11 @@
             <!-- User Dropdown Menu -->
             <div 
               v-show="userMenuOpen"
-              class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border z-50"
+              :class="[
+                'absolute right-0 mt-2 w-48 bg-white rounded-lg shadow z-50 user-menu-dropdown',
+                isAccessibilityMode ? 'border' : ''
+              ]"
+              :data-visible="userMenuOpen"
             >
               <button 
                 @click="handleProfileClick"
@@ -73,14 +77,7 @@
               >
                 Profile
               </button>
-              <button 
-                @click="navigateToSettings"
-                data-testid="settings-link"
-                class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-              >
-                Settings
-              </button>
-              <hr class="my-1">
+              <hr class="my-1 border-gray-200">
               <button
                 @click="handleLogout"
                 class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 text-red-600"
@@ -229,12 +226,16 @@ import {
 import { useAuthStore } from '@/stores/auth';
 import { useI18n } from 'vue-i18n';
 import CSelect from '@/components/CSelect.vue';
+import { useAccessibility } from '@/composables/useAccessibility';
 
 // Define component name for test recognition
 defineOptions({ name: 'CNavigation' });
 
 // Auth store
 const authStore = useAuthStore();
+
+// Accessibility composable
+const { settings: accessibilitySettings } = useAccessibility();
 
 // Props interface
 interface BreadcrumbItem {
@@ -315,6 +316,8 @@ const defaultNavItems: NavItem[] = [
 ];
 
 // Computed properties
+const isAccessibilityMode = computed(() => accessibilitySettings.accessibilityMode);
+
 const visibleNavItems = computed(() => {
   return defaultNavItems.filter(item => {
     // Check if item is restricted
@@ -361,26 +364,11 @@ const handleLogout = () => {
 const handleProfileClick = () => {
   userMenuOpen.value = false;
   
-  // Navigate to appropriate form based on user role
-  if (authStore.user) {
-    const userRole = authStore.userRole;
-    const userId = authStore.user.id;
-    
-    if (userRole === 'admin') {
-      router.push(`/admin-form/${userId}`);
-    } else if (userRole === 'student') {
-      router.push(`/student-form/${userId}`);
-    } else {
-      // Default to admin form for other roles
-      router.push(`/admin-form/${userId}`);
-    }
-  }
+  // Always navigate to account preferences for own profile
+  router.push('/account-preferences');
 };
 
-const navigateToSettings = () => {
-  userMenuOpen.value = false;
-  router.push('/settings');
-};
+
 
 const isActive = (path: string) => {
   return route.path === path;
@@ -434,7 +422,7 @@ onMounted(() => {
   // Close dropdowns when clicking outside
   document.addEventListener('click', (e) => {
     const target = e.target as Element;
-    if (!target.closest('.user-menu')) {
+    if (!target.closest('.user-menu-button') && !target.closest('.user-menu-dropdown')) {
       userMenuOpen.value = false;
     }
   });

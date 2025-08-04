@@ -19,8 +19,18 @@
       </CButton>
     </div>
 
+    <!-- Loading State -->
+    <div v-if="loading" class="loading-text text-center py-4">
+      {{ t("Loading...") }}
+    </div>
+
+    <!-- Error State -->
+    <div v-if="error" class="error-message text-red-500 text-center py-4">
+      {{ error }}
+    </div>
+
     <!-- Guests Table -->
-    <CTable>
+    <CTable v-if="!loading && !error" data-testid="guests-table">
       <CTableHead>
         <CTableHeadCell>{{ t("Name") }}</CTableHeadCell>
         <CTableHeadCell>{{ t("Surname") }}</CTableHeadCell>
@@ -33,13 +43,13 @@
       </CTableHead>
       <CTableBody>
         <CTableRow v-for="guest in filteredGuests" :key="guest.id">
-          <CTableCell>{{ guest.name }}</CTableCell>
-          <CTableCell>{{ guest.surname }}</CTableCell>
-          <CTableCell>{{ guest.enterDate }}</CTableCell>
-          <CTableCell>{{ guest.exitDate }}</CTableCell>
-          <CTableCell>{{ guest.telephone }}</CTableCell>
-          <CTableCell>{{ guest.room }}</CTableCell>
-          <CTableCell>{{ guest.payment }}</CTableCell>
+          <CTableCell>{{ guest.first_name || guest.name }}</CTableCell>
+          <CTableCell>{{ guest.last_name || guest.surname }}</CTableCell>
+          <CTableCell>{{ formatDate(guest.check_in_date) }}</CTableCell>
+          <CTableCell>{{ formatDate(guest.check_out_date) }}</CTableCell>
+          <CTableCell>{{ guest.phone || guest.telephone }}</CTableCell>
+          <CTableCell>{{ guest.room?.number || guest.room || '-' }}</CTableCell>
+          <CTableCell>{{ formatPayment(guest.payment_status, guest.total_amount) }}</CTableCell>
           <CTableCell class="flex items-center justify-end gap-2">
             <CButton @click="editGuest(guest.id)">
               <PencilSquareIcon class="h-5 w-5" /> {{ t("Edit") }}
@@ -51,14 +61,27 @@
         </CTableRow>
       </CTableBody>
     </CTable>
+
+    <!-- Pagination -->
+    <div v-if="totalPages > 1" class="flex items-center justify-between mt-4" data-testid="pagination">
+      <CButton :disabled="currentPage === 1" @click="currentPage--" :aria-label="t('Previous page')">
+        {{ t("Previous") }}
+      </CButton>
+      <span>
+        {{ t("Page") }} {{ currentPage }} {{ t("of") }} {{ totalPages }}
+      </span>
+      <CButton :disabled="currentPage === totalPages" @click="currentPage++" :aria-label="t('Next page')">
+        {{ t("Next") }}
+      </CButton>
+    </div>
   </Navigation>
 </template>
 
 <script setup lang="ts">
 import Navigation from "@/components/CNavigation.vue";
 import { useI18n } from "vue-i18n";
-import { ref, computed } from "vue";
-import { useRouter } from "vue-router"; // Import useRouter
+import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import CInput from "@/components/CInput.vue";
 import CButton from "@/components/CButton.vue";
 import CTable from "@/components/CTable.vue";
@@ -72,58 +95,90 @@ import {
   PencilSquareIcon,
   TrashIcon,
 } from "@heroicons/vue/24/outline";
-import { Guest } from "@/models/Guest";
+import { guestService } from "@/services/api";
+import { useToast } from "@/composables/useToast";
 
 // Initialize router
 const router = useRouter();
-
 const { t } = useI18n();
+const { showError, showSuccess, showConfirmation } = useToast();
 
 // Guests Data
-const guests = ref<Guest[]>([
-  new Guest(
-    1,
-    "Guest1",
-    "Guestov1",
-    "22-11-2023",
-    "25-11-2023",
-    "+71234567890",
-    "A201",
-    "14000T",
-  ),
-  new Guest(
-    2,
-    "Guest2",
-    "Guestov2",
-    "12-01-2024",
-    "13-01-2024",
-    "+79991234567",
-    "A202",
-    "0",
-  ),
-  new Guest(
-    3,
-    "Guest3",
-    "Guestov3",
-    "12-01-2023",
-    "14-01-2024",
-    "+74443456789",
-    "A203",
-    "25000T",
-  ),
-]);
+const guests = ref<any[]>([]);
+const loading = ref(false);
+const error = ref<string | null>(null);
 
 // Search Query
 const searchQuery = ref<string>("");
 
+// Pagination
+const currentPage = ref(1);
+const itemsPerPage = 10;
+const totalPages = computed(() =>
+  Math.ceil(filteredGuests.value.length / itemsPerPage),
+);
+const paginatedGuests = computed(() =>
+  filteredGuests.value.slice(
+    (currentPage.value - 1) * itemsPerPage,
+    currentPage.value * itemsPerPage,
+  ),
+);
+
+// Fetch guests from API
+const fetchGuests = async () => {
+  loading.value = true;
+  error.value = null;
+  
+  try {
+    const response = await guestService.getAll();
+    console.log('API Response:', response.data);
+    
+    // Handle both paginated and non-paginated responses
+    if (response.data.data && Array.isArray(response.data.data)) {
+      // Paginated response: { data: [...], current_page: 1, ... }
+      guests.value = response.data.data;
+    } else if (Array.isArray(response.data)) {
+      // Direct array response: [...]
+      guests.value = response.data;
+    } else {
+      // Fallback
+      guests.value = [];
+    }
+    
+    console.log('Fetched guests:', guests.value);
+    console.log('Number of guests:', guests.value.length);
+  } catch (err) {
+    console.error('Error fetching guests:', err);
+    error.value = err.message || 'Failed to fetch guests';
+    guests.value = [];
+  } finally {
+    loading.value = false;
+  }
+};
+
 // Filtered Guests
-const filteredGuests = computed<Guest[]>(() => {
-  return guests.value.filter((guest) =>
-    `${guest.name} ${guest.surname} ${guest.telephone} ${guest.room}`
+const filteredGuests = computed(() => {
+  if (!searchQuery.value) return paginatedGuests.value;
+  
+  return paginatedGuests.value.filter((guest) =>
+    `${guest.first_name || guest.name} ${guest.last_name || guest.surname} ${guest.phone || guest.telephone} ${guest.room?.number || guest.room}`
       .toLowerCase()
       .includes(searchQuery.value.toLowerCase()),
   );
 });
+
+// Helper functions
+const formatDate = (dateString: string) => {
+  if (!dateString) return '-';
+  return new Date(dateString).toLocaleDateString();
+};
+
+const formatPayment = (status: string, amount: number) => {
+  if (status === 'paid') {
+    return `$${amount?.toFixed(2) || '0.00'}`;
+  }
+  return status || '-';
+};
 
 // Navigate to Add Guest form
 const addGuest = (): void => {
@@ -136,9 +191,26 @@ const editGuest = (id: number): void => {
 };
 
 // Delete Guest
-const deleteGuest = (id: number): void => {
-  console.log("Delete Guest with ID:", id);
+const deleteGuest = async (id: number): Promise<void> => {
+  const confirmed = await showConfirmation(
+    t('Are you sure you want to delete this guest?'),
+    t('Delete Guest')
+  );
+  
+  if (confirmed) {
+    try {
+      await guestService.delete(id);
+      await fetchGuests(); // Reload data
+      showSuccess(t('Guest deleted successfully'));
+    } catch (err) {
+      showError(t('Failed to delete guest'));
+    }
+  }
 };
+
+onMounted(async () => {
+  await fetchGuests();
+});
 </script>
 
 <style scoped>

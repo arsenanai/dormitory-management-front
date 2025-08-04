@@ -87,7 +87,9 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = true
       error.value = null
 
-      const response = await api.post('/login', credentials)
+
+
+      const response = await authService.login(credentials)
 
       token.value = response.data.token
       user.value = response.data.user
@@ -148,7 +150,7 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = true
       error.value = null
 
-      const response = await api.post('/register', userData)
+      const response = await authService.register(userData)
 
       return response.data
     } catch (err: any) {
@@ -196,7 +198,7 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = true
       error.value = null
 
-      const response = await api.get('/users/profile')
+      const response = await authService.getProfile()
       user.value = response.data
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to load profile'
@@ -227,7 +229,7 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = true
       error.value = null
 
-      const response = await api.put('/users/profile', profileData)
+      const response = await authService.updateProfile(profileData)
       user.value = response.data
 
       return response.data

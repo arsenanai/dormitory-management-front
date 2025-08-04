@@ -537,7 +537,7 @@ onMounted(() => {
   
   // Load current interface settings
   const { locale } = useI18n();
-  interfaceForm.language = locale.value || 'en';
+  interfaceForm.language = locale?.value || 'en';
   
   // Load current theme (in a real app, this would come from a theme store)
   interfaceForm.darkMode = false; // Default to light theme

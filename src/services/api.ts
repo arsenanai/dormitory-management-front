@@ -233,31 +233,31 @@ api.interceptors.request.use((config) => {
 // Auth service
 export const authService = {
   login: (credentials: { email: string; password: string }): Promise<ApiResponse<{ user: User; token: string }>> =>
-    api.post("/auth/login", credentials),
+    api.post("/login", credentials),
   
   register: (userData: UserRegistration): Promise<ApiResponse<{ user: User; message?: string }>> =>
-    api.post("/auth/register", userData),
+    api.post("/register", userData),
   
   logout: (): Promise<ApiResponse<{ message: string }>> =>
-    api.post("/auth/logout"),
+    api.post("/logout"),
   
   loadProfile: (): Promise<ApiResponse<User>> =>
-    api.get("/auth/profile"),
+    api.get("/users/profile"),
   
   getProfile: (): Promise<ApiResponse<User>> =>
-    api.get("/auth/profile"),
+    api.get("/users/profile"),
   
   updateProfile: (data: Partial<UserProfile>): Promise<ApiResponse<User>> =>
-    api.put("/auth/profile", data),
+    api.put("/users/profile", data),
   
   resetPassword: (email: string): Promise<ApiResponse<{ message: string }>> =>
-    api.post("/auth/reset-password", { email }),
+    api.post("/password/reset-link", { email }),
   
   resetPasswordConfirm: (data: { token: string; password: string; password_confirmation: string }): Promise<ApiResponse<{ message: string }>> =>
-    api.post("/auth/reset-password-confirm", data),
+    api.post("/password/reset", data),
   
   changePassword: (data: { current_password: string; password: string; password_confirmation: string }): Promise<ApiResponse<{ message: string }>> =>
-    api.post("/auth/change-password", data),
+    api.put("/users/change-password", data),
 };
 
 // User service

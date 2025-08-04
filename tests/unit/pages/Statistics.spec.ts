@@ -16,14 +16,16 @@ beforeEach(() => {
   dashboardStore = useDashboardStore();
   router = createRouterMock();
   injectRouterMock(router);
+  
+  // Mock the dashboard service with the correct field names that the store expects
   dashboardService.getStats = vi.fn().mockResolvedValue({
     data: {
-      dormitories: 4,
-      rooms: 268,
-      beds: 1200,
-      vacant_beds: 112,
-      registered_students: 1088,
-      current_presence: 1758,
+      total_dormitories: 4,
+      total_rooms: 268,
+      total_beds: 1200,
+      available_rooms: 112,
+      total_students: 1088,
+      occupied_rooms: 1758,
       meal_paying: 1088,
       without_meal: 0,
       quota_students: 32,

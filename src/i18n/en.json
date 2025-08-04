@@ -98,8 +98,15 @@
         "description": "Choose your preferred language for the interface"
     },
     "theme": {
-        "description": "Toggle between light and dark themes"
+        "description": "Choose your preferred language for the interface"
     },
+    "Accessibility Settings": "Accessibility Settings",
+    "Enable Accessibility Mode": "Enable Accessibility Mode",
+    "When enabled, removes black borders and uses shadows for focus indicators instead.": "When enabled, removes black borders and uses shadows for focus indicators instead.",
+    "High Contrast Mode": "High Contrast Mode",
+    "Reduce Motion": "Reduce Motion",
+    "Large Text": "Large Text",
+    "Save Accessibility Settings": "Save Accessibility Settings",
     "common": {
         "notAvailable": "Not Available"
     },

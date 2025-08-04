@@ -6,8 +6,8 @@ test.describe('Profile Management E2E Tests', () => {
     await page.goto('/')
     
     // Login as admin with seeded credentials
-    await page.fill('input[type="email"]', 'admin@sdu.edu.kz')
-    await page.fill('input[type="password"]', 'password')
+    await page.fill('input[type="email"]', 'admin@email.com')
+    await page.fill('input[type="password"]', 'supersecret')
     await page.click('button[type="submit"]')
     
     // Wait for successful login - flexible URL matching
@@ -18,9 +18,12 @@ test.describe('Profile Management E2E Tests', () => {
   test.describe('Email and Dormitory Updates', () => {
     test('should allow updating email in profile form', async ({ page }) => {
       // Navigate to admin profile via user menu with correct selectors
-      const userMenuButton = page.locator('.user-menu')
+      const userMenuButton = page.locator('[data-testid="user-menu-button"]')
       await expect(userMenuButton).toBeVisible({ timeout: 10000 })
       await userMenuButton.click()
+      
+      // Wait for dropdown to open
+      await page.waitForTimeout(1000)
       
       const profileLink = page.locator('[data-testid="profile-link"]')
       await expect(profileLink).toBeVisible({ timeout: 5000 })
@@ -45,9 +48,12 @@ test.describe('Profile Management E2E Tests', () => {
 
     test('should allow updating dormitory in profile form', async ({ page }) => {
       // Navigate to admin profile via user menu
-      const userMenuButton = page.locator('.user-menu')
+      const userMenuButton = page.locator('[data-testid="user-menu-button"]')
       await expect(userMenuButton).toBeVisible({ timeout: 10000 })
       await userMenuButton.click()
+      
+      // Wait for dropdown to open
+      await page.waitForTimeout(1000)
       
       const profileLink = page.locator('[data-testid="profile-link"]')
       await expect(profileLink).toBeVisible({ timeout: 5000 })
@@ -85,9 +91,12 @@ test.describe('Profile Management E2E Tests', () => {
 
     test('should load dormitories from API in dropdown', async ({ page }) => {
       // Navigate to admin profile via user menu
-      const userMenuButton = page.locator('.user-menu')
+      const userMenuButton = page.locator('[data-testid="user-menu-button"]')
       await expect(userMenuButton).toBeVisible({ timeout: 10000 })
       await userMenuButton.click()
+      
+      // Wait for dropdown to open
+      await page.waitForTimeout(1000)
       
       const profileLink = page.locator('[data-testid="profile-link"]')
       await expect(profileLink).toBeVisible({ timeout: 5000 })

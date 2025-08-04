@@ -61,7 +61,7 @@
       </div>
 
       <!-- Student Table -->
-      <CTable>
+      <CTable data-testid="students-table">
         <CTableHead>
           <CTableHeadCell>
             <CCheckbox id="select-all-checkbox" />
@@ -78,22 +78,22 @@
           <CTableHeadCell class="text-right">{{ t("Action") }}</CTableHeadCell>
         </CTableHead>
         <CTableBody>
-          <CTableRow v-for="(student, index) in paginatedStudents" :key="index">
+          <CTableRow v-for="(student, index) in paginatedStudents" :key="student.id || index">
             <CTableCell>
               <CCheckbox :id="'checkbox-' + index" />
             </CTableCell>
-            <CTableCell>{{ student.name }}</CTableCell>
-            <CTableCell>{{ student.surname }}</CTableCell>
+            <CTableCell>{{ student.first_name || student.name }}</CTableCell>
+            <CTableCell>{{ student.last_name || student.surname }}</CTableCell>
             <CTableCell>{{ student.status }}</CTableCell>
-            <CTableCell>{{ student.enrollmentYear }}</CTableCell>
+            <CTableCell>{{ student.enrollment_year || student.year_of_study }}</CTableCell>
             <CTableCell>{{ student.faculty }}</CTableCell>
             <CTableCell>
-              {{ typeof student.room === 'object' ? student.room?.dormitory?.name : "" }}
+              {{ student.room?.dormitory?.name || student.dormitory?.name || "" }}
             </CTableCell>
             <CTableCell>
-              {{ typeof student.room === 'object' ? student.room?.number : student.room }}
+              {{ student.room?.number || student.room || "" }}
             </CTableCell>
-            <CTableCell>{{ student.telephone }}</CTableCell>
+            <CTableCell>{{ student.phone || student.telephone }}</CTableCell>
             <CTableCell>
               <component
                 :is="student.status === t('In') ? CheckCircleIcon : XCircleIcon"
@@ -102,7 +102,7 @@
               />
             </CTableCell>
             <CTableCell class="text-right">
-              <CButton @click="navigateToEditStudent(index)">
+              <CButton @click="navigateToEditStudent(student.id || index)">
                 <PencilSquareIcon class="h-5 w-5" /> {{ t("Edit") }}
               </CButton>
             </CTableCell>
@@ -111,7 +111,7 @@
       </CTable>
 
       <!-- Pagination -->
-      <div class="flex items-center justify-between">
+      <div class="flex items-center justify-between" data-testid="pagination">
         <CButton :disabled="currentPage === 1" @click="currentPage--" :aria-label="t('Previous page')">
           {{ t("Previous") }}
         </CButton>
@@ -164,43 +164,7 @@ import CTableBody from "@/components/CTableBody.vue";
 import CTableRow from "@/components/CTableRow.vue";
 import CTableCell from "@/components/CTableCell.vue";
 import { useStudentStore } from "@/stores/student";
-
-// Mock models for demonstration
-class Dormitory {
-  constructor(name, capacity = 0, gender = "") {
-    this.name = name;
-    this.capacity = capacity;
-    this.gender = gender;
-  }
-}
-class Room {
-  constructor(number, dormitory, floor = null, notes = "") {
-    this.number = number;
-    this.dormitory = dormitory;
-    this.floor = floor;
-    this.notes = notes;
-  }
-}
-class Country {
-  constructor(id, name) {
-    this.id = id;
-    this.name = name;
-  }
-}
-class Region {
-  constructor(id, name, country) {
-    this.id = id;
-    this.name = name;
-    this.country = country;
-  }
-}
-class City {
-  constructor(id, name, region) {
-    this.id = id;
-    this.name = name;
-    this.region = region;
-  }
-}
+import api from "@/services/api";
 
 const { t } = useI18n();
 const router = useRouter();
@@ -214,6 +178,9 @@ const filters = ref({
   showDormitoryStudents: false,
 });
 const bulkAction = ref("");
+const students = ref([]);
+const loading = ref(false);
+const error = ref(null);
 
 const facultyOptions = [
   { value: "engineering", name: t("Engineering and natural sciences") },
@@ -237,110 +204,75 @@ const bulkActionOptions = [
   { value: "delete", name: t("Delete") },
 ];
 
-// Mock data for countries, regions, cities, dormitories, and rooms
-const countries = [
-  new Country(1, "Kazakhstan"),
-  new Country(2, "Russia"),
-];
-const regions = [
-  new Region(1, "Almaty", countries[0]),
-  new Region(2, "Zhetisu", countries[0]),
-  new Region(3, "Moscow", countries[1]),
-];
-const cities = [
-  new City(1, "Kaskelen", regions[0]),
-  new City(2, "Talgar", regions[0]),
-  new City(3, "Taldykorgan", regions[1]),
-  new City(4, "Moscow City", regions[2]),
-];
-
-const dormA = new Dormitory("A-Block", 300, "female");
-const dormB = new Dormitory("B-Block", 300, "male");
-const roomA210 = new Room("A210", dormA, 2, "Near the stairs");
-const roomA211 = new Room("A211", dormA, 2, "");
-const roomB101 = new Room("B101", dormB, 1, "Window view");
-
-// Use Room and Dormitory objects for students
-const students = ref([
-  {
-    iin: "010101123456",
-    name: "Aigerim",
-    surname: "Aitkazinova",
-    faculty: "engineering",
-    specialist: "computer_sciences",
-    enrollmentYear: "2022",
-    gender: "female",
-    email: "aigerim@example.com",
-    phoneNumbers: ["+77011234567", "+77019876543"],
-    city: cities[0],
-    dealNumber: "D-001",
-    dormitory: dormA,
-    room: roomA210,
-    status: t("In"),
-    telephone: "+77011234567",
-  },
-  {
-    iin: "020202654321",
-    name: "Daniyar",
-    surname: "Nurzhanov",
-    faculty: "business",
-    specialist: "mechanical_engineering",
-    enrollmentYear: "2021",
-    gender: "male",
-    email: "daniyar@example.com",
-    phoneNumbers: ["+77021234567"],
-    city: cities[2],
-    dealNumber: "D-002",
-    dormitory: dormB,
-    room: roomB101,
-    status: t("Out"),
-    telephone: "+77021234567",
-  },
-  {
-    iin: "030303789012",
-    name: "Irina",
-    surname: "Petrova",
-    faculty: "law",
-    specialist: "civil_engineering",
-    enrollmentYear: "2023",
-    gender: "female",
-    email: "irina@example.com",
-    phoneNumbers: ["+77031234567"],
-    city: cities[3],
-    dealNumber: "D-003",
-    dormitory: dormA,
-    room: roomA211,
-    status: t("In"),
-    telephone: "+77031234567",
-  },
-]);
-
 const currentPage = ref(1);
 const itemsPerPage = 10;
 const totalPages = computed(() =>
   Math.ceil(students.value.length / itemsPerPage),
 );
-const paginatedStudents = computed(() =>
-  students.value.slice(
+const paginatedStudents = computed(() => {
+  console.log('paginatedStudents computed - students.value:', students.value);
+  console.log('paginatedStudents computed - students.value.length:', students.value.length);
+  console.log('paginatedStudents computed - currentPage.value:', currentPage.value);
+  console.log('paginatedStudents computed - itemsPerPage:', itemsPerPage);
+  
+  const result = students.value.slice(
     (currentPage.value - 1) * itemsPerPage,
     currentPage.value * itemsPerPage,
-  ),
-);
+  );
+  
+  console.log('paginatedStudents computed - result:', result);
+  console.log('paginatedStudents computed - result.length:', result.length);
+  
+  return result;
+});
+
+// Fetch students from API
+const fetchStudents = async () => {
+  loading.value = true;
+  error.value = null;
+  
+  try {
+    const response = await api.get('/students');
+    console.log('API Response:', response.data);
+    
+    // Handle both paginated and non-paginated responses
+    if (response.data.data && Array.isArray(response.data.data)) {
+      // Paginated response: { data: [...], current_page: 1, ... }
+      students.value = response.data.data;
+    } else if (Array.isArray(response.data)) {
+      // Direct array response: [...]
+      students.value = response.data;
+    } else {
+      // Fallback
+      students.value = [];
+    }
+    
+    console.log('Fetched students:', students.value);
+    console.log('Number of students:', students.value.length);
+  } catch (err) {
+    console.error('Error fetching students:', err);
+    error.value = err.message || 'Failed to fetch students';
+    students.value = [];
+  } finally {
+    loading.value = false;
+  }
+};
 
 const navigateToAddStudent = () => {
   router.push("/student-form");
 };
 
-const navigateToEditStudent = (index) => {
-  const student = paginatedStudents.value[index];
+const navigateToEditStudent = (studentId) => {
+  const student = students.value.find(s => s.id === studentId);
   if (student) {
     studentStore.setSelectedStudent(student);
-    router.push(`/student-form/${index}`);
+    router.push(`/student-form/${studentId}`);
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
   studentStore.clearSelectedStudent();
+  await fetchStudents();
 });
 </script>
 

@@ -16,11 +16,11 @@
       <div
         class="flex flex-col items-stretch gap-4 lg:flex-row lg:items-center"
       >
-        <CButton variant="default" @click="exportToExcel">
+        <CButton @click="exportToExcel">
           <ArrowDownTrayIcon class="h-5 w-5" />
           {{ t("Export to Excel") }}
         </CButton>
-        <CButton variant="default" @click="navigateToAddDormitory">
+        <CButton @click="navigateToAddDormitory">
           <PlusIcon class="h-5 w-5" />
           {{ t("Add Dormitory") }}
         </CButton>
@@ -68,7 +68,6 @@
           <CTableCell>{{ dorm.rooms?.length || dorm.rooms || '-' }}</CTableCell>
           <CTableCell class="text-center">
             <CButton
-              variant="default"
               @click="navigateToEditDormitory(dorm.id)"
             >
               {{ t("Edit") }}
@@ -81,7 +80,6 @@
     <!-- Pagination -->
     <div class="mt-4 mb-4 flex items-center justify-between">
       <CButton
-        variant="default"
         :disabled="currentPage === 1"
         @click="currentPage--"
       >
@@ -91,7 +89,6 @@
         {{ t("Page") }} {{ currentPage }} {{ t("of") }} {{ totalPages }}
       </span>
       <CButton
-        variant="default"
         :disabled="currentPage === totalPages"
         @click="currentPage++"
       >

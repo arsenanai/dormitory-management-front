@@ -1,8 +1,8 @@
 import { test, expect } from './test';
 
 // Use working credentials from the auth tests
-const adminEmail = 'alice@student.local';
-const adminPassword = 'password';
+const adminEmail = 'admin@email.com';
+const adminPassword = 'supersecret';
 
 const uniqueStudentEmail = () => `teststudent+crud+${Date.now()}@sdu.edu.kz`;
 const studentTestUser = {

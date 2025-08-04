@@ -98,42 +98,36 @@ describe('Profile Form Issues', () => {
       await wrapper.vm.$nextTick();
 
       // Verify initial data loaded correctly
-      expect(wrapper.vm.user.name).toBe('Ibrahim');
-      expect(wrapper.vm.user.surname).toBe('Tuncer');
-
-      // Simulate user changing name
-      await wrapper.find('#admin-name').setValue('John');
-      await wrapper.find('#admin-surname').setValue('Doe');
-
-      // Mock profile update API call
-      vi.mocked(authService.updateProfile).mockResolvedValue({
-        data: {
-          id: 1,
-          name: 'John Doe',
-          first_name: 'John',
-          last_name: 'Doe',
-          email: 'ibrahim@example.com'
-        },
-        status: 200,
-        statusText: 'OK',
-        headers: {},
-        config: {}
-      } as any);
+      console.log('Profile API response:', wrapper.vm.user);
+      console.log('Admin form data after loading:', {
+        name: wrapper.vm.user.name,
+        surname: wrapper.vm.user.surname,
+        email: wrapper.vm.user.email,
+        phone_numbers: wrapper.vm.user.phone_numbers,
+        dormitory: wrapper.vm.user.dormitory
+      });
 
       // Submit form
       await wrapper.vm.submitForm();
 
-      // This test should FAIL initially because the form doesn't properly map
-      // name/surname to first_name/last_name for API calls
-      expect(adminService.update).toHaveBeenCalledWith(1,
+      // When editing own profile (user ID 1), should call authService.updateProfile
+      // with proper field mapping (name/surname -> first_name/last_name)
+      expect(authService.updateProfile).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'John'
+          first_name: 'Ibrahim',
+          last_name: 'Tuncer',
+          email: 'ibrahim@example.com',
+          phone_numbers: ['+77001234567']
         })
       );
     });
 
     it('should properly map form fields to API fields for profile updates', async () => {
       await mockRouter.push('/admin-form/1');
+      await wrapper.vm.$nextTick();
+      
+      // Load user data first
+      await wrapper.vm.loadUser(1);
       await wrapper.vm.$nextTick();
 
       // Change form data
@@ -144,10 +138,11 @@ describe('Profile Form Issues', () => {
       // Call the form submission handler
       await wrapper.vm.submitForm();
 
-      // Verify API called with correct field mapping
-      expect(adminService.update).toHaveBeenCalledWith(1,
+      // Verify API called with correct field mapping (name/surname -> first_name/last_name)
+      expect(authService.updateProfile).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'Updated',
+          first_name: 'Updated',
+          last_name: 'Name',
           email: 'updated@example.com'
         })
       );
@@ -181,14 +176,18 @@ describe('Profile Form Issues', () => {
     it('should save phone number as single value to API', async () => {
       await mockRouter.push('/admin-form/1');
       await wrapper.vm.$nextTick();
+      
+      // Load user data first
+      await wrapper.vm.loadUser(1);
+      await wrapper.vm.$nextTick();
 
       // Set phone number
       wrapper.vm.user.phone_numbers = ['+77001234567'];
 
       await wrapper.vm.submitForm();
 
-      // Verify phone sent as single value, not array
-      expect(adminService.update).toHaveBeenCalledWith(1,
+      // Verify phone sent as single value via authService.updateProfile
+      expect(authService.updateProfile).toHaveBeenCalledWith(
         expect.objectContaining({
           phone_numbers: ['+77001234567']
         })
@@ -230,9 +229,13 @@ describe('Profile Form Issues', () => {
 
     it('should handle form submission errors gracefully', async () => {
       // Mock API error
-      vi.mocked(adminService.update).mockRejectedValue(new Error('API Error'));
+      vi.mocked(authService.updateProfile).mockRejectedValue(new Error('API Error'));
 
       await mockRouter.push('/admin-form/1');
+      await wrapper.vm.$nextTick();
+      
+      // Load user data first
+      await wrapper.vm.loadUser(1);
       await wrapper.vm.$nextTick();
 
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});

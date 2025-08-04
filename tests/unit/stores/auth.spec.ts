@@ -4,7 +4,7 @@ globalThis.URL = globalThis.URL || require('url').URL
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { setActivePinia, createPinia } from 'pinia';
 import { useAuthStore } from '@/stores/auth';
-import api from '@/services/api';
+import api, { authService } from '@/services/api';
 
 // Create mock for localStorage
 const localStorageMock = (() => {
@@ -29,6 +29,17 @@ vi.mock('@/services/api', () => ({
     get: vi.fn(),
     put: vi.fn(),
     delete: vi.fn(),
+  },
+  authService: {
+    login: vi.fn(),
+    register: vi.fn(),
+    logout: vi.fn(),
+    loadProfile: vi.fn(),
+    getProfile: vi.fn(),
+    updateProfile: vi.fn(),
+    resetPassword: vi.fn(),
+    resetPasswordConfirm: vi.fn(),
+    changePassword: vi.fn(),
   },
 }));
 
@@ -73,12 +84,12 @@ describe('Auth Store', () => {
       }
     };
 
-    vi.mocked(api.post).mockResolvedValueOnce(mockResponse);
+    vi.mocked(authService.login).mockResolvedValueOnce(mockResponse);
 
     const credentials = { email: 'test@example.com', password: 'password' };
     await authStore.login(credentials);
 
-    expect(api.post).toHaveBeenCalledWith('/login', credentials);
+    expect(authService.login).toHaveBeenCalledWith(credentials);
     expect(authStore.user).toEqual(mockResponse.data.user);
     expect(authStore.token).toBe(mockResponse.data.token);
     expect(authStore.isAuthenticated).toBe(true);
@@ -91,7 +102,7 @@ describe('Auth Store', () => {
     const authStore = useAuthStore();
     const errorMessage = 'Login failed';
     
-    vi.mocked(api.post).mockRejectedValueOnce(new Error(errorMessage));
+    vi.mocked(authService.login).mockRejectedValueOnce(new Error(errorMessage));
 
     const credentials = { email: 'test@example.com', password: 'wrong-password' };
     
@@ -129,11 +140,11 @@ describe('Auth Store', () => {
     const authStore = useAuthStore();
     const mockUser = { id: 1, name: 'Test User', email: 'test@example.com' };
     
-    vi.mocked(api.get).mockResolvedValueOnce({ data: mockUser });
+    vi.mocked(authService.getProfile).mockResolvedValueOnce({ data: mockUser });
 
     await authStore.loadProfile();
 
-    expect(api.get).toHaveBeenCalledWith('/users/profile');
+    expect(authService.getProfile).toHaveBeenCalled();
     expect(authStore.user).toEqual(mockUser);
     expect(authStore.loading).toBe(false);
     expect(authStore.error).toBeNull();
@@ -143,7 +154,7 @@ describe('Auth Store', () => {
     const authStore = useAuthStore();
     const errorMessage = 'Failed to load profile';
     
-    vi.mocked(api.get).mockRejectedValueOnce(new Error(errorMessage));
+    vi.mocked(authService.getProfile).mockRejectedValueOnce(new Error(errorMessage));
 
     try {
       await authStore.loadProfile();
@@ -160,12 +171,12 @@ describe('Auth Store', () => {
     const authStore = useAuthStore();
     const updatedUser = { id: 1, name: 'Updated User', email: 'updated@example.com' };
     
-    vi.mocked(api.put).mockResolvedValueOnce({ data: updatedUser });
+    vi.mocked(authService.updateProfile).mockResolvedValueOnce({ data: updatedUser });
 
     const profileData = { name: 'Updated User' };
     await authStore.updateProfile(profileData);
 
-    expect(api.put).toHaveBeenCalledWith('/users/profile', profileData);
+    expect(authService.updateProfile).toHaveBeenCalledWith(profileData);
     expect(authStore.user).toEqual(updatedUser);
     expect(authStore.loading).toBe(false);
     expect(authStore.error).toBeNull();

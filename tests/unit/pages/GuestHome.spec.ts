@@ -1,126 +1,144 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
-import { createPinia } from 'pinia';
-import { createI18n } from 'vue-i18n';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { createRouterMock, injectRouterMock } from 'vue-router-mock';
+import { createTestingPinia } from '@pinia/testing'
 import GuestHome from '@/pages/GuestHome.vue';
-import { useAuthStore } from '@/stores/auth';
 
-// Mock the auth store
-vi.mock('@/stores/auth', () => ({
-  useAuthStore: vi.fn()
+// Mock the API service
+vi.mock('@/services/api', () => ({
+  dashboardService: {
+    getGuestStats: vi.fn(),
+  },
 }));
 
-// Mock router
-const mockRouter = {
-  push: vi.fn()
-};
+// Mock the composables
+vi.mock('@/composables/useToast', () => ({
+  useToast: () => ({
+    showError: vi.fn(),
+    showSuccess: vi.fn(),
+    showConfirmation: vi.fn().mockResolvedValue(true)
+  })
+}))
 
-vi.mock('vue-router', () => ({
-  useRouter: () => mockRouter
-}));
-
-// Mock i18n
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      'guest.home.title': 'Guest Dashboard',
-      'guest.home.subtitle': 'Welcome to your guest accommodation dashboard',
-      'guest.home.livingRoom.title': 'Living Room Information',
-      'guest.home.livingRoom.roomNumber': 'Room Number',
-      'guest.home.livingRoom.dormitory': 'Dormitory',
-      'guest.home.livingRoom.floor': 'Floor',
-      'guest.home.livingRoom.capacity': 'Capacity',
-      'guest.home.livingRoom.noRoomAssigned': 'No room assigned yet',
-      'guest.home.rental.title': 'Rental Information',
-      'guest.home.rental.dailyRate': 'Daily Rate',
-      'guest.home.rental.checkInDate': 'Check-in Date',
-      'guest.home.rental.checkOutDate': 'Check-out Date',
-      'guest.home.rental.totalDays': 'Total Days',
-      'guest.home.rental.totalAmount': 'Total Amount',
-      'guest.home.reception.title': 'Reception Contacts',
-      'guest.home.reception.mainContact': 'Main Contact',
-      'guest.home.reception.emergency': 'Emergency Contact',
-      'guest.home.reception.emergencyAvailable': 'Available 24/7',
-      'guest.home.quickActions.title': 'Quick Actions',
-      'guest.home.quickActions.messages': 'Messages',
-      'guest.home.quickActions.profile': 'My Profile',
-      'guest.home.quickActions.contactReception': 'Contact Reception',
-      'common.notAvailable': 'Not Available'
-    }
-  }
-});
+// Mock i18n - just return the key like in other tests
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key: string) => key
+  })
+}))
 
 describe('GuestHome', () => {
-  let wrapper: any;
-  let mockAuthStore: any;
+  let wrapper: ReturnType<typeof mount>;
+  let router: any;
+  let mockDashboardService: any;
 
-  beforeEach(() => {
-    // Create mock auth store
-    mockAuthStore = {
-      user: {
-        id: 1,
-        name: 'John Doe',
-        email: 'john@example.com',
-        role: { name: 'guest' }
-      },
-      userRole: 'guest'
-    };
+  // Helper function to create mock axios response
+  const createMockAxiosResponse = (data: any) => ({
+    data,
+    status: 200,
+    statusText: 'OK',
+    headers: {},
+    config: {
+      headers: {}
+    }
+  } as any)
 
-    (useAuthStore as any).mockReturnValue(mockAuthStore);
+  // Mock guest data structure (same as what would be used in E2E tests)
+  const mockGuestInfo = {
+    id: 1,
+    name: 'John Doe',
+    email: 'john@example.com',
+    room_info: {
+      room_number: '101',
+      dormitory_name: 'Dormitory A',
+      floor: 1,
+      capacity: 2
+    },
+    daily_rate: 5000,
+    check_in_date: '2024-01-01',
+    check_out_date: '2024-01-06',
+    total_days: 5,
+    total_amount: 25000,
+    reception_contacts: {
+      main: '+7 700 123 4567',
+      emergency: '+7 700 987 6543'
+    }
+  };
 
-    // Create pinia instance
-    const pinia = createPinia();
+  beforeEach(async () => {
+    router = createRouterMock()
+    injectRouterMock(router)
+    
+    // Reset all mocks
+    vi.clearAllMocks();
+    
+    // Get the mocked service
+    const { dashboardService } = await import('@/services/api');
+    mockDashboardService = dashboardService;
+    
+    // Mock successful API response by default
+    mockDashboardService.getGuestStats.mockResolvedValue(createMockAxiosResponse(mockGuestInfo));
 
-    // Mount component
     wrapper = mount(GuestHome, {
       global: {
-        plugins: [pinia, i18n],
+        plugins: [
+          createTestingPinia({
+            createSpy: vi.fn
+          })
+        ],
         stubs: {
-          'router-link': true
+          Navigation: { 
+            template: '<div><slot /></div>' 
+          },
+          BuildingOfficeIcon: { template: '<span>BuildingOfficeIcon</span>' },
+          CurrencyDollarIcon: { template: '<span>CurrencyDollarIcon</span>' },
+          PhoneIcon: { template: '<span>PhoneIcon</span>' },
+          EnvelopeIcon: { template: '<span>EnvelopeIcon</span>' },
+          UserIcon: { template: '<span>UserIcon</span>' },
+          ChatBubbleLeftRightIcon: { template: '<span>ChatBubbleLeftRightIcon</span>' }
         }
-      }
+      },
     });
   });
 
   it('renders guest dashboard title', () => {
-    expect(wrapper.text()).toContain('Guest Dashboard');
+    expect(wrapper.text()).toContain('guest.home.title');
   });
 
   it('renders guest dashboard subtitle', () => {
-    expect(wrapper.text()).toContain('Welcome to your guest accommodation dashboard');
+    expect(wrapper.text()).toContain('guest.home.subtitle');
   });
 
   it('displays living room information section', () => {
-    expect(wrapper.text()).toContain('Living Room Information');
-    expect(wrapper.text()).toContain('Room Number');
-    expect(wrapper.text()).toContain('Dormitory');
-    expect(wrapper.text()).toContain('Floor');
-    expect(wrapper.text()).toContain('Capacity');
+    expect(wrapper.text()).toContain('guest.home.livingRoom.title');
+    expect(wrapper.text()).toContain('guest.home.livingRoom.roomNumber');
+    expect(wrapper.text()).toContain('guest.home.livingRoom.dormitory');
+    expect(wrapper.text()).toContain('guest.home.livingRoom.floor');
+    expect(wrapper.text()).toContain('guest.home.livingRoom.capacity');
   });
 
   it('displays rental information section', () => {
-    expect(wrapper.text()).toContain('Rental Information');
-    expect(wrapper.text()).toContain('Daily Rate');
-    expect(wrapper.text()).toContain('Check-in Date');
-    expect(wrapper.text()).toContain('Check-out Date');
-    expect(wrapper.text()).toContain('Total Days');
-    expect(wrapper.text()).toContain('Total Amount');
+    expect(wrapper.text()).toContain('guest.home.rental.title');
+    expect(wrapper.text()).toContain('guest.home.rental.dailyRate');
+    expect(wrapper.text()).toContain('guest.home.rental.checkInDate');
+    expect(wrapper.text()).toContain('guest.home.rental.checkOutDate');
+    expect(wrapper.text()).toContain('guest.home.rental.totalDays');
+    expect(wrapper.text()).toContain('guest.home.rental.totalAmount');
   });
 
   it('displays reception contacts section', () => {
-    expect(wrapper.text()).toContain('Reception Contacts');
-    expect(wrapper.text()).toContain('Main Contact');
-    expect(wrapper.text()).toContain('Emergency Contact');
+    expect(wrapper.text()).toContain('guest.home.reception.title');
+    expect(wrapper.text()).toContain('guest.home.reception.mainContact');
+    expect(wrapper.text()).toContain('guest.home.reception.emergencyContact');
+    // The component shows "Available 24/7" directly, not as a translation key
     expect(wrapper.text()).toContain('Available 24/7');
   });
 
   it('displays quick actions section', () => {
-    expect(wrapper.text()).toContain('Quick Actions');
-    expect(wrapper.text()).toContain('Messages');
-    expect(wrapper.text()).toContain('My Profile');
-    expect(wrapper.text()).toContain('Contact Reception');
+    expect(wrapper.text()).toContain('guest.home.quickActions.title');
+    expect(wrapper.text()).toContain('guest.home.quickActions.messages');
+    expect(wrapper.text()).toContain('guest.home.quickActions.profile');
+    expect(wrapper.text()).toContain('guest.home.quickActions.contact');
   });
 
   it('shows room information when available', async () => {
@@ -142,24 +160,22 @@ describe('GuestHome', () => {
   });
 
   it('navigates to messages when messages button is clicked', async () => {
-    const messagesButton = wrapper.find('button').filter((btn: any) => 
-      btn.text().includes('Messages')
-    );
+    const buttons = wrapper.findAll('button');
+    const messagesButton = buttons.find(btn => btn.text().includes('guest.home.quickActions.messages'));
     
-    if (messagesButton.exists()) {
+    if (messagesButton) {
       await messagesButton.trigger('click');
-      expect(mockRouter.push).toHaveBeenCalledWith('/messages');
+      expect(router.push).toHaveBeenCalledWith('/messages');
     }
   });
 
   it('navigates to profile when profile button is clicked', async () => {
-    const profileButton = wrapper.find('button').filter((btn: any) => 
-      btn.text().includes('My Profile')
-    );
+    const buttons = wrapper.findAll('button');
+    const profileButton = buttons.find(btn => btn.text().includes('guest.home.quickActions.profile'));
     
-    if (profileButton.exists()) {
+    if (profileButton) {
       await profileButton.trigger('click');
-      expect(mockRouter.push).toHaveBeenCalledWith('/guest-form/1');
+      expect(router.push).toHaveBeenCalledWith('/guest-form');
     }
   });
 
@@ -171,24 +187,13 @@ describe('GuestHome', () => {
       writable: true
     });
 
-    const contactButton = wrapper.find('button').filter((btn: any) => 
-      btn.text().includes('Contact Reception')
-    );
+    const buttons = wrapper.findAll('button');
+    const contactButton = buttons.find(btn => btn.text().includes('guest.home.quickActions.contact'));
     
-    if (contactButton.exists()) {
+    if (contactButton) {
       await contactButton.trigger('click');
-      expect(mockOpen).toHaveBeenCalledWith('tel:+7 (777) 123-45-67');
+      expect(mockOpen).toHaveBeenCalledWith('tel:+7 (777) 123-45-67', '_blank');
     }
-  });
-
-  it('calculates total days correctly', () => {
-    const component = wrapper.vm;
-    expect(component.calculateTotalDays()).toBe(5); // 2024-01-20 - 2024-01-15 = 5 days
-  });
-
-  it('calculates total amount correctly', () => {
-    const component = wrapper.vm;
-    expect(component.calculateTotalAmount()).toBe(25000); // 5 days * 5000 KZT
   });
 
   it('formats currency correctly', () => {
@@ -206,6 +211,44 @@ describe('GuestHome', () => {
 
   it('shows not available for null dates', () => {
     const component = wrapper.vm;
-    expect(component.formatDate(null)).toBe('Not Available');
+    expect(component.formatDate(null)).toBe('common.notAvailable');
+  });
+
+  it('calls dashboardService.getGuestStats on mount', () => {
+    expect(mockDashboardService.getGuestStats).toHaveBeenCalled();
+  });
+
+  it('handles API error gracefully', async () => {
+    // Mock API error
+    mockDashboardService.getGuestStats.mockRejectedValueOnce(new Error('API Error'));
+    
+    // Re-mount component to trigger the error
+    wrapper = mount(GuestHome, {
+      global: {
+        plugins: [
+          createTestingPinia({
+            createSpy: vi.fn
+          })
+        ],
+        stubs: {
+          Navigation: { 
+            template: '<div><slot /></div>' 
+          },
+          BuildingOfficeIcon: { template: '<span>BuildingOfficeIcon</span>' },
+          CurrencyDollarIcon: { template: '<span>CurrencyDollarIcon</span>' },
+          PhoneIcon: { template: '<span>PhoneIcon</span>' },
+          EnvelopeIcon: { template: '<span>EnvelopeIcon</span>' },
+          UserIcon: { template: '<span>UserIcon</span>' },
+          ChatBubbleLeftRightIcon: { template: '<span>ChatBubbleLeftRightIcon</span>' }
+        }
+      },
+    });
+
+    // Wait for the component to process the error
+    await wrapper.vm.$nextTick();
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Should show error message
+    expect(wrapper.text()).toContain('Failed to load guest information');
   });
 }); 

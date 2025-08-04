@@ -21,12 +21,14 @@
         required
       />
 
-      <!-- Dormitory Field -->
+      <!-- Dormitory Field - Only show for super admins editing other users -->
       <CSelect
+        v-if="!isEditingOwnProfile"
         id="admin-dormitory"
         v-model="user.dormitory"
         :options="dormitoryOptions"
         :label="t('Dormitory')"
+        placeholder="Select a dormitory"
         required
       />
 
@@ -105,7 +107,7 @@
 
     <!-- Submit Button -->
     <div class="mt-6 flex flex-row items-end justify-end gap-2">
-      <CButton v-if="isEditing" type="default" variant="secondary" data-testid="change-password-btn" @click="showPasswordForm = !showPasswordForm">
+      <CButton v-if="isEditing" data-testid="change-password-btn" @click="showPasswordForm = !showPasswordForm">
         {{ t("Change Password") }}
       </CButton>
       <CButton type="submit" variant="primary" @click="submitForm">
@@ -147,7 +149,7 @@
         <CButton type="button" variant="primary" @click="changePassword">
           {{ t("Update Password") }}
         </CButton>
-        <CButton type="button" variant="secondary" @click="cancelPasswordChange">
+        <CButton type="button" @click="cancelPasswordChange">
           {{ t("Cancel") }}
         </CButton>
       </div>
@@ -165,6 +167,7 @@ import CSelect from "@/components/CSelect.vue";
 import CButton from "@/components/CButton.vue";
 import { Dormitory } from "@/models/Dormitory";
 import { useUserStore } from "@/stores/user";
+import { useAuthStore } from "@/stores/auth";
 import { adminService, dormitoryService, userService, authService } from "@/services/api";
 import { useToast } from "@/composables/useToast";
 import { PlusIcon, TrashIcon } from "@heroicons/vue/24/outline";
@@ -176,11 +179,13 @@ const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const userStore = useUserStore();
+const authStore = useAuthStore();
 const { showError, showSuccess } = useToast();
 
 // Check if we're editing (ID in route params)
 const userId = computed(() => route.params.id ? Number(route.params.id) : null);
 const isEditing = computed(() => !!userId.value);
+const isEditingOwnProfile = computed(() => isEditing.value && userId.value === authStore.user?.id);
 
 // Dormitories loaded from API
 const dormitories = ref([]);
@@ -275,8 +280,20 @@ const submitForm = async (): Promise<void> => {
     };
     
     if (isEditing.value) {
-      await adminService.update(userId.value, payload);
-      showSuccess(t("Admin profile updated successfully!"));
+      // If editing own profile, use profile endpoint
+      if (userId.value === authStore.user?.id) {
+        await authService.updateProfile({
+          first_name: user.value.name,
+          last_name: user.value.surname,
+          email: user.value.email,
+          phone_numbers: user.value.phone_numbers,
+        });
+        showSuccess(t("Profile updated successfully!"));
+      } else {
+        // If editing other admin, use admin service
+        await adminService.update(userId.value, payload);
+        showSuccess(t("Admin profile updated successfully!"));
+      }
     } else {
       await adminService.create(payload);
       showSuccess(t("Admin created successfully!"));

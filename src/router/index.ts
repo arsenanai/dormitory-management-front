@@ -219,6 +219,17 @@ const routes: AppRouteRecordRaw[] = [
     },
   },
   {
+    path: '/account-preferences',
+    name: 'AccountPreferences',
+    component: () => import('@/pages/AccountPreferences.vue'),
+    meta: {
+      title: 'Account Preferences',
+      requiresAuth: true,
+      sidebar: false,
+      roles: ['sudo', 'admin', 'student', 'guest'],
+    },
+  },
+  {
     path: '/dormitories',
     name: 'Dormitories',
     component: () => import('@/pages/Dormitories.vue'),
@@ -359,6 +370,21 @@ router.beforeEach(async (to, from, next) => {
       next();
     }
   } else {
+    // Check for user profile access restrictions
+    if (to.path.includes('/admin-form/') || to.path.includes('/student-form/')) {
+      const userId = to.params.id;
+      const currentUserId = authStore.user?.id;
+      
+      // Only allow access if:
+      // 1. User is accessing their own profile, OR
+      // 2. User is a super admin (sudo) accessing other profiles
+      if (userId && currentUserId && userId !== currentUserId.toString() && userRole !== 'sudo') {
+        // Redirect to account preferences if trying to access another user's profile
+        next({ path: '/account-preferences' });
+        return;
+      }
+    }
+    
     next();
   }
 });

@@ -70,7 +70,7 @@
               required
             />
           </div>
-          <CButton type="submit" variant="default" :loading="loading">
+          <CButton type="submit" :loading="loading">
             {{ t('Change Password') }}
           </CButton>
         </form>
@@ -100,6 +100,39 @@
           </CButton>
         </div>
       </section>
+
+      <!-- Accessibility Settings Section -->
+      <section class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold mb-4 text-primary-700">{{ t('Accessibility Settings') }}</h2>
+        <div class="space-y-4">
+          <CCheckbox
+            id="accessibility-mode"
+            v-model="accessibilityForm.accessibilityMode"
+            :label="t('Enable Accessibility Mode')"
+          />
+          <p class="text-sm text-gray-600">
+            {{ t('When enabled, removes black borders and uses shadows for focus indicators instead.') }}
+          </p>
+          <CCheckbox
+            id="high-contrast"
+            v-model="accessibilityForm.highContrast"
+            :label="t('High Contrast Mode')"
+          />
+          <CCheckbox
+            id="reduced-motion"
+            v-model="accessibilityForm.reducedMotion"
+            :label="t('Reduce Motion')"
+          />
+          <CCheckbox
+            id="large-text"
+            v-model="accessibilityForm.largeText"
+            :label="t('Large Text')"
+          />
+          <CButton @click="saveAccessibilitySettings" :loading="loading">
+            {{ t('Save Accessibility Settings') }}
+          </CButton>
+        </div>
+      </section>
     </div>
   </Navigation>
 </template>
@@ -113,9 +146,11 @@ import CInput from '@/components/CInput.vue';
 import CSelect from '@/components/CSelect.vue';
 import CCheckbox from '@/components/CCheckbox.vue';
 import { useAuthStore } from '@/stores/auth';
+import { useAccessibility } from '@/composables/useAccessibility';
 
 const { t } = useI18n();
 const authStore = useAuthStore();
+const { settings: accessibilitySettings, loadSettings: loadAccessibilitySettings, saveSettings: saveAccessibilitySettingsFromComposable } = useAccessibility();
 
 // Form data
 const profileForm = reactive({
@@ -135,6 +170,13 @@ const notificationForm = reactive({
   emailNotifications: true,
   smsNotifications: false,
   systemNotifications: true,
+});
+
+const accessibilityForm = reactive({
+  accessibilityMode: false,
+  highContrast: false,
+  reducedMotion: false,
+  largeText: false,
 });
 
 // Options
@@ -158,6 +200,15 @@ const loadProfile = async () => {
       profileForm.phone = user.phone || '';
       profileForm.language = user.language || 'en';
     }
+    
+    // Load accessibility settings
+    loadAccessibilitySettings();
+    
+    // Initialize accessibility form with loaded settings
+    accessibilityForm.accessibilityMode = accessibilitySettings.accessibilityMode;
+    accessibilityForm.highContrast = accessibilitySettings.highContrast;
+    accessibilityForm.reducedMotion = accessibilitySettings.reducedMotion;
+    accessibilityForm.largeText = accessibilitySettings.largeText;
   } catch (error) {
     console.error('Failed to load profile:', error);
   }
@@ -203,6 +254,26 @@ const saveNotificationSettings = async () => {
     loading.value = false;
   }
 };
+
+const saveAccessibilitySettings = async () => {
+  loading.value = true;
+  try {
+    // Update accessibility settings with form values
+    accessibilitySettings.accessibilityMode = accessibilityForm.accessibilityMode;
+    accessibilitySettings.highContrast = accessibilityForm.highContrast;
+    accessibilitySettings.reducedMotion = accessibilityForm.reducedMotion;
+    accessibilitySettings.largeText = accessibilityForm.largeText;
+    
+    // Save accessibility settings
+    saveAccessibilitySettingsFromComposable();
+  } catch (error) {
+    console.error('Failed to save accessibility settings:', error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+
 
 // Lifecycle
 onMounted(() => {
