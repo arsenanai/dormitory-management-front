@@ -254,13 +254,23 @@ export const useAuthStore = defineStore('auth', () => {
    * authStore.initializeAuth()
    * ```
    */
-  const initializeAuth = () => {
+  const initializeAuth = async () => {
     const savedToken = localStorage.getItem('token')
+    
     if (savedToken) {
       token.value = savedToken
       // Set token in API headers
       if (api.defaults && api.defaults.headers) {
         api.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`
+      }
+      
+      // Try to load user profile to validate token
+      try {
+        await loadProfile()
+      } catch (err) {
+        // If loading profile fails, clear the invalid token
+        console.warn('Invalid token found, clearing authentication state')
+        logout()
       }
     }
   }

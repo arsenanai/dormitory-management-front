@@ -23,9 +23,13 @@ watch(
 );
 
 // Initialize Flowbite and auth on component mount
-onMounted(() => {
+onMounted(async () => {
   initFlowbite();
-  authStore.initializeAuth();
+  try {
+    await authStore.initializeAuth();
+  } catch (error) {
+    console.warn('Auth initialization failed:', error);
+  }
 });
 </script>
 

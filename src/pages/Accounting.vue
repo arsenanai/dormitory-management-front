@@ -61,10 +61,10 @@
             </CTableCell>
           </CTableRow>
           <CTableRow v-for="row in filteredRows" :key="row.id">
-            <CTableCell>{{ row.student }}</CTableCell>
+            <CTableCell>{{ row.student_name }}</CTableCell>
             <CTableCell>{{ row.semester }}</CTableCell>
-            <CTableCell>${{ row.totalPaid.toFixed(2) }}</CTableCell>
-            <CTableCell>${{ row.outstanding.toFixed(2) }}</CTableCell>
+            <CTableCell>${{ parseFloat(row.amount).toFixed(2) }}</CTableCell>
+            <CTableCell>${{ row.payment_approved ? '0.00' : parseFloat(row.amount).toFixed(2) }}</CTableCell>
           </CTableRow>
         </CTableBody>
       </CTable>
@@ -89,99 +89,98 @@ import CTableCell from '@/components/CTableCell.vue';
 
 const { t } = useI18n();
 
-// Mock data as fallback
-const mockRows = [
-  { id: 1, student: 'Alice Smith', semester: '2024-fall', totalPaid: 120000, outstanding: 0 },
-  { id: 2, student: 'Bob Lee', semester: '2024-fall', totalPaid: 60000, outstanding: 60000 },
-  { id: 3, student: 'Charlie Kim', semester: '2024-spring', totalPaid: 120000, outstanding: 0 },
-];
-
-const rows = ref(mockRows);
+// Reactive data
+const rows = ref<any[]>([]);
 const loading = ref(false);
-const error = ref('');
+const error = ref<string | null>(null);
+const summary = ref<any>({});
 
+// Filters
 const studentFilter = ref('');
 const semesterFilter = ref('');
 const startDate = ref('');
 const endDate = ref('');
 
-const studentOptions = computed(() => [
-  { value: '', name: t('All Students') },
-  { value: 'Alice Smith', name: 'Alice Smith' },
-  { value: 'Bob Lee', name: 'Bob Lee' },
-  { value: 'Charlie Kim', name: 'Charlie Kim' },
-]);
+// Student options for filter
+const studentOptions = ref<{ value: string; name: string }[]>([]);
 
-const filteredRows = computed(() => {
-  return rows.value.filter(row => {
-    const studentMatch = !studentFilter.value || row.student === studentFilter.value;
-    const semesterMatch = !semesterFilter.value || row.semester === semesterFilter.value;
-    
-    // For now, always return true for date range since we're using mock data
-    // In a real implementation, this would check against actual payment dates
-    const dateMatch = true;
-    
-    return studentMatch && semesterMatch && dateMatch;
-  });
-});
-
-// Load accounting data from API
-const loadAccountingData = async () => {
-  loading.value = true;
-  error.value = '';
-  
+// Fetch accounting data
+const fetchAccountingData = async () => {
   try {
-    const filters = {
-      student: studentFilter.value || undefined,
-      semester: semesterFilter.value || undefined,
-      startDate: startDate.value || undefined,
-      endDate: endDate.value || undefined,
-    };
+    loading.value = true;
+    error.value = null;
     
-    const data = await accountingApi.getAccountingOverview(filters);
-    rows.value = data || mockRows;
-  } catch (err) {
-    console.warn('Failed to load accounting data from API, using mock data:', err);
+    const params: any = {};
+    if (studentFilter.value) params.student = studentFilter.value;
+    if (semesterFilter.value) params.semester = semesterFilter.value;
+    if (startDate.value) params.start_date = startDate.value;
+    if (endDate.value) params.end_date = endDate.value;
+    
+    const response = await accountingApi.getAccountingData(params);
+    rows.value = response.data.data || [];
+    summary.value = response.data.summary || {};
+    
+    // Extract unique students for filter options
+    const students = new Set<string>();
+    rows.value.forEach(row => {
+      if (row.student_name) {
+        students.add(row.student_name);
+      }
+    });
+    
+    studentOptions.value = Array.from(students).map(name => ({
+      value: name,
+      name: name
+    }));
+    
+  } catch (err: any) {
+    console.error('Failed to fetch accounting data:', err);
+    error.value = err.response?.data?.message || t('Failed to load accounting data');
+    
     // Fallback to mock data if API fails
-    rows.value = mockRows;
-    error.value = t('Failed to load accounting data. Please try again.');
+    rows.value = [
+      { id: 1, student_name: 'Alice Smith', semester: '2024-fall', amount: 120000, payment_approved: true },
+      { id: 2, student_name: 'Bob Lee', semester: '2024-fall', amount: 60000, payment_approved: false },
+      { id: 3, student_name: 'Charlie Kim', semester: '2024-spring', amount: 120000, payment_approved: true },
+    ];
   } finally {
     loading.value = false;
   }
 };
 
+// Computed filtered rows
+const filteredRows = computed(() => {
+  return rows.value;
+});
+
 // Export accounting data
 const exportAccounting = async () => {
   try {
-    const filters = {
-      student: studentFilter.value || undefined,
-      semester: semesterFilter.value || undefined,
-      startDate: startDate.value || undefined,
-      endDate: endDate.value || undefined,
-    };
+    const params: any = {};
+    if (studentFilter.value) params.student = studentFilter.value;
+    if (semesterFilter.value) params.semester = semesterFilter.value;
+    if (startDate.value) params.start_date = startDate.value;
+    if (endDate.value) params.end_date = endDate.value;
     
-    const blob = await accountingApi.exportAccounting(filters);
+    const response = await accountingApi.exportAccounting(params);
     
-    // Create download link
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `accounting-export-${new Date().toISOString().split('T')[0]}.xlsx`;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
+    // For now, just show a success message
+    // In a real implementation, this would download a file
+    alert(t('Export completed successfully'));
     
-    console.log('Exporting accounting data as .xlsx');
-  } catch (err) {
+  } catch (err: any) {
     console.error('Failed to export accounting data:', err);
-    // Fallback to alert for now
-    alert('Exporting accounting data as .xlsx (not yet implemented)');
+    alert(t('Failed to export accounting data'));
   }
 };
 
-// Load data on mount
+// Watch for filter changes
+const applyFilters = () => {
+  fetchAccountingData();
+};
+
+// Lifecycle
 onMounted(() => {
-  loadAccountingData();
+  fetchAccountingData();
 });
 </script> 

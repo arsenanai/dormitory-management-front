@@ -305,24 +305,56 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   document.title = 'SDU Dormitory | ' + (to.meta?.title ?? '');
   
   // Initialize auth store in the context of the navigation guard
   const authStore = useAuthStore();
+  
+  // If we have a token but no user data, try to load the profile first
+  if (authStore.token && !authStore.user) {
+    try {
+      await authStore.loadProfile();
+    } catch (error) {
+      // If loading profile fails, clear the invalid token
+      authStore.logout();
+    }
+  }
+  
   const isAuthenticated = authStore.isAuthenticated;
+  const userRole = authStore.userRole;
+  
+  // Helper function to get appropriate redirect path based on user role
+  const getRedirectPath = (userRole: string | null) => {
+    if (userRole === 'student') {
+      return '/student-main';
+    } else if (userRole === 'guest') {
+      return '/guest-home';
+    } else {
+      // For admin/sudo users or unknown roles, redirect to main dashboard
+      return '/main';
+    }
+  };
   
   if (to.meta?.requiresAuth && !isAuthenticated) {
     next({ name: 'login' });
   } else if (to.name === 'login' && isAuthenticated) {
     // Redirect authenticated users away from login page
-    next({ path: '/main' });
+    const redirectPath = getRedirectPath(userRole);
+    next({ path: redirectPath });
   } else if (to.meta?.roles && to.meta.roles.length > 0) {
     // Check role-based access
-    const userRole = authStore.userRole;
     if (!userRole || !to.meta.roles.includes(userRole)) {
-      // Redirect to main page if user doesn't have required role
-      next({ path: '/main' });
+      const redirectPath = getRedirectPath(userRole);
+      
+      // Prevent infinite redirect by checking if we're already trying to redirect to the same path
+      if (to.path === redirectPath) {
+        // If we're already on the correct path but don't have the right role,
+        // just allow access to prevent infinite loop
+        next();
+      } else {
+        next({ path: redirectPath });
+      }
     } else {
       next();
     }

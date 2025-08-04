@@ -2,7 +2,7 @@
   <Navigation :title="t('Dashboard')">
     <div v-if="dashboardStore.loading" class="text-center py-8 text-lg">{{ t('Loading...') }}</div>
     <div v-else-if="dashboardStore.error" class="text-center py-8 text-red-600">{{ dashboardStore.error }}</div>
-    <div v-else class="grid h-full grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+    <div v-else class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
       <div
         v-for="(card, index) in cards"
         :key="index"

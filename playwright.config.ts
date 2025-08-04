@@ -9,14 +9,14 @@ if (existsSync('.env.testing')) {
   // Set default test environment variables
   process.env.VITE_API_BASE_URL = 'http://localhost:8000/api';
   process.env.VITE_APP_NAME = 'SDU Dormitory Test';
-  process.env.ADMIN_EMAIL = 'admin@example.com';
-  process.env.ADMIN_PASSWORD = 'password';
-  process.env.STUDENT_EMAIL = 'student@example.com';
-  process.env.STUDENT_PASSWORD = 'password';
-  process.env.SUPERADMIN_EMAIL = 'superadmin@example.com';
-  process.env.SUPERADMIN_PASSWORD = 'password';
+  process.env.ADMIN_EMAIL = 'admin@email.com';
+  process.env.ADMIN_PASSWORD = 'supersecret';
+  process.env.STUDENT_EMAIL = 'student@email.com';
+  process.env.STUDENT_PASSWORD = 'supersecret';
+  process.env.SUPERADMIN_EMAIL = 'sudo@email.com';
+  process.env.SUPERADMIN_PASSWORD = 'supersecret';
   process.env.VITE_TEST_MODE = 'true';
-  process.env.VITE_MOCK_EXTERNAL_SERVICES = 'true';
+  process.env.VITE_MOCK_EXTERNAL_SERVICES = 'false';
   process.env.VITE_DEFAULT_LOCALE = 'en';
   process.env.VITE_FALLBACK_LOCALE = 'en';
 }
@@ -32,9 +32,11 @@ export default defineConfig({
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
-  retries: process.env.CI ? 2 : 1,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : 2,
+  retries: process.env.CI ? 2 : 0,
+  /* Exit on first failure */
+  maxFailures: process.env.CI ? 0 : 1,
+  /* Run with multiple workers */
+  workers: process.env.CI ? 1 : 4,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [['list'], ['html', { open: 'never' }]],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -48,6 +50,9 @@ export default defineConfig({
     /* Increase default timeouts */
     actionTimeout: 15000,
     navigationTimeout: 30000,
+    
+    /* Run headlessly by default */
+    headless: true,
   },
 
   /* Configure projects for major browsers */
@@ -57,7 +62,7 @@ export default defineConfig({
       use: { 
         browserName: 'chromium',
         launchOptions: {
-          args: ['--no-sandbox', '--disable-setuid-sandbox']
+          args: ['--no-sandbox', '--disable-setuid-sandbox', '--headless']
         }
       },
     },
@@ -67,13 +72,18 @@ export default defineConfig({
         ...devices['Pixel 5'],
         browserName: 'chromium',
         launchOptions: {
-          args: ['--no-sandbox', '--disable-setuid-sandbox']
+          args: ['--no-sandbox', '--disable-setuid-sandbox', '--headless']
         }
       },
     },
     {
       name: 'mobile-safari',
-      use: { ...devices['iPhone 12'] },
+      use: { 
+        ...devices['iPhone 12'],
+        launchOptions: {
+          args: ['--headless']
+        }
+      },
     },
   ],
 

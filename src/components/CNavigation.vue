@@ -1,24 +1,20 @@
 <template>
-  <div class="flex min-h-screen flex-col">
-    <!-- Navigation Header -->
+  <div class="flex h-screen flex-col">
+    <!-- Top Navigation Bar (not fixed) -->
     <nav 
-      class="flex flex-col items-stretch justify-between lg:flex-row z-20 bg-white border-b shadow-sm"
-      :class="{ 
-        'mobile': isMobile, 
-        'collapsed': isCollapsed && collapsible 
-      }"
+      class="bg-white shadow-sm relative z-30"
       @keydown.tab="handleKeyboardNav"
       @keydown.enter="handleEnterKey"
     >
       <!-- Main Navigation Bar -->
-      <div class="flex flex-1 flex-row items-center justify-between py-2 px-4">
+      <div class="flex flex-row items-center justify-between py-2 px-4">
         <!-- Logo & Brand Section -->
         <div class="flex items-center justify-start space-x-2 lg:w-64 lg:justify-center lg:space-x-4">
           <!-- Mobile Menu Toggle -->
           <button
             v-if="isMobile"
             @click="toggleMobileMenu"
-            class="mobile-menu-toggle lg:hidden focus:ring-3 focus:outline-none focus:ring-secondary-300 p-2 rounded"
+            class="lg:hidden p-2 rounded hover:bg-gray-100 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             :aria-label="'Toggle mobile menu'"
           >
             <Bars3Icon class="h-6 w-6" />
@@ -28,12 +24,17 @@
           <button
             v-if="collapsible"
             @click="toggleCollapse"
-            class="collapse-button hidden lg:block p-2 rounded hover:bg-gray-100"
+            class="hidden lg:block p-2 rounded hover:bg-gray-100"
           >
             <Bars3Icon class="h-5 w-5" />
           </button>
           
           <img src="/src/assets/sdu logo.png" class="h-12" alt="Logo" />
+          <span class="text-lg font-bold text-primary-700 lg:hidden">{{ title }}</span>
+        </div>
+
+        <!-- Desktop Title (aligned with main content) -->
+        <div class="hidden lg:flex items-center">
           <span class="text-lg font-bold text-primary-700">{{ title }}</span>
         </div>
 
@@ -42,15 +43,14 @@
 
         <!-- User Menu & Actions -->
         <div class="flex items-center space-x-2 lg:space-x-4">
-
           <!-- User Info & Menu -->
           <div class="relative">
             <button
               @click="toggleUserMenu"
-              class="user-menu flex items-center space-x-2 p-2 rounded hover:bg-gray-100"
+              class="flex items-center space-x-2 p-2 rounded hover:bg-gray-100"
               data-testid="user-menu-button"
             >
-              <div v-if="currentUser" class="text-right user-info">
+              <div v-if="currentUser" class="text-right">
                 <p class="text-sm font-medium text-primary-700">{{ currentUser.name }}</p>
                 <p class="text-xs text-primary-500">{{ currentUser.email }}</p>
               </div>
@@ -64,7 +64,7 @@
             <!-- User Dropdown Menu -->
             <div 
               v-show="userMenuOpen"
-              class="dropdown-menu open absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border z-50"
+              class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border z-50"
             >
               <button 
                 @click="handleProfileClick"
@@ -83,7 +83,7 @@
               <hr class="my-1">
               <button
                 @click="handleLogout"
-                class="logout-button w-full text-left px-4 py-2 text-sm hover:bg-gray-100 text-red-600"
+                class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 text-red-600"
               >
                 Logout
               </button>
@@ -93,10 +93,10 @@
       </div>
 
       <!-- Breadcrumbs -->
-      <div v-if="breadcrumbs && breadcrumbs.length" class="px-4 py-2 bg-gray-50 border-t">
+      <div v-if="breadcrumbs && breadcrumbs.length" class="px-4 py-2 bg-gray-50">
         <nav class="flex" aria-label="Breadcrumb">
           <ol class="flex items-center space-x-1">
-            <li v-for="(crumb, index) in breadcrumbs" :key="index" class="breadcrumb-item">
+            <li v-for="(crumb, index) in breadcrumbs" :key="index">
               <router-link
                 v-if="index < breadcrumbs.length - 1"
                 :to="crumb.path"
@@ -115,34 +115,63 @@
       </div>
     </nav>
 
-    <!-- Main Navigation Menu -->
-    <div class="flex flex-1">
-      <!-- Desktop Sidebar / Mobile Menu -->
-      <div 
-        class="navigation-menu"
-        :class="{
-          'hidden lg:block': !isMobile && !isCollapsed,
-          'fixed inset-0 z-40 lg:relative lg:z-auto': isMobile,
-          'mobile-menu open': isMobile && mobileMenuOpen,
-          'mobile-menu': isMobile && !mobileMenuOpen
-        }"
-      >
-        <!-- Mobile Overlay -->
-        <div 
-          v-if="isMobile && mobileMenuOpen"
-          @click="closeMobileMenu"
-          class="fixed inset-0 bg-black bg-opacity-50 lg:hidden"
-        ></div>
+    <!-- Mobile Sidebar (expands below navigation bar) -->
+    <div 
+      v-if="isMobile"
+      class="lg:hidden bg-white shadow-sm overflow-hidden transition-all duration-300 ease-in-out relative z-20"
+      :class="mobileMenuOpen ? 'h-auto' : 'h-0'"
+    >
+      <nav class="p-4">
+        <!-- Loading State -->
+        <div v-if="loading" class="space-y-2">
+          <div class="h-4 bg-gray-200 rounded animate-pulse"></div>
+          <div class="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div>
+          <div class="h-4 bg-gray-200 rounded animate-pulse w-1/2"></div>
+        </div>
         
-        <!-- Navigation Content -->
-        <nav class="bg-white shadow-sm border-r h-full w-64 lg:w-auto lg:min-w-64">
+        <!-- Navigation Items -->
+        <ul v-else class="space-y-1">
+          <li v-for="item in visibleNavItems" :key="item.path">
+                          <a
+                :href="item.path"
+                :class="[
+                  'flex items-center px-4 py-3 text-sm font-medium rounded hover:bg-gray-100',
+                  { 'bg-primary-100 text-primary-700 border-r-2 border-primary-600': isActive(item.path) }
+                ]"
+                @click.prevent="handleNavClick(item)"
+              >
+                <component 
+                  v-if="item.icon" 
+                  :is="item.icon" 
+                  :class="[
+                    'mr-3 h-5 w-5',
+                    { 'text-secondary-500': isActive(item.path), 'text-gray-500': !isActive(item.path) }
+                  ]" 
+                />
+                <span>{{ item.name }}</span>
+                <ArrowTopRightOnSquareIcon 
+                  v-if="item.external" 
+                  class="ml-auto h-4 w-4" 
+                />
+              </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="flex flex-1 relative z-10">
+      <!-- Desktop Sidebar -->
+      <div 
+        v-if="!isMobile"
+        class="hidden lg:block bg-white shadow-sm w-64 relative z-20"
+      >
+        <nav class="h-full">
           <!-- Loading State -->
-          <div v-if="loading" class="p-4">
-            <div class="loading-skeleton space-y-2">
-              <div class="h-4 bg-gray-200 rounded animate-pulse"></div>
-              <div class="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div>
-              <div class="h-4 bg-gray-200 rounded animate-pulse w-1/2"></div>
-            </div>
+          <div v-if="loading" class="p-4 space-y-2">
+            <div class="h-4 bg-gray-200 rounded animate-pulse"></div>
+            <div class="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div>
+            <div class="h-4 bg-gray-200 rounded animate-pulse w-1/2"></div>
           </div>
           
           <!-- Navigation Items -->
@@ -151,13 +180,19 @@
               <a
                 :href="item.path"
                 :class="[
-                  'nav-item flex items-center px-4 py-3 text-sm font-medium hover:bg-gray-100',
-                  { 'active bg-blue-50 text-blue-700 border-r-2 border-blue-700': isActive(item.path) },
-                  { 'focused': focusedItem === item.path }
+                  'flex items-center px-4 py-3 text-sm font-medium hover:bg-gray-100',
+                  { 'bg-primary-100 text-primary-700 border-r-2 border-primary-600': isActive(item.path) }
                 ]"
                 @click.prevent="handleNavClick(item)"
               >
-                <component v-if="item.icon" :is="item.icon" class="nav-icon mr-3 h-5 w-5" />
+                <component 
+                  v-if="item.icon" 
+                  :is="item.icon" 
+                  :class="[
+                    'mr-3 h-5 w-5',
+                    { 'text-secondary-500': isActive(item.path), 'text-gray-500': !isActive(item.path) }
+                  ]" 
+                />
                 <span>{{ item.name }}</span>
                 <ArrowTopRightOnSquareIcon 
                   v-if="item.external" 
@@ -166,24 +201,11 @@
               </a>
             </li>
           </ul>
-
-          <!-- External Links -->
-          <div class="border-t mt-4 pt-4">
-            <a
-              href="https://example.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="external-link flex items-center px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
-            >
-              External Link
-              <ArrowTopRightOnSquareIcon class="ml-auto h-4 w-4" />
-            </a>
-          </div>
         </nav>
       </div>
 
       <!-- Main Content -->
-      <main class="flex-1 overflow-auto bg-gray-50">
+      <main class="flex-1 overflow-auto bg-gray-50 p-2 lg:p-4 relative z-10">
         <slot></slot>
       </main>
     </div>
@@ -284,7 +306,7 @@ const focusedItem = ref<string | null>(null);
 
 // Default navigation items with Heroicons
 const defaultNavItems: NavItem[] = [
-  { name: 'Home', path: '/', icon: HomeIcon },
+  { name: 'Home', path: '/main', icon: HomeIcon },
   { name: 'Users', path: '/users', icon: UserGroupIcon, permission: 'users.view' },
   { name: 'Rooms', path: '/rooms', icon: BuildingOfficeIcon, permission: 'rooms.view' },
   { name: 'Payments', path: '/payments', icon: CurrencyDollarIcon, permission: 'payments.view' },

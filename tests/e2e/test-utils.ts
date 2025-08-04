@@ -87,9 +87,21 @@ export class TestUtils {
     await page.fill(SELECTORS.loginPassword, user.password);
     await page.click(SELECTORS.loginButton);
     
-    // Wait for successful login - redirect to main page
-    // Wait for redirect first, then check for success message if available
-    await page.waitForURL(/\/main/, { timeout: 30000 });
+    // Wait for successful login - different user types navigate to different URLs
+    let expectedURL: RegExp;
+    switch (userType) {
+      case 'student':
+        expectedURL = /\/student-main/;
+        break;
+      case 'admin':
+      case 'superadmin':
+        expectedURL = /\/main/;
+        break;
+      default:
+        expectedURL = /\/main/;
+    }
+    
+    await page.waitForURL(expectedURL, { timeout: 30000 });
     await page.waitForLoadState('networkidle');
     
     // Optionally wait for success message if it exists

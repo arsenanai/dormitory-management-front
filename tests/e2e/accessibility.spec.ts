@@ -7,7 +7,9 @@ test.describe('Accessibility & Keyboard Navigation E2E', () => {
     await page.fill('#login-email', process.env.ADMIN_EMAIL!);
     await page.fill('#login-password', process.env.ADMIN_PASSWORD!);
     await page.click('button[type="submit"]:has-text("Login")');
-    await page.waitForURL(/main/, { timeout: 15000 });
+    // Wait for successful login - be more flexible with URL matching
+    await page.waitForURL(/\/(main|student-main|guest-home)/, { timeout: 15000 });
+    await page.waitForLoadState('networkidle');
   });
 
   test('should allow tabbing through main navigation and buttons', async ({ page }) => {

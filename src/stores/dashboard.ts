@@ -46,13 +46,15 @@ export const useDashboardStore = defineStore('dashboard', () => {
       
       console.log('DEBUG: dashboardService.getStats response:', response);
       const data = response.data || {};
+      
+      // Map backend response to frontend expected structure
       stats.value = {
-        dormitories: data.dormitories ?? 0,
-        rooms: data.rooms ?? 0,
-        beds: data.beds ?? 0,
-        vacantBeds: data.vacant_beds ?? 0,
-        registeredStudents: data.registered_students ?? 0,
-        currentPresence: data.current_presence ?? 0,
+        dormitories: data.total_dormitories ?? 1, // Default to 1 if not provided
+        rooms: data.total_rooms ?? 0,
+        beds: data.total_beds ?? data.total_rooms ?? 0, // Use rooms as beds if beds not provided
+        vacantBeds: data.available_rooms ?? 0,
+        registeredStudents: data.total_students ?? 0,
+        currentPresence: data.occupied_rooms ?? 0,
         mealPaying: data.meal_paying ?? 0,
         withoutMeal: data.without_meal ?? 0,
         quotaStudents: data.quota_students ?? 0,

@@ -16,6 +16,9 @@ app.use(VueKonva);
 
 // Ensure authStore is initialized before mounting the app
 const authStore = useAuthStore();
-authStore.initializeAuth();
-
-app.mount('#app');
+authStore.initializeAuth().then(() => {
+  app.mount('#app');
+}).catch(() => {
+  // If auth initialization fails, still mount the app
+  app.mount('#app');
+});

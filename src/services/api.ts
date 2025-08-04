@@ -565,6 +565,9 @@ export const dashboardService = {
   getStudentStats: (): Promise<ApiResponse<Record<string, unknown>>> =>
     api.get("/dashboard/student"),
   
+  getGuestStats: (): Promise<ApiResponse<Record<string, unknown>>> =>
+    api.get("/dashboard/guest"),
+  
   getMonthlyStats: (): Promise<ApiResponse<Record<string, unknown>>> =>
     api.get("/dashboard/monthly"),
   
