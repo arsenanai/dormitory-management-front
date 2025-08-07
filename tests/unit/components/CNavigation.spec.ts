@@ -7,7 +7,8 @@ import CNavigation from '@/components/CNavigation.vue'
 // Mock the auth store
 vi.mock('@/stores/auth', () => ({
   useAuthStore: () => ({
-    user: { name: 'John Doe', email: 'john@example.com' },
+    user: { name: 'John Doe', email: 'john@example.com', role: { name: 'sudo' } },
+    userRole: 'sudo',
     logout: vi.fn(),
     isAuthenticated: true
   })
@@ -20,22 +21,79 @@ describe('CNavigation.vue', () => {
   beforeEach(() => {
     router = createRouterMock({
       routes: [
-        { path: '/', name: 'home', component: { template: '<div>Home</div>' } },
-        { path: '/users', name: 'users', component: { template: '<div>Users</div>' } },
-        { path: '/rooms', name: 'rooms', component: { template: '<div>Rooms</div>' } },
-        { path: '/payments', name: 'payments', component: { template: '<div>Payments</div>' } }
+        { 
+          path: '/main', 
+          name: 'Main Page', 
+          component: { template: '<div>Main</div>' },
+          meta: {
+            title: 'Dashboard',
+            sidebar: true,
+            icon: 'HomeIcon',
+            roles: ['sudo', 'admin', 'student', 'guest']
+          }
+        },
+        { 
+          path: '/admins', 
+          name: 'Admins', 
+          component: { template: '<div>Admins</div>' },
+          meta: {
+            title: 'Admins',
+            sidebar: true,
+            icon: 'UserGroupIcon',
+            roles: ['sudo']
+          }
+        },
+        { 
+          path: '/students', 
+          name: 'Students', 
+          component: { template: '<div>Students</div>' },
+          meta: {
+            title: 'Students',
+            sidebar: true,
+            icon: 'UserGroupIcon',
+            roles: ['sudo', 'admin']
+          }
+        },
+        { 
+          path: '/rooms', 
+          name: 'Rooms', 
+          component: { template: '<div>Rooms</div>' },
+          meta: {
+            title: 'Rooms',
+            sidebar: true,
+            icon: 'BuildingOfficeIcon',
+            roles: ['sudo', 'admin']
+          }
+        },
+        { 
+          path: '/payments', 
+          name: 'Payments', 
+          component: { template: '<div>Payments</div>' },
+          meta: {
+            title: 'Payments',
+            sidebar: true,
+            icon: 'CurrencyDollarIcon',
+            roles: ['sudo', 'admin']
+          }
+        },
+        { 
+          path: '/messages', 
+          name: 'Messages', 
+          component: { template: '<div>Messages</div>' },
+          meta: {
+            title: 'Messages',
+            sidebar: true,
+            icon: 'ChatBubbleLeftRightIcon',
+            roles: ['sudo', 'admin', 'student', 'guest']
+          }
+        }
       ]
     })
     injectRouterMock(router)
     
     wrapper = mount(CNavigation, {
       props: {
-        title: 'Test Navigation',
-        navItems: [
-          { name: 'Users', path: '/users', icon: 'UserIcon' },
-          { name: 'Rooms', path: '/rooms', icon: 'HomeIcon' },
-          { name: 'Payments', path: '/payments', icon: 'CreditCardIcon' }
-        ]
+        title: 'Test Navigation'
       },
       global: {
         plugins: [
@@ -49,9 +107,11 @@ describe('CNavigation.vue', () => {
           ChevronDownIcon: { template: '<span>ChevronDownIcon</span>' },
           ChevronRightIcon: { template: '<span>ChevronRightIcon</span>' },
           ArrowTopRightOnSquareIcon: { template: '<span>ArrowTopRightOnSquareIcon</span>' },
-          UserIcon: { template: '<span>UserIcon</span>' },
           HomeIcon: { template: '<span>HomeIcon</span>' },
-          CreditCardIcon: { template: '<span>CreditCardIcon</span>' }
+          UserGroupIcon: { template: '<span>UserGroupIcon</span>' },
+          BuildingOfficeIcon: { template: '<span>BuildingOfficeIcon</span>' },
+          CurrencyDollarIcon: { template: '<span>CurrencyDollarIcon</span>' },
+          ChatBubbleLeftRightIcon: { template: '<span>ChatBubbleLeftRightIcon</span>' }
         }
       }
     })
@@ -67,7 +127,7 @@ describe('CNavigation.vue', () => {
   })
 
   it('highlights active navigation item', async () => {
-    router.push('/users')
+    router.push('/admins')
     await wrapper.vm.$nextTick()
     
     // Look for active navigation item with the correct class structure
@@ -76,10 +136,10 @@ describe('CNavigation.vue', () => {
   })
 
   it('handles navigation clicks', async () => {
-    const navLink = wrapper.find('a[href="/users"]')
+    const navLink = wrapper.find('a[href="/admins"]')
     await navLink.trigger('click')
     
-    expect(router.push).toHaveBeenCalledWith('/users')
+    expect(router.push).toHaveBeenCalledWith('/admins')
   })
 
   it('handles collapsible navigation', async () => {

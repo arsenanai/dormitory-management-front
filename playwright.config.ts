@@ -22,6 +22,9 @@ if (existsSync('.env.testing')) {
 }
 import { defineConfig, devices } from '@playwright/test';
 
+// Check if --headed flag is passed
+const isHeaded = process.argv.includes('--headed');
+
 /**
  * @see https://playwright.dev/docs/test-configuration
  */
@@ -51,37 +54,29 @@ export default defineConfig({
     actionTimeout: 15000,
     navigationTimeout: 30000,
     
-    /* Run headlessly by default */
-    headless: true,
+    /* Run headlessly by default, but allow override with --headed */
+    headless: !isHeaded,
   },
 
   /* Configure projects for major browsers */
   projects: [
     {
       name: 'chrome',
-      use: { 
-        browserName: 'chromium',
-        launchOptions: {
-          args: ['--no-sandbox', '--disable-setuid-sandbox', '--headless']
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: { 
+          args: ['--no-sandbox', '--disable-setuid-sandbox'],
+          headless: !isHeaded
         }
       },
     },
     {
       name: 'mobile-chrome',
-      use: { 
+      use: {
         ...devices['Pixel 5'],
-        browserName: 'chromium',
-        launchOptions: {
-          args: ['--no-sandbox', '--disable-setuid-sandbox', '--headless']
-        }
-      },
-    },
-    {
-      name: 'mobile-safari',
-      use: { 
-        ...devices['iPhone 12'],
-        launchOptions: {
-          args: ['--headless']
+        launchOptions: { 
+          args: ['--no-sandbox', '--disable-setuid-sandbox'],
+          headless: !isHeaded
         }
       },
     },

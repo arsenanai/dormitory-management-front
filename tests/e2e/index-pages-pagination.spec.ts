@@ -138,6 +138,18 @@ test.describe('Index Pages Pagination E2E Tests', () => {
   });
 
   test.describe('Dormitories Index Page', () => {
+    test.beforeEach(async ({ page }) => {
+      // Clear any existing authentication state
+      await page.goto('/');
+      await page.evaluate(() => {
+        localStorage.clear();
+        sessionStorage.clear();
+      });
+      await page.reload();
+      
+      await TestUtils.login(page, 'superadmin');
+    });
+
     test('should display paginated dormitories data from database', async ({ page }) => {
       await page.goto('/dormitories');
       await page.waitForLoadState('networkidle');

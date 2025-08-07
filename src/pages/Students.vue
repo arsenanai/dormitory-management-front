@@ -164,7 +164,7 @@ import CTableBody from "@/components/CTableBody.vue";
 import CTableRow from "@/components/CTableRow.vue";
 import CTableCell from "@/components/CTableCell.vue";
 import { useStudentStore } from "@/stores/student";
-import api from "@/services/api";
+import { studentService } from "@/services/api";
 
 const { t } = useI18n();
 const router = useRouter();
@@ -232,18 +232,30 @@ const fetchStudents = async () => {
   error.value = null;
   
   try {
-    const response = await api.get('/students');
-    console.log('API Response:', response.data);
+    // Check if user is authenticated
+    const token = localStorage.getItem('token');
+    if (!token) {
+      error.value = 'Authentication required';
+      students.value = [];
+      return;
+    }
+
+    const response = await studentService.getAll();
+    console.log('API Response:', response);
     
-    // Handle both paginated and non-paginated responses
-    if (response.data.data && Array.isArray(response.data.data)) {
-      // Paginated response: { data: [...], current_page: 1, ... }
-      students.value = response.data.data;
-    } else if (Array.isArray(response.data)) {
-      // Direct array response: [...]
-      students.value = response.data;
+    // Handle Laravel paginated response structure
+    if (response && response.data) {
+      // Laravel paginated response: { data: [...], current_page: 1, ... }
+      if (response.data.data && Array.isArray(response.data.data)) {
+        students.value = response.data.data;
+      } else if (Array.isArray(response.data)) {
+        // Direct array response
+        students.value = response.data;
+      } else {
+        // Fallback - try to find data in the response
+        students.value = [];
+      }
     } else {
-      // Fallback
       students.value = [];
     }
     

@@ -113,7 +113,7 @@ const buttonClasses = computed(() => {
     classes.push('text-gray-900 bg-transparent hover:text-gray-700 focus:ring-4 focus:ring-gray-200');
   } else {
     classes.push('default');
-    classes.push('text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:ring-gray-200');
+    classes.push('text-gray-900 bg-white border border-gray-300 hover:bg-gray-200 focus:ring-4 focus:ring-gray-200');
   }
 
   // Size classes

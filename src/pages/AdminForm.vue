@@ -21,9 +21,9 @@
         required
       />
 
-      <!-- Dormitory Field - Only show for super admins editing other users -->
+      <!-- Dormitory Field - Show when editing -->
       <CSelect
-        v-if="!isEditingOwnProfile"
+        v-if="isEditing"
         id="admin-dormitory"
         v-model="user.dormitory"
         :options="dormitoryOptions"
@@ -70,7 +70,8 @@
         <div class="flex items-center gap-2">
           <CInput
             id="admin-phone"
-            v-model="phoneNumber"
+            :model-value="user.phone_numbers[0]"
+            @update:model-value="(val) => user.phone_numbers[0] = val"
             type="tel"
             placeholder="Enter Phone Number"
             required
@@ -158,7 +159,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from "vue";
+import { ref, watch, onMounted, computed, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import Navigation from "@/components/CNavigation.vue";
@@ -260,42 +261,62 @@ const splitPhoneNumber = (phoneNumber: string): string[] => {
 
 // Submit the form
 const submitForm = async (): Promise<void> => {
-  if (!user.value.phone_numbers?.length || !user.value.phone_numbers[0]) {
+  // Ensure we have a clean array of phone numbers (filter out empty strings)
+  const cleanPhoneNumbers = user.value.phone_numbers?.filter(phone => phone && phone.trim()) || [];
+  
+  if (cleanPhoneNumbers.length === 0) {
     showError(t("At least one phone number is required."));
     return;
   }
   
   try {
-    // Construct payload - AdminController expects flat structure
-    const payload = {
-      name: user.value.name,
-      email: user.value.email,
-      phone_numbers: user.value.phone_numbers,
-      password: user.value.password,
-      password_confirmation: user.value.confirmPassword,
-      position: adminProfile.value.position,
-      department: adminProfile.value.department,
-      office_phone: adminProfile.value.office_phone,
-      office_location: adminProfile.value.office_location,
-    };
-    
     if (isEditing.value) {
       // If editing own profile, use profile endpoint
       if (userId.value === authStore.user?.id) {
-        await authService.updateProfile({
+        const updatePayload = {
           first_name: user.value.name,
           last_name: user.value.surname,
           email: user.value.email,
-          phone_numbers: user.value.phone_numbers,
-        });
+          phone_numbers: cleanPhoneNumbers,
+          dormitory_id: user.value.dormitory,
+        };
+        console.log('📤 Sending profile update payload:', JSON.stringify(updatePayload, null, 2));
+        await authService.updateProfile(updatePayload);
+        console.log('✅ Profile update successful');
         showSuccess(t("Profile updated successfully!"));
       } else {
         // If editing other admin, use admin service
-        await adminService.update(userId.value, payload);
+        const updatePayload = {
+          name: user.value.name,
+          surname: user.value.surname,
+          email: user.value.email,
+          phone_numbers: cleanPhoneNumbers,
+          dormitory: user.value.dormitory,
+          position: adminProfile.value.position,
+          department: adminProfile.value.department,
+          office_phone: adminProfile.value.office_phone,
+          office_location: adminProfile.value.office_location,
+        };
+        console.log('📤 Sending admin update payload:', JSON.stringify(updatePayload, null, 2));
+        console.log('📤 Updating admin ID:', userId.value);
+        await adminService.update(userId.value, updatePayload);
+        console.log('✅ Admin update successful');
         showSuccess(t("Admin profile updated successfully!"));
       }
     } else {
-      await adminService.create(payload);
+      // For new admin creation, include password fields
+      const createPayload = {
+        name: user.value.name,
+        email: user.value.email,
+        phone_numbers: cleanPhoneNumbers,
+        password: user.value.password,
+        password_confirmation: user.value.confirmPassword,
+        position: adminProfile.value.position,
+        department: adminProfile.value.department,
+        office_phone: adminProfile.value.office_phone,
+        office_location: adminProfile.value.office_location,
+      };
+      await adminService.create(createPayload);
       showSuccess(t("Admin created successfully!"));
       router.push('/admins');
     }
@@ -308,11 +329,14 @@ const submitForm = async (): Promise<void> => {
 // Profile update method for tests (calls authService.updateProfile)
 const updateProfile = async (): Promise<void> => {
   try {
+    // Ensure we have a clean array of phone numbers
+    const cleanPhoneNumbers = user.value.phone_numbers?.filter(phone => phone && phone.trim()) || [];
+    
     const payload = {
       first_name: user.value.name,
       last_name: user.value.surname,
       email: user.value.email,
-      phone_numbers: user.value.phone_numbers,
+      phone_numbers: cleanPhoneNumbers,
       dormitory_id: user.value.dormitory,
     };
     
@@ -360,21 +384,22 @@ const cancelPasswordChange = (): void => {
   };
 };
 
+
+
 // Populate the form if editing an existing user
 watch(
   () => userStore.selectedUser,
   (selectedUser) => {
     if (selectedUser) {
-      // Populate user fields
-      user.value = {
-        name: selectedUser.first_name || selectedUser.name || "",
-        surname: selectedUser.last_name || selectedUser.surname || "",
-        email: selectedUser.email || "",
-        phone_numbers: selectedUser.phone_numbers?.length ? [...selectedUser.phone_numbers] : selectedUser.phone ? [selectedUser.phone] : [""],
-        password: "", // Clear password when editing
-        confirmPassword: "", // Clear confirm password when editing
-        dormitory: selectedUser.dormitory || null,
-      };
+      // Update each field individually to ensure reactivity
+      user.value.name = selectedUser.first_name || selectedUser.name || "";
+      user.value.surname = selectedUser.last_name || selectedUser.surname || "";
+      user.value.email = selectedUser.email || "";
+      user.value.phone_numbers = selectedUser.phone_numbers?.length ? selectedUser.phone_numbers : selectedUser.phone ? [selectedUser.phone] : [""];
+      user.value.password = ""; // Clear password when editing
+      user.value.confirmPassword = ""; // Clear confirm password when editing
+      user.value.dormitory = selectedUser.dormitory_id || selectedUser.dormitory || null;
+      
       // Populate adminProfile fields
       adminProfile.value = {
         position: selectedUser.admin_profile?.position || "",
@@ -390,20 +415,51 @@ watch(
 // Load user from API if editing
 const loadUser = async (id: number) => {
   try {
-    // Use profile endpoint for current user's own data to avoid permission issues
-    const response = await authService.getProfile();
-    const userData = response.data;
+    console.log(`🔄 Loading admin data for ID: ${id}`);
+    let userData;
     
-    console.log('Profile API response:', userData);
+    // If editing own profile, use profile endpoint
+    if (id === authStore.user?.id) {
+      console.log('📞 Using profile endpoint for own profile');
+      const response = await authService.getProfile();
+      userData = response.data;
+    } else {
+      console.log('📞 Using admin service endpoint for other admin');
+      const response = await adminService.getById(id);
+      userData = response.data;
+    }
+    
+    console.log('📥 Raw API response:', JSON.stringify(userData, null, 2));
     
     // Populate form with API data, properly mapping fields
-    user.value = {
+    const updatedUser = {
       name: userData.first_name || userData.name || "",
       surname: userData.last_name || userData.surname || "",
       email: userData.email || "",
-      phone_numbers: userData.phone_numbers?.length ? [combinePhoneNumber(userData.phone_numbers)] : userData.phone ? [userData.phone] : [""],
+      phone_numbers: (() => {
+        // Always ensure we have an array of phone numbers
+        if (userData.phone_numbers && Array.isArray(userData.phone_numbers) && userData.phone_numbers.length > 0) {
+          return userData.phone_numbers;
+        } else if (userData.phone && userData.phone.trim()) {
+          return [userData.phone];
+        } else {
+          return [""]; // Default to empty string in array
+        }
+      })(),
       dormitory: userData.dormitory_id || userData.dormitory || null,
     };
+    
+    console.log('🔄 Mapped user data:', JSON.stringify(updatedUser, null, 2));
+    
+    // Update each field individually to ensure reactivity
+    user.value.name = updatedUser.name;
+    user.value.surname = updatedUser.surname;
+    user.value.email = updatedUser.email;
+    user.value.phone_numbers = updatedUser.phone_numbers;
+    user.value.dormitory = updatedUser.dormitory;
+    
+    console.log('✅ Updated user.value:', JSON.stringify(user.value, null, 2));
+    
     adminProfile.value = {
       position: userData.admin_profile?.position || "",
       department: userData.admin_profile?.department || "",
@@ -411,11 +467,14 @@ const loadUser = async (id: number) => {
       office_location: userData.admin_profile?.office_location || "",
     };
     
-    console.log('Admin form data after loading:', user.value);
+    console.log('✅ Updated adminProfile.value:', JSON.stringify(adminProfile.value, null, 2));
+    
+    // Force a re-render to ensure components update
+    await nextTick();
     
     showSuccess(t("Admin data loaded successfully"));
   } catch (error) {
-    console.error('Failed to load user:', error);
+    console.error('❌ Failed to load user:', error);
     showError(t("Failed to load admin data"));
   }
 };
@@ -433,11 +492,8 @@ onMounted(async () => {
     showError(t("Failed to load dormitories"));
   }
 
-  // First try to restore from store
-  userStore.restoreSelectedUser();
-  
-  // If editing and no data in store, load from API
-  if (isEditing.value && !userStore.selectedUser) {
+  // If editing, always load from API to ensure fresh data
+  if (isEditing.value) {
     await loadUser(userId.value!);
   }
 });

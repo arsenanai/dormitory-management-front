@@ -1,20 +1,20 @@
 <template>
-  <div class="flex h-screen flex-col">
+  <div class="flex h-auto lg:h-screen flex-col">
     <!-- Top Navigation Bar (not fixed) -->
     <nav 
-      class="bg-white shadow-sm relative z-30"
+      class="relative z-30"
       @keydown.tab="handleKeyboardNav"
       @keydown.enter="handleEnterKey"
     >
       <!-- Main Navigation Bar -->
-      <div class="flex flex-row items-center justify-between py-2 px-4">
+      <div class="flex flex-row items-center justify-between py-2 pr-4">
         <!-- Logo & Brand Section -->
-        <div class="flex items-center justify-start space-x-2 lg:w-64 lg:justify-center lg:space-x-4">
+        <div class="flex items-center justify-start space-x-2 lg:w-64 lg:justify-center">
           <!-- Mobile Menu Toggle -->
           <button
             v-if="isMobile"
             @click="toggleMobileMenu"
-            class="lg:hidden p-2 rounded hover:bg-gray-100 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            class="lg:hidden p-2 rounded hover:bg-gray-200 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             :aria-label="'Toggle mobile menu'"
           >
             <Bars3Icon class="h-6 w-6" />
@@ -24,12 +24,12 @@
           <button
             v-if="collapsible"
             @click="toggleCollapse"
-            class="hidden lg:block p-2 rounded hover:bg-gray-100"
+            class="hidden lg:block p-2 rounded hover:bg-gray-200"
           >
             <Bars3Icon class="h-5 w-5" />
           </button>
           
-          <img src="/src/assets/sdu logo.png" class="h-12" alt="Logo" />
+          <img src="/src/assets/sdu logo.png" class="h-12 inline-block" alt="Logo" />
           <span class="text-lg font-bold text-primary-700 lg:hidden">{{ title }}</span>
         </div>
 
@@ -44,11 +44,12 @@
         <!-- User Menu & Actions -->
         <div class="flex items-center space-x-2 lg:space-x-4">
           <!-- User Info & Menu -->
-          <div class="relative">
+          <div class="relative z-40">
             <button
               @click="toggleUserMenu"
-              class="flex items-center space-x-2 p-2 rounded hover:bg-gray-100 user-menu-button"
+              class="flex items-center space-x-2 p-2 rounded hover:bg-gray-200 user-menu-button"
               data-testid="user-menu-button"
+              type="button"
             >
               <div v-if="currentUser" class="text-right">
                 <p class="text-sm font-medium text-primary-700">{{ currentUser.name }}</p>
@@ -62,35 +63,38 @@
             </button>
             
             <!-- User Dropdown Menu -->
-            <div 
-              v-show="userMenuOpen"
-              :class="[
-                'absolute right-0 mt-2 w-48 bg-white rounded-lg shadow z-50 user-menu-dropdown',
-                isAccessibilityMode ? 'border' : ''
-              ]"
-              :data-visible="userMenuOpen"
-            >
-              <button 
-                @click="handleProfileClick"
-                data-testid="profile-link"
-                class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+            <Teleport to="body">
+              <div 
+                v-if="userMenuOpen"
+                :class="[
+                  'fixed w-48 bg-white rounded-lg border border-gray-200 shadow-lg z-[9999] user-menu-dropdown',
+                  isAccessibilityMode ? 'border' : ''
+                ]"
+                :style="dropdownStyle"
+                :data-visible="userMenuOpen"
               >
-                Profile
-              </button>
-              <hr class="my-1 border-gray-200">
-              <button
-                @click="handleLogout"
-                class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 text-red-600"
-              >
-                Logout
-              </button>
-            </div>
+                <button 
+                  @click="handleProfileClick"
+                  data-testid="profile-link"
+                  class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-200"
+                >
+                  Profile
+                </button>
+                <hr class="my-1 border-gray-200">
+                <button
+                  @click="handleLogout"
+                  class="w-full text-left px-4 py-2 text-sm hover:bg-gray-200 text-red-600"
+                >
+                  Logout
+                </button>
+              </div>
+            </Teleport>
           </div>
         </div>
       </div>
 
       <!-- Breadcrumbs -->
-      <div v-if="breadcrumbs && breadcrumbs.length" class="px-4 py-2 bg-gray-50">
+      <div v-if="breadcrumbs && breadcrumbs.length" class="px-4 py-2 border-t border-gray-200">
         <nav class="flex" aria-label="Breadcrumb">
           <ol class="flex items-center space-x-1">
             <li v-for="(crumb, index) in breadcrumbs" :key="index">
@@ -114,95 +118,26 @@
 
     <!-- Mobile Sidebar (expands below navigation bar) -->
     <div 
-      v-if="isMobile"
-      class="lg:hidden bg-white shadow-sm overflow-hidden transition-all duration-300 ease-in-out relative z-20"
-      :class="mobileMenuOpen ? 'h-auto' : 'h-0'"
+      v-if="isMobile && mobileMenuOpen"
+      class="lg:hidden transition-all duration-300 ease-in-out relative z-30 lg:z-10 border-b border-gray-200 bg-white max-h-screen overflow-y-auto"
     >
-      <nav class="p-4">
-        <!-- Loading State -->
-        <div v-if="loading" class="space-y-2">
-          <div class="h-4 bg-gray-200 rounded animate-pulse"></div>
-          <div class="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div>
-          <div class="h-4 bg-gray-200 rounded animate-pulse w-1/2"></div>
-        </div>
-        
-        <!-- Navigation Items -->
-        <ul v-else class="space-y-1">
-          <li v-for="item in visibleNavItems" :key="item.path">
-                          <a
-                :href="item.path"
-                :class="[
-                  'flex items-center px-4 py-3 text-sm font-medium rounded hover:bg-gray-100',
-                  { 'bg-primary-100 text-primary-700 border-r-2 border-primary-600': isActive(item.path) }
-                ]"
-                @click.prevent="handleNavClick(item)"
-              >
-                <component 
-                  v-if="item.icon" 
-                  :is="item.icon" 
-                  :class="[
-                    'mr-3 h-5 w-5',
-                    { 'text-secondary-500': isActive(item.path), 'text-gray-500': !isActive(item.path) }
-                  ]" 
-                />
-                <span>{{ item.name }}</span>
-                <ArrowTopRightOnSquareIcon 
-                  v-if="item.external" 
-                  class="ml-auto h-4 w-4" 
-                />
-              </a>
-          </li>
-        </ul>
-      </nav>
+      <div class="bg-white shadow-sm">
+        <CSidebar @nav-click="handleSidebarNavClick" />
+      </div>
     </div>
 
     <!-- Main Content Area -->
-    <div class="flex flex-1 relative z-10">
+    <div class="flex flex-1 relative">
       <!-- Desktop Sidebar -->
       <div 
         v-if="!isMobile"
-        class="hidden lg:block bg-white shadow-sm w-64 relative z-20"
+        class="hidden lg:block border-r border-gray-200 w-64 relative z-10"
       >
-        <nav class="h-full">
-          <!-- Loading State -->
-          <div v-if="loading" class="p-4 space-y-2">
-            <div class="h-4 bg-gray-200 rounded animate-pulse"></div>
-            <div class="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div>
-            <div class="h-4 bg-gray-200 rounded animate-pulse w-1/2"></div>
-          </div>
-          
-          <!-- Navigation Items -->
-          <ul v-else class="py-4">
-            <li v-for="item in visibleNavItems" :key="item.path">
-              <a
-                :href="item.path"
-                :class="[
-                  'flex items-center px-4 py-3 text-sm font-medium hover:bg-gray-100',
-                  { 'bg-primary-100 text-primary-700 border-r-2 border-primary-600': isActive(item.path) }
-                ]"
-                @click.prevent="handleNavClick(item)"
-              >
-                <component 
-                  v-if="item.icon" 
-                  :is="item.icon" 
-                  :class="[
-                    'mr-3 h-5 w-5',
-                    { 'text-secondary-500': isActive(item.path), 'text-gray-500': !isActive(item.path) }
-                  ]" 
-                />
-                <span>{{ item.name }}</span>
-                <ArrowTopRightOnSquareIcon 
-                  v-if="item.external" 
-                  class="ml-auto h-4 w-4" 
-                />
-              </a>
-            </li>
-          </ul>
-        </nav>
+        <CSidebar />
       </div>
 
       <!-- Main Content -->
-      <main class="flex-1 overflow-auto bg-gray-50 p-2 lg:p-4 relative z-10">
+      <main class="flex-1 overflow-auto bg-white shadow relative min-h-full p-4 lg:p-6 z-10 lg:z-30">
         <slot></slot>
       </main>
     </div>
@@ -210,7 +145,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, computed, onMounted, onUnmounted, nextTick, Teleport } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { 
   Bars3Icon, 
@@ -227,6 +162,7 @@ import { useAuthStore } from '@/stores/auth';
 import { useI18n } from 'vue-i18n';
 import CSelect from '@/components/CSelect.vue';
 import { useAccessibility } from '@/composables/useAccessibility';
+import CSidebar from '@/components/CSidebar.vue';
 
 // Define component name for test recognition
 defineOptions({ name: 'CNavigation' });
@@ -305,21 +241,40 @@ const mobileMenuOpen = ref(false);
 const userMenuOpen = ref(false);
 const focusedItem = ref<string | null>(null);
 
-// Default navigation items with Heroicons
-const defaultNavItems: NavItem[] = [
-  { name: 'Home', path: '/main', icon: HomeIcon },
-  { name: 'Users', path: '/users', icon: UserGroupIcon, permission: 'users.view' },
-  { name: 'Rooms', path: '/rooms', icon: BuildingOfficeIcon, permission: 'rooms.view' },
-  { name: 'Payments', path: '/payments', icon: CurrencyDollarIcon, permission: 'payments.view' },
-  { name: 'Messages', path: '/messages', icon: ChatBubbleLeftRightIcon },
-  { name: 'Dormitories', path: '/dormitories', icon: BuildingOfficeIcon }
-];
+// Dynamic navigation items from router configuration
+const defaultNavItems = computed<NavItem[]>(() => {
+  return router.options.routes
+    .filter((route) => route.meta?.sidebar && !route.meta?.parent)
+    .filter((route) => {
+      // Check role-based access
+      if (route.meta?.roles && Array.isArray(route.meta.roles) && route.meta.roles.length > 0) {
+        return route.meta.roles.includes(authStore.userRole || '');
+      }
+      return true;
+    })
+    .map((route) => ({
+      name: (route.meta?.title as string) || (route.name as string) || '',
+      path: route.path,
+      icon: (route.meta?.icon as any) || HomeIcon,
+      permission: (route.meta?.permission as string) || undefined,
+    }));
+});
 
 // Computed properties
 const isAccessibilityMode = computed(() => accessibilitySettings.accessibilityMode);
 
+const dropdownStyle = computed(() => {
+  if (!userMenuOpen.value) return {};
+  
+  // Default positioning - will be refined if needed
+  return {
+    right: '1rem',
+    top: '4rem'
+  };
+});
+
 const visibleNavItems = computed(() => {
-  return defaultNavItems.filter(item => {
+  return defaultNavItems.value.filter((item: NavItem) => {
     // Check if item is restricted
     if (props.restrictedItems.includes(item.name.toLowerCase())) {
       return false;
@@ -386,6 +341,10 @@ const handleNavClick = (item: NavItem) => {
   emit('navigate', item);
 };
 
+const handleSidebarNavClick = (item: any) => {
+  closeMobileMenu();
+};
+
 const handleKeyboardNav = async (event: KeyboardEvent) => {
   const navItems = visibleNavItems.value;
   if (navItems.length === 0) return;
@@ -406,7 +365,7 @@ const handleKeyboardNav = async (event: KeyboardEvent) => {
 
 const handleEnterKey = () => {
   if (focusedItem.value) {
-    const item = visibleNavItems.value.find(item => item.path === focusedItem.value);
+    const item = visibleNavItems.value.find((item: NavItem) => item.path === focusedItem.value);
     if (item) {
       handleNavClick(item);
       emit('navigate', item);
@@ -422,7 +381,11 @@ onMounted(() => {
   // Close dropdowns when clicking outside
   document.addEventListener('click', (e) => {
     const target = e.target as Element;
-    if (!target.closest('.user-menu-button') && !target.closest('.user-menu-dropdown')) {
+    const userMenuButton = target.closest('.user-menu-button');
+    const userMenuDropdown = target.closest('.user-menu-dropdown');
+    
+    // Only close if we're not clicking on the button or dropdown
+    if (!userMenuButton && !userMenuDropdown) {
       userMenuOpen.value = false;
     }
   });

@@ -150,15 +150,66 @@ const loadData = async () => {
   loading.value = true;
   error.value = null;
   try {
+    // Check if user is authenticated
+    const token = localStorage.getItem('token');
+    if (!token) {
+      error.value = 'Authentication required';
+      messages.value = [];
+      dormitories.value = [];
+      rooms.value = [];
+      return;
+    }
+
     const [messagesResponse, dormitoriesResponse, roomsResponse] = await Promise.all([
       messageService.getMyMessages(),
       dormitoryService.getAll(),
       roomService.getAll()
     ]);
-    messages.value = messagesResponse.data || [];
-    dormitories.value = dormitoriesResponse.data || [];
-    rooms.value = roomsResponse.data || [];
+    
+    // Handle Laravel paginated response structure for messages
+    if (messagesResponse && messagesResponse.data) {
+      if (messagesResponse.data.data && Array.isArray(messagesResponse.data.data)) {
+        messages.value = messagesResponse.data.data;
+      } else if (Array.isArray(messagesResponse.data)) {
+        messages.value = messagesResponse.data;
+      } else {
+        messages.value = [];
+      }
+    } else {
+      messages.value = [];
+    }
+    
+    // Handle Laravel paginated response structure for dormitories
+    if (dormitoriesResponse && dormitoriesResponse.data) {
+      if (dormitoriesResponse.data.data && Array.isArray(dormitoriesResponse.data.data)) {
+        dormitories.value = dormitoriesResponse.data.data;
+      } else if (Array.isArray(dormitoriesResponse.data)) {
+        dormitories.value = dormitoriesResponse.data;
+      } else {
+        dormitories.value = [];
+      }
+    } else {
+      dormitories.value = [];
+    }
+    
+    // Handle Laravel paginated response structure for rooms
+    if (roomsResponse && roomsResponse.data) {
+      if (roomsResponse.data.data && Array.isArray(roomsResponse.data.data)) {
+        rooms.value = roomsResponse.data.data;
+      } else if (Array.isArray(roomsResponse.data)) {
+        rooms.value = roomsResponse.data;
+      } else {
+        rooms.value = [];
+      }
+    } else {
+      rooms.value = [];
+    }
+    
+    console.log('Fetched messages:', messages.value);
+    console.log('Fetched dormitories:', dormitories.value);
+    console.log('Fetched rooms:', rooms.value);
   } catch (err) {
+    console.error('Error loading messages:', err);
     error.value = 'Failed to load messages data';
     showError(t('Failed to load messages data'));
   } finally {

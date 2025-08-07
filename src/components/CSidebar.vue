@@ -1,10 +1,10 @@
 <template>
   <aside
-    class="overflow-hidden lg:static lg:w-64 lg:flex-shrink-0 z-10"
+    class="overflow-visible w-full lg:static lg:w-64 lg:flex-shrink-0 z-30 lg:z-10"
   >
     <nav
       v-if="isVisible"
-      class="flex flex-col space-y-2 p-4"
+      class="flex flex-col min-h-0 lg:h-full"
       aria-label="Main sidebar navigation"
     >
       <h2 class="sr-only">Main Navigation</h2>
@@ -13,12 +13,13 @@
         <router-link
           :to="menu.path"
           :class="[
-            'hover:bg-primary-100 focus:ring-3 focus:outline-none focus:ring-secondary-300 flex w-full items-center gap-3 rounded p-3 text-left text-base leading-5 font-medium transition-all duration-150',
+            'hover:bg-gray-200 focus:ring-3 focus:outline-none focus:ring-secondary-300 flex w-full items-center gap-3 p-3 text-left text-base leading-5 font-medium transition-all duration-150',
             route.path === menu.path
-              ? 'bg-primary-100 shadow border-l-4 border-l-secondary-600'
-              : 'bg-transparent lg:text-gray-500 border-l-4 border-l-transparent',
+              ? 'bg-primary-100 text-primary-700 border-r-3 border-r-secondary-600'
+              : 'bg-transparent lg:text-gray-500 border-r-3 border-r-transparent',
           ]"
           :aria-current="route.path === menu.path ? 'page' : undefined"
+          @click="handleNavClick(menu)"
         >
           <component
             :is="menu.meta.icon"
@@ -45,19 +46,20 @@
             menu.submenus.length &&
             isSubmenuActive(menu.submenus)
           "
-          class="mt-2 ml-6 flex flex-col gap-2 space-y-2"
+          class="ml-6 flex flex-col"
         >
           <router-link
             v-for="submenu in menu.submenus"
             :key="submenu.name"
             :to="submenu.path"
             :class="[
-              'hover:bg-primary-100 focus:ring-3 focus:outline-none focus:ring-secondary-300 flex w-full items-center gap-3 rounded p-3 text-left text-sm leading-5 font-medium transition-all duration-150',
+              'hover:bg-gray-200 focus:ring-3 focus:outline-none focus:ring-secondary-300 flex w-full items-center gap-3 p-3 text-left text-sm leading-5 font-medium transition-all duration-150',
               isSubmenuHighlighted(submenu)
-                ? 'bg-primary-100 shadow border-l-4 border-l-secondary-600'
-                : 'bg-transparent lg:text-gray-500 border-l-4 border-l-transparent',
+                ? 'bg-primary-100 text-primary-700 border-r-3 border-r-secondary-600'
+                : 'bg-transparent lg:text-gray-500 border-r-3 border-r-transparent',
             ]"
             :aria-current="isSubmenuHighlighted(submenu) ? 'page' : undefined"
+            @click="handleNavClick(submenu)"
           >
             <component
               :is="submenu.meta.icon"
@@ -113,6 +115,11 @@ const unreadMessagesCount = ref(3);
 // State to control visibility
 const isVisible = ref(true);
 
+// Define emits
+const emit = defineEmits<{
+  'nav-click': [item: Menu];
+}>();
+
 // Function to map a route to a menu item
 const mapRouteToMenu = (route: any): Menu => ({
   name: route.name as string,
@@ -135,7 +142,7 @@ const mapSubmenus = (menuName: string): Menu[] => {
     )
     .filter((submenu) => {
       // Check role-based access
-      if (submenu.meta?.roles && submenu.meta.roles.length > 0) {
+      if (submenu.meta?.roles && Array.isArray(submenu.meta.roles) && submenu.meta.roles.length > 0) {
         return submenu.meta.roles.includes(authStore.userRole || '');
       }
       return true;
@@ -149,7 +156,7 @@ const topLevelMenus = computed<Menu[]>(() => {
     .filter((route) => route.meta?.sidebar && !route.meta?.parent)
     .filter((route) => {
       // Check role-based access
-      if (route.meta?.roles && route.meta.roles.length > 0) {
+      if (route.meta?.roles && Array.isArray(route.meta.roles) && route.meta.roles.length > 0) {
         return route.meta.roles.includes(authStore.userRole || '');
       }
       return true;
@@ -175,6 +182,21 @@ const isSubmenuHighlighted = (submenu: Menu): boolean => {
   return route.matched.some(
     (matchedRoute: RouteLocationMatched) => matchedRoute.path === submenu.path,
   );
+};
+
+// Function to handle navigation item click
+const handleNavClick = (item: Menu) => {
+  // Emit the nav-click event to notify parent component
+  emit('nav-click', item);
+  
+  // If it's a top-level menu with submenus, we might want to handle it differently
+  if (item.submenus && item.submenus.length > 0) {
+    // For now, just navigate to the item's path
+    router.push(item.path);
+  } else {
+    // If it's a direct link, navigate to the item's path
+    router.push(item.path);
+  }
 };
 
 // Watch for route changes and user role changes to update the sidebar dynamically

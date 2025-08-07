@@ -40,9 +40,36 @@ const columns = [
 const loadAdmins = async () => {
   loading.value = true;
   try {
+    // Check if user is authenticated
+    const token = localStorage.getItem('token');
+    if (!token) {
+      admins.value = [];
+      return;
+    }
+
     const response = await adminService.getAll();
-    admins.value = response.data;
+    console.log('API Response:', response);
+    
+    // Handle Laravel paginated response structure
+    if (response && response.data) {
+      // Laravel paginated response: { data: [...], current_page: 1, ... }
+      if (response.data.data && Array.isArray(response.data.data)) {
+        admins.value = response.data.data;
+      } else if (Array.isArray(response.data)) {
+        // Direct array response
+        admins.value = response.data;
+      } else {
+        // Fallback - try to find data in the response
+        admins.value = [];
+      }
+    } else {
+      admins.value = [];
+    }
+    
+    console.log('Fetched admins:', admins.value);
+    console.log('Number of admins:', admins.value.length);
   } catch (e) {
+    console.error('Error fetching admins:', e);
     admins.value = [];
   } finally {
     loading.value = false;

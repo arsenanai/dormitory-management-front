@@ -130,6 +130,14 @@ const fetchGuests = async () => {
   error.value = null;
   
   try {
+    // Check if user is authenticated
+    const token = localStorage.getItem('token');
+    if (!token) {
+      error.value = 'Authentication required';
+      guests.value = [];
+      return;
+    }
+
     const response = await guestService.getAll();
     console.log('API Response:', response.data);
     

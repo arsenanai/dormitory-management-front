@@ -8,6 +8,12 @@ import VueKonva from 'vue-konva';
 import { useAuthStore } from '@/stores/auth';
 import { useAccessibility } from '@/composables/useAccessibility';
 
+// Load saved locale from localStorage
+const savedLocale = localStorage.getItem('locale');
+if (savedLocale && ['en', 'ru', 'kk'].includes(savedLocale)) {
+  i18n.global.locale.value = savedLocale;
+}
+
 const app = createApp(App);
 const pinia = createPinia();
 app.use(pinia);

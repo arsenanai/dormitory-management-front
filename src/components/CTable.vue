@@ -15,7 +15,7 @@
             v-for="column in columns"
             :key="column.key"
             :class="[
-              'px-6 py-3 cursor-pointer hover:bg-gray-100',
+              'px-6 py-3 cursor-pointer hover:bg-gray-200',
               column.class || ''
             ]"
             @click="column.sortable ? handleSort(column.key) : null"
@@ -37,9 +37,9 @@
           v-for="(row, index) in data"
           :key="getRowKey(row, index)"
           :class="[
-            'bg-white border-b dark:bg-gray-800 dark:border-gray-700',
+            'bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700',
             striped && index % 2 === 0 ? 'even' : striped && index % 2 === 1 ? 'odd' : '',
-            hoverable ? 'hoverable hover:bg-gray-50 dark:hover:bg-gray-600' : ''
+            hoverable ? 'hoverable hover:bg-gray-100 dark:hover:bg-gray-600' : ''
           ]"
           @click="handleRowClick(row)"
         >

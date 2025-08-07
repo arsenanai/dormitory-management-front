@@ -42,6 +42,128 @@ test.describe('Role-Based Access Control', () => {
       }
     });
 
+    test('should login as sudo, navigate to dormitories via sidebar, and see dormitories data', async ({ page }) => {
+      // 1. Clear any existing authentication state
+      await page.goto('/');
+      await page.evaluate(() => {
+        localStorage.clear();
+        sessionStorage.clear();
+      });
+      await page.reload();
+      
+      // 2. Login as sudo user
+      await TestUtils.login(page, 'superadmin');
+      
+      // 3. Verify we're on the main page
+      await expect(page).toHaveURL(/\/main/);
+      
+      // 4. Navigate to dormitories via sidebar
+      const dormitoriesLink = page.locator('a[href="/dormitories"], [data-testid="sidebar-link"]:has-text("Dormitories")');
+      await expect(dormitoriesLink).toBeVisible();
+      await dormitoriesLink.click();
+      
+      // 5. Wait for the page to load
+      await page.waitForLoadState('networkidle');
+      
+      // 6. Debug: Check what's actually being displayed
+      console.log('Page URL:', page.url());
+      
+      // 7. Debug: Check if there's any error or loading state
+      const loadingElement = page.locator('[data-testid="loading"]');
+      const errorElement = page.locator('.text-red-500');
+      
+      if (await loadingElement.isVisible()) {
+        console.log('Page is still loading...');
+        await page.waitForTimeout(2000);
+      }
+      
+      if (await errorElement.isVisible()) {
+        const errorText = await errorElement.textContent();
+        console.log('Error found:', errorText);
+      }
+      
+      // 8. Debug: Check the actual page content
+      const pageContent = await page.content();
+      console.log('Page content length:', pageContent.length);
+      
+      // 9. Debug: Check if the table exists and what's in it
+      const table = page.locator('table, [data-testid="dormitories-table"]');
+      const tableExists = await table.count() > 0;
+      console.log('Table exists:', tableExists);
+      
+      if (tableExists) {
+        const tableRows = page.locator('table tbody tr, [data-testid="dormitories-table"] tbody tr');
+        const rowCount = await tableRows.count();
+        console.log('Number of table rows:', rowCount);
+        
+        if (rowCount > 0) {
+          for (let i = 0; i < Math.min(rowCount, 3); i++) {
+            const rowText = await tableRows.nth(i).textContent();
+            console.log(`Row ${i + 1}:`, rowText);
+          }
+        }
+      }
+      
+      // 10. Debug: Check console logs for API response
+      const consoleMessages = [];
+      page.on('console', msg => {
+        consoleMessages.push(msg.text());
+        console.log('Console log:', msg.text());
+      });
+      
+      // 11. Debug: Check network requests
+      const networkRequests = [];
+      page.on('request', request => {
+        if (request.url().includes('/api/dormitories')) {
+          networkRequests.push(request.url());
+          console.log('Dormitories API request:', request.url());
+        }
+      });
+      
+      page.on('response', response => {
+        if (response.url().includes('/api/dormitories')) {
+          console.log('Dormitories API response status:', response.status());
+          response.text().then(text => {
+            console.log('Dormitories API response body:', text.substring(0, 500));
+          });
+        }
+      });
+      
+      // 12. Wait a bit more for any async operations
+      await page.waitForTimeout(2000);
+      
+      // 13. Debug: Check if there are any console errors or API issues
+      const consoleErrors = await page.evaluate(() => {
+        return window.console.error ? 'Console errors exist' : 'No console errors';
+      });
+      console.log('Console errors check:', consoleErrors);
+      
+      // 14. Debug: Check if the API call was made by looking at localStorage or sessionStorage
+      const apiCallMade = await page.evaluate(() => {
+        // Check if there's any indication of API calls in storage
+        const keys = Object.keys(localStorage);
+        const apiKeys = keys.filter(key => key.includes('api') || key.includes('dormitory'));
+        return apiKeys.length > 0 ? `Found API keys: ${apiKeys.join(', ')}` : 'No API keys found';
+      });
+      console.log('API call check:', apiCallMade);
+      
+      // 15. Check for dormitory data
+      const hasDormitory1 = await page.locator('text=Dormitory #1').count() > 0;
+      const hasDormitory2 = await page.locator('text=Dormitory #2').count() > 0;
+      const hasABlock = await page.locator('text=A Block').count() > 0;
+      
+      console.log('Dormitory #1 found:', hasDormitory1);
+      console.log('Dormitory #2 found:', hasDormitory2);
+      console.log('A Block found:', hasABlock);
+      
+      // 16. At least one dormitory should be visible
+      expect(hasDormitory1 || hasDormitory2 || hasABlock).toBe(true);
+      
+      // 17. Check for action buttons
+      const addButton = page.locator('button:has-text("Add Dormitory")');
+      await expect(addButton).toBeVisible();
+    });
+
     test('should be able to manage system settings', async ({ page }) => {
       await TestUtils.navigateTo(page, '/settings');
       

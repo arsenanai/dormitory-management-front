@@ -9,7 +9,7 @@
       </div>
 
       <!-- Dormitory Settings Section -->
-      <section class="bg-white rounded-lg shadow p-6">
+      <section>
         <h2 class="text-lg font-semibold mb-4 text-primary-700">{{ t('Dormitory Settings') }}</h2>
         <form @submit.prevent="saveDormitorySettings" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -51,7 +51,7 @@
       </section>
 
       <!-- SMTP Section -->
-      <section class="bg-white rounded-lg shadow p-6">
+      <section>
         <h2 class="text-lg font-semibold mb-4 text-primary-700">{{ t('SMTP Configuration') }}</h2>
         <form @submit.prevent="saveSmtpSettings" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -103,7 +103,7 @@
       </section>
 
       <!-- Card Reader Section -->
-      <section class="bg-white rounded-lg shadow p-6">
+      <section>
         <h2 class="text-lg font-semibold mb-4 text-primary-700">{{ t('Card Reader Configuration') }}</h2>
         <form @submit.prevent="saveCardReaderSettings" class="space-y-4">
           <CCheckbox
@@ -157,7 +157,7 @@
       </section>
 
       <!-- 1C Integration Section -->
-      <section class="bg-white rounded-lg shadow p-6">
+      <section>
         <h2 class="text-lg font-semibold mb-4 text-primary-700">{{ t('1C Integration Configuration') }}</h2>
         <form @submit.prevent="saveOnecSettings" class="space-y-4">
           <CCheckbox
@@ -201,7 +201,7 @@
       </section>
 
       <!-- Language File Upload Section -->
-      <section class="bg-white rounded-lg shadow p-6">
+      <section>
         <h2 class="text-lg font-semibold mb-4 text-primary-700">{{ t('Language File Management') }}</h2>
         <div class="space-y-4">
           <div>
@@ -241,7 +241,7 @@
       </section>
 
       <!-- User Interface Settings Section -->
-      <section class="bg-white rounded-lg shadow p-6">
+      <section>
         <h2 class="text-lg font-semibold mb-4 text-primary-700">{{ t('User Interface Settings') }}</h2>
         <div class="space-y-6">
           <!-- Language Settings -->
@@ -284,7 +284,7 @@
       </section>
 
       <!-- System Logs Section -->
-      <section class="bg-white rounded-lg shadow p-6">
+      <section>
         <h2 class="text-lg font-semibold text-primary-700">{{ t('System Logs') }}</h2>
         <div class="space-y-4">
           <div class="flex justify-between items-center">

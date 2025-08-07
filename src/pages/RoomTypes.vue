@@ -126,13 +126,50 @@ const { showError, showSuccess, showConfirmation } = useToast();
     loading.value = true;
     error.value = null;
     try {
+      // Check if user is authenticated
+      const token = localStorage.getItem('token');
+      if (!token) {
+        error.value = 'Authentication required';
+        roomTypes.value = [];
+        dormitories.value = [];
+        return;
+      }
+
       const [roomTypesResponse, dormitoriesResponse] = await Promise.all([
         roomTypeService.getAll(),
         dormitoryService.getAll()
       ]);
-      roomTypes.value = roomTypesResponse.data || [];
-      dormitories.value = dormitoriesResponse.data || [];
+      
+      // Handle Laravel paginated response structure for room types
+      if (roomTypesResponse && roomTypesResponse.data) {
+        if (roomTypesResponse.data.data && Array.isArray(roomTypesResponse.data.data)) {
+          roomTypes.value = roomTypesResponse.data.data;
+        } else if (Array.isArray(roomTypesResponse.data)) {
+          roomTypes.value = roomTypesResponse.data;
+        } else {
+          roomTypes.value = [];
+        }
+      } else {
+        roomTypes.value = [];
+      }
+      
+      // Handle Laravel paginated response structure for dormitories
+      if (dormitoriesResponse && dormitoriesResponse.data) {
+        if (dormitoriesResponse.data.data && Array.isArray(dormitoriesResponse.data.data)) {
+          dormitories.value = dormitoriesResponse.data.data;
+        } else if (Array.isArray(dormitoriesResponse.data)) {
+          dormitories.value = dormitoriesResponse.data;
+        } else {
+          dormitories.value = [];
+        }
+      } else {
+        dormitories.value = [];
+      }
+      
+      console.log('Fetched room types:', roomTypes.value);
+      console.log('Fetched dormitories:', dormitories.value);
     } catch (err) {
+      console.error('Error loading room types:', err);
       error.value = 'Failed to load room types data';
       showError(t('Failed to load room types data'));
     } finally {

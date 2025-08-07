@@ -157,15 +157,66 @@ const loadRooms = async () => {
   loading.value = true;
   error.value = null;
   try {
+    // Check if user is authenticated
+    const token = localStorage.getItem('token');
+    if (!token) {
+      error.value = 'Authentication required';
+      rooms.value = [];
+      dormitories.value = [];
+      roomTypes.value = [];
+      return;
+    }
+
     const [roomsResponse, dormitoriesResponse, roomTypesResponse] = await Promise.all([
       roomService.getAll(),
       dormitoryService.getAll(),
       roomTypeService.getAll()
     ]);
-    rooms.value = roomsResponse.data;
-    dormitories.value = dormitoriesResponse.data;
-    roomTypes.value = roomTypesResponse.data;
+    
+    // Handle Laravel paginated response structure for rooms
+    if (roomsResponse && roomsResponse.data) {
+      if (roomsResponse.data.data && Array.isArray(roomsResponse.data.data)) {
+        rooms.value = roomsResponse.data.data;
+      } else if (Array.isArray(roomsResponse.data)) {
+        rooms.value = roomsResponse.data;
+      } else {
+        rooms.value = [];
+      }
+    } else {
+      rooms.value = [];
+    }
+    
+    // Handle Laravel paginated response structure for dormitories
+    if (dormitoriesResponse && dormitoriesResponse.data) {
+      if (dormitoriesResponse.data.data && Array.isArray(dormitoriesResponse.data.data)) {
+        dormitories.value = dormitoriesResponse.data.data;
+      } else if (Array.isArray(dormitoriesResponse.data)) {
+        dormitories.value = dormitoriesResponse.data;
+      } else {
+        dormitories.value = [];
+      }
+    } else {
+      dormitories.value = [];
+    }
+    
+    // Handle Laravel paginated response structure for room types
+    if (roomTypesResponse && roomTypesResponse.data) {
+      if (roomTypesResponse.data.data && Array.isArray(roomTypesResponse.data.data)) {
+        roomTypes.value = roomTypesResponse.data.data;
+      } else if (Array.isArray(roomTypesResponse.data)) {
+        roomTypes.value = roomTypesResponse.data;
+      } else {
+        roomTypes.value = [];
+      }
+    } else {
+      roomTypes.value = [];
+    }
+    
+    console.log('Fetched rooms:', rooms.value);
+    console.log('Fetched dormitories:', dormitories.value);
+    console.log('Fetched room types:', roomTypes.value);
   } catch (err) {
+    console.error('Error loading rooms:', err);
     error.value = 'Failed to load rooms';
     showError(t('Failed to load rooms data'));
   } finally {

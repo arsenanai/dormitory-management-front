@@ -110,6 +110,14 @@ const fetchAccountingData = async () => {
     loading.value = true;
     error.value = null;
     
+    // Check if user is authenticated
+    const token = localStorage.getItem('token');
+    if (!token) {
+      error.value = 'Authentication required';
+      rows.value = [];
+      return;
+    }
+    
     const params: any = {};
     if (studentFilter.value) params.student = studentFilter.value;
     if (semesterFilter.value) params.semester = semesterFilter.value;

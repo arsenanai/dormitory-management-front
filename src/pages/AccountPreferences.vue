@@ -1,12 +1,8 @@
 <template>
   <Navigation :title="t('Account Preferences')">
     <div class="flex flex-col gap-8">
-      <div class="flex justify-between items-center">
-        <h1>{{ t('Account Preferences') }}</h1>
-      </div>
-
       <!-- Profile Information Section -->
-      <section class="bg-white rounded-lg shadow p-6">
+      <section>
         <h2 class="text-lg font-semibold mb-4 text-primary-700">{{ t('Profile Information') }}</h2>
         <form @submit.prevent="saveProfile" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -43,8 +39,25 @@
         </form>
       </section>
 
+      <!-- Website Language Section -->
+      <section>
+        <h2 class="text-lg font-semibold mb-4 text-primary-700">{{ t('Website Language') }}</h2>
+        <div class="space-y-4">
+          <CSelect
+            id="website-locale"
+            v-model="currentLocale"
+            :label="t('Display Language')"
+            :options="localeOptions"
+            @update:model-value="changeLocale"
+          />
+          <p class="text-sm text-gray-600">
+            {{ t('Choose the language for displaying the website interface.') }}
+          </p>
+        </div>
+      </section>
+
       <!-- Security Settings Section -->
-      <section class="bg-white rounded-lg shadow p-6">
+      <section>
         <h2 class="text-lg font-semibold mb-4 text-primary-700">{{ t('Security Settings') }}</h2>
         <form @submit.prevent="changePassword" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -77,7 +90,7 @@
       </section>
 
       <!-- Notification Settings Section -->
-      <section class="bg-white rounded-lg shadow p-6">
+      <section>
         <h2 class="text-lg font-semibold mb-4 text-primary-700">{{ t('Notification Settings') }}</h2>
         <div class="space-y-4">
           <CCheckbox
@@ -102,7 +115,7 @@
       </section>
 
       <!-- Accessibility Settings Section -->
-      <section class="bg-white rounded-lg shadow p-6">
+      <section>
         <h2 class="text-lg font-semibold mb-4 text-primary-700">{{ t('Accessibility Settings') }}</h2>
         <div class="space-y-4">
           <CCheckbox
@@ -138,7 +151,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import Navigation from '@/components/CNavigation.vue';
 import CButton from '@/components/CButton.vue';
@@ -148,7 +161,7 @@ import CCheckbox from '@/components/CCheckbox.vue';
 import { useAuthStore } from '@/stores/auth';
 import { useAccessibility } from '@/composables/useAccessibility';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const authStore = useAuthStore();
 const { settings: accessibilitySettings, loadSettings: loadAccessibilitySettings, saveSettings: saveAccessibilitySettingsFromComposable } = useAccessibility();
 
@@ -181,15 +194,35 @@ const accessibilityForm = reactive({
 
 // Options
 const languageOptions = [
-  { value: 'en', label: 'English' },
-  { value: 'ru', label: 'Russian' },
-  { value: 'kk', label: 'Kazakh' },
+  { value: 'en', name: 'English' },
+  { value: 'ru', name: 'Russian' },
+  { value: 'kk', name: 'Kazakh' },
+];
+
+const localeOptions = [
+  { value: 'en', name: 'English' },
+  { value: 'ru', name: 'Русский' },
+  { value: 'kk', name: 'Қазақша' },
 ];
 
 // State
 const loading = ref(false);
 
+// Computed
+const currentLocale = computed({
+  get: () => locale.value,
+  set: (value: string) => {
+    locale.value = value;
+  }
+});
+
 // Methods
+const changeLocale = (newLocale: string) => {
+  locale.value = newLocale;
+  // Save to localStorage for persistence
+  localStorage.setItem('locale', newLocale);
+};
+
 const loadProfile = async () => {
   try {
     // Load user profile data
@@ -272,8 +305,6 @@ const saveAccessibilitySettings = async () => {
     loading.value = false;
   }
 };
-
-
 
 // Lifecycle
 onMounted(() => {

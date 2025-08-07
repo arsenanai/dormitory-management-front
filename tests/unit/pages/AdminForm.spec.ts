@@ -25,6 +25,7 @@ vi.mock('@/services/api', () => ({
   adminService: {
     create: vi.fn(),
     update: vi.fn(),
+    getById: vi.fn(),
   },
   dormitoryService: {
     getAll: vi.fn(),
@@ -36,6 +37,14 @@ vi.mock('@/composables/useToast', () => ({
   useToast: () => ({
     showError: vi.fn(),
     showSuccess: vi.fn(),
+  }),
+}));
+
+// Mock the auth store
+vi.mock('@/stores/auth', () => ({
+  useAuthStore: () => ({
+    user: { id: 1 }, // Default to user ID 1
+    userRole: 'sudo',
   }),
 }));
 
@@ -55,6 +64,17 @@ describe('AdminForm', () => {
     );
     
     vi.mocked(api.authService.getProfile).mockResolvedValue(
+      createMockResponse({
+        id: 1,
+        first_name: 'John',
+        last_name: 'Doe',
+        email: 'john.doe@example.com',
+        phone: '+1234567890',
+        dormitory_id: 1,
+      })
+    );
+    
+    vi.mocked(api.adminService.getById).mockResolvedValue(
       createMockResponse({
         id: 1,
         first_name: 'John',
@@ -444,6 +464,7 @@ describe('AdminForm', () => {
         },
       });
 
+      // Since current user ID is 1 and route param is 1, it should call getProfile
       await vi.waitFor(() => {
         expect(api.authService.getProfile).toHaveBeenCalled();
       });

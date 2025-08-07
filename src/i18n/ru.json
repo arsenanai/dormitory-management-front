@@ -96,6 +96,9 @@
     "language": {
         "description": "Выберите предпочитаемый язык для интерфейса"
     },
+    "Website Language": "Язык веб-сайта",
+    "Display Language": "Язык отображения",
+    "Choose the language for displaying the website interface.": "Выберите язык для отображения интерфейса веб-сайта.",
     "theme": {
         "description": "Переключение между светлой и темной темами"
     },

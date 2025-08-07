@@ -92,7 +92,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: UserGroupIcon,
-      roles: ['sudo', 'admin'],
+      roles: ['admin'],
     },
   },
   {
@@ -129,7 +129,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: BuildingOfficeIcon,
-      roles: ['sudo', 'admin'],
+      roles: ['admin'],
     },
   },
   {
@@ -142,7 +142,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: PencilSquareIcon,
-      roles: ['sudo', 'admin'],
+      roles: ['admin'],
     },
   },
   {
@@ -166,7 +166,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: ChatBubbleLeftRightIcon,
-      roles: ['sudo', 'admin', 'student', 'guest'],
+      roles: ['admin', 'student', 'guest'],
     },
   },
   {
@@ -178,7 +178,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: ClipboardDocumentListIcon,
-      roles: ['sudo', 'admin'],
+      roles: ['admin'],
     },
   },
   {
@@ -191,7 +191,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: PencilSquareIcon,
-      roles: ['sudo', 'admin'],
+      roles: ['admin'],
     },
   },
   {
@@ -263,7 +263,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: BuildingOfficeIcon,
-      roles: ['sudo', 'admin'],
+      roles: ['admin'],
     },
   },
   {
@@ -276,7 +276,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: PencilSquareIcon,
-      roles: ['sudo', 'admin'],
+      roles: ['admin'],
     },
   },
   {
@@ -288,7 +288,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: BuildingOfficeIcon,
-      roles: ['sudo'],
+      roles: ['sudo', 'admin'],
     },
   },
   {
@@ -301,7 +301,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: PencilSquareIcon,
-      roles: ['sudo'],
+      roles: ['sudo', 'admin'],
     },
   },
   {

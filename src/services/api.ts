@@ -436,7 +436,7 @@ export const roomTypeService = {
 
 // Dormitory service
 export const dormitoryService = {
-  getAll: (params?: FilterParams): Promise<ApiResponse<PaginatedResponse<Dormitory>>> =>
+  getAll: (params?: FilterParams): Promise<ApiResponse<Dormitory[]>> =>
     api.get("/dormitories", { params }),
   
   getById: (id: number): Promise<ApiResponse<Dormitory>> =>

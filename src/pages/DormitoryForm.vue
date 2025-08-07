@@ -36,14 +36,14 @@
         />
       </div>
 
-      <!-- Admin Username -->
+      <!-- Admin Selection -->
       <div>
-        <CInput
+        <CSelect
           id="dormitory-admin"
-          v-model="dormitory.admin"
-          type="text"
-          :label="t('Admin Username')"
-          placeholder="Enter Admin Username"
+          v-model="dormitory.admin_id"
+          :options="adminOptions"
+          :label="t('Admin')"
+          placeholder="Select an Admin"
           required
         />
       </div>
@@ -109,7 +109,7 @@ import CButton from "@/components/CButton.vue";
 import { Dormitory } from "@/models/Dormitory";
 import { useDormitoriesStore } from "@/stores/dormitories";
 import { useToast } from "@/composables/useToast";
-import { dormitoryService } from "@/services/api";
+import { dormitoryService, adminService } from "@/services/api";
 
 const { t } = useI18n();
 const route = useRoute();
@@ -130,19 +130,59 @@ const genderOptions: { value: string; name: string }[] = [
   { value: "mixed", name: t("Mixed") },
 ];
 
+// Admin Options
+const adminOptions = ref<{ value: number; name: string }[]>([]);
+
+// Load admins from API
+const loadAdmins = async () => {
+  try {
+    const response = await adminService.getAll();
+    if (response.data && response.data.data) {
+      // Handle paginated response
+      adminOptions.value = response.data.data.map((admin: any) => ({
+        value: admin.id,
+        name: admin.name || admin.email || `Admin ${admin.id}`,
+      }));
+    } else if (Array.isArray(response.data)) {
+      // Handle direct array response
+      adminOptions.value = response.data.map((admin: any) => ({
+        value: admin.id,
+        name: admin.name || admin.email || `Admin ${admin.id}`,
+      }));
+    }
+  } catch (error) {
+    console.error('Failed to load admins:', error);
+    showError(t("Failed to load admin options"));
+  }
+};
+
 // Submit Dormitory
 const submitDormitory = async (): Promise<void> => {
   try {
     console.log("Dormitory submitted:", dormitory.value);
     
+    // Prepare the data for submission
+    const dormitoryData = {
+      name: dormitory.value.name,
+      capacity: dormitory.value.capacity,
+      gender: dormitory.value.gender,
+      admin_id: dormitory.value.admin_id !== null && dormitory.value.admin_id !== undefined ? Number(dormitory.value.admin_id) : null,
+      registered: dormitory.value.registered,
+      freeBeds: dormitory.value.freeBeds,
+      rooms: dormitory.value.rooms,
+    };
+    
+    console.log('Submitting dormitory data:', dormitoryData);
+    
     if (isEditing.value) {
-      // await dormitoryService.update(dormitoryId.value!, dormitory.value);
+      await dormitoryService.update(dormitoryId.value!, dormitoryData);
       showSuccess(t("Dormitory updated successfully!"));
     } else {
-      // await dormitoryService.create(dormitory.value);
+      await dormitoryService.create(dormitoryData);
       showSuccess(t("Dormitory created successfully!"));
     }
   } catch (error) {
+    console.error('Error submitting dormitory:', error);
     showError(t("Failed to save dormitory. Please try again."));
   }
 };
@@ -153,17 +193,42 @@ const loadDormitory = async (id: number) => {
     const response = await dormitoryService.getById(id);
     const dormitoryData = response.data;
     
+    console.log('Loaded dormitory data:', dormitoryData);
+    
+    // Extract admin_id from the data - it might be in different places
+    let adminId = null;
+    if (dormitoryData.admin_id !== null && dormitoryData.admin_id !== undefined) {
+      adminId = Number(dormitoryData.admin_id);
+    } else if (dormitoryData.admin && dormitoryData.admin.id) {
+      adminId = Number(dormitoryData.admin.id);
+    }
+    
+    console.log('Extracted admin_id:', adminId);
+    console.log('Admin data:', dormitoryData.admin);
+    
+    // Ensure admin options are loaded before setting dormitory data
+    if (adminOptions.value.length === 0) {
+      console.log('Admin options not loaded yet, loading now...');
+      await loadAdmins();
+    }
+    
     // Populate form with API data
     dormitory.value = new Dormitory(
       dormitoryData.name || "",
       dormitoryData.capacity || 0,
       dormitoryData.gender || "",
-      dormitoryData.admin || "",
+      dormitoryData.admin?.name || dormitoryData.admin || "",
+      adminId,
       dormitoryData.registered || 0,
       dormitoryData.freeBeds || 0,
       dormitoryData.rooms || 0
     );
+    
+    console.log('Populated dormitory form:', dormitory.value);
+    console.log('Admin options available:', adminOptions.value.length);
+    console.log('Admin options:', adminOptions.value);
   } catch (error) {
+    console.error('Error loading dormitory:', error);
     showError(t("Failed to load dormitory data"));
   }
 };
@@ -173,11 +238,14 @@ watch(
   () => dormitoryStore.selectedDormitory,
   (selectedDormitory: any) => {
     if (selectedDormitory) {
+      // Only update if we don't already have admin_id set (to avoid overriding from API)
+      const currentAdminId = dormitory.value.admin_id;
       dormitory.value = new Dormitory(
         selectedDormitory.name || "",
         selectedDormitory.capacity || 0,
         selectedDormitory.gender || "",
         selectedDormitory.admin || "",
+        currentAdminId !== null && currentAdminId !== undefined ? currentAdminId : (selectedDormitory.admin_id || null),
         selectedDormitory.registered || 0,
         selectedDormitory.freeBeds || 0,
         selectedDormitory.rooms || 0
@@ -190,6 +258,9 @@ watch(
 onMounted(async () => {
   // First try to restore from store
   dormitoryStore.restoreSelectedDormitory();
+  
+  // Load admin options first
+  await loadAdmins();
   
   // If editing and no data in store, load from API
   if (isEditing.value && !dormitoryStore.selectedDormitory) {

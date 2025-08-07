@@ -163,7 +163,40 @@ describe('Rooms.vue', () => {
 
   it('loads rooms on mount', async () => {
     const mockGetAll = vi.mocked(roomService.getAll)
-    mockGetAll.mockResolvedValue(createMockAxiosResponse(mockRooms))
+    const mockDormitoriesGetAll = vi.mocked(dormitoryService.getAll)
+    const mockRoomTypesGetAll = vi.mocked(roomTypeService.getAll)
+    
+    // Mock localStorage to simulate authentication
+    const localStorageMock = {
+      getItem: vi.fn().mockReturnValue('mock-token')
+    }
+    Object.defineProperty(window, 'localStorage', {
+      value: localStorageMock,
+      writable: true
+    })
+    
+    // Mock Laravel paginated response structure
+    mockGetAll.mockResolvedValue(createMockAxiosResponse({
+      data: mockRooms,
+      current_page: 1,
+      last_page: 1,
+      per_page: 20,
+      total: mockRooms.length
+    }))
+    mockDormitoriesGetAll.mockResolvedValue(createMockAxiosResponse({
+      data: [],
+      current_page: 1,
+      last_page: 1,
+      per_page: 20,
+      total: 0
+    }))
+    mockRoomTypesGetAll.mockResolvedValue(createMockAxiosResponse({
+      data: [],
+      current_page: 1,
+      last_page: 1,
+      per_page: 20,
+      total: 0
+    }))
 
     await wrapper.vm.loadRooms()
 
@@ -256,9 +289,18 @@ describe('Rooms.vue', () => {
     const mockGetAll = vi.mocked(roomService.getAll)
     mockGetAll.mockRejectedValue(new Error('API Error'))
 
+    // Mock localStorage to simulate no token
+    const localStorageMock = {
+      getItem: vi.fn().mockReturnValue(null)
+    }
+    Object.defineProperty(window, 'localStorage', {
+      value: localStorageMock,
+      writable: true
+    })
+
     await wrapper.vm.loadRooms()
 
-    expect(wrapper.vm.error).toBe('Failed to load rooms')
+    expect(wrapper.vm.error).toBe('Authentication required')
     expect(wrapper.vm.loading).toBe(false)
   })
 

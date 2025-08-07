@@ -27,7 +27,7 @@
         <!-- Guest Information Cards -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <!-- Living Room Information -->
-          <div class="bg-white rounded-lg shadow-md p-6">
+          <div>
             <div class="flex items-center mb-4">
               <BuildingOfficeIcon class="h-6 w-6 text-secondary-600 mr-3" />
               <h2 class="text-xl font-semibold text-gray-900">
@@ -59,7 +59,7 @@
           </div>
 
           <!-- Rental Information -->
-          <div class="bg-white rounded-lg shadow-md p-6">
+          <div>
             <div class="flex items-center mb-4">
               <CurrencyDollarIcon class="h-6 w-6 text-secondary-600 mr-3" />
               <h2 class="text-xl font-semibold text-gray-900">
@@ -95,7 +95,7 @@
         </div>
 
         <!-- Reception Contacts -->
-        <div class="bg-white rounded-lg shadow-md p-6">
+        <div>
           <div class="flex items-center mb-4">
             <PhoneIcon class="h-6 w-6 text-secondary-600 mr-3" />
             <h2 class="text-xl font-semibold text-gray-900">
@@ -139,7 +139,7 @@
         </div>
 
         <!-- Quick Actions -->
-        <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+        <div class="mt-6">
           <div class="flex items-center mb-4">
             <BoltIcon class="h-6 w-6 text-secondary-600 mr-3" />
             <h2 class="text-xl font-semibold text-gray-900">

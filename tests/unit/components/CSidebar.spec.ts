@@ -5,6 +5,7 @@ import { createPinia, setActivePinia } from 'pinia';
 import i18n from '@/i18n';
 // @ts-expect-error: Vue SFC import for test
 import CSidebar from '../../../src/components/CSidebar.vue';
+import { useAuthStore } from '@/stores/auth';
 
 // Mock icons
 const MockIcon = {
@@ -15,7 +16,7 @@ const MockIcon = {
 const router = createRouterMock();
 injectRouterMock(router);
 
-// Mock router.options.routes for CSidebar component
+// Mock router.options.routes for CSidebar component with role-based access
 router.options = {
   routes: [
     {
@@ -25,6 +26,7 @@ router.options = {
         title: 'Dashboard',
         icon: MockIcon,
         sidebar: true,
+        roles: ['sudo', 'admin', 'student', 'guest'],
       },
     },
     {
@@ -34,6 +36,18 @@ router.options = {
         title: 'Admins',
         icon: MockIcon,
         sidebar: true,
+        roles: ['sudo'],
+      },
+    },
+    {
+      path: '/admin-form/:id?',
+      name: 'Admin Form',
+      meta: {
+        title: 'Admin Form',
+        icon: MockIcon,
+        sidebar: true,
+        parent: 'Admins',
+        roles: ['sudo', 'admin'],
       },
     },
     {
@@ -43,6 +57,28 @@ router.options = {
         title: 'Students',
         icon: MockIcon,
         sidebar: true,
+        roles: ['admin'],
+      },
+    },
+    {
+      path: '/student-form/:id?',
+      name: 'Student Form',
+      meta: {
+        title: 'Student Form',
+        icon: MockIcon,
+        sidebar: true,
+        parent: 'Students',
+        roles: ['sudo', 'admin', 'student'],
+      },
+    },
+    {
+      path: '/guest-house',
+      name: 'Guests',
+      meta: {
+        title: 'Guests',
+        icon: MockIcon,
+        sidebar: true,
+        roles: ['admin'],
       },
     },
     {
@@ -52,6 +88,7 @@ router.options = {
         title: 'Dormitories',
         icon: MockIcon,
         sidebar: true,
+        roles: ['sudo'],
       },
     },
     {
@@ -61,17 +98,7 @@ router.options = {
         title: 'Rooms',
         icon: MockIcon,
         sidebar: true,
-        parent: 'Dormitories',
-      },
-    },
-    {
-      path: '/room-types',
-      name: 'Room Types',
-      meta: {
-        title: 'Room Types',
-        icon: MockIcon,
-        sidebar: true,
-        parent: 'Dormitories',
+        roles: ['sudo', 'admin'],
       },
     },
     {
@@ -81,6 +108,7 @@ router.options = {
         title: 'Payments',
         icon: MockIcon,
         sidebar: true,
+        roles: ['sudo', 'admin'],
       },
     },
     {
@@ -90,6 +118,7 @@ router.options = {
         title: 'Messages',
         icon: MockIcon,
         sidebar: true,
+        roles: ['sudo', 'admin', 'student', 'guest'],
       },
     },
     {
@@ -105,8 +134,11 @@ router.options = {
 };
 
 describe('CSidebar', () => {
+  let pinia: any;
+
   beforeEach(() => {
-    setActivePinia(createPinia());
+    pinia = createPinia();
+    setActivePinia(pinia);
     
     // Set up router mock with proper route
     router.currentRoute.value = {
@@ -116,6 +148,7 @@ describe('CSidebar', () => {
         title: 'Dashboard',
         icon: MockIcon,
         sidebar: true,
+        roles: ['sudo', 'admin', 'student', 'guest'],
       },
       matched: [
         {
@@ -125,6 +158,7 @@ describe('CSidebar', () => {
             title: 'Dashboard',
             icon: MockIcon,
             sidebar: true,
+            roles: ['sudo', 'admin', 'student', 'guest'],
           },
         },
       ],
@@ -139,7 +173,7 @@ describe('CSidebar', () => {
     it('should render the sidebar with navigation', () => {
       const wrapper = mount(CSidebar, {
         global: {
-          plugins: [i18n],
+          plugins: [i18n, pinia],
           mocks: {
             $router: router,
             $route: router.currentRoute.value,
@@ -155,7 +189,7 @@ describe('CSidebar', () => {
     it('should initialize with visible state', () => {
       const wrapper = mount(CSidebar, {
         global: {
-          plugins: [i18n],
+          plugins: [i18n, pinia],
           mocks: {
             $router: router,
             $route: router.currentRoute.value,
@@ -169,7 +203,7 @@ describe('CSidebar', () => {
     it('should render screen reader heading', () => {
       const wrapper = mount(CSidebar, {
         global: {
-          plugins: [i18n],
+          plugins: [i18n, pinia],
           mocks: {
             $router: router,
             $route: router.currentRoute.value,
@@ -183,11 +217,168 @@ describe('CSidebar', () => {
     });
   });
 
+  describe('Role-Based Access Control', () => {
+    it('should show Admins menu only for Sudo users', () => {
+      const authStore = useAuthStore();
+      authStore.user = { role: { name: 'sudo' } } as any;
+
+      const wrapper = mount(CSidebar, {
+        global: {
+          plugins: [i18n, pinia],
+          mocks: {
+            $router: router,
+            $route: router.currentRoute.value,
+          },
+        },
+      });
+
+      const component = wrapper.vm;
+      const menuNames = component.topLevelMenus.map((menu: any) => menu.name);
+      
+      expect(menuNames).toContain('Admins');
+      expect(menuNames).not.toContain('Students');
+      expect(menuNames).not.toContain('Guests');
+      expect(menuNames).toContain('Dormitories');
+    });
+
+    it('should show Students menu for Admin users but not Admins menu', () => {
+      const authStore = useAuthStore();
+      authStore.user = { role: { name: 'admin' } } as any;
+
+      const wrapper = mount(CSidebar, {
+        global: {
+          plugins: [i18n, pinia],
+          mocks: {
+            $router: router,
+            $route: router.currentRoute.value,
+          },
+        },
+      });
+
+      const component = wrapper.vm;
+      const menuNames = component.topLevelMenus.map((menu: any) => menu.name);
+      
+      expect(menuNames).not.toContain('Admins');
+      expect(menuNames).toContain('Students');
+      expect(menuNames).not.toContain('Dormitories');
+    });
+
+    it('should NOT show Students menu for Sudo users', () => {
+      const authStore = useAuthStore();
+      authStore.user = { role: { name: 'sudo' } } as any;
+
+      const wrapper = mount(CSidebar, {
+        global: {
+          plugins: [i18n, pinia],
+          mocks: {
+            $router: router,
+            $route: router.currentRoute.value,
+          },
+        },
+      });
+
+      const component = wrapper.vm;
+      const menuNames = component.topLevelMenus.map((menu: any) => menu.name);
+      
+      expect(menuNames).not.toContain('Students');
+    });
+
+    it('should not show Admins or Students for Student users', () => {
+      const authStore = useAuthStore();
+      authStore.user = { role: { name: 'student' } } as any;
+
+      const wrapper = mount(CSidebar, {
+        global: {
+          plugins: [i18n, pinia],
+          mocks: {
+            $router: router,
+            $route: router.currentRoute.value,
+          },
+        },
+      });
+
+      const component = wrapper.vm;
+      const menuNames = component.topLevelMenus.map((menu: any) => menu.name);
+      
+      expect(menuNames).not.toContain('Admins');
+      expect(menuNames).not.toContain('Students');
+      expect(menuNames).toContain('Messages');
+    });
+
+    it('should not show Admins or Students for Guest users', () => {
+      const authStore = useAuthStore();
+      authStore.user = { role: { name: 'guest' } } as any;
+
+      const wrapper = mount(CSidebar, {
+        global: {
+          plugins: [i18n, pinia],
+          mocks: {
+            $router: router,
+            $route: router.currentRoute.value,
+          },
+        },
+      });
+
+      const component = wrapper.vm;
+      const menuNames = component.topLevelMenus.map((menu: any) => menu.name);
+      
+      expect(menuNames).not.toContain('Admins');
+      expect(menuNames).not.toContain('Students');
+      expect(menuNames).toContain('Messages');
+    });
+
+    it('should show submenus for Admin Form when Admins menu is active', () => {
+      const authStore = useAuthStore();
+      authStore.user = { role: { name: 'sudo' } } as any;
+
+      const wrapper = mount(CSidebar, {
+        global: {
+          plugins: [i18n, pinia],
+          mocks: {
+            $router: router,
+            $route: router.currentRoute.value,
+          },
+        },
+      });
+
+      const component = wrapper.vm;
+      const adminsMenu = component.topLevelMenus.find((menu: any) => menu.name === 'Admins');
+      
+      expect(adminsMenu).toBeDefined();
+      expect(adminsMenu.submenus).toBeDefined();
+      expect(adminsMenu.submenus.length).toBeGreaterThan(0);
+      expect(adminsMenu.submenus[0].name).toBe('Admin Form');
+    });
+
+    it('should show submenus for Student Form when Students menu is active', () => {
+      const authStore = useAuthStore();
+      authStore.user = { role: { name: 'admin' } } as any;
+
+      const wrapper = mount(CSidebar, {
+        global: {
+          plugins: [i18n, pinia],
+          mocks: {
+            $router: router,
+            $route: router.currentRoute.value,
+          },
+        },
+      });
+
+      const component = wrapper.vm;
+      const studentsMenu = component.topLevelMenus.find((menu: any) => menu.name === 'Students');
+      
+      expect(studentsMenu).toBeDefined();
+      expect(studentsMenu.submenus).toBeDefined();
+      expect(studentsMenu.submenus.length).toBeGreaterThan(0);
+      expect(studentsMenu.submenus[0].name).toBe('Student Form');
+    });
+  });
+
   describe('Component Logic', () => {
     it('should map routes to menu items correctly', () => {
       const wrapper = mount(CSidebar, {
         global: {
-          plugins: [i18n],
+          plugins: [i18n, pinia],
           mocks: {
             $router: router,
             $route: router.currentRoute.value,
@@ -201,9 +392,13 @@ describe('CSidebar', () => {
     });
 
     it('should filter routes correctly', () => {
+      // Set up a user role for the test
+      const authStore = useAuthStore();
+      authStore.user = { role: { name: 'sudo' } } as any;
+
       const wrapper = mount(CSidebar, {
         global: {
-          plugins: [i18n],
+          plugins: [i18n, pinia],
           mocks: {
             $router: router,
             $route: router.currentRoute.value,
@@ -215,10 +410,6 @@ describe('CSidebar', () => {
       const menuNames = component.topLevelMenus.map((menu: any) => menu.name);
       
       expect(menuNames).toContain('Main Page');
-      expect(menuNames).toContain('Admins');
-      expect(menuNames).toContain('Students');
-      expect(menuNames).toContain('Dormitories');
-      expect(menuNames).toContain('Payments');
       expect(menuNames).toContain('Messages');
       expect(menuNames).not.toContain('Settings');
     });
@@ -226,7 +417,7 @@ describe('CSidebar', () => {
     it('should detect submenu activity correctly', () => {
       const wrapper = mount(CSidebar, {
         global: {
-          plugins: [i18n],
+          plugins: [i18n, pinia],
           mocks: {
             $router: router,
             $route: router.currentRoute.value,
@@ -240,23 +431,25 @@ describe('CSidebar', () => {
 
     it('should highlight submenu items correctly', () => {
       router.currentRoute.value = {
-        path: '/rooms',
-        name: 'Rooms',
+        path: '/admin-form/1',
+        name: 'Admin Form',
         meta: {
-          title: 'Rooms',
+          title: 'Admin Form',
           icon: MockIcon,
           sidebar: true,
-          parent: 'Dormitories',
+          parent: 'Admins',
+          roles: ['sudo', 'admin'],
         },
         matched: [
           {
-            path: '/rooms',
-            name: 'Rooms',
+            path: '/admin-form/1',
+            name: 'Admin Form',
             meta: {
-              title: 'Rooms',
+              title: 'Admin Form',
               icon: MockIcon,
               sidebar: true,
-              parent: 'Dormitories',
+              parent: 'Admins',
+              roles: ['sudo', 'admin'],
             },
           },
         ],
@@ -264,7 +457,7 @@ describe('CSidebar', () => {
 
       const wrapper = mount(CSidebar, {
         global: {
-          plugins: [i18n],
+          plugins: [i18n, pinia],
           mocks: {
             $router: router,
             $route: router.currentRoute.value,
@@ -273,13 +466,13 @@ describe('CSidebar', () => {
       });
 
       const component = wrapper.vm;
-      const roomsSubmenu = {
-        name: 'Rooms',
-        path: '/rooms',
-        meta: { title: 'Rooms', icon: MockIcon, sidebar: true, parent: 'Dormitories' }
+      const adminFormSubmenu = {
+        name: 'Admin Form',
+        path: '/admin-form/1',
+        meta: { title: 'Admin Form', icon: MockIcon, sidebar: true, parent: 'Admins', roles: ['sudo', 'admin'] }
       };
       
-      const isHighlighted = component.isSubmenuHighlighted(roomsSubmenu);
+      const isHighlighted = component.isSubmenuHighlighted(adminFormSubmenu);
       expect(isHighlighted).toBe(true);
     });
   });
@@ -288,7 +481,7 @@ describe('CSidebar', () => {
     it('should have responsive classes', () => {
       const wrapper = mount(CSidebar, {
         global: {
-          plugins: [i18n],
+          plugins: [i18n, pinia],
           mocks: {
             $router: router,
             $route: router.currentRoute.value,
@@ -304,7 +497,7 @@ describe('CSidebar', () => {
     it('should have proper z-index for layering', () => {
       const wrapper = mount(CSidebar, {
         global: {
-          plugins: [i18n],
+          plugins: [i18n, pinia],
           mocks: {
             $router: router,
             $route: router.currentRoute.value,
@@ -321,7 +514,7 @@ describe('CSidebar', () => {
     it('should expose necessary methods and properties', () => {
       const wrapper = mount(CSidebar, {
         global: {
-          plugins: [i18n],
+          plugins: [i18n, pinia],
           mocks: {
             $router: router,
             $route: router.currentRoute.value,

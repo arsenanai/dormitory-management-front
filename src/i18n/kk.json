@@ -85,6 +85,9 @@
     "language": {
         "description": "Интерфейс үшін қалаған тілді таңдаңыз"
     },
+    "Website Language": "Веб-сайт тілі",
+    "Display Language": "Көрсету тілі",
+    "Choose the language for displaying the website interface.": "Веб-сайт интерфейсін көрсету үшін тілді таңдаңыз.",
     "theme": {
         "description": "Жарық және қараңғы тақырыптар арасында ауысу"
     },

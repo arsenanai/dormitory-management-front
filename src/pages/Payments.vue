@@ -306,33 +306,39 @@ const typeFilterOptions = [
   { value: "other", name: t("Other") }
 ];
 
-// Load payments on component mount
-async function loadPayments() {
+// Load payments data
+const loadPayments = async () => {
   loading.value = true;
-  error.value = '';
+  error.value = null;
   try {
-    const filters: any = {
-      search: searchTerm.value,
-      status: statusFilter.value,
-      type: typeFilter.value,
-      semester: semesterFilter.value,
-      year: yearFilter.value,
-      start_date: startDate.value,
-      end_date: endDate.value,
-      range: predefinedRange.value,
-    };
-    // Remove empty filters
-    Object.keys(filters).forEach(key => {
-      if (!filters[key]) delete filters[key];
+    // Check if user is authenticated
+    const token = localStorage.getItem('token');
+    if (!token) {
+      error.value = 'Authentication required';
+      payments.value = [];
+      return;
+    }
+
+    const response = await paymentService.getAll({
+      page: currentPage.value,
+      per_page: itemsPerPage,
+      ...filters.value
     });
-    const response = await paymentService.getAll(filters);
-    payments.value = response.data;
+    
+    if (response.data && response.data.data) {
+      payments.value = response.data.data;
+      total.value = response.data.total || 0;
+    } else {
+      payments.value = [];
+      total.value = 0;
+    }
   } catch (err) {
-    error.value = t('Failed to load payments');
+    error.value = 'Failed to load payments';
+    console.error('Error loading payments:', err);
   } finally {
     loading.value = false;
   }
-}
+};
 
 onMounted(() => {
   loadPayments();

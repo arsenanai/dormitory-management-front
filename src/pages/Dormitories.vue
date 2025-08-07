@@ -38,43 +38,23 @@
     </div>
 
     <!-- Dormitory Table -->
-    <CTable v-if="!loading && !error">
-      <CTableHead>
-        <CTableHeadCell>
-          <CCheckbox id="select-all-checkbox"/>
-        </CTableHeadCell>
-        <CTableHeadCell>{{ t("DORMITORY") }}</CTableHeadCell>
-        <CTableHeadCell>{{ t("STUDENT CAPACITY") }}</CTableHeadCell>
-        <CTableHeadCell>{{ t("GENDER") }}</CTableHeadCell>
-        <CTableHeadCell>{{ t("ADMIN USERNAME") }}</CTableHeadCell>
-        <CTableHeadCell>{{ t("REGISTERED STUDENTS") }}</CTableHeadCell>
-        <CTableHeadCell>{{ t("FREE BEDS") }}</CTableHeadCell>
-        <CTableHeadCell>{{ t("ROOM") }}</CTableHeadCell>
-        <CTableHeadCell>{{ t("EDIT") }}</CTableHeadCell>
-      </CTableHead>
-      <CTableBody>
-        <CTableRow v-for="(dorm, index) in paginatedDorms" :key="dorm.id">
-          <CTableCell>
-            <CCheckbox :id="'checkbox-' + index" />
-          </CTableCell>
-          <CTableCell>{{ dorm.name }}</CTableCell>
-          <CTableCell>{{ dorm.quota || dorm.capacity }}</CTableCell>
-          <CTableCell>{{ dorm.gender }}</CTableCell>
-          <CTableCell>{{ dorm.admin?.username || dorm.admin || '-' }}</CTableCell>
-          <CTableCell>{{ dorm.registered || '-' }}</CTableCell>
-          <CTableCell :class="{ 'text-red-500': dorm.freeBeds === 0 }">
-            {{ dorm.freeBeds || '-' }}
-          </CTableCell>
-          <CTableCell>{{ dorm.rooms?.length || dorm.rooms || '-' }}</CTableCell>
-          <CTableCell class="text-center">
-            <CButton
-              @click="navigateToEditDormitory(dorm.id)"
-            >
-              {{ t("Edit") }}
-            </CButton>
-          </CTableCell>
-        </CTableRow>
-      </CTableBody>
+    <CTable v-if="!loading && !error" :columns="columns" :data="paginatedDorms" :loading="loading">
+      <template #cell-admin_name="{ row }">
+        {{ row.admin?.name || row.admin?.username || row.admin || '-' }}
+      </template>
+      <template #cell-quota="{ row }">
+        {{ row.quota || row.capacity || '-' }}
+      </template>
+      <template #cell-freeBeds="{ row }">
+        <span :class="{ 'text-red-500': row.freeBeds === 0 }">
+          {{ row.freeBeds || '-' }}
+        </span>
+      </template>
+      <template #cell-actions="{ row }">
+        <CButton @click="navigateToEditDormitory(row.id)" size="sm">
+          {{ t("Edit") }}
+        </CButton>
+      </template>
     </CTable>
 
     <!-- Pagination -->
@@ -144,8 +124,47 @@ const loadDormitories = async () => {
   error.value = null;
   try {
     const response = await dormitoryService.getAll();
-    dorms.value = response.data;
+    console.log('API Response:', response);
+    console.log('Response type:', typeof response);
+    console.log('Response.data type:', typeof response.data);
+    console.log('Response.data is array:', Array.isArray(response.data));
+    console.log('Response.data length:', response.data ? response.data.length : 'undefined');
+    
+    // Handle different response structures
+    if (response && response.data) {
+      // If response.data is an array, use it directly (this is what the backend returns)
+      if (Array.isArray(response.data)) {
+        console.log('Using response.data as array');
+        dorms.value = response.data;
+      } 
+      // If response.data is an object with data property (paginated structure)
+      else if (typeof response.data === 'object' && response.data.data && Array.isArray(response.data.data)) {
+        console.log('Using response.data.data as array');
+        dorms.value = response.data.data;
+      } 
+      // If response.data is an object but not an array, try to find data property
+      else if (typeof response.data === 'object' && response.data.data) {
+        console.log('Using response.data.data from object');
+        dorms.value = Array.isArray(response.data.data) ? response.data.data : [];
+      }
+      // Otherwise, try to use response.data as is
+      else {
+        console.log('Using response.data as is');
+        dorms.value = [];
+      }
+    } else if (Array.isArray(response)) {
+      // Direct array response
+      console.log('Using response as direct array');
+      dorms.value = response;
+    } else {
+      console.log('No valid data found, setting empty array');
+      dorms.value = [];
+    }
+    
+    console.log('Fetched dormitories:', dorms.value);
+    console.log('Number of dormitories:', dorms.value.length);
   } catch (err) {
+    console.error('Error loading dormitories:', err);
     error.value = 'Failed to load dormitories';
     showError(t('Failed to load dormitories'));
   } finally {
@@ -215,6 +234,18 @@ const navigateToEditDormitory = (id: number): void => {
   }
   router.push(`/dormitory-form/${id}`);
 };
+
+// Columns for the table
+const columns = [
+  { key: 'name', label: t('DORMITORY') },
+  { key: 'quota', label: t('STUDENT CAPACITY') },
+  { key: 'gender', label: t('GENDER') },
+  { key: 'admin_name', label: t('ADMIN USERNAME') },
+  { key: 'registered', label: t('REGISTERED STUDENTS') },
+  { key: 'freeBeds', label: t('FREE BEDS') },
+  { key: 'rooms_count', label: t('ROOM') },
+  { key: 'actions', label: t('EDIT') },
+];
 </script>
 
 <style scoped>

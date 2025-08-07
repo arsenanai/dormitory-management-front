@@ -30,12 +30,12 @@
         >
           <h3
             :class="card.textClass"
-            class="order-2 text-base font-semibold lg:order-1 lg:text-5xl lg:font-extrabold xl:text-6xl"
+            class="order-2 text-base font-semibold lg:order-1 lg:text-xl lg:font-extrabold xl:text-xxl"
           >
             {{ card.value }}
           </h3>
           <p
-            class="order-1 truncate text-sm font-medium text-blue-950 lg:order-2 lg:text-lg xl:text-xl"
+            class="order-1 truncate text-sm font-medium text-blue-950 lg:order-2 lg:text-md xl:text-lg"
           >
             {{ card.description }}
           </p>
@@ -61,17 +61,29 @@ import {
 } from "@heroicons/vue/24/outline";
 import { onMounted, computed } from 'vue';
 import { useDashboardStore } from '@/stores/dashboard';
+import { useAuthStore } from '@/stores/auth';
 
 const { t } = useI18n();
 const dashboardStore = useDashboardStore();
+const authStore = useAuthStore();
 
-onMounted(() => {
-  dashboardStore.fetchStats();
+onMounted(async () => {
+  // Ensure user is authenticated before fetching stats
+  if (!authStore.isAuthenticated) {
+    console.warn('User not authenticated, redirecting to login');
+    return;
+  }
+  
+  try {
+    await dashboardStore.fetchStats();
+  } catch (error) {
+    console.error('Failed to fetch dashboard stats:', error);
+  }
 });
 
 const cards = computed(() => [
   {
-    value: dashboardStore.stats.dormitories,
+    value: dashboardStore.stats.dormitories || 0,
     description: t("Number of dormitories"),
     bgClass: "bg-yellow-50",
     textClass: "text-yellow-600",
@@ -80,7 +92,7 @@ const cards = computed(() => [
     iconTextClass: "text-yellow-600",
   },
   {
-    value: dashboardStore.stats.rooms,
+    value: dashboardStore.stats.rooms || 0,
     description: t("Number of rooms"),
     bgClass: "bg-orange-50",
     textClass: "text-orange-600",
@@ -89,7 +101,7 @@ const cards = computed(() => [
     iconTextClass: "text-orange-600",
   },
   {
-    value: dashboardStore.stats.beds,
+    value: dashboardStore.stats.beds || 0,
     description: t("Total number of beds"),
     bgClass: "bg-green-50",
     textClass: "text-green-600",
@@ -98,7 +110,7 @@ const cards = computed(() => [
     iconTextClass: "text-green-600",
   },
   {
-    value: dashboardStore.stats.vacantBeds,
+    value: dashboardStore.stats.vacantBeds || 0,
     description: t("Vacant beds"),
     bgClass: "bg-red-50",
     textClass: "text-red-600",
@@ -107,7 +119,7 @@ const cards = computed(() => [
     iconTextClass: "text-red-600",
   },
   {
-    value: dashboardStore.stats.registeredStudents,
+    value: dashboardStore.stats.registeredStudents || 0,
     description: t("Registered students"),
     bgClass: "bg-blue-50",
     textClass: "text-blue-600",
@@ -116,7 +128,7 @@ const cards = computed(() => [
     iconTextClass: "text-blue-600",
   },
   {
-    value: dashboardStore.stats.currentPresence,
+    value: dashboardStore.stats.currentPresence || 0,
     description: t("Current presence in dormitory"),
     bgClass: "bg-purple-50",
     textClass: "text-purple-600",
@@ -125,7 +137,7 @@ const cards = computed(() => [
     iconTextClass: "text-purple-600",
   },
   {
-    value: dashboardStore.stats.mealPaying,
+    value: dashboardStore.stats.mealPaying || 0,
     description: t("Meal paying students"),
     bgClass: "bg-yellow-100",
     textClass: "text-yellow-700",
@@ -134,7 +146,7 @@ const cards = computed(() => [
     iconTextClass: "text-yellow-700",
   },
   {
-    value: dashboardStore.stats.withoutMeal,
+    value: dashboardStore.stats.withoutMeal || 0,
     description: t("Students without meal"),
     bgClass: "bg-pink-50",
     textClass: "text-pink-600",
@@ -143,7 +155,7 @@ const cards = computed(() => [
     iconTextClass: "text-pink-600",
   },
   {
-    value: dashboardStore.stats.quotaStudents,
+    value: dashboardStore.stats.quotaStudents || 0,
     description: t("Number of quota students"),
     bgClass: "bg-green-50",
     textClass: "text-green-800",

@@ -97,6 +97,9 @@
     "language": {
         "description": "Choose your preferred language for the interface"
     },
+    "Website Language": "Website Language",
+    "Display Language": "Display Language",
+    "Choose the language for displaying the website interface.": "Choose the language for displaying the website interface.",
     "theme": {
         "description": "Choose your preferred language for the interface"
     },
