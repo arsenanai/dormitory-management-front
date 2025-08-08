@@ -1,81 +1,23 @@
 version: '3.8'
 
 services:
-  # Frontend Development
-  frontend-dev:
+  # Frontend - Vue.js
+  frontend:
     build:
       context: .
       dockerfile: Dockerfile
-      target: development
-    container_name: crm-frontend-dev
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://crm-api:8000/api}
+        NODE_ENV: ${NODE_ENV:-production}
+    container_name: crm-frontend
     restart: unless-stopped
     ports:
-      - "5173:5173"
-    volumes:
-      - .:/app
-      - /app/node_modules
+      - "${FRONTEND_PORT:-3000}:80"
     environment:
-      NODE_ENV: development
-      VITE_API_BASE_URL: http://crm-api-dev:8000/api
-      VITE_APP_NAME: "SDU Dormitory Management"
+      NODE_ENV: ${APP_ENV:-production}
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://crm-api:8000/api}
     networks:
       - crm-network
-    profiles:
-      - dev
-
-  # Frontend Production
-  frontend-prod:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: production
-    container_name: crm-frontend-prod
-    restart: unless-stopped
-    ports:
-      - "80:80"
-    environment:
-      VITE_API_BASE_URL: http://crm-api-prod:80/api
-      VITE_APP_NAME: "SDU Dormitory Management"
-    networks:
-      - crm-network
-    profiles:
-      - production
-
-  # E2E Testing
-  e2e-test:
-    image: mcr.microsoft.com/playwright:v1.40.0-focal
-    container_name: crm-e2e-test
-    working_dir: /app
-    volumes:
-      - .:/app
-    environment:
-      NODE_ENV: test
-      VITE_API_BASE_URL: http://crm-api-dev:8000/api
-      ADMIN_EMAIL: admin@sdu.edu.kz
-      ADMIN_PASSWORD: supersecret
-    command: sh -c "npm install && npm run test:e2e"
-    depends_on:
-      - frontend-dev
-    networks:
-      - crm-network
-    profiles:
-      - test-e2e
-
-  # Unit Testing
-  unit-test:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: development
-    container_name: crm-unit-test
-    command: npm run test:unit
-    environment:
-      NODE_ENV: test
-      VITE_API_BASE_URL: http://crm-api-dev:8000/api
-    networks:
-      - crm-network
-    profiles:
-      - test
 
 networks:
   crm-network:

@@ -135,6 +135,136 @@ ADMIN_PASSWORD=supersecret
 VITE_API_BASE_URL=http://localhost:8000/api
 ```
 
+## 🐳 Docker Setup
+
+This project uses environment-based Docker builds controlled by the `APP_ENV` variable in your `.env` file. **Only one `docker-compose.yml` file is needed** - the environment is automatically detected from your `.env` file.
+
+### Prerequisites
+- Docker and Docker Compose installed
+- Git for cloning the repository
+
+### Quick Start
+
+#### Local Development
+```bash
+# Copy environment file for local development
+cp env.local .env
+
+# Edit .env file and set:
+APP_ENV=local
+NODE_ENV=development
+VITE_API_BASE_URL=http://localhost:8000/api
+
+# Build and start containers
+docker-compose up -d
+
+# Access the application
+# Frontend: http://localhost:5173
+```
+
+#### Production
+```bash
+# Copy environment file for production
+cp env.production .env
+
+# Edit .env file and set:
+APP_ENV=production
+NODE_ENV=production
+VITE_API_BASE_URL=https://your-api-domain.com/api
+
+# Build and start containers
+docker-compose up -d
+
+# Access the application
+# Frontend: http://localhost:80
+```
+
+### Environment Configuration
+
+The system automatically detects your environment from the `APP_ENV` variable in your `.env` file:
+
+#### Local Development (`APP_ENV=local`)
+- **Container Target**: `local` (development-friendly)
+- **Hot Reload**: Code changes reflect immediately
+- **Volume Mounts**: Source code mounted for live editing
+- **Development Tools**: vim, htop included
+- **Port**: 5173
+- **Debugging**: Full debugging enabled
+
+#### Production (`APP_ENV=production`)
+- **Container Target**: `production` (optimized)
+- **Security**: Enhanced security headers and CSP protection
+- **Performance**: Optimized builds with compression
+- **Caching**: Long-term caching for static assets
+- **Port**: 80
+- **Compression**: Gzip compression enabled
+
+### Docker Commands
+
+```bash
+# Start services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f frontend
+
+# Access container shell
+docker-compose exec frontend sh
+
+# Run tests
+docker-compose exec frontend npm run test:unit
+
+# Stop services
+docker-compose down
+
+# Rebuild containers
+docker-compose up --build -d
+```
+
+### Environment Variables
+
+#### Required Variables
+```env
+APP_ENV=local                    # Environment: local or production
+NODE_ENV=development             # Node environment: development or production
+VITE_API_BASE_URL=http://localhost:8000/api  # API base URL
+```
+
+#### Docker-Specific Variables
+```env
+FRONTEND_PORT=5173               # Frontend port (5173 for local, 80 for production)
+CONTAINER_PORT=5173              # Container port (5173 for local, 80 for production)
+VOLUME_MOUNT=.:/app              # Volume mount (.:/app for local, /dev/null:/dev/null for production)
+```
+
+### Services
+
+- **frontend**: Vue.js application (environment-based build)
+
+### Troubleshooting
+
+#### Common Issues
+1. **Port conflicts**: Ensure ports 5173 (local) or 80 (production) are available
+2. **Build failures**: Clear Docker cache with `docker system prune -a`
+3. **API connection**: Check VITE_API_BASE_URL in .env
+4. **Memory issues**: Increase Docker memory limit to 4GB+
+
+#### Debug Commands
+```bash
+# Check container status
+docker-compose ps
+
+# View detailed logs
+docker-compose logs -f
+
+# Rebuild containers
+docker-compose up --build -d
+
+# Clean up
+docker-compose down -v
+docker system prune -f
+```
+
 ## 🏗️ Build & Deployment
 
 ### Production Build
@@ -145,204 +275,6 @@ npm run build
 
 # Preview production build
 npm run preview
-```
-
-## 🐳 Docker Installation & Usage
-
-### Prerequisites
-
-- [Docker](https://www.docker.com/get-started) and [Docker Compose](https://docs.docker.com/compose/install/) installed
-- Git for cloning the repository
-
-### Development Environment Setup
-
-#### 1. Clone and Setup Project
-
-```bash
-# Clone the repository
-git clone <repository-url>
-cd crm-front
-
-# Copy environment file
-cp .env.example .env
-```
-
-#### 2. Configure Environment
-
-Edit the `.env` file with your API settings:
-
-```env
-VITE_API_BASE_URL=http://localhost:8000/api
-VITE_APP_NAME="SDU Dormitory Management"
-```
-
-For E2E testing, create `.env.testing`:
-
-```env
-ADMIN_EMAIL=admin@sdu.edu.kz
-ADMIN_PASSWORD=supersecret
-VITE_API_BASE_URL=http://localhost:8000/api
-```
-
-#### 3. Start Development Environment
-
-```bash
-# Start development server
-docker compose --profile dev up -d
-
-# Install dependencies (if needed)
-docker compose run --rm init
-
-# Verify setup
-curl http://localhost:5173
-```
-
-#### 4. Access Development Environment
-
-- **Frontend Application**: http://localhost:5173
-- **Backend API**: http://localhost:8000/api (ensure backend is running)
-
-#### 5. Development Commands
-
-```bash
-# View logs
-docker compose logs dev
-
-# Run unit tests
-docker compose --profile test up
-
-# Run E2E tests
-docker compose --profile test-e2e up -d
-docker compose exec test-e2e npx playwright test
-
-# Access container shell
-docker compose exec dev sh
-
-# Restart services
-docker compose restart dev
-```
-
-### Production Environment Setup
-
-#### 1. Clone and Setup Project
-
-```bash
-# Clone the repository
-git clone <repository-url>
-cd crm-front
-
-# Copy environment file
-cp .env.example .env
-```
-
-#### 2. Configure Production Environment
-
-Edit the `.env` file for production:
-
-```env
-VITE_API_BASE_URL=https://your-api-domain.com/api
-VITE_APP_NAME="SDU Dormitory Management"
-```
-
-#### 3. Build and Deploy
-
-```bash
-# Build for production
-docker compose --profile build up -d
-
-# Serve production build
-docker compose --profile serve up -d
-```
-
-#### 4. Production Access
-
-- **Web Application**: http://your-domain.com
-- **API**: https://your-api-domain.com/api
-
-#### 5. Production Maintenance
-
-```bash
-# View logs
-docker compose logs serve
-
-# Update application
-git pull
-docker compose --profile build up -d --build
-docker compose --profile serve up -d
-
-# Monitor services
-docker compose ps
-```
-
-### Service Profiles
-
-- **Development**: `docker compose --profile dev up -d`
-  - Includes: dev, init
-- **Testing**: `docker compose --profile test up -d`
-  - Includes: test
-- **E2E Testing**: `docker compose --profile test-e2e up -d`
-  - Includes: test-e2e, init
-- **Build**: `docker compose --profile build up -d`
-  - Includes: build
-- **Serve**: `docker compose --profile serve up -d`
-  - Includes: serve
-
-### E2E Testing Setup
-
-#### Prerequisites
-
-1. **Backend server** must be running on `http://localhost:8000`
-2. **Frontend development server** must be running on `http://localhost:5173`
-3. **Database** should be seeded with test data
-
-#### Running E2E Tests
-
-```bash
-# Start E2E test environment
-docker compose --profile test-e2e up -d
-
-# Run all E2E tests
-docker compose exec test-e2e npx playwright test
-
-# Run specific test file
-docker compose exec test-e2e npx playwright test simple-login.spec.ts
-
-# Run tests with specific browser
-docker compose exec test-e2e npx playwright test --project=chrome
-
-# View test results
-docker compose logs test-e2e
-```
-
-### Troubleshooting
-
-#### Common Issues
-
-1. **Port conflicts**: Ensure ports 5173, 8000 are available
-2. **CORS errors**: Check API base URL and backend CORS configuration
-3. **E2E test failures**: Ensure both frontend and backend servers are running
-4. **Build errors**: Check Node.js version and dependency compatibility
-
-#### Useful Commands
-
-```bash
-# Clean up containers and volumes
-docker compose down -v
-
-# Rebuild services
-docker compose --profile dev up -d --build
-
-# View service status
-docker compose ps
-
-# Check service logs
-docker compose logs [service-name]
-
-# Install dependencies manually
-docker compose exec dev npm install
-
-# Clear cache
-docker compose exec dev npm run build --force
 ```
 
 ## 🎨 Customization
