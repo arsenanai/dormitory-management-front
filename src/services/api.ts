@@ -437,10 +437,16 @@ export const roomTypeService = {
 // Dormitory service
 export const dormitoryService = {
   getAll: (params?: FilterParams): Promise<ApiResponse<Dormitory[]>> =>
-    api.get("/dormitories", { params }),
+    api.get("/dormitories", { 
+      params,
+      headers: { 'Cache-Control': 'no-cache' }
+    }),
   
   getById: (id: number): Promise<ApiResponse<Dormitory>> =>
-    api.get(`/dormitories/${id}`),
+    api.get(`/dormitories/${id}`, {
+      params: { _t: Date.now() }, // Add timestamp to prevent caching
+      headers: { 'Cache-Control': 'no-cache' }
+    }),
   
   create: (data: Partial<Dormitory>): Promise<ApiResponse<Dormitory>> =>
     api.post("/dormitories", data),

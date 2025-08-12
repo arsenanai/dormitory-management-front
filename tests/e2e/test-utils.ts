@@ -3,9 +3,9 @@ import { Page, expect } from '@playwright/test';
 // Test user credentials based on project requirements
 export const TEST_USERS = {
   superadmin: {
-    // Uses SUPERADMIN_EMAIL and SUPERADMIN_PASSWORD from env, fallback to 'sudo@email.com'/'supersecret'
-    email: process.env.SUPERADMIN_EMAIL || 'sudo@email.com',
-    password: process.env.SUPERADMIN_PASSWORD || 'supersecret',
+    // Uses SUDO_EMAIL and SUDO_PASSWORD from env, fallback to 'sudo@email.com'/'supersecret'
+    email: process.env.SUDO_EMAIL || 'sudo@email.com',
+    password: process.env.SUDO_PASSWORD || 'supersecret',
     role: 'superadmin'
   },
   admin: {

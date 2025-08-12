@@ -17,6 +17,10 @@ COPY . .
 ARG VITE_API_BASE_URL=http://crm-api:8000/api
 ARG NODE_ENV=production
 
+# Set environment variables for the build process
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV NODE_ENV=$NODE_ENV
+
 # Build for production with correct API URL
 RUN npm run build
 

@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://crm-api:8000/api}
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000/api}
         NODE_ENV: ${NODE_ENV:-production}
     container_name: crm-frontend
     restart: unless-stopped
@@ -15,7 +15,7 @@ services:
       - "${FRONTEND_PORT:-3000}:80"
     environment:
       NODE_ENV: ${APP_ENV:-production}
-      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://crm-api:8000/api}
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000/api}
     networks:
       - crm-network
 

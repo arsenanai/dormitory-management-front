@@ -51,9 +51,14 @@
         </span>
       </template>
       <template #cell-actions="{ row }">
-        <CButton @click="navigateToEditDormitory(row.id)" size="sm">
-          {{ t("Edit") }}
-        </CButton>
+        <div class="flex gap-2">
+          <CButton @click="navigateToEditDormitory(row.id)" size="sm">
+            {{ t("Edit") }}
+          </CButton>
+          <CButton @click="deleteDormitory(row)" size="sm" variant="danger">
+            {{ t("Delete") }}
+          </CButton>
+        </div>
       </template>
     </CTable>
 
@@ -82,8 +87,8 @@
 <script setup lang="ts">
 import Navigation from "@/components/CNavigation.vue";
 import { useI18n } from "vue-i18n";
-import { ref, computed, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { ref, computed, onMounted, watch, onUnmounted } from "vue";
+import { useRouter, useRoute } from "vue-router";
 import { ArrowDownTrayIcon, PlusIcon } from "@heroicons/vue/24/outline";
 import CInput from "@/components/CInput.vue";
 import CSelect from "@/components/CSelect.vue";
@@ -101,6 +106,7 @@ import { useToast } from "@/composables/useToast";
 
 const { t } = useI18n();
 const router = useRouter();
+const route = useRoute();
 
 // store
 const dormitoriesStore = useDormitoriesStore();
@@ -175,7 +181,35 @@ const loadDormitories = async () => {
 onMounted(() => {
   loadDormitories();
   dormitoriesStore.clearSelectedDormitory();
+  
+  // Listen for dormitory update/creation events
+  window.addEventListener('dormitory-updated', () => {
+    console.log('Dormitory updated event received, refreshing data...');
+    loadDormitories();
+  });
+  
+  window.addEventListener('dormitory-created', () => {
+    console.log('Dormitory created event received, refreshing data...');
+    loadDormitories();
+  });
 });
+
+// Clean up event listeners
+onUnmounted(() => {
+  window.removeEventListener('dormitory-updated', () => {});
+  window.removeEventListener('dormitory-created', () => {});
+});
+
+// Watch for route changes to refresh data when returning to this page
+watch(
+  () => route.path,
+  (newPath) => {
+    if (newPath === '/dormitories') {
+      console.log('Route changed to dormitories, refreshing data...');
+      loadDormitories();
+    }
+  }
+);
 
 // Filtered Dormitories
 const filteredDorms = computed(() => {
@@ -235,10 +269,24 @@ const navigateToEditDormitory = (id: number): void => {
   router.push(`/dormitory-form/${id}`);
 };
 
+// Delete function
+const deleteDormitory = async (row: any) => {
+  if (confirm(t('Are you sure you want to delete this dormitory?'))) {
+    try {
+      await dormitoryService.delete(row.id);
+      showSuccess(t('Dormitory deleted successfully'));
+      loadDormitories(); // Reload data after deletion
+    } catch (err) {
+      console.error('Error deleting dormitory:', err);
+      showError(t('Failed to delete dormitory'));
+    }
+  }
+};
+
 // Columns for the table
 const columns = [
   { key: 'name', label: t('DORMITORY') },
-  { key: 'quota', label: t('STUDENT CAPACITY') },
+  { key: 'capacity', label: t('STUDENT CAPACITY') },
   { key: 'gender', label: t('GENDER') },
   { key: 'admin_name', label: t('ADMIN USERNAME') },
   { key: 'registered', label: t('REGISTERED STUDENTS') },

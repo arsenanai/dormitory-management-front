@@ -70,8 +70,7 @@
         <div class="flex items-center gap-2">
           <CInput
             id="admin-phone"
-            :model-value="user.phone_numbers[0]"
-            @update:model-value="(val) => user.phone_numbers[0] = val"
+            v-model="phoneNumber"
             type="tel"
             placeholder="Enter Phone Number"
             required
@@ -280,9 +279,7 @@ const submitForm = async (): Promise<void> => {
           phone_numbers: cleanPhoneNumbers,
           dormitory_id: user.value.dormitory,
         };
-        console.log('📤 Sending profile update payload:', JSON.stringify(updatePayload, null, 2));
         await authService.updateProfile(updatePayload);
-        console.log('✅ Profile update successful');
         showSuccess(t("Profile updated successfully!"));
       } else {
         // If editing other admin, use admin service
@@ -297,11 +294,9 @@ const submitForm = async (): Promise<void> => {
           office_phone: adminProfile.value.office_phone,
           office_location: adminProfile.value.office_location,
         };
-        console.log('📤 Sending admin update payload:', JSON.stringify(updatePayload, null, 2));
-        console.log('📤 Updating admin ID:', userId.value);
         await adminService.update(userId.value, updatePayload);
-        console.log('✅ Admin update successful');
         showSuccess(t("Admin profile updated successfully!"));
+        router.push('/admins');
       }
     } else {
       // For new admin creation, include password fields
@@ -320,10 +315,9 @@ const submitForm = async (): Promise<void> => {
       showSuccess(t("Admin created successfully!"));
       router.push('/admins');
     }
-  } catch (error: any) {
-    console.error('Profile update failed:', error);
-    showError(error.response?.data?.message || t("Failed to save admin data"));
-  }
+      } catch (error: any) {
+      showError(error.response?.data?.message || t("Failed to save admin data"));
+    }
 };
 
 // Profile update method for tests (calls authService.updateProfile)
@@ -342,10 +336,9 @@ const updateProfile = async (): Promise<void> => {
     
     await authService.updateProfile(payload);
     showSuccess(t("Profile updated successfully!"));
-  } catch (error: any) {
-    console.error('Profile update failed:', error);
-    showError(error.response?.data?.message || t("Failed to update profile"));
-  }
+      } catch (error: any) {
+      showError(error.response?.data?.message || t("Failed to update profile"));
+    }
 };
 
 // Password change functions
@@ -369,10 +362,9 @@ const changePassword = async (): Promise<void> => {
     await authService.changePassword(passwordData.value);
     showSuccess(t("Password updated successfully!"));
     cancelPasswordChange();
-  } catch (error: any) {
-    console.error('Password change failed:', error);
-    showError(error.response?.data?.message || t("Failed to change password"));
-  }
+      } catch (error: any) {
+      showError(error.response?.data?.message || t("Failed to change password"));
+    }
 };
 
 const cancelPasswordChange = (): void => {
@@ -414,22 +406,17 @@ watch(
 
 // Load user from API if editing
 const loadUser = async (id: number) => {
-  try {
-    console.log(`🔄 Loading admin data for ID: ${id}`);
-    let userData;
-    
-    // If editing own profile, use profile endpoint
-    if (id === authStore.user?.id) {
-      console.log('📞 Using profile endpoint for own profile');
-      const response = await authService.getProfile();
-      userData = response.data;
-    } else {
-      console.log('📞 Using admin service endpoint for other admin');
-      const response = await adminService.getById(id);
-      userData = response.data;
-    }
-    
-    console.log('📥 Raw API response:', JSON.stringify(userData, null, 2));
+      try {
+      let userData;
+      
+      // If editing own profile, use profile endpoint
+      if (id === authStore.user?.id) {
+        const response = await authService.getProfile();
+        userData = response.data;
+      } else {
+        const response = await adminService.getById(id);
+        userData = response.data;
+      }
     
     // Populate form with API data, properly mapping fields
     const updatedUser = {
@@ -449,16 +436,12 @@ const loadUser = async (id: number) => {
       dormitory: userData.dormitory_id || userData.dormitory || null,
     };
     
-    console.log('🔄 Mapped user data:', JSON.stringify(updatedUser, null, 2));
-    
-    // Update each field individually to ensure reactivity
-    user.value.name = updatedUser.name;
-    user.value.surname = updatedUser.surname;
-    user.value.email = updatedUser.email;
-    user.value.phone_numbers = updatedUser.phone_numbers;
-    user.value.dormitory = updatedUser.dormitory;
-    
-    console.log('✅ Updated user.value:', JSON.stringify(user.value, null, 2));
+          // Update each field individually to ensure reactivity
+      user.value.name = updatedUser.name;
+      user.value.surname = updatedUser.surname;
+      user.value.email = updatedUser.email;
+      user.value.phone_numbers = updatedUser.phone_numbers;
+      user.value.dormitory = updatedUser.dormitory;
     
     adminProfile.value = {
       position: userData.admin_profile?.position || "",
@@ -467,16 +450,13 @@ const loadUser = async (id: number) => {
       office_location: userData.admin_profile?.office_location || "",
     };
     
-    console.log('✅ Updated adminProfile.value:', JSON.stringify(adminProfile.value, null, 2));
-    
-    // Force a re-render to ensure components update
-    await nextTick();
-    
-    showSuccess(t("Admin data loaded successfully"));
-  } catch (error) {
-    console.error('❌ Failed to load user:', error);
-    showError(t("Failed to load admin data"));
-  }
+          // Force a re-render to ensure components update
+      await nextTick();
+      
+      showSuccess(t("Admin data loaded successfully"));
+    } catch (error) {
+      showError(t("Failed to load admin data"));
+    }
 };
 
 // For test compatibility: expose admin property
@@ -486,10 +466,26 @@ onMounted(async () => {
   // Load dormitories first
   try {
     const response = await dormitoryService.getAll();
-    dormitories.value = response.data;
+    
+    // Handle different response formats
+    if (response && response.data) {
+      if (Array.isArray(response.data)) {
+        // Direct array response
+        dormitories.value = response.data;
+      } else if (response.data.data && Array.isArray(response.data.data)) {
+        // Laravel paginated response
+        dormitories.value = response.data.data;
+      } else {
+        // Fallback - try to find data in the response
+        dormitories.value = [];
+      }
+    } else {
+      dormitories.value = [];
+    }
+    
   } catch (error) {
-    console.error('Failed to load dormitories:', error);
     showError(t("Failed to load dormitories"));
+    dormitories.value = [];
   }
 
   // If editing, always load from API to ensure fresh data

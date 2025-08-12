@@ -126,19 +126,10 @@ const { showError, showSuccess, showConfirmation } = useToast();
     loading.value = true;
     error.value = null;
     try {
-      // Check if user is authenticated
-      const token = localStorage.getItem('token');
-      if (!token) {
-        error.value = 'Authentication required';
-        roomTypes.value = [];
-        dormitories.value = [];
-        return;
-      }
-
-      const [roomTypesResponse, dormitoriesResponse] = await Promise.all([
-        roomTypeService.getAll(),
-        dormitoryService.getAll()
-      ]);
+       const [roomTypesResponse, dormitoriesResponse] = await Promise.all([
+         roomTypeService.getAll(),
+         dormitoryService.getAll()
+       ]);
       
       // Handle Laravel paginated response structure for room types
       if (roomTypesResponse && roomTypesResponse.data) {
@@ -363,7 +354,7 @@ const { showError, showSuccess, showConfirmation } = useToast();
 
   // Navigation actions
   function navigateToAddRoomType() {
-    router.push("/room-type-form");
+    router.push("/room-type-basic");
   }
   
   function navigateToEditRoomType(id: number) {
@@ -371,7 +362,7 @@ const { showError, showSuccess, showConfirmation } = useToast();
     if (roomType) {
       roomTypesStore.setSelectedRoomType(roomType);
     }
-    router.push(`/room-type-form/${id}`);
+    router.push(`/room-type-basic/${id}`);
   }
   
   async function deleteRoomType(id: number) {

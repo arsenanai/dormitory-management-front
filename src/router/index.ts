@@ -305,6 +305,18 @@ const routes: AppRouteRecordRaw[] = [
     },
   },
   {
+    path: '/room-type-basic/:id?',
+    name: 'Room Type Basic Form',
+    component: () => import('@/pages/RoomTypeBasicForm.vue'),
+    meta: {
+      title: 'Room Type Basic Form',
+      parent: 'Room Types',
+      requiresAuth: true,
+      sidebar: false,
+      roles: ['sudo', 'admin'],
+    },
+  },
+  {
     path: '/modal-test',
     name: 'ModalTest',
     component: () => import('@/pages/ModalTest.vue'),

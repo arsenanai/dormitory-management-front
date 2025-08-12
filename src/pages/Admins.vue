@@ -7,9 +7,14 @@
     </div>
     <CTable :columns="columns" :data="admins" :loading="loading">
       <template #cell-actions="{ row }">
-        <CButton @click="goToEditAdmin(row)" size="sm">
-          Edit
-        </CButton>
+        <div class="flex gap-2">
+          <CButton @click="goToEditAdmin(row)" size="sm">
+            Edit
+          </CButton>
+          <CButton @click="deleteAdmin(row)" size="sm" variant="danger">
+            Delete
+          </CButton>
+        </div>
       </template>
     </CTable>
   </Navigation>
@@ -23,9 +28,11 @@ import Navigation from '@/components/CNavigation.vue';
 import CButton from '@/components/CButton.vue';
 import CTable from '@/components/CTable.vue';
 import { adminService } from '@/services/api';
+import { useToast } from '@/composables/useToast';
 
 const { t } = useI18n();
 const router = useRouter();
+const { showToast } = useToast();
 const admins = ref([]);
 const loading = ref(false);
 
@@ -82,6 +89,19 @@ const goToAddAdmin = () => {
 
 const goToEditAdmin = (admin) => {
   router.push({ path: `/admin-form/${admin.id}` });
+};
+
+const deleteAdmin = async (admin) => {
+  if (confirm(`Are you sure you want to delete admin ${admin.name}?`)) {
+    try {
+      await adminService.delete(admin.id);
+      showToast('Admin deleted successfully', 'success');
+      await loadAdmins(); // Reload the list
+    } catch (error) {
+      console.error('Error deleting admin:', error);
+      showToast('Failed to delete admin', 'error');
+    }
+  }
 };
 
 onMounted(loadAdmins);
