@@ -271,7 +271,7 @@ const existingNames = ref<string[]>([]);
 const loadExistingNames = async () => {
   try {
     const response = await roomTypeService.getAll();
-    existingNames.value = response.data.map((roomType: any) => roomType.name);
+    existingNames.value = response.data.data.map((roomType: any) => roomType.name);
   } catch (error) {
     console.error('Failed to load existing room type names:', error);
     existingNames.value = [];

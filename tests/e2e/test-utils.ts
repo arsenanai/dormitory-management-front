@@ -3,8 +3,8 @@ import { Page, expect } from '@playwright/test';
 // Test user credentials based on project requirements
 export const TEST_USERS = {
   superadmin: {
-    // Uses SUDO_EMAIL and SUDO_PASSWORD from env, fallback to 'sudo@email.com'/'supersecret'
-    email: process.env.SUDO_EMAIL || 'sudo@email.com',
+    // Uses SUDO_EMAIL and SUDO_PASSWORD from env, fallback to actual seeded user
+    email: process.env.SUDO_EMAIL || 'admin@email.com',
     password: process.env.SUDO_PASSWORD || 'supersecret',
     role: 'superadmin'
   },
@@ -15,9 +15,9 @@ export const TEST_USERS = {
     role: 'admin'
   },
   student: {
-    // Matches DevelopmentSeeder: student@email.com / studentpass
-    email: process.env.STUDENT_EMAIL || 'student@email.com',
-    password: process.env.STUDENT_PASSWORD || 'studentpass',
+    // Matches DevelopmentSeeder: alice_student@student.local / password
+    email: process.env.STUDENT_EMAIL || 'alice_student@student.local',
+    password: process.env.STUDENT_PASSWORD || 'password',
     role: 'student'
   }
 };
