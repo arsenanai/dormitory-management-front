@@ -595,7 +595,7 @@ const dormitoryOptions = ref([]);
 onMounted(async () => {
   try {
     const response = await dormitoryService.getAll();
-    dormitoryOptions.value = response.data.map(dorm => ({
+    dormitoryOptions.value = response.data.data.map(dorm => ({
       value: dorm.id.toString(),
       name: dorm.name
     }));

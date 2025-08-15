@@ -36,7 +36,7 @@ coverage
 
 # Test outputs
 test-results
-playwright-report
+playwright-report/
 test-output-*.txt
 coverage/
 .nyc_output/

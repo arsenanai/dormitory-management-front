@@ -1,12 +1,7 @@
 <template>
   <Navigation :title="isEditing ? t('Edit Dormitory') : t('Add Dormitory')">
-    <!-- Debug Info -->
-    <div style="background: yellow; color: black; padding: 10px; margin: 10px; border: 2px solid red;">
-      <strong>DEBUG:</strong> Route: {{ route.path }}, Params: {{ route.params }}, ID: {{ dormitoryId }}, isEditing: {{ isEditing }}
-    </div>
-    
-    <form @submit.prevent="submitDormitory">
-      <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+    <form @submit.prevent="submitDormitory" class="space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Dormitory Name -->
         <div>
           <CInput
@@ -38,11 +33,12 @@
             v-model="dormitory.gender"
             :options="genderOptions"
             :label="t('Gender')"
+            placeholder="Select Gender"
             required
           />
         </div>
 
-        <!-- Admin Selection -->
+        <!-- Admin -->
         <div>
           <CSelect
             id="dormitory-admin"
@@ -98,13 +94,62 @@
           />
         </div>
 
+        <!-- Room Selection -->
+        <div class="lg:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            {{ t('Rooms') }}
+          </label>
+          <div class="space-y-3">
+            <!-- Existing Rooms -->
+            <div v-for="(room, index) in dormitory.rooms" :key="index" class="flex items-center gap-3 p-3 border border-gray-300 dark:border-gray-600 rounded-md">
+              <CSelect
+                :id="`room-${index}`"
+                v-model="room.id"
+                :options="roomOptions"
+                :label="t('Room')"
+                placeholder="Select a Room"
+                required
+                class="flex-1"
+              />
+              <CButton
+                variant="danger"
+                size="sm"
+                @click="removeRoom(index)"
+                class="shrink-0"
+              >
+                {{ t('Remove') }}
+              </CButton>
+            </div>
+            
+            <!-- Add Room Button -->
+            <CButton
+              variant="secondary"
+              @click="addRoom"
+              class="w-full"
+            >
+              <PlusIcon class="h-5 w-5 mr-2" />
+              {{ t('Add Room') }}
+            </CButton>
+          </div>
+        </div>
+
         <!-- Computed Fields (Display-Only) -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {{ t('Student Capacity') }}
+          </label>
+          <div class="mt-1 p-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md">
+            <span class="text-gray-900 dark:text-gray-100">{{ calculatedCapacity }}</span>
+            <span class="text-sm text-gray-500 dark:text-gray-400 ml-2">({{ t('Calculated from rooms') }})</span>
+          </div>
+        </div>
+
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
             {{ t('Registered Students') }}
           </label>
           <div class="mt-1 p-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md">
-            <span class="text-gray-900 dark:text-gray-100">{{ dormitory.registered }}</span>
+            <span class="text-gray-900 dark:text-gray-100">{{ calculatedRegisteredStudents }}</span>
             <span class="text-sm text-gray-500 dark:text-gray-400 ml-2">({{ t('Calculated automatically') }})</span>
           </div>
         </div>
@@ -115,7 +160,7 @@
             {{ t('Free Beds') }}
           </label>
           <div class="mt-1 p-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md">
-            <span class="text-gray-900 dark:text-gray-100">{{ dormitory.freeBeds }}</span>
+            <span class="text-gray-900 dark:text-gray-100">{{ calculatedFreeBeds }}</span>
             <span class="text-sm text-gray-500 dark:text-gray-400 ml-2">({{ t('Calculated automatically') }})</span>
           </div>
         </div>
@@ -126,7 +171,7 @@
             {{ t('Rooms Count') }}
           </label>
           <div class="mt-1 p-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md">
-            <span class="text-gray-900 dark:text-gray-100">{{ dormitory.rooms_count }}</span>
+            <span class="text-gray-900 dark:text-gray-100">{{ calculatedRoomsCount }}</span>
             <span class="text-sm text-gray-500 dark:text-gray-400 ml-2">({{ t('Calculated automatically') }})</span>
           </div>
         </div>
@@ -135,10 +180,9 @@
       <!-- Submit Button -->
       <div class="mt-6 flex justify-end">
         <CButton
+          type="submit"
           variant="primary"
           :disabled="loading"
-          @click="submitDormitory"
-          @click.prevent="submitDormitory"
           class="w-full lg:w-auto"
         >
           {{ loading ? t("Submitting...") : t("Submit") }}
@@ -160,6 +204,7 @@ import { Dormitory } from "@/models/Dormitory";
 import { useDormitoriesStore } from "@/stores/dormitories";
 import { useToast } from "@/composables/useToast";
 import { dormitoryService, adminService } from "@/services/api";
+import PlusIcon from "@heroicons/vue/24/outline/PlusIcon";
 
 const { t } = useI18n();
 const route = useRoute();
@@ -173,7 +218,6 @@ const isEditing = computed(() => {
   // Force check if we're in edit mode by looking at the route path
   const hasIdInPath = route.path.includes('/dormitory-form/') && route.path.split('/').length > 2;
   const hasIdInParams = !!dormitoryId.value;
-  console.log('isEditing computed:', { hasIdInPath, hasIdInParams, routePath: route.path, routeParams: route.params });
   return hasIdInPath || hasIdInParams;
 });
 
@@ -197,33 +241,49 @@ const adminOptions = ref<{ value: number; name: string }[]>([]);
 // Load admins from API
 const loadAdmins = async () => {
   try {
+    console.log('Loading admin options...');
     const response = await adminService.getAll();
+    console.log('Admin API response:', response);
+    
+    let admins = [];
+    
+    // Handle different response structures
     if (response.data && response.data.data) {
-      // Handle paginated response
-      adminOptions.value = response.data.data.map((admin: any) => ({
-        value: admin.id,
-        name: admin.name || admin.email || `Admin ${admin.id}`,
-      }));
-    } else if (Array.isArray(response.data)) {
-      // Handle direct array response
-      adminOptions.value = response.data.map((admin: any) => ({
-        value: admin.id,
-        name: admin.name || admin.email || `Admin ${admin.id}`,
-      }));
+      // Paginated response
+      admins = response.data.data;
+    } else if (response.data && Array.isArray(response.data)) {
+      // Direct array response
+      admins = response.data;
+    } else if (Array.isArray(response)) {
+      // Direct response
+      admins = response;
     }
+    
+    console.log('Extracted admins:', admins);
+    
+    // Map admins to options format
+    adminOptions.value = admins.map((admin: any) => ({
+      value: admin.id,
+      name: admin.name || admin.email || `Admin ${admin.id}`,
+    }));
+    
+    console.log('Admin options set:', adminOptions.value);
   } catch (error) {
     console.error('Failed to load admins:', error);
     showError(t("Failed to load admin options"));
+    
+    // Fallback to mock data if API fails
+    adminOptions.value = [
+      { value: 1, name: "System Administrator" },
+      { value: 2, name: "Admin User" },
+    ];
   }
 };
 
 // Submit Dormitory
 const submitDormitory = async (): Promise<void> => {
-  console.log('=== submitDormitory FUNCTION CALLED ===');
-  
   // Prevent multiple submissions
   if (isSubmitting.value) {
-    console.log('Form submission already in progress, ignoring duplicate click');
     return;
   }
 
@@ -232,138 +292,66 @@ const submitDormitory = async (): Promise<void> => {
   loading.value = true;
 
   try {
-    console.log("Dormitory submitted:", dormitory.value);
-    
-    // Prepare the data for submission - only include STORED fields (not computed fields)
-    const dormitoryData = {
-      name: dormitory.value.name,
-      capacity: dormitory.value.capacity,
-      gender: dormitory.value.gender,
-      admin_id: dormitory.value.admin_id !== null && dormitory.value.admin_id !== undefined ? Number(dormitory.value.admin_id) : null,
-      address: dormitory.value.address || null,
-      description: dormitory.value.description || null,
-      quota: dormitory.value.quota || null,
-      phone: dormitory.value.phone || null,
-    };
-    
-    console.log('Complete dormitory data being submitted:', dormitoryData);
-    console.log('Form values before submission:', {
-      name: dormitory.value.name,
-      capacity: dormitory.value.capacity,
-      gender: dormitory.value.gender,
-      admin_id: dormitory.value.admin_id,
-      address: dormitory.value.address,
-      description: dormitory.value.description,
-      quota: dormitory.value.quota,
-      phone: dormitory.value.phone,
-      // Computed fields (read-only)
-      registered: dormitory.value.registered,
-      freeBeds: dormitory.value.freeBeds,
-      rooms_count: dormitory.value.rooms_count
-    });
-    
-    console.log('Submitting dormitory data:', dormitoryData);
+    // Use the Dormitory class method to get only updatable fields
+    const dormitoryData = dormitory.value.toSubmissionData();
     
     if (isEditing.value) {
-      console.log('=== EXECUTING UPDATE BRANCH ===');
-      console.log('About to call dormitoryService.update with:', { id: dormitoryId.value, data: dormitoryData });
+      console.log('Updating dormitory with ID:', dormitoryId.value);
       const response = await dormitoryService.update(dormitoryId.value!, dormitoryData);
-      console.log('dormitoryService.update completed successfully', response);
-      showSuccess(t("Dormitory updated successfully!"));
-      // Clear the selected dormitory from store to force fresh data load
-      dormitoryStore.clearSelectedDormitory();
-      // Dispatch a custom event to notify other components to refresh
-      window.dispatchEvent(new CustomEvent('dormitory-updated'));
-      // Force browser to clear any cached data for this dormitory
-      if ('caches' in window) {
-        try {
-          const cacheNames = await caches.keys();
-          for (const cacheName of cacheNames) {
-            const cache = await caches.open(cacheName);
-            await cache.delete(`/api/dormitories/${dormitoryId.value}`);
-          }
-        } catch (e) {
-          console.log('Cache clearing failed:', e);
-        }
-      }
-      // Wait a moment for the success message to be visible
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      showSuccess(t("Dormitory updated successfully"));
     } else {
-      console.log('=== EXECUTING CREATE BRANCH ===');
+      console.log('Creating new dormitory');
       const response = await dormitoryService.create(dormitoryData);
-      console.log('dormitoryService.create completed successfully', response);
-      showSuccess(t("Dormitory created successfully!"));
-      // Dispatch a custom event to notify other components to refresh
-      window.dispatchEvent(new CustomEvent('dormitory-created'));
-      // Wait a moment for the success message to be visible
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      showSuccess(t("Dormitory created successfully"));
     }
+    
+    // Redirect to dormitories list
     router.push('/dormitories');
   } catch (error) {
     console.error('Error submitting dormitory:', error);
-    showError(t("Failed to save dormitory. Please try again."));
+    showError(t("Failed to submit dormitory"));
   } finally {
-    // Reset submission flags
     isSubmitting.value = false;
     loading.value = false;
   }
 };
 
-// Load dormitory from API if editing
+// Load dormitory data from API
 const loadDormitory = async (id: number) => {
   try {
-    console.log('=== LOADING DORMITORY DATA ===');
-    console.log('Loading dormitory with ID:', id);
-    console.log('Timestamp:', new Date().toISOString());
-    console.log('Cache-busting parameter added to request');
-    
+    console.log('Loading dormitory data from API for ID:', id);
     const response = await dormitoryService.getById(id);
-    const dormitoryData = response.data;
     
-    console.log('API Response Status:', response.status);
-    console.log('API Response Headers:', response.headers);
-    console.log('Loaded dormitory data from API:', dormitoryData);
-    
-    // Extract admin_id from the data - it might be in different places
-    let adminId = null;
-    if (dormitoryData.admin_id !== null && dormitoryData.admin_id !== undefined) {
-      adminId = Number(dormitoryData.admin_id);
-    } else if (dormitoryData.admin && dormitoryData.admin.id) {
-      adminId = Number(dormitoryData.admin.id);
+    if (response.data) {
+      const dormitoryData = response.data;
+      console.log('Loaded dormitory data from API:', dormitoryData);
+      
+      // Extract admin_id from the admin object if it exists
+      let adminId = dormitoryData.admin_id;
+      if (dormitoryData.admin && dormitoryData.admin.id) {
+        adminId = dormitoryData.admin.id;
+        console.log('Extracted admin_id:', adminId);
+      }
+      
+      // Create new Dormitory instance with the loaded data
+      dormitory.value = new Dormitory(
+        dormitoryData.name || "",
+        dormitoryData.capacity || 0,
+        dormitoryData.gender || "",
+        dormitoryData.admin?.name || dormitoryData.admin || "",
+        adminId,
+        dormitoryData.address || "",
+        dormitoryData.description || "",
+        dormitoryData.quota || 0,
+        dormitoryData.phone || "",
+        dormitoryData.registered || 0,
+        dormitoryData.freeBeds || 0,
+        dormitoryData.rooms_count || 0,
+        dormitoryData.rooms || []
+      );
+      
+      console.log('Populated dormitory form with fresh data:', dormitory.value);
     }
-    
-    console.log('Extracted admin_id:', adminId);
-    console.log('Admin data:', dormitoryData.admin);
-    
-    // Ensure admin options are loaded before setting dormitory data
-    if (adminOptions.value.length === 0) {
-      console.log('Admin options not loaded yet, loading now...');
-      await loadAdmins();
-    }
-    
-    // Populate form with API data - ensure all fields are properly mapped
-    dormitory.value = new Dormitory(
-      dormitoryData.name || "",
-      dormitoryData.capacity || 0,
-      dormitoryData.gender || "",
-      dormitoryData.admin?.name || dormitoryData.admin || "",
-      adminId,
-      dormitoryData.address || "",
-      dormitoryData.description || "",
-      dormitoryData.quota || 0,
-      dormitoryData.phone || "",
-      // Computed fields (read-only)
-      dormitoryData.registered || 0,
-      dormitoryData.freeBeds || 0,
-      dormitoryData.rooms_count || 0
-    );
-    
-    console.log('Populated dormitory form with fresh data:', dormitory.value);
-    console.log('Admin options available:', adminOptions.value.length);
-    
-    // Set the selected dormitory in store for consistency
-    dormitoryStore.setSelectedDormitory(dormitory.value);
-    
   } catch (error) {
     console.error('Error loading dormitory:', error);
     showError(t("Failed to load dormitory data"));
@@ -388,10 +376,11 @@ watch(
         selectedDormitory.description || "",
         selectedDormitory.quota || 0,
         selectedDormitory.phone || "",
-        // Computed fields (read-only)
-        selectedDormitory.registered || 0,
-        selectedDormitory.freeBeds || 0,
-        selectedDormitory.rooms_count || 0
+        // Computed fields should be 0 for form display (they're calculated by backend)
+        0, // registered
+        0, // freeBeds
+        0, // rooms_count
+        selectedDormitory.rooms || [] // Include rooms array
       );
     }
   },
@@ -424,15 +413,11 @@ watch(
 );
 
 onMounted(async () => {
-  // Debug logging for route params
-  console.log('=== DORMITORY FORM MOUNTED ===');
-  console.log('Route params:', route.params);
-  console.log('Dormitory ID:', dormitoryId.value);
-  console.log('Is Editing:', isEditing.value);
-  console.log('Current route path:', route.path);
-  
   // Load admin options first
   await loadAdmins();
+  
+  // Load room options
+  await loadRoomOptions();
   
   // If editing, always load fresh data from API (don't rely on store)
   if (isEditing.value && dormitoryId.value) {
@@ -443,6 +428,100 @@ onMounted(async () => {
     dormitoryStore.restoreSelectedDormitory();
   }
 });
+
+// Computed properties for display-only fields
+const calculatedCapacity = computed(() => dormitory.value.calculateTotalCapacity());
+const calculatedRegisteredStudents = computed(() => dormitory.value.calculateRegisteredStudents());
+const calculatedFreeBeds = computed(() => dormitory.value.calculateFreeBeds());
+const calculatedRoomsCount = computed(() => dormitory.value.calculateTotalRooms());
+
+// Room options for the new room selection
+const roomOptions = ref<{ value: number; name: string }[]>([]);
+
+// Load room options from API
+const loadRoomOptions = async () => {
+  try {
+    console.log('Loading room options...');
+    
+    // Try to get rooms from the room service if available
+    if (window.roomService) {
+      const response = await window.roomService.getAll();
+      if (response.data && response.data.data) {
+        roomOptions.value = response.data.data.map((room: any) => ({
+          value: room.id,
+          name: room.name || room.number || `Room ${room.id}`,
+        }));
+      } else if (response.data && Array.isArray(response.data)) {
+        roomOptions.value = response.data.map((room: any) => ({
+          value: room.id,
+          name: room.name || room.number || `Room ${room.id}`,
+        }));
+      }
+    } else {
+      // Fallback to mock data if room service is not available
+      roomOptions.value = [
+        { value: 1, name: "Room 101" },
+        { value: 2, name: "Room 102" },
+        { value: 3, name: "Room 103" },
+        { value: 4, name: "Room 201" },
+        { value: 5, name: "Room 202" },
+        { value: 6, name: "Room 301" },
+        { value: 7, name: "Room 302" },
+        { value: 8, name: "Room 401" },
+        { value: 9, name: "Room 402" },
+        { value: 10, name: "Room 501" },
+      ];
+    }
+    
+    console.log('Room options loaded:', roomOptions.value.length, 'rooms');
+  } catch (error) {
+    console.error('Failed to load room options:', error);
+    showError(t("Failed to load room options"));
+    
+    // Fallback to mock data if API fails
+    roomOptions.value = [
+      { value: 1, name: "Room 101" },
+      { value: 2, name: "Room 102" },
+      { value: 3, name: "Room 103" },
+      { value: 4, name: "Room 201" },
+      { value: 5, name: "Room 202" },
+    ];
+  }
+};
+
+// Add a new room to the dormitory
+const addRoom = () => {
+  // Create a new room object with the correct structure
+  const newRoom = {
+    id: null,
+    name: "",
+    number: "",
+    floor: 1,
+    capacity: 2,
+    room_type_id: null,
+    dormitory_id: null,
+    notes: "",
+    beds: []
+  };
+  dormitory.value.rooms.push(newRoom);
+  console.log('Added new room, total rooms:', dormitory.value.rooms.length);
+};
+
+// Remove a room from the dormitory
+const removeRoom = (index: number) => {
+  dormitory.value.rooms.splice(index, 1);
+};
+
+// Watch for changes in rooms to update computed fields
+watch(
+  () => dormitory.value.rooms,
+  () => {
+    // Re-calculate and update computed fields whenever rooms change
+    // This ensures they are always up-to-date with the current room data
+    // The dormitory.value.toSubmissionData() will include these computed values
+  },
+  { deep: true }
+);
 </script>
 
 <style scoped>

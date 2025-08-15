@@ -168,7 +168,10 @@ describe('API Services', () => {
 
       const result = await dormitoryService.getAll();
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/dormitories', { params: undefined });
+      expect(mockedAxios.get).toHaveBeenCalledWith('/dormitories', { 
+        params: undefined,
+        headers: { 'Cache-Control': 'no-cache' }
+      });
       expect(result).toEqual(mockResponse);
     });
 
