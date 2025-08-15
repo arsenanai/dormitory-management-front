@@ -36,16 +36,18 @@
         <CTable v-if="!loading && !error">
           <CTableHead>
             <CTableHeadCell>{{ t("Room Type Name") }}</CTableHeadCell>
-            <CTableHeadCell>{{ t("Dormitory") }}</CTableHeadCell>
-            <CTableHeadCell>{{ t("Number of Beds") }}</CTableHeadCell>
+            <CTableHeadCell>{{ t("Capacity") }}</CTableHeadCell>
+            <CTableHeadCell>{{ t("Price") }}</CTableHeadCell>
             <CTableHeadCell>{{ t("Photos") }}</CTableHeadCell>
             <CTableHeadCell class="text-right">{{ t("Action") }}</CTableHeadCell>
           </CTableHead>
           <CTableBody>
             <CTableRow v-for="roomType in paginatedRoomTypes" :key="roomType.id">
-              <CTableCell>{{ roomType.name }}</CTableCell>
-              <CTableCell>{{ getDormitoryName(roomType) }}</CTableCell>
-              <CTableCell>{{ getBedCount(roomType) }}</CTableCell>
+              <CTableCell>
+                <span class="capitalize font-medium">{{ roomType.name }}</span>
+              </CTableCell>
+              <CTableCell>{{ roomType.capacity || getBedCount(roomType) }}</CTableCell>
+              <CTableCell>{{ formatPrice(roomType.price || 0) }}</CTableCell>
               <CTableCell>
                 <div v-if="roomType.photos && roomType.photos.length > 0" class="flex gap-1">
                   <img 

@@ -48,25 +48,19 @@ describe('RoomTypes.vue', () => {
   const mockRoomTypes = [
     {
       id: 1,
-      name: 'Standard',
+      name: 'standard',
       description: 'Standard dormitory room',
-      dormitory_id: 1,
-      dormitory: { id: 1, name: 'Main Dormitory' },
-      bed_count: 4,
-      capacity: 4,
-      base_price: 400.00,
+      capacity: 2,
+      price: 150.00,
       minimap: '[{"x": 10, "y": 10}, {"x": 20, "y": 20}]',
       photos: ['photo1.jpg', 'photo2.jpg']
     },
     {
       id: 2,
-      name: 'Premium',
+      name: 'lux',
       description: 'Premium room with amenities',
-      dormitory_id: 1,
-      dormitory: { id: 1, name: 'Main Dormitory' },
-      bed_count: 2,
-      capacity: 2,
-      base_price: 600.00,
+      capacity: 1,
+      price: 300.00,
       minimap: '[{"x": 15, "y": 15}]',
       photos: []
     }
@@ -136,11 +130,10 @@ describe('RoomTypes.vue', () => {
   it('creates new room type', async () => {
     const mockCreate = vi.mocked(roomTypeService.create)
     const newRoomTypeData = {
-      name: 'Deluxe',
-      description: 'Deluxe room with all amenities',
-      base_price: 800.00,
-      capacity: 1,
-      amenities: ['Bed', 'Desk', 'Private Bathroom', 'AC', 'WiFi', 'Kitchenette']
+      name: 'standard',
+      description: 'Standard room with amenities',
+      price: 150.00,
+      capacity: 2
     }
     mockCreate.mockResolvedValue({ data: { id: 3, ...newRoomTypeData } })
 
@@ -151,9 +144,9 @@ describe('RoomTypes.vue', () => {
 
   it('updates existing room type', async () => {
     const mockUpdate = vi.mocked(roomTypeService.update)
-    mockUpdate.mockResolvedValue({ data: { ...mockRoomTypes[0], base_price: 450.00 } })
+    mockUpdate.mockResolvedValue({ data: { ...mockRoomTypes[0], price: 175.00 } })
 
-    const updatedRoomType = { ...mockRoomTypes[0], base_price: 450.00 }
+    const updatedRoomType = { ...mockRoomTypes[0], price: 175.00 }
 
     await wrapper.vm.updateRoomType(1, updatedRoomType)
 
@@ -183,7 +176,7 @@ describe('RoomTypes.vue', () => {
     const manyRoomTypes = Array.from({ length: 25 }, (_, i) => ({
       ...mockRoomTypes[0],
       id: i + 1,
-      name: `Room Type ${i + 1}`
+      name: i % 2 === 0 ? 'standard' : 'lux'
     }))
 
     wrapper.vm.roomTypes = manyRoomTypes
@@ -201,7 +194,7 @@ describe('RoomTypes.vue', () => {
     await wrapper.vm.$nextTick()
 
     const average = wrapper.vm.averagePrice
-    expect(average).toBe(500.00)
+    expect(average).toBe(225.00) // (150 + 300) / 2
   })
 
   it('shows room type form modal', async () => {
@@ -218,11 +211,10 @@ describe('RoomTypes.vue', () => {
   it('handles form submission', async () => {
     const mockCreate = vi.mocked(roomTypeService.create)
     const formData = {
-      name: 'Deluxe',
-      description: 'Deluxe room with all amenities',
-      base_price: 800.00,
-      capacity: 1,
-      amenities: ['Bed', 'Desk', 'Private Bathroom', 'AC', 'WiFi', 'Kitchenette']
+      name: 'standard',
+      description: 'Standard room with amenities',
+      price: 150.00,
+      capacity: 2
     }
     mockCreate.mockResolvedValue({ data: { id: 3, ...formData } })
 
@@ -256,8 +248,8 @@ describe('RoomTypes.vue', () => {
     await wrapper.vm.$nextTick()
 
     const sortedRoomTypes = wrapper.vm.sortedRoomTypes
-    expect(sortedRoomTypes[0].base_price).toBe(400.00)
-    expect(sortedRoomTypes[1].base_price).toBe(600.00)
+    expect(sortedRoomTypes[0].price).toBe(150.00)
+    expect(sortedRoomTypes[1].price).toBe(300.00)
   })
 
   it('sorts room types by capacity', async () => {
@@ -267,7 +259,27 @@ describe('RoomTypes.vue', () => {
     await wrapper.vm.$nextTick()
 
     const sortedRoomTypes = wrapper.vm.sortedRoomTypes
-    expect(sortedRoomTypes[0].capacity).toBe(4)
-    expect(sortedRoomTypes[1].capacity).toBe(2)
+    expect(sortedRoomTypes[0].capacity).toBe(2)
+    expect(sortedRoomTypes[1].capacity).toBe(1)
+  })
+
+  it('displays room type names capitalized', async () => {
+    wrapper.vm.roomTypes = mockRoomTypes
+    await wrapper.vm.$nextTick()
+
+    const roomTypeNames = wrapper.findAll('.capitalize')
+    expect(roomTypeNames[0].text()).toBe('Standard')
+    expect(roomTypeNames[1].text()).toBe('Lux')
+  })
+
+  it('displays capacity and price correctly', async () => {
+    wrapper.vm.roomTypes = mockRoomTypes
+    await wrapper.vm.$nextTick()
+
+    const cells = wrapper.findAll('td')
+    expect(cells[1].text()).toBe('2') // capacity for standard
+    expect(cells[2].text()).toBe('$150.00') // price for standard
+    expect(cells[6].text()).toBe('1') // capacity for lux
+    expect(cells[7].text()).toBe('$300.00') // price for lux
   })
 })

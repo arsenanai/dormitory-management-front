@@ -148,7 +148,7 @@ test.describe('Room Types Index Page Verification', () => {
     await page.waitForLoadState('networkidle');
     
     // Check that the table has the expected columns
-    const expectedColumns = ['Room Type Name', 'Dormitory', 'Number of Beds', 'Photos', 'Action'];
+    const expectedColumns = ['Room Type Name', 'Capacity', 'Price', 'Photos', 'Action'];
     
     for (const column of expectedColumns) {
       const columnHeader = page.locator(`th:has-text("${column}"), [data-testid="column-${column.toLowerCase().replace(/\s+/g, '-')}"]`);
@@ -160,14 +160,16 @@ test.describe('Room Types Index Page Verification', () => {
     // Verify that room types have the expected data
     const standardRow = page.locator('tr:has-text("standard")');
     if (await standardRow.count() > 0) {
-      // Check that standard room type has expected capacity/beds
+      // Check that standard room type has expected capacity and price
       await expect(standardRow).toContainText('2'); // capacity
+      await expect(standardRow).toContainText('$150.00'); // price
     }
     
     const luxRow = page.locator('tr:has-text("lux")');
     if (await luxRow.count() > 0) {
-      // Check that lux room type has expected capacity/beds
+      // Check that lux room type has expected capacity and price
       await expect(luxRow).toContainText('1'); // capacity
+      await expect(luxRow).toContainText('$300.00'); // price
     }
   });
 
