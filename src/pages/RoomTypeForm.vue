@@ -15,6 +15,7 @@
         :validationState="errors.name ? 'error' : ''"
         :validationMessage="errors.name"
       />
+      
       <!-- Room Type Description -->
       <CInput
         id="room-type-description"
@@ -24,6 +25,33 @@
         required
         :validationState="errors.description ? 'error' : ''"
         :validationMessage="errors.description"
+      />
+      
+      <!-- Room Type Capacity -->
+      <CInput
+        id="room-type-capacity"
+        v-model.number="roomType.capacity"
+        :label="t('Room Capacity')"
+        type="number"
+        placeholder="Enter room capacity"
+        min="1"
+        required
+        :validationState="errors.capacity ? 'error' : ''"
+        :validationMessage="errors.capacity"
+      />
+      
+      <!-- Room Type Price -->
+      <CInput
+        id="room-type-price"
+        v-model.number="roomType.price"
+        :label="t('Room Price')"
+        type="number"
+        placeholder="Enter room price"
+        min="0"
+        step="0.01"
+        required
+        :validationState="errors.price ? 'error' : ''"
+        :validationMessage="errors.price"
       />
       <!-- Room Plan Image -->
       <CFileInput
@@ -180,7 +208,13 @@ const secondary500 = "#d69979";
 const roomTypeService = props.roomTypeService;
 
 const error = ref<string | null>(null);
-const errors = ref<any>({ name: '', description: '', photos: '' });
+const errors = ref<any>({ 
+  name: '', 
+  description: '', 
+  photos: '',
+  capacity: '',
+  price: ''
+});
 
 // ...existing code...
 
@@ -205,7 +239,7 @@ const isEditing = computed(() => !!roomTypeId.value);
 
 // Add description to RoomType instance
 const roomType = ref<any>({
-  ...new RoomType(uuidv4(), "", ""),
+  ...new RoomType(uuidv4(), "", "", [], 1, 0, []),
   description: ""
 });
 
@@ -268,6 +302,9 @@ function validateForm() {
   errors.value.name = '';
   errors.value.description = '';
   errors.value.photos = '';
+  errors.value.capacity = '';
+  errors.value.price = '';
+  
   if (!roomType.value.name) {
     errors.value.name = 'Name is required';
     valid = false;
@@ -275,10 +312,22 @@ function validateForm() {
     errors.value.name = 'Room type name already exists';
     valid = false;
   }
+  
   if (!roomType.value.description) {
     errors.value.description = 'Description is required';
     valid = false;
   }
+  
+  if (!roomType.value.capacity || roomType.value.capacity < 1) {
+    errors.value.capacity = 'Capacity must be at least 1';
+    valid = false;
+  }
+  
+  if (!roomType.value.price || roomType.value.price < 0) {
+    errors.value.price = 'Price must be at least 0';
+    valid = false;
+  }
+  
   // Optionally validate photos
   return valid;
 }
@@ -403,6 +452,7 @@ function rotateBed(deg: number) {
 async function savePlan() {
   try {
     roomType.value.minimap = JSON.stringify(beds.value);
+    roomType.value.beds = beds.value;
     
     if (isEditing.value) {
       // await roomTypeService.update(roomTypeId.value!, roomType.value);
@@ -426,7 +476,11 @@ const loadRoomType = async (id: number) => {
       ...new RoomType(
         roomTypeData.id || uuidv4(),
         roomTypeData.name || "",
-        roomTypeData.minimap || ""
+        roomTypeData.minimap || "",
+        roomTypeData.photos || [],
+        roomTypeData.capacity || 1,
+        roomTypeData.price || 0,
+        roomTypeData.beds || []
       ),
       description: roomTypeData.description || ""
     };
@@ -437,6 +491,8 @@ const loadRoomType = async (id: number) => {
       } catch (e) {
         beds.value = [];
       }
+    } else if (roomTypeData.beds) {
+      beds.value = roomTypeData.beds;
     }
   } catch (error) {
     showError(t("Failed to load room type data"));
@@ -452,7 +508,11 @@ watch(
         ...new RoomType(
           selectedRoomType.id || uuidv4(),
           selectedRoomType.name || "",
-          selectedRoomType.minimap || ""
+          selectedRoomType.minimap || "",
+          selectedRoomType.photos || [],
+          selectedRoomType.capacity || 1,
+          selectedRoomType.price || 0,
+          selectedRoomType.beds || []
         ),
         description: selectedRoomType.description || ""
       };
@@ -463,6 +523,8 @@ watch(
         } catch (e) {
           beds.value = [];
         }
+      } else if (selectedRoomType.beds) {
+        beds.value = selectedRoomType.beds;
       }
     }
   },

@@ -22,6 +22,17 @@ vi.mock('@/components/CNavigation.vue', () => ({
   }
 }))
 
+// Mock vue-router with a simpler approach
+const mockPush = vi.fn()
+const mockRoute = { params: {} }
+
+vi.mock('vue-router', () => ({
+  useRouter: () => ({
+    push: mockPush
+  }),
+  useRoute: () => mockRoute
+}))
+
 describe('RoomTypeBasicForm.vue', () => {
   let wrapper: any
   let router: any
@@ -38,17 +49,15 @@ describe('RoomTypeBasicForm.vue', () => {
     router = createRouterMock()
     injectRouterMock(router)
     
+    // Reset mocks
+    vi.clearAllMocks()
+    mockRoute.params = {}
+    
     vi.mocked(roomTypeService.get).mockResolvedValue({ data: mockRoomType })
     vi.mocked(roomTypeService.create).mockResolvedValue({ data: mockRoomType })
     vi.mocked(roomTypeService.update).mockResolvedValue({ data: mockRoomType })
     
-    wrapper = mount(RoomTypeBasicForm, {
-      global: {
-        mocks: {
-          $route: { params: {} }
-        }
-      }
-    })
+    wrapper = mount(RoomTypeBasicForm)
   })
 
   it('renders form correctly', () => {
@@ -63,13 +72,10 @@ describe('RoomTypeBasicForm.vue', () => {
   })
 
   it('shows correct title for editing room type', async () => {
-    wrapper = mount(RoomTypeBasicForm, {
-      global: {
-        mocks: {
-          $route: { params: { id: '1' } }
-        }
-      }
-    })
+    // Mock the route to have an ID for edit mode
+    mockRoute.params = { id: '1' }
+    
+    wrapper = mount(RoomTypeBasicForm)
     
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('Edit Room Type')
@@ -104,8 +110,13 @@ describe('RoomTypeBasicForm.vue', () => {
   })
 
   it('validates required fields', async () => {
-    const submitButton = wrapper.find('button[type="submit"]')
-    await submitButton.trigger('click')
+    // Set form to empty state to trigger validation
+    wrapper.vm.form.name = ''
+    wrapper.vm.form.capacity = 0
+    wrapper.vm.form.price = -1
+    
+    // Submit form using the form element
+    await wrapper.find('form[name="room-type-form"]').trigger('submit')
     
     expect(wrapper.vm.errors.name).toBe('Name is required')
     expect(wrapper.vm.errors.capacity).toBe('Capacity must be at least 1')
@@ -133,13 +144,10 @@ describe('RoomTypeBasicForm.vue', () => {
   })
 
   it('updates existing room type successfully', async () => {
-    wrapper = mount(RoomTypeBasicForm, {
-      global: {
-        mocks: {
-          $route: { params: { id: '1' } }
-        }
-      }
-    })
+    // Mock the route to have an ID for edit mode
+    mockRoute.params = { id: '1' }
+    
+    wrapper = mount(RoomTypeBasicForm)
     
     await wrapper.vm.$nextTick()
     
@@ -156,20 +164,17 @@ describe('RoomTypeBasicForm.vue', () => {
     
     expect(mockUpdate).toHaveBeenCalledWith(1, {
       name: 'lux',
-      description: '',
+      description: 'Standard room with amenities', // Use the actual loaded description
       capacity: 1,
       price: 300.00
     })
   })
 
   it('loads existing room type data when editing', async () => {
-    wrapper = mount(RoomTypeBasicForm, {
-      global: {
-        mocks: {
-          $route: { params: { id: '1' } }
-        }
-      }
-    })
+    // Mock the route to have an ID for edit mode
+    mockRoute.params = { id: '1' }
+    
+    wrapper = mount(RoomTypeBasicForm)
     
     await wrapper.vm.$nextTick()
     
@@ -180,12 +185,14 @@ describe('RoomTypeBasicForm.vue', () => {
 
   it('handles API errors gracefully', async () => {
     const mockCreate = vi.mocked(roomTypeService.create)
-    mockCreate.mockRejectedValue({ 
-      response: { 
-        data: { 
-          errors: { name: ['Name is invalid'] } 
-        } 
-      } 
+    mockCreate.mockRejectedValue({
+      response: {
+        data: {
+          errors: {
+            name: ['Name is invalid']
+          }
+        }
+      }
     })
 
     // Fill form
@@ -194,7 +201,7 @@ describe('RoomTypeBasicForm.vue', () => {
     await wrapper.find('input[name="room-type-price"]').setValue(150.00)
     
     // Submit form
-    await wrapper.find('form').trigger('submit')
+    await wrapper.find('form[name="room-type-form"]').trigger('submit')
     
     expect(wrapper.vm.errors.name).toBe('Name is invalid')
   })
@@ -203,7 +210,7 @@ describe('RoomTypeBasicForm.vue', () => {
     const cancelButton = wrapper.find('button[type="button"]')
     await cancelButton.trigger('click')
     
-    expect(router.push).toHaveBeenCalledWith('/room-types')
+    expect(mockPush).toHaveBeenCalledWith('/room-types')
   })
 
   it('has correct input constraints', () => {

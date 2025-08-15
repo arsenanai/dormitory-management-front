@@ -1,6 +1,11 @@
 <template>
   <Navigation :title="isEditing ? t('Edit Room Type') : t('Add Room Type')">
-    <form name="room-type-form" @submit.prevent="handleSubmit" class="max-w-2xl mx-auto">
+    <div class="max-w-2xl mx-auto">
+      <h1 class="text-2xl font-bold text-gray-900 mb-6">
+        {{ isEditing ? t('Edit Room Type') : t('Add Room Type') }}
+      </h1>
+      
+      <form name="room-type-form" @submit.prevent="handleSubmit">
       <div v-if="error" class="mb-4 p-4 bg-red-100 text-red-700 rounded border border-red-300">
         {{ error }}
       </div>
@@ -100,6 +105,7 @@
         </button>
       </div>
     </form>
+    </div>
   </Navigation>
 </template>
 
@@ -144,6 +150,13 @@ onMounted(async () => {
   }
 });
 
+// Watch for route changes to handle navigation
+watch(() => route.params.id, async (newId) => {
+  if (newId && isEditing.value) {
+    await loadRoomType();
+  }
+}, { immediate: true });
+
 async function loadRoomType() {
   try {
     loading.value = true;
@@ -171,16 +184,23 @@ async function handleSubmit() {
     errors.value = {};
 
     // Basic validation
+    let hasErrors = false;
+    
     if (!form.value.name.trim()) {
       errors.value.name = t('Name is required');
-      return;
+      hasErrors = true;
     }
     if (form.value.capacity < 1) {
       errors.value.capacity = t('Capacity must be at least 1');
-      return;
+      hasErrors = true;
     }
     if (form.value.price < 0) {
       errors.value.price = t('Price must be non-negative');
+      hasErrors = true;
+    }
+    
+    if (hasErrors) {
+      loading.value = false;
       return;
     }
 
@@ -194,7 +214,14 @@ async function handleSubmit() {
     router.push('/room-types');
   } catch (err: any) {
     if (err.response?.data?.errors) {
-      errors.value = err.response.data.errors;
+      // Handle validation errors from API
+      Object.keys(err.response.data.errors).forEach(key => {
+        if (Array.isArray(err.response.data.errors[key])) {
+          errors.value[key] = err.response.data.errors[key][0]; // Take first error
+        } else {
+          errors.value[key] = err.response.data.errors[key];
+        }
+      });
     } else {
       error.value = err.response?.data?.message || t('Failed to save room type');
     }

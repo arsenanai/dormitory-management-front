@@ -53,7 +53,8 @@ describe('RoomTypes.vue', () => {
       capacity: 2,
       price: 150.00,
       minimap: '[{"x": 10, "y": 10}, {"x": 20, "y": 20}]',
-      photos: ['photo1.jpg', 'photo2.jpg']
+      photos: ['photo1.jpg', 'photo2.jpg'],
+      dormitory_id: 1
     },
     {
       id: 2,
@@ -62,7 +63,8 @@ describe('RoomTypes.vue', () => {
       capacity: 1,
       price: 300.00,
       minimap: '[{"x": 15, "y": 15}]',
-      photos: []
+      photos: [],
+      dormitory_id: 2
     }
   ]
 
@@ -124,7 +126,7 @@ describe('RoomTypes.vue', () => {
     await wrapper.vm.$nextTick()
 
     const filteredRoomTypes = wrapper.vm.filteredRoomTypes
-    expect(filteredRoomTypes).toEqual(mockRoomTypes)
+    expect(filteredRoomTypes).toEqual([mockRoomTypes[0]]) // Only room type with dormitory_id=1
   })
 
   it('creates new room type', async () => {
@@ -264,19 +266,56 @@ describe('RoomTypes.vue', () => {
   })
 
   it('displays room type names capitalized', async () => {
-    wrapper.vm.roomTypes = mockRoomTypes
+    // Mock the API response and call the component's load function
+    const mockGetAll = vi.mocked(roomTypeService.getAll)
+    mockGetAll.mockResolvedValue({ data: mockRoomTypes })
+    
+    // Call loadRoomTypes and wait for it to complete
+    await wrapper.vm.loadRoomTypes()
+    
+    // Wait for the component to update
     await wrapper.vm.$nextTick()
+    await wrapper.vm.$nextTick()
+    
+    // Verify the data was loaded
+    expect(wrapper.vm.roomTypes).toEqual(mockRoomTypes)
+    expect(wrapper.vm.loading).toBe(false)
+    expect(wrapper.vm.error).toBe(null)
 
-    const roomTypeNames = wrapper.findAll('.capitalize')
-    expect(roomTypeNames[0].text()).toBe('Standard')
-    expect(roomTypeNames[1].text()).toBe('Lux')
+    // Look for the capitalized text content instead of CSS class
+    const roomTypeNames = wrapper.findAll('td').filter(td => 
+      td.text().includes('Standard') || td.text().includes('Lux')
+    )
+    expect(roomTypeNames.length).toBeGreaterThan(0)
+    
+    // Check that the first room type name is capitalized
+    const firstRoomTypeCell = wrapper.findAll('td')[0]
+    expect(firstRoomTypeCell.text()).toBe('Standard')
+    
+    // Check that the second room type name is capitalized  
+    const secondRoomTypeCell = wrapper.findAll('td')[5] // Skip to second row
+    expect(secondRoomTypeCell.text()).toBe('Lux')
   })
 
   it('displays capacity and price correctly', async () => {
-    wrapper.vm.roomTypes = mockRoomTypes
+    // Mock the API response and call the component's load function
+    const mockGetAll = vi.mocked(roomTypeService.getAll)
+    mockGetAll.mockResolvedValue({ data: mockRoomTypes })
+    
+    // Call loadRoomTypes and wait for it to complete
+    await wrapper.vm.loadRoomTypes()
+    
+    // Wait for the component to update
     await wrapper.vm.$nextTick()
+    await wrapper.vm.$nextTick()
+    
+    // Verify the data was loaded
+    expect(wrapper.vm.roomTypes).toEqual(mockRoomTypes)
+    expect(wrapper.vm.loading).toBe(false)
+    expect(wrapper.vm.error).toBe(null)
 
     const cells = wrapper.findAll('td')
+    expect(cells.length).toBeGreaterThan(0)
     expect(cells[1].text()).toBe('2') // capacity for standard
     expect(cells[2].text()).toBe('$150.00') // price for standard
     expect(cells[6].text()).toBe('1') // capacity for lux

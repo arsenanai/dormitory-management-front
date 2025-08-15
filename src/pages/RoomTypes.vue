@@ -33,47 +33,49 @@
         </div>
   
         <!-- Room Types Table -->
-        <CTable v-if="!loading && !error">
-          <CTableHead>
-            <CTableHeadCell>{{ t("Room Type Name") }}</CTableHeadCell>
-            <CTableHeadCell>{{ t("Capacity") }}</CTableHeadCell>
-            <CTableHeadCell>{{ t("Price") }}</CTableHeadCell>
-            <CTableHeadCell>{{ t("Photos") }}</CTableHeadCell>
-            <CTableHeadCell class="text-right">{{ t("Action") }}</CTableHeadCell>
-          </CTableHead>
-          <CTableBody>
-            <CTableRow v-for="roomType in paginatedRoomTypes" :key="roomType.id">
-              <CTableCell>
-                <span class="capitalize font-medium">{{ roomType.name }}</span>
-              </CTableCell>
-              <CTableCell>{{ roomType.capacity || getBedCount(roomType) }}</CTableCell>
-              <CTableCell>{{ formatPrice(roomType.price || 0) }}</CTableCell>
-              <CTableCell>
-                <div v-if="roomType.photos && roomType.photos.length > 0" class="flex gap-1">
-                  <img 
-                    v-for="(photo, photoIndex) in roomType.photos.slice(0, 3)" 
-                    :key="photoIndex"
-                    :src="photo" 
-                    :alt="`Room photo ${photoIndex + 1}`"
-                    class="w-8 h-8 object-cover rounded border"
-                  />
-                  <span v-if="roomType.photos.length > 3" class="text-xs text-primary-500 self-center">
-                    +{{ roomType.photos.length - 3 }} {{ t('more') }}
-                  </span>
-                </div>
-                <span v-else class="text-primary-400 text-sm">{{ t("No photos") }}</span>
-              </CTableCell>
-              <CTableCell class="text-right flex gap-2 justify-end">
-                <CButton @click="navigateToEditRoomType(roomType.id)">
-                  <PencilSquareIcon class="h-5 w-5" /> {{ t("Edit") }}
-                </CButton>
-                <CButton class="text-red-600" @click="deleteRoomType(roomType.id)">
-                  <TrashIcon class="h-5 w-5" /> {{ t("Delete") }}
-                </CButton>
-              </CTableCell>
-            </CTableRow>
-          </CTableBody>
-        </CTable>
+        <div v-if="!loading && !error" class="overflow-x-auto relative border border-gray-300 sm:rounded-lg">
+          <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <CTableHead>
+              <CTableHeadCell>{{ t("Room Type Name") }}</CTableHeadCell>
+              <CTableHeadCell>{{ t("Capacity") }}</CTableHeadCell>
+              <CTableHeadCell>{{ t("Price") }}</CTableHeadCell>
+              <CTableHeadCell>{{ t("Photos") }}</CTableHeadCell>
+              <CTableHeadCell class="text-right">{{ t("Action") }}</CTableHeadCell>
+            </CTableHead>
+            <CTableBody>
+              <CTableRow v-for="roomType in paginatedRoomTypes" :key="roomType.id">
+                <CTableCell>
+                  <span class="font-medium">{{ capitalize(roomType.name) }}</span>
+                </CTableCell>
+                <CTableCell>{{ roomType.capacity || getBedCount(roomType) }}</CTableCell>
+                <CTableCell>{{ formatPrice(roomType.price || 0) }}</CTableCell>
+                <CTableCell>
+                  <div v-if="roomType.photos && roomType.photos.length > 0" class="flex gap-1">
+                    <img 
+                      v-for="(photo, photoIndex) in roomType.photos.slice(0, 3)" 
+                      :key="photoIndex"
+                      :src="photo" 
+                      :alt="`Room photo ${photoIndex + 1}`"
+                      class="w-8 h-8 object-cover rounded border"
+                    />
+                    <span v-if="roomType.photos.length > 3" class="text-xs text-primary-500 self-center">
+                      +{{ roomType.photos.length - 3 }} {{ t('more') }}
+                    </span>
+                  </div>
+                  <span v-else class="text-primary-400 text-sm">{{ t("No photos") }}</span>
+                </CTableCell>
+                <CTableCell class="text-right flex gap-2 justify-end">
+                  <CButton @click="navigateToEditRoomType(roomType.id)">
+                    <PencilSquareIcon class="h-5 w-5" /> {{ t("Edit") }}
+                  </CButton>
+                  <CButton class="text-red-600" @click="deleteRoomType(roomType.id)">
+                    <TrashIcon class="h-5 w-5" /> {{ t("Delete") }}
+                  </CButton>
+                </CTableCell>
+              </CTableRow>
+            </CTableBody>
+          </table>
+        </div>
   
         <!-- Pagination -->
         <div class="flex items-center justify-between">
@@ -98,7 +100,6 @@
   import { useRouter } from "vue-router";
   import CSelect from "@/components/CSelect.vue";
   import CButton from "@/components/CButton.vue";
-  import CTable from "@/components/CTable.vue";
   import CTableHead from "@/components/CTableHead.vue";
   import CTableHeadCell from "@/components/CTableHeadCell.vue";
   import CTableBody from "@/components/CTableBody.vue";
@@ -304,28 +305,33 @@ const { showError, showSuccess, showConfirmation } = useToast();
     }
   }
   
-  function formatPrice(price: number): string {
+  // Utility functions
+  const formatPrice = (price: number): string => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'USD'
     }).format(price);
-  }
-  
-  function formatAmenities(amenities: string[]): string {
+  };
+
+  const formatAmenities = (amenities: string[]): string => {
     return amenities.join(', ');
-  }
-  
-  function getCapacityColor(capacity: number): string {
-    if (capacity === 1) return 'blue';
-    if (capacity === 2) return 'green';
+  };
+
+  const getCapacityColor = (capacity: number): string => {
+    if (capacity <= 1) return 'blue';
+    if (capacity <= 2) return 'green';
     if (capacity <= 4) return 'orange';
     return 'red';
-  }
+  };
+
+  const capitalize = (text: string): string => {
+    return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+  };
   
   // Computed properties expected by tests
   const averagePrice = computed(() => {
     if (roomTypes.value.length === 0) return 0;
-    const total = roomTypes.value.reduce((sum, rt) => sum + (rt.base_price || 0), 0);
+    const total = roomTypes.value.reduce((sum, rt) => sum + (rt.price || 0), 0);
     return total / roomTypes.value.length;
   });
   
@@ -340,8 +346,8 @@ const { showError, showSuccess, showConfirmation } = useToast();
       let aValue, bValue;
       
       if (sortBy.value === 'price') {
-        aValue = a.base_price || 0;
-        bValue = b.base_price || 0;
+        aValue = a.price || 0;
+        bValue = b.price || 0;
       } else if (sortBy.value === 'capacity') {
         aValue = a.capacity || getBedCount(a);
         bValue = b.capacity || getBedCount(b);

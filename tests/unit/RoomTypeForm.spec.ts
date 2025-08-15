@@ -66,10 +66,56 @@ describe('RoomTypeForm', () => {
     const component = wrapper.vm as any;
     component.roomType.name = '';
     component.roomType.description = '';
+    component.roomType.capacity = '';
+    component.roomType.price = '';
     const isValid = component.validateForm();
     expect(isValid).toBe(false);
     expect(component.errors.name).toBe('Name is required');
     expect(component.errors.description).toBe('Description is required');
+    expect(component.errors.capacity).toBe('Capacity must be at least 1');
+    expect(component.errors.price).toBe('Price must be at least 0');
+  });
+
+  it('validates capacity field constraints', async () => {
+    const wrapper = mount(RoomTypeForm, {
+      global: { plugins: [router, i18n] }
+    });
+    const component = wrapper.vm as any;
+    
+    // Test invalid capacity (less than 1)
+    component.roomType.capacity = 0;
+    const isValid1 = component.validateForm();
+    expect(isValid1).toBe(false);
+    expect(component.errors.capacity).toBe('Capacity must be at least 1');
+    
+    // Test valid capacity
+    component.roomType.capacity = 2;
+    component.roomType.name = 'Test';
+    component.roomType.description = 'Test description';
+    component.roomType.price = 100;
+    const isValid2 = component.validateForm();
+    expect(component.errors.capacity).toBe('');
+  });
+
+  it('validates price field constraints', async () => {
+    const wrapper = mount(RoomTypeForm, {
+      global: { plugins: [router, i18n] }
+    });
+    const component = wrapper.vm as any;
+    
+    // Test invalid price (negative)
+    component.roomType.price = -10;
+    const isValid1 = component.validateForm();
+    expect(isValid1).toBe(false);
+    expect(component.errors.price).toBe('Price must be at least 0');
+    
+    // Test valid price
+    component.roomType.price = 150.50;
+    component.roomType.name = 'Test';
+    component.roomType.description = 'Test description';
+    component.roomType.capacity = 2;
+    const isValid2 = component.validateForm();
+    expect(component.errors.price).toBe('');
   });
 
   it('submits form and handles success', async () => {
@@ -90,6 +136,8 @@ describe('RoomTypeForm', () => {
       component.existingNames = [];
       await wrapper.find('#room-type-name').setValue('Deluxe');
       await wrapper.find('#room-type-description').setValue('Spacious');
+      await wrapper.find('#room-type-capacity').setValue(2);
+      await wrapper.find('#room-type-price').setValue(200);
       await wrapper.find('form').trigger('submit.prevent');
       await wrapper.vm.$nextTick();
       await wrapper.vm.$nextTick();
@@ -111,6 +159,8 @@ describe('RoomTypeForm', () => {
       component.existingNames = [];
       await wrapper.find('#room-type-name').setValue('Deluxe');
       await wrapper.find('#room-type-description').setValue('Spacious');
+      await wrapper.find('#room-type-capacity').setValue(2);
+      await wrapper.find('#room-type-price').setValue(200);
       await wrapper.find('form').trigger('submit.prevent');
       await wrapper.vm.$nextTick();
       await wrapper.vm.$nextTick();
@@ -145,6 +195,8 @@ describe('RoomTypeForm', () => {
     });
     expect(wrapper.find('label[for="room-type-name"]').exists()).toBe(true);
     expect(wrapper.find('label[for="room-type-description"]').exists()).toBe(true);
+    expect(wrapper.find('label[for="room-type-capacity"]').exists()).toBe(true);
+    expect(wrapper.find('label[for="room-type-price"]').exists()).toBe(true);
     expect(wrapper.find('label[for="room-photos"]').exists()).toBe(true);
   });
 
@@ -158,5 +210,40 @@ describe('RoomTypeForm', () => {
     const isValid = component.validateForm();
     expect(isValid).toBe(false);
     expect(component.errors.name).toBe('Room type name already exists');
+  });
+
+  it('handles beds data correctly', async () => {
+    const wrapper = mount(RoomTypeForm, {
+      global: { plugins: [router, i18n] }
+    });
+    const component = wrapper.vm as any;
+    
+    // Test initial beds array
+    expect(component.beds).toEqual([]);
+    
+    // Test adding a bed
+    component.addBed();
+    expect(component.beds.length).toBe(1);
+    expect(component.beds[0].number).toBe('1');
+    
+    // Test removing a bed
+    component.removeBed(0);
+    expect(component.beds.length).toBe(0);
+  });
+
+  it('synchronizes beds with roomType data', async () => {
+    const wrapper = mount(RoomTypeForm, {
+      global: { plugins: [router, i18n] }
+    });
+    const component = wrapper.vm as any;
+    
+    // Add some beds
+    component.addBed();
+    component.addBed();
+    
+    // Test savePlan function
+    await component.savePlan();
+    expect(component.roomType.beds).toEqual(component.beds);
+    expect(component.roomType.minimap).toBe(JSON.stringify(component.beds));
   });
 });
