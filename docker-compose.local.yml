@@ -1,0 +1,22 @@
+services:
+  # Frontend - Vue.js (Development)
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000/api}
+        NODE_ENV: ${NODE_ENV:-development}
+    container_name: crm-frontend-local
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000/api}
+    networks:
+      - crm_local_net
+
+networks:
+  crm_local_net:
+    driver: bridge

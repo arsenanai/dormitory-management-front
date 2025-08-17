@@ -261,7 +261,7 @@ const filteredRooms = computed(() => {
   return rooms.value.filter((room) => {
     // Search filter
     const searchMatch = !searchTerm.value || 
-      room.room_number?.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
+      room.number?.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
       room.description?.toLowerCase().includes(searchTerm.value.toLowerCase());
     
     // Status filter
