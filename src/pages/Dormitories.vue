@@ -287,6 +287,7 @@ const deleteDormitory = async (row: any) => {
 const columns = [
   { key: 'name', label: t('DORMITORY') },
   { key: 'capacity', label: t('STUDENT CAPACITY') },
+  { key: 'quota', label: t('QUOTA') },
   { key: 'gender', label: t('GENDER') },
   { key: 'admin_name', label: t('ADMIN USERNAME') },
   { key: 'registered', label: t('REGISTERED STUDENTS') },

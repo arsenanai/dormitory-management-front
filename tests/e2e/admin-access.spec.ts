@@ -3,7 +3,7 @@ import { test, expect } from './test';
 test.describe('Admin Access', () => {
   test.beforeEach(async ({ page }) => {
     // Login as admin first with seeded credentials
-    await page.goto('http://localhost:5173/');
+    await page.goto('/');
     await page.fill('#login-email', 'admin@sdu.edu.kz');
     await page.fill('#login-password', 'password');
     await page.click('button[type="submit"]:has-text("Login")');
@@ -62,7 +62,7 @@ test.describe('Admin Access', () => {
   test('should be able to access users management', async ({ page }) => {
     // Try to navigate to users page
     try {
-      await page.goto('http://localhost:5173/users');
+      await page.goto('/users');
       await expect(page).toHaveURL(/.*users.*/);
     } catch {
       console.log('Users management might not be accessible or configured');
@@ -72,7 +72,7 @@ test.describe('Admin Access', () => {
   test('should be able to access students management', async ({ page }) => {
     // Try to navigate to students page
     try {
-      await page.goto('http://localhost:5173/students');
+      await page.goto('/students');
       await expect(page).toHaveURL(/.*students.*/);
     } catch {
       console.log('Students management might not be accessible or configured');

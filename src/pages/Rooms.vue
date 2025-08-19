@@ -69,6 +69,7 @@
             <CTableHeadCell>{{ t("Room Type") }}</CTableHeadCell>
             <CTableHeadCell>{{ t("Floor") }}</CTableHeadCell>
             <CTableHeadCell>{{ t("Beds") }}</CTableHeadCell>
+            <CTableHeadCell>{{ t("Quota") }}</CTableHeadCell>
             <CTableHeadCell>{{ t("Notes") }}</CTableHeadCell>
             <CTableHeadCell class="text-right">{{ t("Action") }}</CTableHeadCell>
           </CTableHead>
@@ -81,6 +82,7 @@
                 {{ room.floor !== null ? room.floor : '-' }}
               </CTableCell>
               <CTableCell>{{ getBedsCount(room) }}</CTableCell>
+              <CTableCell>{{ room.quota || room.room_type?.capacity || '-' }}</CTableCell>
               <CTableCell>{{ room.notes || '-' }}</CTableCell>
               <CTableCell class="text-right flex gap-2 justify-end">
                 <CButton @click="navigateToEditRoom(room.id)">

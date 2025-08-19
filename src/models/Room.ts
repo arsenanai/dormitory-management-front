@@ -9,6 +9,7 @@ export class Room {
   dormitory: Dormitory | null; // Many-to-one
   roomType: RoomType | null;   // Many-to-one
   beds: Bed[];                 // One-to-many
+  quota: number | null;        // Room quota
 
   constructor(
     number = "",
@@ -16,7 +17,8 @@ export class Room {
     notes = "",
     dormitory: Dormitory | null = null,
     roomType: RoomType | null = null,
-    beds: Bed[] = []
+    beds: Bed[] = [],
+    quota: number | null = null
   ) {
     this.number = number;
     this.floor = floor;
@@ -24,5 +26,6 @@ export class Room {
     this.dormitory = dormitory;
     this.roomType = roomType;
     this.beds = beds;
+    this.quota = quota;
   }
 }

@@ -7,8 +7,8 @@ if (existsSync('.env.testing')) {
   dotenvConfig({ path: '.env.testing' });
 } else {
   // Set default test environment variables
-  process.env.VITE_API_BASE_URL = 'http://localhost:8000/api';
-  process.env.VITE_APP_NAME = 'SDU Dormitory Test';
+  process.env.VITE_API_BASE_URL = '/api';
+  process.env.APP_NAME = 'SDU Dormitory Test';
   process.env.ADMIN_EMAIL = 'admin@email.com';
   process.env.ADMIN_PASSWORD = 'supersecret';
   process.env.STUDENT_EMAIL = 'student@email.com';
@@ -42,7 +42,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : 4,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [['list'], ['html', { open: 'never' }]],
-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: 'http://localhost:3000',
@@ -64,6 +64,7 @@ export default defineConfig({
       name: 'chrome',
       use: {
         ...devices['Desktop Chrome'],
+        channel: 'chrome',
         launchOptions: { 
           args: ['--no-sandbox', '--disable-setuid-sandbox'],
           headless: !isHeaded

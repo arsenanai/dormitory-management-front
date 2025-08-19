@@ -1,0 +1,36 @@
+services:
+  # Frontend Development Container with Node.js for E2E Testing
+  frontend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: crm-frontend-dev
+    restart: unless-stopped
+    ports:
+      - "3000:5173"
+      - "9323:9323" # Playwright debug port
+    environment:
+      NODE_ENV: development
+      VITE_API_BASE_URL: http://localhost:8000/api
+      VITE_TEST_MODE: true
+      VITE_MOCK_EXTERNAL_SERVICES: false
+      VITE_DEFAULT_LOCALE: en
+      VITE_FALLBACK_LOCALE: en
+      ADMIN_EMAIL: admin@email.com
+      ADMIN_PASSWORD: supersecret
+      STUDENT_EMAIL: student@email.com
+      STUDENT_PASSWORD: supersecret
+      SUPERADMIN_EMAIL: sudo@email.com
+      SUPERADMIN_PASSWORD: supersecret
+      PLAYWRIGHT_BASE_URL: http://localhost:5173
+    volumes:
+      - .:/app
+      - /app/node_modules
+    working_dir: /app
+    command: sh -c "npm install && npm run dev"
+    networks:
+      - testcrm_crm_local_net
+
+networks:
+  testcrm_crm_local_net:
+    external: true

@@ -23,20 +23,17 @@ const selectors = {
 test.describe('Student CRUD E2E', () => {
   test.beforeEach(async ({ page }) => {
     // Login as admin
-    await page.goto('http://localhost:5173/');
+    await page.goto('/');
     await page.fill('#login-email', adminEmail);
     await page.fill('#login-password', adminPassword);
     await page.click('button[type="submit"]:has-text("Login")');
     
-    // Wait for successful login - be more flexible with URL matching
-    await page.waitForURL(/\/(main|dormitories|users|students)/, { timeout: 15000 });
-    await page.waitForLoadState('networkidle');
+    // Wait for login to complete and redirect to main page
+    await page.waitForURL(/\/main/);
     
-    // Navigate to students page if not already there
-    if (!page.url().includes('/students')) {
-      await page.goto('http://localhost:5173/students');
-      await page.waitForLoadState('networkidle');
-    }
+    // Navigate to students page
+    await page.goto('/students');
+    await page.waitForLoadState('networkidle');
   });
 
   test('should create, edit, and delete a student, and handle validation/errors', async ({ page }) => {
@@ -156,7 +153,7 @@ test.describe('Student CRUD E2E', () => {
 
 test('should not allow assigning student to staff-reserved beds', async ({ page }) => {
   // Login first
-  await page.goto('http://localhost:5173/');
+  await page.goto('/');
   await page.fill('#login-email', adminEmail);
   await page.fill('#login-password', adminPassword);
   await page.click('button[type="submit"]:has-text("Login")');

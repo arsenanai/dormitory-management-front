@@ -10,7 +10,7 @@ test.describe('Room Type Form', () => {
     });
     
     // Login as superadmin to ensure full access
-    await page.goto('http://localhost:3000/');
+    await page.goto('/');
     await page.fill('#login-email', 'sudo@email.com');
     await page.fill('#login-password', 'supersecret');
     await page.click('button[type="submit"]:has-text("Login")');
@@ -22,7 +22,7 @@ test.describe('Room Type Form', () => {
 
   test('should create new standard room type', async ({ page }) => {
     // Navigate to room types page
-    await page.goto('http://localhost:3000/room-types');
+    await page.goto('/room-types');
     await page.waitForLoadState('networkidle');
     
     // Click Add Room Type button
@@ -56,7 +56,7 @@ test.describe('Room Type Form', () => {
 
   test('should create new lux room type', async ({ page }) => {
     // Navigate to room types page
-    await page.goto('http://localhost:3000/room-types');
+    await page.goto('/room-types');
     await page.waitForLoadState('networkidle');
     
     // Click Add Room Type button
@@ -87,7 +87,7 @@ test.describe('Room Type Form', () => {
 
   test('should edit existing room type', async ({ page }) => {
     // Navigate to room types page
-    await page.goto('http://localhost:3000/room-types');
+    await page.goto('/room-types');
     await page.waitForLoadState('networkidle');
     
     // Click Edit button for standard room type

@@ -18,7 +18,7 @@ test('Check API response for admin ID 16', async ({ page }) => {
   // Make a direct API call to check the response
   const response = await page.evaluate(async () => {
     const token = localStorage.getItem('access_token');
-    const res = await fetch('http://127.0.0.1:8000/api/users/profile', {
+    const res = await fetch('/api/users/profile', {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Accept': 'application/json'

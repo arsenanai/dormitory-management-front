@@ -560,6 +560,17 @@ const genderOptions = [
   { value: "female", name: t("Female") },
 ];
 
+const bloodTypeOptions = [
+  { value: "A+", name: "A+" },
+  { value: "A-", name: "A-" },
+  { value: "B+", name: "B+" },
+  { value: "B-", name: "B-" },
+  { value: "AB+", name: "AB+" },
+  { value: "AB-", name: "AB-" },
+  { value: "O+", name: "O+" },
+  { value: "O-", name: "O-" },
+];
+
 // Computed options for region and city based on selection
 const regionOptions = computed(() =>
   regions.value

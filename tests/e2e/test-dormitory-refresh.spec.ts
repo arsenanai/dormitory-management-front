@@ -15,7 +15,7 @@ test.describe('Dormitory Edit Form Refresh Test', () => {
     await page.waitForURL('**/main');
     
     // Navigate to dormitories list
-    await page.goto('http://localhost:3000/dormitories');
+    await page.goto('/dormitories');
     await page.waitForLoadState('networkidle');
     
     // Find a dormitory to edit (look for one with an Edit button)

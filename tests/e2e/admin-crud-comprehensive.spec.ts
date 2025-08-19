@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Admin CRUD Comprehensive Test', () => {
   test('should perform complete admin CRUD workflow and test dormitories/room types', async ({ page }) => {
     // 1. Login as sudo user
-    await page.goto('http://localhost:3000/');
+    await page.goto('/');
     await page.waitForSelector('#login-email', { timeout: 10000 });
     
     const adminEmail = process.env.ADMIN_EMAIL || 'sudo@email.com';
@@ -17,7 +17,7 @@ test.describe('Admin CRUD Comprehensive Test', () => {
     console.log('✅ Logged in as sudo successfully');
     
     // 2. Test dormitory selection in admin form directly
-    await page.goto('http://localhost:3000/admin-form');
+    await page.goto('/admin-form');
     await page.waitForSelector('#admin-name', { timeout: 10000 });
     console.log('✅ Admin form loaded');
     
@@ -33,7 +33,7 @@ test.describe('Admin CRUD Comprehensive Test', () => {
     console.log('✅ Dormitory selection working');
     
     // 3. Test dormitories page
-    await page.goto('http://localhost:3000/dormitories');
+    await page.goto('/dormitories');
     await page.waitForSelector('table', { timeout: 10000 });
     console.log('✅ Dormitories page loaded');
     
@@ -43,7 +43,7 @@ test.describe('Admin CRUD Comprehensive Test', () => {
     expect(dormitoryRows).toBeGreaterThan(0);
     
     // 4. Test room types page
-    await page.goto('http://localhost:3000/room-types');
+    await page.goto('/room-types');
     await page.waitForSelector('table', { timeout: 10000 });
     console.log('✅ Room types page loaded');
     
@@ -53,7 +53,7 @@ test.describe('Admin CRUD Comprehensive Test', () => {
     expect(roomTypeRows).toBeGreaterThan(0);
     
     // 5. Test adding a new admin (simplified)
-    await page.goto('http://localhost:3000/admin-form');
+    await page.goto('/admin-form');
     await page.waitForSelector('#admin-name', { timeout: 10000 });
     
     // Fill basic admin info
