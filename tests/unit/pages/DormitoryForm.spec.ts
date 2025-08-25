@@ -102,7 +102,7 @@ describe('DormitoryForm - Comprehensive Tests', () => {
       expect(wrapper.find('#dormitory-admin').exists()).toBe(true);
       expect(wrapper.find('#dormitory-address').exists()).toBe(true);
       expect(wrapper.find('#dormitory-description').exists()).toBe(true);
-      expect(wrapper.find('#dormitory-quota').exists()).toBe(true);
+      // Quota field removed - moved to room form
       expect(wrapper.find('#dormitory-phone').exists()).toBe(true);
       
       // Check if room selection section is present
@@ -861,7 +861,7 @@ describe('DormitoryForm - Comprehensive Tests', () => {
       expect(wrapper.find('label[for="dormitory-admin"]').exists()).toBe(true);
       expect(wrapper.find('label[for="dormitory-address"]').exists()).toBe(true);
       expect(wrapper.find('label[for="dormitory-description"]').exists()).toBe(true);
-      expect(wrapper.find('label[for="dormitory-quota"]').exists()).toBe(true);
+      // Quota field removed - moved to room form
       expect(wrapper.find('label[for="dormitory-phone"]').exists()).toBe(true);
     });
 

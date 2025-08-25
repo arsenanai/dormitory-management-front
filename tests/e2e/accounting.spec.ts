@@ -16,7 +16,7 @@ const selectors = {
 
 test.describe('Accounting E2E', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:3000/');
     await page.fill('#login-email', adminEmail);
     await page.fill('#login-password', adminPassword);
     await page.click('button[type="submit"]:has-text("Login")');
@@ -25,7 +25,7 @@ test.describe('Accounting E2E', () => {
     await page.waitForLoadState('networkidle');
     // Navigate to accounting page if not already there
     if (!page.url().includes('/accounting')) {
-      await page.goto('http://localhost:5173/accounting');
+      await page.goto('http://localhost:3000/accounting');
       await page.waitForLoadState('networkidle');
     }
   });

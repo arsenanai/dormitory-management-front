@@ -100,7 +100,7 @@ test.describe('Project Review Notes - Specific Feature Verification', () => {
       expect(hasQuotaField).toBe(true);
     }
     
-    // Check if the Dormitories.vue file contains quota field
+    // Check if the Dormitories.vue file contains quota field (should NOT have quota anymore)
     const dormitoriesPath = join(__dirname, '../../src/pages/Dormitories.vue');
     const dormitoriesExists = existsSync(dormitoriesPath);
     console.log(`📁 Dormitories.vue exists: ${dormitoriesExists}`);
@@ -108,13 +108,12 @@ test.describe('Project Review Notes - Specific Feature Verification', () => {
     if (dormitoriesExists) {
       const dormitoriesContent = readFileSync(dormitoriesPath, 'utf-8');
       
-      // Check for quota field
+      // Check that quota field is NOT present (moved to room form)
       const hasQuotaField = dormitoriesContent.includes('quota') || 
-                           dormitoriesContent.includes('Quota') ||
-                           dormitoriesContent.includes('capacity');
-      console.log(`📊 Quota field found in Dormitories.vue: ${hasQuotaField}`);
+                           dormitoriesContent.includes('Quota');
+      console.log(`📊 Quota field found in Dormitories.vue: ${hasQuotaField} (should be false)`);
       
-      expect(hasQuotaField).toBe(true);
+      expect(hasQuotaField).toBe(false); // Quota moved to room form
     }
     
     // Check if the Room.ts model contains quota field
@@ -132,6 +131,23 @@ test.describe('Project Review Notes - Specific Feature Verification', () => {
       console.log(`📊 Quota field found in Room model: ${hasQuotaInModel}`);
       
       expect(hasQuotaInModel).toBe(true);
+    }
+    
+    // Check if the RoomForm.vue contains quota field
+    const roomFormPath = join(__dirname, '../../src/pages/RoomForm.vue');
+    const roomFormExists = existsSync(roomFormPath);
+    console.log(`📁 RoomForm.vue exists: ${roomFormExists}`);
+    
+    if (roomFormExists) {
+      const roomFormContent = readFileSync(roomFormPath, 'utf-8');
+      
+      // Check for quota field in form
+      const hasQuotaInForm = roomFormContent.includes('room-quota') || 
+                             roomFormContent.includes('Quota') ||
+                             roomFormContent.includes('quota');
+      console.log(`📊 Quota field found in RoomForm.vue: ${hasQuotaInForm}`);
+      
+      expect(hasQuotaInForm).toBe(true); // Quota should be in room form
     }
     
     console.log('✅ Quota system verification completed');

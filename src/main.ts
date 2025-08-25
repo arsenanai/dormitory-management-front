@@ -32,13 +32,10 @@ const { loadSettings: loadAccessibilitySettings } = useAccessibility();
 //   console.error('Failed to load accessibility settings:', error);
 // }
 
-// authStore.initializeAuth().then(() => {
-//   app.mount('#app');
-// }).catch((error) => {
-//   // If auth initialization fails, still mount the app
-//   console.error('Auth initialization failed:', error);
-//   app.mount('#app');
-// });
-
-// Mount app directly
-app.mount('#app');
+authStore.initializeAuth().then(() => {
+  app.mount('#app');
+}).catch((error) => {
+  // If auth initialization fails, still mount the app
+  console.error('Auth initialization failed:', error);
+  app.mount('#app');
+});

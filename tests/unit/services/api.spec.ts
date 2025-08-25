@@ -206,7 +206,7 @@ describe('API Services', () => {
 
       const result = await messageService.getMyMessages();
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/messages/my', { params: undefined });
+      expect(mockedAxios.get).toHaveBeenCalledWith('/my-messages', { params: undefined });
       expect(result).toEqual(mockResponse);
     });
 
@@ -222,11 +222,11 @@ describe('API Services', () => {
 
     it('should mark message as read', async () => {
       const mockResponse = { data: { message: 'Message marked as read' } };
-      mockedAxios.put.mockResolvedValueOnce(mockResponse);
+      mockedAxios.post.mockResolvedValueOnce(mockResponse);
 
       const result = await messageService.markAsRead(1);
 
-      expect(mockedAxios.put).toHaveBeenCalledWith('/messages/1/read');
+      expect(mockedAxios.post).toHaveBeenCalledWith('/messages/1/read');
       expect(result).toEqual(mockResponse);
     });
 

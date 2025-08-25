@@ -2,7 +2,7 @@ import { test, expect } from './test';
 
 test.describe('Minimal Modal Reactivity', () => {
   test('should open and close the modal and update showForm', async ({ page }) => {
-    await page.goto('http://localhost:5173/modal-test');
+    await page.goto('http://localhost:3000/modal-test');
     // Modal should not be visible initially
     await expect(page.locator('[data-testid="test-modal"]')).not.toBeVisible();
     // showForm should be false

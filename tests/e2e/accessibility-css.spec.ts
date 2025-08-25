@@ -2,7 +2,7 @@ import { test, expect } from './test';
 
 test.describe('Accessibility CSS Classes E2E', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:3000/');
     await page.waitForLoadState('domcontentloaded');
   });
 

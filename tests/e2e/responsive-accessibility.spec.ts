@@ -2,7 +2,7 @@ import { test, expect } from './test';
 
 test.describe('Responsive Design Accessibility E2E', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:3000/');
     await page.fill('#login-email', process.env.ADMIN_EMAIL!);
     await page.fill('#login-password', process.env.ADMIN_PASSWORD!);
     await page.click('button[type="submit"]:has-text("Login")');
@@ -15,7 +15,7 @@ test.describe('Responsive Design Accessibility E2E', () => {
     });
 
     test('should maintain accessibility on mobile navigation', async ({ page }) => {
-      await page.goto('http://localhost:5173/');
+      await page.goto('http://localhost:3000/');
       
       // Check for mobile navigation elements
       const mobileNav = page.locator('.mobile-menu, .hamburger, [data-mobile-nav]');
@@ -34,7 +34,7 @@ test.describe('Responsive Design Accessibility E2E', () => {
     });
 
     test('should maintain form accessibility on mobile', async ({ page }) => {
-      await page.goto('http://localhost:5173/admins');
+      await page.goto('http://localhost:3000/admins');
       await page.click('[data-testid="add-admin-button"]');
       
       // Check that form elements are properly sized for touch
@@ -54,7 +54,7 @@ test.describe('Responsive Design Accessibility E2E', () => {
     });
 
     test('should maintain table accessibility on mobile', async ({ page }) => {
-      await page.goto('http://localhost:5173/admins');
+      await page.goto('http://localhost:3000/admins');
       
       // Check for responsive table behavior
       const table = page.locator('table');
@@ -68,7 +68,7 @@ test.describe('Responsive Design Accessibility E2E', () => {
     });
 
     test('should maintain modal accessibility on mobile', async ({ page }) => {
-      await page.goto('http://localhost:5173/admins');
+      await page.goto('http://localhost:3000/admins');
       await page.click('[data-testid="add-admin-button"]');
       
       // Check modal positioning and sizing
@@ -85,7 +85,7 @@ test.describe('Responsive Design Accessibility E2E', () => {
     });
 
     test('should maintain keyboard navigation on mobile', async ({ page }) => {
-      await page.goto('http://localhost:5173/admins');
+      await page.goto('http://localhost:3000/admins');
       
       // Test tab navigation
       await page.keyboard.press('Tab');
@@ -100,7 +100,7 @@ test.describe('Responsive Design Accessibility E2E', () => {
     });
 
     test('should maintain accessibility on tablet navigation', async ({ page }) => {
-      await page.goto('http://localhost:5173/');
+      await page.goto('http://localhost:3000/');
       
       // Check for tablet-appropriate navigation
       const nav = page.locator('nav, .navigation, .sidebar');
@@ -112,13 +112,13 @@ test.describe('Responsive Design Accessibility E2E', () => {
         if (await navItems.count() > 0) {
           await navItems.first().click();
           // Should navigate or show submenu
-          expect(page.url()).not.toBe('http://localhost:5173/');
+          expect(page.url()).not.toBe('http://localhost:3000/');
         }
       }
     });
 
     test('should maintain form layout on tablet', async ({ page }) => {
-      await page.goto('http://localhost:5173/admins');
+      await page.goto('http://localhost:3000/admins');
       await page.click('[data-testid="add-admin-button"]');
       
       // Check form layout
@@ -134,7 +134,7 @@ test.describe('Responsive Design Accessibility E2E', () => {
     });
 
     test('should maintain table functionality on tablet', async ({ page }) => {
-      await page.goto('http://localhost:5173/admins');
+      await page.goto('http://localhost:3000/admins');
       
       // Check table interaction
       const table = page.locator('table');
@@ -154,7 +154,7 @@ test.describe('Responsive Design Accessibility E2E', () => {
     });
 
     test('should maintain full navigation on desktop', async ({ page }) => {
-      await page.goto('http://localhost:5173/');
+      await page.goto('http://localhost:3000/');
       
       // Check for full desktop navigation
       const nav = page.locator('nav, .navigation, .sidebar');
@@ -169,7 +169,7 @@ test.describe('Responsive Design Accessibility E2E', () => {
     });
 
     test('should maintain optimal form layout on desktop', async ({ page }) => {
-      await page.goto('http://localhost:5173/admins');
+      await page.goto('http://localhost:3000/admins');
       await page.click('[data-testid="add-admin-button"]');
       
       // Check for multi-column layout if applicable
@@ -185,7 +185,7 @@ test.describe('Responsive Design Accessibility E2E', () => {
     });
 
     test('should maintain full table functionality on desktop', async ({ page }) => {
-      await page.goto('http://localhost:5173/admins');
+      await page.goto('http://localhost:3000/admins');
       
       // Check for full table display
       const table = page.locator('table');
@@ -210,7 +210,7 @@ test.describe('Responsive Design Accessibility E2E', () => {
 
       for (const viewport of viewports) {
         await page.setViewportSize(viewport);
-        await page.goto('http://localhost:5173/admins');
+        await page.goto('http://localhost:3000/admins');
         
         // Test focus management
         await page.keyboard.press('Tab');
@@ -228,7 +228,7 @@ test.describe('Responsive Design Accessibility E2E', () => {
 
       for (const viewport of viewports) {
         await page.setViewportSize(viewport);
-        await page.goto('http://localhost:5173/admins');
+        await page.goto('http://localhost:3000/admins');
         await page.click('[data-testid="add-admin-button"]');
         
         // Check ARIA attributes consistency
@@ -250,7 +250,7 @@ test.describe('Responsive Design Accessibility E2E', () => {
 
       for (const viewport of viewports) {
         await page.setViewportSize(viewport);
-        await page.goto('http://localhost:5173/');
+        await page.goto('http://localhost:3000/');
         
         // Check for consistent color classes
         const textElements = page.locator('p, h1, h2, h3, h4, h5, h6');
@@ -276,7 +276,7 @@ test.describe('Responsive Design Accessibility E2E', () => {
 
       for (const viewport of viewports) {
         await page.setViewportSize(viewport);
-        await page.goto('http://localhost:5173/admins');
+        await page.goto('http://localhost:3000/admins');
         await page.click('[data-testid="add-admin-button"]');
         
         // Test keyboard navigation
@@ -295,7 +295,7 @@ test.describe('Responsive Design Accessibility E2E', () => {
   test.describe('Touch Target Accessibility', () => {
     test('should maintain proper touch target sizes on mobile', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 });
-      await page.goto('http://localhost:5173/');
+      await page.goto('http://localhost:3000/');
       
       // Check touch targets
       const touchTargets = page.locator('button, a, input, select, [role="button"]');
@@ -315,7 +315,7 @@ test.describe('Responsive Design Accessibility E2E', () => {
 
     test('should maintain proper spacing between touch targets', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 });
-      await page.goto('http://localhost:5173/');
+      await page.goto('http://localhost:3000/');
       
       // Check spacing between interactive elements
       const interactiveElements = page.locator('button, a, input, select');
@@ -341,7 +341,7 @@ test.describe('Responsive Design Accessibility E2E', () => {
     test('should maintain accessibility during orientation changes', async ({ page }) => {
       // Test landscape orientation
       await page.setViewportSize({ width: 667, height: 375 });
-      await page.goto('http://localhost:5173/');
+      await page.goto('http://localhost:3000/');
       
       // Check navigation accessibility
       const nav = page.locator('nav, .navigation');

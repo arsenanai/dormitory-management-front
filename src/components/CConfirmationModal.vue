@@ -4,6 +4,7 @@
       v-if="isVisible" 
       class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
       @click.self="handleCancel"
+      data-testid="confirmation-modal"
     >
       <div 
         class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 transform transition-all duration-300 ease-in-out"
@@ -37,6 +38,7 @@
           <button
             @click="handleConfirm"
             data-confirm-button
+            data-testid="confirm-delete-button"
             class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
           >
             {{ confirmText || $t?.('Confirm') || 'Confirm' }}

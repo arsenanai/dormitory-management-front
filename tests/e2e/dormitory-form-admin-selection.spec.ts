@@ -10,7 +10,7 @@ test.describe('Dormitory Form Admin Selection E2E Tests', () => {
     });
     await page.reload();
 
-    // Login as superadmin
+    // Login as sudo user (required for dormitory form access)
     await page.fill('#login-email', 'sudo@email.com');
     await page.fill('#login-password', 'supersecret');
     await page.click('button[type="submit"]:has-text("Login")');
@@ -79,10 +79,10 @@ test.describe('Dormitory Form Admin Selection E2E Tests', () => {
       if (adminValue && adminValue !== '') {
         await page.selectOption('#dormitory-admin', adminValue);
         
-        // Fill in other required fields
-        await page.fill('#dormitory-registered', '50');
-        await page.fill('#dormitory-freeBeds', '50');
-        await page.fill('#dormitory-rooms', '25');
+        // Fill in other required fields (only the ones that exist)
+        await page.fill('#dormitory-address', 'Test Address');
+        await page.fill('#dormitory-description', 'Test Description');
+        await page.fill('#dormitory-phone', '1234567890');
         
         // Submit the form
         await page.click('button:has-text("Submit")');
@@ -133,10 +133,10 @@ test.describe('Dormitory Form Admin Selection E2E Tests', () => {
       if (adminValue && adminValue !== '') {
         await page.selectOption('#dormitory-admin', adminValue);
         
-        // Fill in other required fields
-        await page.fill('#dormitory-registered', '75');
-        await page.fill('#dormitory-freeBeds', '75');
-        await page.fill('#dormitory-rooms', '30');
+        // Fill in other required fields (only the ones that exist)
+        await page.fill('#dormitory-address', 'Edit Test Address');
+        await page.fill('#dormitory-description', 'Edit Test Description');
+        await page.fill('#dormitory-phone', '0987654321');
         
         // Submit the form
         await page.click('button:has-text("Submit")');
@@ -213,9 +213,9 @@ test.describe('Dormitory Form Admin Selection E2E Tests', () => {
     await page.fill('#dormitory-name', 'Test Dormitory');
     await page.fill('#dormitory-capacity', '100');
     await page.selectOption('#dormitory-gender', 'mixed');
-    await page.fill('#dormitory-registered', '50');
-    await page.fill('#dormitory-freeBeds', '50');
-    await page.fill('#dormitory-rooms', '25');
+    await page.fill('#dormitory-address', 'Test Address');
+    await page.fill('#dormitory-description', 'Test Description');
+    await page.fill('#dormitory-phone', '1234567890');
     
     // Try to submit without selecting an admin
     await page.click('button:has-text("Submit")');

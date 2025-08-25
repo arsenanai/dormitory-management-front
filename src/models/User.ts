@@ -61,7 +61,9 @@ export class UserRegistration {
   password: string;
   confirmPassword: string;
   dealNumber: string;
-  city: City | null;
+  country: string;
+  region: string;
+  city: string;
   files: (File | null)[];
   agreeToDormitoryRules: boolean;
   status: UserStatus;
@@ -80,7 +82,9 @@ export class UserRegistration {
     password = "",
     confirmPassword = "",
     dealNumber = "",
-    city: City | null = null,
+    country = "",
+    region = "",
+    city = "",
     files: (File | null)[] = [null, null, null, null],
     agreeToDormitoryRules = false,
     status: UserStatus = "pending",
@@ -98,6 +102,8 @@ export class UserRegistration {
     this.password = password;
     this.confirmPassword = confirmPassword;
     this.dealNumber = dealNumber;
+    this.country = country;
+    this.region = region;
     this.city = city;
     this.files = files;
     this.agreeToDormitoryRules = agreeToDormitoryRules;

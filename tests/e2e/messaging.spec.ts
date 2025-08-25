@@ -23,7 +23,7 @@ const selectors = {
 
 test.describe('Messaging E2E', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:3000/');
     await page.fill('#login-email', adminEmail);
     await page.fill('#login-password', adminPassword);
     await page.click('button[type="submit"]:has-text("Login")');
@@ -32,7 +32,7 @@ test.describe('Messaging E2E', () => {
     await page.waitForLoadState('networkidle');
     // Navigate to messages page if not already there
     if (!page.url().includes('/messages')) {
-      await page.goto('http://localhost:5173/messages');
+      await page.goto('http://localhost:3000/messages');
       await page.waitForLoadState('networkidle');
     }
   });
@@ -169,8 +169,8 @@ test.describe('Messaging E2E', () => {
     const errorElement = page.locator('.text-red-500, .error');
     
     if (await table.isVisible()) {
-      // Select a faculty filter
-      await page.selectOption(selectors.facultyFilter, 'engineering');
+      // Fill faculty filter
+      await page.fill(selectors.facultyFilter, 'engineering');
       await page.waitForTimeout(1000);
       
       // Check that filtering is applied (this will depend on actual data)
@@ -255,7 +255,7 @@ test.describe('Messaging E2E', () => {
 
   test('should handle loading state', async ({ page }) => {
     // Navigate to messages page
-    await page.goto('http://localhost:5173/messages');
+    await page.goto('http://localhost:3000/messages');
     
     // Check for loading state (might be brief, so check if it appears)
     const loadingElement = page.locator(selectors.loadingMessage);

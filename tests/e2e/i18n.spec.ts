@@ -36,7 +36,7 @@ test.describe('i18n Language Switcher E2E', () => {
   });
 
   test('should update UI text when switching languages after login (if backend available)', async ({ page }) => {
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:3000/');
     
     // Try to login, but don't fail if backend is not available
     try {
@@ -60,7 +60,7 @@ test.describe('i18n Language Switcher E2E', () => {
   });
 
   test('should fallback to default locale if translation is missing', async ({ page }) => {
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:3000/');
     
     // Test with a valid language first to ensure the switcher works
     await page.selectOption('#language-switcher', 'kk');
@@ -78,7 +78,7 @@ test.describe('i18n Language Switcher E2E', () => {
   });
 
   test('should persist language selection across page navigation (if backend available)', async ({ page }) => {
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:3000/');
     
     // Switch to Kazakh on login page
     await page.selectOption('#language-switcher', 'kk');
@@ -104,7 +104,7 @@ test.describe('i18n Language Switcher E2E', () => {
   });
 
   test('should have all required language options available', async ({ page }) => {
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:3000/');
     
     const languageSelect = page.locator('#language-switcher');
     await expect(languageSelect).toBeVisible();

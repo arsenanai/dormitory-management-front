@@ -37,7 +37,7 @@ test.describe('Edit Forms Data Loading E2E Tests', () => {
         // Check student-specific fields from StudentProfile
         await expect(page.locator('#student-id, #student_id, input[name="student_id"]')).toHaveValue('STU00001');
         await expect(page.locator('#student-iin, #iin, input[name="iin"]')).toHaveValue('123456789001');
-        await expect(page.locator('#student-faculty, #faculty, select[name="faculty"]')).toHaveValue('Engineering');
+        await expect(page.locator('#student-faculty, #faculty, input[name="faculty"]')).toHaveValue('Engineering');
         await expect(page.locator('#student-specialist, #specialist, input[name="specialist"]')).toHaveValue('Software Engineering');
         await expect(page.locator('#student-course, #course, input[name="course"]')).toHaveValue('1');
         await expect(page.locator('#student-year, #year_of_study, input[name="year_of_study"]')).toHaveValue('1');
@@ -196,7 +196,6 @@ test.describe('Edit Forms Data Loading E2E Tests', () => {
         await expect(page.locator('#dormitory-address, #address, input[name="address"]')).toHaveValue('Almaty, Al-Farabi Avenue, 71');
         await expect(page.locator('#dormitory-description, #description, textarea[name="description"]')).toHaveValue('Main student dormitory');
         await expect(page.locator('#dormitory-gender, #gender, select[name="gender"]')).toHaveValue('mixed');
-        await expect(page.locator('#dormitory-quota, #quota, input[name="quota"]')).toHaveValue('200');
         await expect(page.locator('#dormitory-capacity, #capacity, input[name="capacity"]')).toHaveValue('200');
       }
     });

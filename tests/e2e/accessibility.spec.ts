@@ -2,7 +2,7 @@ import { test, expect } from './test';
 
 test.describe('Accessibility & Keyboard Navigation E2E', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:3000/');
     
     // Check if already logged in
     const currentUrl = page.url();
@@ -102,10 +102,10 @@ test.describe('Accessibility & Keyboard Navigation E2E', () => {
   test('should trap focus in modal', async ({ page }) => {
     // Try to open a modal - be more flexible with different pages
     try {
-      await page.goto('http://localhost:5173/admins');
+      await page.goto('http://localhost:3000/admins');
     } catch (e) {
       // If admins page fails, try a different page
-      await page.goto('http://localhost:5173/');
+      await page.goto('http://localhost:3000/');
     }
     
     // Wait for page to load
@@ -164,10 +164,10 @@ test.describe('Accessibility & Keyboard Navigation E2E', () => {
   test('should have proper ARIA attributes on form elements', async ({ page }) => {
     // Navigate to a form page - be more flexible
     try {
-      await page.goto('http://localhost:5173/admins');
+      await page.goto('http://localhost:3000/admins');
     } catch (e) {
       // If admins page fails, try a different page
-      await page.goto('http://localhost:5173/');
+      await page.goto('http://localhost:3000/');
     }
     
     // Wait for page to load
@@ -221,10 +221,10 @@ test.describe('Accessibility & Keyboard Navigation E2E', () => {
   test('should announce form validation errors to screen readers', async ({ page }) => {
     // Navigate to a form page - be more flexible
     try {
-      await page.goto('http://localhost:5173/admins');
+      await page.goto('http://localhost:3000/admins');
     } catch (e) {
       // If admins page fails, try a different page
-      await page.goto('http://localhost:5173/');
+      await page.goto('http://localhost:3000/');
     }
     
     // Wait for page to load
@@ -274,7 +274,7 @@ test.describe('Accessibility & Keyboard Navigation E2E', () => {
 
   test('should handle keyboard navigation in tables', async ({ page }) => {
     // Navigate to a table page
-    await page.goto('http://localhost:5173/admins');
+    await page.goto('http://localhost:3000/admins');
     
     // Check for table accessibility
     const table = page.locator('table');
@@ -299,10 +299,10 @@ test.describe('Accessibility & Keyboard Navigation E2E', () => {
   test('should handle keyboard navigation in select dropdowns', async ({ page }) => {
     // Navigate to a form page with selects - be more flexible
     try {
-      await page.goto('http://localhost:5173/admins');
+      await page.goto('http://localhost:3000/admins');
     } catch (e) {
       // If admins page fails, try a different page
-      await page.goto('http://localhost:5173/');
+      await page.goto('http://localhost:3000/');
     }
     
     // Wait for page to load
@@ -341,7 +341,7 @@ test.describe('Accessibility & Keyboard Navigation E2E', () => {
 
   test('should handle keyboard navigation in modals', async ({ page }) => {
     // Open a modal
-    await page.goto('http://localhost:5173/admins');
+    await page.goto('http://localhost:3000/admins');
     
     // Close mobile menu if it's open
     const mobileMenu = page.locator('.mobile-menu.open');
@@ -368,7 +368,7 @@ test.describe('Accessibility & Keyboard Navigation E2E', () => {
 
   test('should handle keyboard navigation in toasts', async ({ page }) => {
     // Trigger a toast notification (this might require specific actions)
-    await page.goto('http://localhost:5173/admins');
+    await page.goto('http://localhost:3000/admins');
     
     // Close mobile menu if it's open
     const mobileMenu = page.locator('.mobile-menu.open');
@@ -403,14 +403,14 @@ test.describe('Accessibility & Keyboard Navigation E2E', () => {
 
   test('should maintain focus management during page transitions', async ({ page }) => {
     // Navigate between pages and check focus management
-    await page.goto('http://localhost:5173/admins');
+    await page.goto('http://localhost:3000/admins');
     
     // Focus should be on a logical element after navigation
     const activeElement = await page.evaluate(() => document.activeElement?.tagName);
     expect(['BUTTON', 'A', 'INPUT', 'SELECT', 'BODY']).toContain(activeElement);
     
     // Navigate to another page
-    await page.goto('http://localhost:5173/students');
+    await page.goto('http://localhost:3000/students');
     
     // Focus should still be managed properly
     const newActiveElement = await page.evaluate(() => document.activeElement?.tagName);
@@ -453,7 +453,7 @@ test.describe('Accessibility & Keyboard Navigation E2E', () => {
   test('should handle responsive design accessibility', async ({ page }) => {
     // Test mobile viewport
     await page.setViewportSize({ width: 375, height: 667 });
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:3000/');
     
     // Check that navigation is still accessible
     const mobileNav = page.locator('nav, .mobile-menu, .hamburger');

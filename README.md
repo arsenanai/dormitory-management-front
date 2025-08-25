@@ -69,7 +69,7 @@ npm run dev
 yarn dev
 ```
 
-The application will be available at [http://localhost:5173](http://localhost:5173).
+The application will be available at [http://localhost:3000](http://localhost:3000).
 
 ### Environment Configuration
 
@@ -110,7 +110,7 @@ npm run test:e2e:headed
 
 **E2E Test Requirements:**
 - Backend server must be running on `http://localhost:8000`
-- Frontend development server must be running on `http://localhost:5173`
+- Frontend development server must be running on `http://localhost:3000`
 - Database should be seeded with test data
 
 **E2E Test Coverage:**
@@ -159,7 +159,7 @@ VITE_API_BASE_URL=http://localhost:8000/api
 docker-compose up -d
 
 # Access the application
-# Frontend: http://localhost:5173
+# Frontend: http://localhost:3000
 ```
 
 #### Production
@@ -188,7 +188,7 @@ The system automatically detects your environment from the `APP_ENV` variable in
 - **Hot Reload**: Code changes reflect immediately
 - **Volume Mounts**: Source code mounted for live editing
 - **Development Tools**: vim, htop included
-- **Port**: 5173
+- **Port**: 3000
 - **Debugging**: Full debugging enabled
 
 #### Production (`APP_ENV=production`)
@@ -232,8 +232,8 @@ VITE_API_BASE_URL=http://localhost:8000/api  # API base URL
 
 #### Docker-Specific Variables
 ```env
-FRONTEND_PORT=5173               # Frontend port (5173 for local, 80 for production)
-CONTAINER_PORT=5173              # Container port (5173 for local, 80 for production)
+FRONTEND_PORT=3000               # Frontend port (3000 for local, 80 for production)
+CONTAINER_PORT=3000              # Container port (3000 for local, 80 for production)
 VOLUME_MOUNT=.:/app              # Volume mount (.:/app for local, /dev/null:/dev/null for production)
 ```
 
@@ -244,7 +244,7 @@ VOLUME_MOUNT=.:/app              # Volume mount (.:/app for local, /dev/null:/de
 ### Troubleshooting
 
 #### Common Issues
-1. **Port conflicts**: Ensure ports 5173 (local) or 80 (production) are available
+1. **Port conflicts**: Ensure ports 3000 (local) or 80 (production) are available
 2. **Build failures**: Clear Docker cache with `docker system prune -a`
 3. **API connection**: Check VITE_API_BASE_URL in .env
 4. **Memory issues**: Increase Docker memory limit to 4GB+

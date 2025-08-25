@@ -34,7 +34,10 @@ export interface StudentProfile {
   date_of_birth?: string;
   gender?: 'male' | 'female' | 'other';
   files?: any;
-  city_id?: number;
+  city_id?: number; // Keep for backward compatibility
+  country?: string;
+  region?: string;
+  city?: string;
   created_at?: string;
   updated_at?: string;
   [key: string]: any;

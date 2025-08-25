@@ -4,7 +4,7 @@ test.describe('Basic Navigation and Form Tests - E2E', () => {
   
   test('should successfully login and access user menu', async ({ page }) => {
     // Login as admin
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:3000/');
     await page.fill('#login-email', 'admin@sdu.edu.kz');
     await page.fill('#login-password', 'supersecret');
     await page.click('button[type="submit"]:has-text("Login")');
@@ -53,7 +53,7 @@ test.describe('Basic Navigation and Form Tests - E2E', () => {
 
   test('should navigate to admin profile form', async ({ page }) => {
     // Login and navigate to profile
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:3000/');
     await page.fill('#login-email', 'admin@sdu.edu.kz');
     await page.fill('#login-password', 'supersecret');
     await page.click('button[type="submit"]:has-text("Login")');
@@ -93,7 +93,7 @@ test.describe('Basic Navigation and Form Tests - E2E', () => {
 
   test('should navigate to student profile form', async ({ page }) => {
     // Login as student using real credentials from DevelopmentSeeder
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:3000/');
     await page.fill('#login-email', 'alice@student.local');
     await page.fill('#login-password', 'password');
     await page.click('button[type="submit"]:has-text("Login")');
@@ -133,7 +133,7 @@ test.describe('Basic Navigation and Form Tests - E2E', () => {
 
   test('should display single phone field in admin form', async ({ page }) => {
     // Login and navigate to admin profile
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:3000/');
     await page.fill('#login-email', 'admin@sdu.edu.kz');
     await page.fill('#login-password', 'supersecret');
     await page.click('button[type="submit"]:has-text("Login")');
@@ -173,7 +173,7 @@ test.describe('Basic Navigation and Form Tests - E2E', () => {
 
   test('should logout and redirect to root path', async ({ page }) => {
     // Login
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:3000/');
     await page.fill('#login-email', 'admin@sdu.edu.kz');
     await page.fill('#login-password', 'supersecret');
     await page.click('button[type="submit"]:has-text("Login")');
@@ -197,8 +197,8 @@ test.describe('Basic Navigation and Form Tests - E2E', () => {
         await page.click('.logout-button');
         
         // Verify redirect to root path
-        await page.waitForURL('http://localhost:5173/', { timeout: 5000 });
-        await expect(page).toHaveURL('http://localhost:5173/');
+        await page.waitForURL('http://localhost:3000/', { timeout: 5000 });
+        await expect(page).toHaveURL('http://localhost:3000/');
         
         // Verify we're back to login page
         await expect(page.locator('#login-email')).toBeVisible();
@@ -218,7 +218,7 @@ test.describe('Basic Navigation and Form Tests - E2E', () => {
 
   test('should prevent access to protected routes after logout', async ({ page }) => {
     // Login and logout
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:3000/');
     await page.fill('#login-email', 'admin@sdu.edu.kz');
     await page.fill('#login-password', 'supersecret');
     await page.click('button[type="submit"]:has-text("Login")');
@@ -236,13 +236,13 @@ test.describe('Basic Navigation and Form Tests - E2E', () => {
       if (currentURL.includes('/main')) {
         await page.click('button.user-menu');
         await page.click('.logout-button');
-        await page.waitForURL('http://localhost:5173/', { timeout: 5000 });
+        await page.waitForURL('http://localhost:3000/', { timeout: 5000 });
         
         // Try to access protected route
-        await page.goto('http://localhost:5173/main');
+        await page.goto('http://localhost:3000/main');
         
         // Should be redirected back to login
-        await expect(page).toHaveURL('http://localhost:5173/');
+        await expect(page).toHaveURL('http://localhost:3000/');
         await expect(page.locator('#login-email')).toBeVisible();
       } else {
         // Login failed, but that's expected if backend is not available
@@ -256,7 +256,7 @@ test.describe('Basic Navigation and Form Tests - E2E', () => {
 
   test('should display correct user information in topbar', async ({ page }) => {
     // Test admin user display
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:3000/');
     await page.fill('#login-email', 'admin@sdu.edu.kz');
     await page.fill('#login-password', 'supersecret');
     await page.click('button[type="submit"]:has-text("Login")');
@@ -290,7 +290,7 @@ test.describe('Basic Navigation and Form Tests - E2E', () => {
 
   test('should maintain clean state after form interactions', async ({ page }) => {
     // Login and navigate to admin profile
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:3000/');
     await page.fill('#login-email', 'admin@sdu.edu.kz');
     await page.fill('#login-password', 'supersecret');
     await page.click('button[type="submit"]:has-text("Login")');
@@ -315,7 +315,7 @@ test.describe('Basic Navigation and Form Tests - E2E', () => {
         
         // Navigate back to main page using the browser back button to preserve state
         await page.goBack();
-        await page.waitForURL('http://localhost:5173/main', { timeout: 10000 });
+        await page.waitForURL('http://localhost:3000/main', { timeout: 10000 });
         
         // Check if user info is visible (user should still be logged in)
         const userInfoSection = page.locator('.user-info');

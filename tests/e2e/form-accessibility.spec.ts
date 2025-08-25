@@ -2,7 +2,7 @@ import { test, expect } from './test';
 
 test.describe('Form Accessibility & Validation E2E', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:3000/');
     await page.fill('#login-email', process.env.ADMIN_EMAIL!);
     await page.fill('#login-password', process.env.ADMIN_PASSWORD!);
     await page.click('button[type="submit"]:has-text("Login")');
@@ -11,7 +11,7 @@ test.describe('Form Accessibility & Validation E2E', () => {
 
   test.describe('Admin Form Accessibility', () => {
     test('should have proper form structure and labels', async ({ page }) => {
-      await page.goto('http://localhost:5173/admins');
+      await page.goto('http://localhost:3000/admins');
       await page.click('[data-testid="add-admin-button"]');
       
       // Check for proper form structure
@@ -32,7 +32,7 @@ test.describe('Form Accessibility & Validation E2E', () => {
     });
 
     test('should announce validation errors to screen readers', async ({ page }) => {
-      await page.goto('http://localhost:5173/admins');
+      await page.goto('http://localhost:3000/admins');
       await page.click('[data-testid="add-admin-button"]');
       
       // Submit form without required fields
@@ -55,7 +55,7 @@ test.describe('Form Accessibility & Validation E2E', () => {
     });
 
     test('should handle field-level validation with ARIA', async ({ page }) => {
-      await page.goto('http://localhost:5173/admins');
+      await page.goto('http://localhost:3000/admins');
       await page.click('[data-testid="add-admin-button"]');
       
       // Test email validation
@@ -79,7 +79,7 @@ test.describe('Form Accessibility & Validation E2E', () => {
     });
 
     test('should show success state with proper ARIA', async ({ page }) => {
-      await page.goto('http://localhost:5173/admins');
+      await page.goto('http://localhost:3000/admins');
       await page.click('[data-testid="add-admin-button"]');
       
       // Fill form with valid data
@@ -106,7 +106,7 @@ test.describe('Form Accessibility & Validation E2E', () => {
 
   test.describe('Student Form Accessibility', () => {
     test('should have proper form structure for student registration', async ({ page }) => {
-      await page.goto('http://localhost:5173/students');
+      await page.goto('http://localhost:3000/students');
       await page.click('[data-testid="add-student-button"]');
       
       // Check for proper form structure
@@ -120,7 +120,7 @@ test.describe('Form Accessibility & Validation E2E', () => {
     });
 
     test('should handle complex validation scenarios', async ({ page }) => {
-      await page.goto('http://localhost:5173/students');
+      await page.goto('http://localhost:3000/students');
       await page.click('[data-testid="add-student-button"]');
       
       // Test phone number validation
@@ -140,7 +140,7 @@ test.describe('Form Accessibility & Validation E2E', () => {
 
   test.describe('Room Form Accessibility', () => {
     test('should handle dynamic form fields with proper ARIA', async ({ page }) => {
-      await page.goto('http://localhost:5173/rooms');
+      await page.goto('http://localhost:3000/rooms');
       await page.click('[data-testid="add-room-button"]');
       
       // Check for dynamic field updates
@@ -168,7 +168,7 @@ test.describe('Form Accessibility & Validation E2E', () => {
 
   test.describe('Form Navigation & Focus Management', () => {
     test('should maintain proper focus order', async ({ page }) => {
-      await page.goto('http://localhost:5173/admins');
+      await page.goto('http://localhost:3000/admins');
       await page.click('[data-testid="add-admin-button"]');
       
       // Tab through form fields and check focus order
@@ -183,7 +183,7 @@ test.describe('Form Accessibility & Validation E2E', () => {
     });
 
     test('should handle form submission with keyboard', async ({ page }) => {
-      await page.goto('http://localhost:5173/admins');
+      await page.goto('http://localhost:3000/admins');
       await page.click('[data-testid="add-admin-button"]');
       
       // Fill form using keyboard navigation
@@ -207,7 +207,7 @@ test.describe('Form Accessibility & Validation E2E', () => {
 
   test.describe('Form Error Recovery', () => {
     test('should allow error correction with proper feedback', async ({ page }) => {
-      await page.goto('http://localhost:5173/admins');
+      await page.goto('http://localhost:3000/admins');
       await page.click('[data-testid="add-admin-button"]');
       
       // Submit with errors
@@ -229,7 +229,7 @@ test.describe('Form Accessibility & Validation E2E', () => {
     });
 
     test('should provide clear error messages', async ({ page }) => {
-      await page.goto('http://localhost:5173/admins');
+      await page.goto('http://localhost:3000/admins');
       await page.click('[data-testid="add-admin-button"]');
       
       // Submit with errors
@@ -253,7 +253,7 @@ test.describe('Form Accessibility & Validation E2E', () => {
 
   test.describe('Form Success States', () => {
     test('should provide clear success feedback', async ({ page }) => {
-      await page.goto('http://localhost:5173/admins');
+      await page.goto('http://localhost:3000/admins');
       await page.click('[data-testid="add-admin-button"]');
       
       // Fill form completely
@@ -279,7 +279,7 @@ test.describe('Form Accessibility & Validation E2E', () => {
     });
 
     test('should maintain form state during success', async ({ page }) => {
-      await page.goto('http://localhost:5173/admins');
+      await page.goto('http://localhost:3000/admins');
       await page.click('[data-testid="add-admin-button"]');
       
       // Fill form

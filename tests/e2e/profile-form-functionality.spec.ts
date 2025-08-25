@@ -5,11 +5,11 @@ test.describe('Profile Form Functionality - TDD E2E Tests', () => {
   test.describe('Admin Profile Form Field Mapping', () => {
     test('should save admin name changes correctly with proper API field mapping', async ({ page }) => {
       // Login as superadmin
-      await page.goto('http://localhost:5173/');
+      await page.goto('http://localhost:3000/');
       await page.fill('#login-email', 'admin@sdu.edu.kz');
       await page.fill('#login-password', 'supersecret');
       await page.click('button[type="submit"]:has-text("Login")');
-      await page.waitForURL('http://localhost:5173/main', { timeout: 10000 });
+      await page.waitForURL('http://localhost:3000/main', { timeout: 10000 });
       
       // Navigate to admin profile
       await page.click('button.user-menu');
@@ -38,11 +38,11 @@ test.describe('Profile Form Functionality - TDD E2E Tests', () => {
 
     test('should display single phone number field instead of multiple fields', async ({ page }) => {
       // Login as superadmin
-      await page.goto('http://localhost:5173/');
+      await page.goto('http://localhost:3000/');
       await page.fill('#login-email', 'admin@sdu.edu.kz');
       await page.fill('#login-password', 'supersecret');
       await page.click('button[type="submit"]:has-text("Login")');
-      await page.waitForURL('http://localhost:5173/main', { timeout: 10000 });
+      await page.waitForURL('http://localhost:3000/main', { timeout: 10000 });
       
       // Navigate to admin profile
       await page.click('button.user-menu');
@@ -63,11 +63,11 @@ test.describe('Profile Form Functionality - TDD E2E Tests', () => {
 
     test('should handle phone number input and combination correctly', async ({ page }) => {
       // Login as superadmin
-      await page.goto('http://localhost:5173/');
+      await page.goto('http://localhost:3000/');
       await page.fill('#login-email', 'admin@sdu.edu.kz');
       await page.fill('#login-password', 'supersecret');
       await page.click('button[type="submit"]:has-text("Login")');
-      await page.waitForURL('http://localhost:5173/main', { timeout: 10000 });
+      await page.waitForURL('http://localhost:3000/main', { timeout: 10000 });
       
       // Navigate to admin profile
       await page.click('button.user-menu');
@@ -93,11 +93,11 @@ test.describe('Profile Form Functionality - TDD E2E Tests', () => {
   test.describe('Student Profile Form Field Mapping', () => {
     test('should save student name changes correctly with proper API field mapping', async ({ page }) => {
       // Login as student
-      await page.goto('http://localhost:5173/');
+      await page.goto('http://localhost:3000/');
       await page.fill('#login-email', 'alice@student.local');
       await page.fill('#login-password', 'password');
       await page.click('button[type="submit"]:has-text("Login")');
-      await page.waitForURL('http://localhost:5173/main', { timeout: 10000 });
+      await page.waitForURL('http://localhost:3000/main', { timeout: 10000 });
       
       // Navigate to student profile
       await page.click('button.user-menu');
@@ -125,11 +125,11 @@ test.describe('Profile Form Functionality - TDD E2E Tests', () => {
 
     test('should display single phone number field for student profile', async ({ page }) => {
       // Login as student
-      await page.goto('http://localhost:5173/');
+      await page.goto('http://localhost:3000/');
       await page.fill('#login-email', 'alice@student.local');
       await page.fill('#login-password', 'password');
       await page.click('button[type="submit"]:has-text("Login")');
-      await page.waitForURL('http://localhost:5173/main', { timeout: 10000 });
+      await page.waitForURL('http://localhost:3000/main', { timeout: 10000 });
       
       // Navigate to student profile
       await page.click('button.user-menu');
@@ -152,11 +152,11 @@ test.describe('Profile Form Functionality - TDD E2E Tests', () => {
   test.describe('Profile Form Error Handling', () => {
     test('should handle API errors gracefully during profile update', async ({ page }) => {
       // Login as admin
-      await page.goto('http://localhost:5173/');
+      await page.goto('http://localhost:3000/');
       await page.fill('#login-email', 'admin@sdu.edu.kz');
       await page.fill('#login-password', 'supersecret');
       await page.click('button[type="submit"]:has-text("Login")');
-      await page.waitForURL('http://localhost:5173/main', { timeout: 10000 });
+      await page.waitForURL('http://localhost:3000/main', { timeout: 10000 });
       
       // Navigate to admin profile
       await page.click('button.user-menu');
@@ -181,11 +181,11 @@ test.describe('Profile Form Functionality - TDD E2E Tests', () => {
 
     test('should validate required fields before submission', async ({ page }) => {
       // Login as admin
-      await page.goto('http://localhost:5173/');
+      await page.goto('http://localhost:3000/');
       await page.fill('#login-email', 'admin@sdu.edu.kz');
       await page.fill('#login-password', 'supersecret');
       await page.click('button[type="submit"]:has-text("Login")');
-      await page.waitForURL('http://localhost:5173/main', { timeout: 10000 });
+      await page.waitForURL('http://localhost:3000/main', { timeout: 10000 });
       
       // Navigate to admin profile
       await page.click('button.user-menu');
@@ -211,11 +211,11 @@ test.describe('Profile Form Functionality - TDD E2E Tests', () => {
   test.describe('Profile Form Data Loading', () => {
     test('should load correct user data when profile form opens', async ({ page }) => {
       // Login as admin
-      await page.goto('http://localhost:5173/');
+      await page.goto('http://localhost:3000/');
       await page.fill('#login-email', 'admin@sdu.edu.kz');
       await page.fill('#login-password', 'supersecret');
       await page.click('button[type="submit"]:has-text("Login")');
-      await page.waitForURL('http://localhost:5173/main', { timeout: 10000 });
+      await page.waitForURL('http://localhost:3000/main', { timeout: 10000 });
       
       // Navigate to admin profile
       await page.click('button.user-menu');
@@ -240,11 +240,11 @@ test.describe('Profile Form Functionality - TDD E2E Tests', () => {
 
     test('should not show hardcoded placeholder data in forms', async ({ page }) => {
       // Login as student
-      await page.goto('http://localhost:5173/');
+      await page.goto('http://localhost:3000/');
       await page.fill('#login-email', 'alice@student.local');
       await page.fill('#login-password', 'password');
       await page.click('button[type="submit"]:has-text("Login")');
-      await page.waitForURL('http://localhost:5173/main', { timeout: 10000 });
+      await page.waitForURL('http://localhost:3000/main', { timeout: 10000 });
       
       // Navigate to student profile
       await page.click('button.user-menu');

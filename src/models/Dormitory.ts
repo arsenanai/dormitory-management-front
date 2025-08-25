@@ -9,7 +9,6 @@ export class Dormitory {
     public admin_id: number | null = null,
     public address: string = '',
     public description: string = '',
-    public quota: number = 0,
     public phone: string = '',
     // Computed fields (read-only, calculated by backend)
     public registered: number = 0,
@@ -28,7 +27,6 @@ export class Dormitory {
       admin_id: this.admin_id,
       address: this.address,
       description: this.description,
-      quota: this.quota,
       phone: this.phone,
       rooms: this.rooms,
     };
@@ -71,7 +69,6 @@ export class Dormitory {
       data.admin_id || null,
       data.address || '',
       data.description || '',
-      data.quota || 0,
       data.phone || '',
       // Computed fields
       data.registered || 0,

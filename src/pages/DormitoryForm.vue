@@ -72,16 +72,7 @@
           />
         </div>
 
-        <!-- Quota -->
-        <div>
-          <CInput
-            id="dormitory-quota"
-            v-model="dormitory.quota"
-            type="number"
-            :label="t('Quota')"
-            placeholder="Enter Quota"
-          />
-        </div>
+
 
         <!-- Phone -->
         <div>
@@ -241,9 +232,7 @@ const adminOptions = ref<{ value: number; name: string }[]>([]);
 // Load admins from API
 const loadAdmins = async () => {
   try {
-    console.log('Loading admin options...');
     const response = await adminService.getAll();
-    console.log('Admin API response:', response);
     
     let admins = [];
     
@@ -259,15 +248,11 @@ const loadAdmins = async () => {
       admins = response;
     }
     
-    console.log('Extracted admins:', admins);
-    
     // Map admins to options format
     adminOptions.value = admins.map((admin: any) => ({
       value: admin.id,
       name: admin.name || admin.email || `Admin ${admin.id}`,
     }));
-    
-    console.log('Admin options set:', adminOptions.value);
   } catch (error) {
     console.error('Failed to load admins:', error);
     showError(t("Failed to load admin options"));
@@ -296,11 +281,9 @@ const submitDormitory = async (): Promise<void> => {
     const dormitoryData = dormitory.value.toSubmissionData();
     
     if (isEditing.value) {
-      console.log('Updating dormitory with ID:', dormitoryId.value);
       const response = await dormitoryService.update(dormitoryId.value!, dormitoryData);
       showSuccess(t("Dormitory updated successfully"));
     } else {
-      console.log('Creating new dormitory');
       const response = await dormitoryService.create(dormitoryData);
       showSuccess(t("Dormitory created successfully"));
     }
@@ -319,18 +302,16 @@ const submitDormitory = async (): Promise<void> => {
 // Load dormitory data from API
 const loadDormitory = async (id: number) => {
   try {
-    console.log('Loading dormitory data from API for ID:', id);
     const response = await dormitoryService.getById(id);
     
     if (response.data) {
       const dormitoryData = response.data;
-      console.log('Loaded dormitory data from API:', dormitoryData);
       
       // Extract admin_id from the admin object if it exists
       let adminId = dormitoryData.admin_id;
       if (dormitoryData.admin && dormitoryData.admin.id) {
         adminId = dormitoryData.admin.id;
-        console.log('Extracted admin_id:', adminId);
+  
       }
       
       // Create new Dormitory instance with the loaded data
@@ -342,7 +323,7 @@ const loadDormitory = async (id: number) => {
         adminId,
         dormitoryData.address || "",
         dormitoryData.description || "",
-        dormitoryData.quota || 0,
+
         dormitoryData.phone || "",
         dormitoryData.registered || 0,
         dormitoryData.freeBeds || 0,
@@ -350,7 +331,7 @@ const loadDormitory = async (id: number) => {
         dormitoryData.rooms || []
       );
       
-      console.log('Populated dormitory form with fresh data:', dormitory.value);
+
     }
   } catch (error) {
     console.error('Error loading dormitory:', error);
@@ -374,7 +355,7 @@ watch(
         currentAdminId !== null && currentAdminId !== undefined ? currentAdminId : (selectedDormitory.admin_id || null),
         selectedDormitory.address || "",
         selectedDormitory.description || "",
-        selectedDormitory.quota || 0,
+
         selectedDormitory.phone || "",
         // Computed fields should be 0 for form display (they're calculated by backend)
         0, // registered
@@ -392,7 +373,7 @@ watch(
   () => route.params.id,
   async (newId) => {
     if (newId && isEditing.value) {
-      console.log('Route ID changed, loading fresh dormitory data for ID:', newId);
+
       await loadDormitory(Number(newId));
     }
   },
@@ -404,7 +385,7 @@ watch(
   () => route.path,
   async (newPath) => {
     if (newPath.includes('/dormitory-form/') && isEditing.value && dormitoryId.value) {
-      console.log('Route path changed, reloading dormitory data for ID:', dormitoryId.value);
+
       // Force fresh data load by clearing any cached data
       dormitoryStore.clearSelectedDormitory();
       await loadDormitory(dormitoryId.value);
@@ -421,7 +402,7 @@ onMounted(async () => {
   
   // If editing, always load fresh data from API (don't rely on store)
   if (isEditing.value && dormitoryId.value) {
-    console.log('Loading fresh dormitory data from API for ID:', dormitoryId.value);
+
     await loadDormitory(dormitoryId.value);
   } else {
     // Only restore from store for new dormitory creation
@@ -438,14 +419,23 @@ const calculatedRoomsCount = computed(() => dormitory.value.calculateTotalRooms(
 // Room options for the new room selection
 const roomOptions = ref<{ value: number; name: string }[]>([]);
 
-// Load room options from API
+// Load room options from API only when needed (lazy loading)
+// TODO: Implement full CSV business logic:
+// - Dormitory Admin should only see their assigned dormitory
+// - Room management should be restricted to assigned dormitory
+// - Quota should be dormitory-specific
 const loadRoomOptions = async () => {
+  // Don't load rooms until actually needed
+  // This prevents unnecessary API calls when the form is just opened
+  roomOptions.value = [];
+};
+
+// Load room options when actually adding a room
+const loadRoomOptionsForDormitory = async (dormitoryId: number) => {
   try {
-    console.log('Loading room options...');
-    
-    // Try to get rooms from the room service if available
+    // Only load rooms when we're actually going to use them
     if (window.roomService) {
-      const response = await window.roomService.getAll();
+      const response = await window.roomService.getAll({ dormitory_id: dormitoryId });
       if (response.data && response.data.data) {
         roomOptions.value = response.data.data.map((room: any) => ({
           value: room.id,
@@ -465,15 +455,8 @@ const loadRoomOptions = async () => {
         { value: 3, name: "Room 103" },
         { value: 4, name: "Room 201" },
         { value: 5, name: "Room 202" },
-        { value: 6, name: "Room 301" },
-        { value: 7, name: "Room 302" },
-        { value: 8, name: "Room 401" },
-        { value: 9, name: "Room 402" },
-        { value: 10, name: "Room 501" },
       ];
     }
-    
-    console.log('Room options loaded:', roomOptions.value.length, 'rooms');
   } catch (error) {
     console.error('Failed to load room options:', error);
     showError(t("Failed to load room options"));
@@ -490,7 +473,12 @@ const loadRoomOptions = async () => {
 };
 
 // Add a new room to the dormitory
-const addRoom = () => {
+const addRoom = async () => {
+  // Load room options only when actually adding a room
+  if (dormitory.value.id) {
+    await loadRoomOptionsForDormitory(dormitory.value.id);
+  }
+  
   // Create a new room object with the correct structure
   const newRoom = {
     id: null,
@@ -504,7 +492,6 @@ const addRoom = () => {
     beds: []
   };
   dormitory.value.rooms.push(newRoom);
-  console.log('Added new room, total rooms:', dormitory.value.rooms.length);
 };
 
 // Remove a room from the dormitory

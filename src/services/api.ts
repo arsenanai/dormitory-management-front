@@ -146,6 +146,7 @@ interface Room {
   room_type_id?: number;
   is_occupied: boolean;
   notes?: string;
+  quota?: number;
   created_at: string;
   updated_at: string;
 }
@@ -213,8 +214,14 @@ interface FilterParams {
 }
 
 // API instance
+const resolvedBaseUrl =
+  (import.meta as any).env?.VITE_API_BASE_URL ||
+  (typeof window !== 'undefined' && window.location.host.includes('localhost:3000')
+    ? 'http://localhost:8000/api'
+    : '/api');
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "/api",
+  baseURL: resolvedBaseUrl,
   headers: {
     "Content-Type": "application/json",
     "Accept": "application/json",
@@ -235,8 +242,73 @@ export const authService = {
   login: (credentials: { email: string; password: string }): Promise<ApiResponse<{ user: User; token: string }>> =>
     api.post("/login", credentials),
   
-  register: (userData: UserRegistration): Promise<ApiResponse<{ user: User; message?: string }>> =>
-    api.post("/register", userData),
+  register: (userData: any): Promise<ApiResponse<{ user: User; message?: string }>> => {
+    // If there are files, submit as multipart/form-data
+    const hasFiles = Array.isArray(userData?.files) && userData.files.some((f: any) => f instanceof File);
+
+    if (!hasFiles) {
+      return api.post("/register", userData);
+    }
+
+    const formData = new FormData();
+
+    // Helper to append array values as field[]
+    const appendArray = (key: string, arr: any[]) => {
+      arr.forEach((v) => {
+        if (v !== undefined && v !== null && v !== "") {
+          formData.append(`${key}[]`, v instanceof File ? v : String(v));
+        }
+      });
+    };
+
+    // Known array fields
+    if (Array.isArray(userData.phone_numbers)) appendArray("phone_numbers", userData.phone_numbers);
+    if (Array.isArray(userData.phoneNumbers)) appendArray("phone_numbers", userData.phoneNumbers);
+
+    // Files
+    userData.files
+      .filter((f: any) => f && f instanceof File)
+      .forEach((file: File) => formData.append("files[]", file));
+
+    // Scalar fields
+    const scalarKeys = [
+      "iin",
+      "name",
+      "faculty",
+      "specialist",
+      "enrollment_year",
+      "enrollmentYear",
+      "gender",
+      "email",
+      "room_id",
+      "password",
+      "password_confirmation",
+      "deal_number",
+      "dealNumber",
+      "country",
+      "region",
+      "city",
+      "agree_to_dormitory_rules",
+      "user_type",
+    ];
+
+    scalarKeys.forEach((k) => {
+      const v = userData[k];
+      if (v === undefined || v === null || v === "") return;
+      // Map camelCase to snake_case expected by backend
+      let key = k;
+      if (k === "enrollmentYear") key = "enrollment_year";
+      if (k === "dealNumber") key = "deal_number";
+      if (k === "agreeToDormitoryRules") key = "agree_to_dormitory_rules";
+      formData.append(key, String(v));
+    });
+
+    // Ensure required defaults
+    if (!formData.has("user_type") && userData.user_type) formData.append("user_type", String(userData.user_type));
+    if (!formData.has("password_confirmation") && userData.password_confirmation) formData.append("password_confirmation", String(userData.password_confirmation));
+
+    return api.post("/register", formData, { headers: { "Content-Type": "multipart/form-data" } });
+  },
   
   logout: (): Promise<ApiResponse<{ message: string }>> =>
     api.post("/logout"),
@@ -347,7 +419,7 @@ export const messageService = {
     api.get(`/messages/${id}`),
   
   getMyMessages: (params?: FilterParams): Promise<ApiResponse<PaginatedResponse<Message>>> =>
-    api.get("/messages/my", { params }),
+    api.get("/my-messages", { params }),
   
   create: (data: Partial<Message>): Promise<ApiResponse<Message>> =>
     api.post("/messages", data),
@@ -359,7 +431,7 @@ export const messageService = {
     api.delete(`/messages/${id}`),
   
   markAsRead: (id: number): Promise<ApiResponse<{ message: string }>> =>
-    api.put(`/messages/${id}/read`),
+    api.post(`/messages/${id}/read`),
   
   send: (id: number): Promise<ApiResponse<{ message: string }>> =>
     api.post(`/messages/${id}/send`),
@@ -394,8 +466,20 @@ export const paymentService = {
 
 // Room service
 export const roomService = {
-  getAll: (params?: FilterParams): Promise<ApiResponse<PaginatedResponse<Room>>> =>
-    api.get("/rooms", { params }),
+  getAll: (params?: FilterParams): Promise<ApiResponse<PaginatedResponse<Room>>> => {
+    // Check if user is authenticated (has token)
+    const token = localStorage.getItem('token');
+    if (token) {
+      // Use authenticated endpoint for role-based filtering
+      return api.get("/rooms", { 
+        params,
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+    } else {
+      // Use public endpoint for unauthenticated users
+      return api.get("/rooms", { params });
+    }
+  },
   
   getById: (id: number): Promise<ApiResponse<Room>> =>
     api.get(`/rooms/${id}`),
@@ -436,11 +520,23 @@ export const roomTypeService = {
 
 // Dormitory service
 export const dormitoryService = {
-  getAll: (params?: FilterParams): Promise<ApiResponse<Dormitory[]>> =>
-    api.get("/dormitories", { 
-      params,
-      headers: { 'Cache-Control': 'no-cache' }
-    }),
+  getAll: (params?: FilterParams): Promise<ApiResponse<Dormitory[]>> => {
+    // Check if user is authenticated (has token)
+    const token = localStorage.getItem('token');
+    if (token) {
+      // Use authenticated endpoint for role-based filtering
+      return api.get("/dormitories/authenticated", { 
+        params,
+        headers: { 'Cache-Control': 'no-cache' }
+      });
+    } else {
+      // Use public endpoint for unauthenticated users
+      return api.get("/dormitories", { 
+        params,
+        headers: { 'Cache-Control': 'no-cache' }
+      });
+    }
+  },
   
   getById: (id: number): Promise<ApiResponse<Dormitory>> =>
     api.get(`/dormitories/${id}`, {

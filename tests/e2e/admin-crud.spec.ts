@@ -31,7 +31,7 @@ test.describe('Admin CRUD E2E', () => {
 
   test.beforeEach(async ({ page }) => {
     // Login as admin using working credentials
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:3000/');
     await page.fill('#login-email', adminEmail);
     await page.fill('#login-password', adminPassword);
     await page.click('button[type="submit"]:has-text("Login")');
@@ -49,7 +49,7 @@ test.describe('Admin CRUD E2E', () => {
       if (currentURL.includes('/main') || currentURL.includes('/dormitories') || currentURL.includes('/users') || currentURL.includes('/admins')) {
         // Navigate to admins page if not already there
         if (!page.url().includes('/admins')) {
-          await page.goto('http://localhost:5173/admins');
+          await page.goto('http://localhost:3000/admins');
           await page.waitForLoadState('networkidle');
         }
       } else {
@@ -312,7 +312,7 @@ test.describe('Admin CRUD E2E', () => {
     if (await checkAdminPage(page)) {
       // This test assumes bed reservation functionality exists
       // Navigate to rooms or beds management
-      await page.goto('http://localhost:5173/rooms');
+      await page.goto('http://localhost:3000/rooms');
       await page.waitForLoadState('networkidle');
       
       // Look for bed reservation functionality

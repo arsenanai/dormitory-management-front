@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --host",
+    "dev": "vite --host --port 3000 --strictPort",
     "build": "NODE_ENV=production vite build",
     "preview": "vite preview",
     "test:unit": "vitest run",

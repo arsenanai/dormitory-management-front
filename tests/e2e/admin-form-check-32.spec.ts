@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Admin Form Check for Admin ID 32', () => {
   test('should check form structure and dormitory options', async ({ page }) => {
     // Navigate to the app
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:3000/');
 
     // Wait for the page to load
     await page.waitForLoadState('networkidle');

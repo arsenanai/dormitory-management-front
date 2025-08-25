@@ -18,7 +18,7 @@ test.describe('Debug Login', () => {
       }
     });
     
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:3000/');
     
     // Make sure we're on the login tab first
     const loginTab = page.locator('button[role="tab"]:has-text("Login")');

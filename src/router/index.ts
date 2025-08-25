@@ -166,7 +166,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: ChatBubbleLeftRightIcon,
-      roles: ['admin', 'student', 'guest'],
+      roles: ['student'],
     },
   },
   {
@@ -267,7 +267,7 @@ const routes: AppRouteRecordRaw[] = [
     },
   },
   {
-    path: '/room-form/:number?',
+    path: '/room-form/:id?',
     name: 'Room Form',
     component: () => import('@/pages/RoomForm.vue'),
     meta: {
@@ -288,7 +288,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: BuildingOfficeIcon,
-      roles: ['sudo', 'admin'],
+      roles: ['sudo'],
     },
   },
   {
@@ -301,7 +301,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: PencilSquareIcon,
-      roles: ['sudo', 'admin'],
+      roles: ['sudo'],
     },
   },
   {
@@ -313,7 +313,7 @@ const routes: AppRouteRecordRaw[] = [
       parent: 'Room Types',
       requiresAuth: true,
       sidebar: false,
-      roles: ['sudo', 'admin'],
+      roles: ['sudo'],
     },
   },
   {
@@ -345,7 +345,8 @@ router.beforeEach(async (to, from, next) => {
   }
   
   const isAuthenticated = authStore.isAuthenticated;
-  const userRole = authStore.userRole;
+  // Get user role after ensuring profile is loaded
+  const userRole = authStore.user?.role?.name || null;
   
   // Helper function to get appropriate redirect path based on user role
   const getRedirectPath = (userRole: string | null) => {

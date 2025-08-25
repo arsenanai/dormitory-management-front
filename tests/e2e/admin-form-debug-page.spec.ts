@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Admin Form Page Debug', () => {
   test('should debug page content for admin form', async ({ page }) => {
     // Navigate to the app
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:3000/');
 
     // Wait for the page to load
     await page.waitForLoadState('networkidle');

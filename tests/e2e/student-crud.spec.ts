@@ -81,19 +81,36 @@ test.describe('Student CRUD E2E', () => {
       await iinField.fill('123456789012');
     }
     
+    // Fill faculty and specialist fields
     const facultyField = page.locator('#student-faculty, #faculty');
     if (await facultyField.count() > 0) {
-      await facultyField.selectOption('engineering');
+      await facultyField.fill('Engineering');
     }
-    
+
     const specialistField = page.locator('#student-specialist, #specialist');
     if (await specialistField.count() > 0) {
-      await specialistField.selectOption('computer_sciences');
+      await specialistField.fill('Computer Science');
     }
     
     const enrollmentYearField = page.locator('#student-enrollment-year, #enrollment-year');
     if (await enrollmentYearField.count() > 0) {
       await enrollmentYearField.fill('2023');
+    }
+    
+    // Fill country, region, and city fields (these are now CInput components)
+    const countryField = page.locator('#student-country, #country');
+    if (await countryField.count() > 0) {
+      await countryField.fill('Kazakhstan');
+    }
+    
+    const regionField = page.locator('#student-region, #region');
+    if (await regionField.count() > 0) {
+      await regionField.fill('Almaty');
+    }
+    
+    const cityField = page.locator('#student-city, #city');
+    if (await cityField.count() > 0) {
+      await cityField.fill('Kaskelen');
     }
     
     const genderField = page.locator('#student-gender, #gender');
@@ -195,17 +212,33 @@ test('should not allow assigning student to staff-reserved beds', async ({ page 
   
   const facultyField = page.locator('#student-faculty, #faculty');
   if (await facultyField.count() > 0) {
-    await facultyField.selectOption('engineering');
+    await facultyField.fill('Engineering');
   }
   
   const specialistField = page.locator('#student-specialist, #specialist');
   if (await specialistField.count() > 0) {
-    await specialistField.selectOption('computer_sciences');
+    await specialistField.fill('Computer Science');
   }
   
   const enrollmentYearField = page.locator('#student-enrollment-year, #enrollment-year');
   if (await enrollmentYearField.count() > 0) {
     await enrollmentYearField.fill('2023');
+  }
+  
+  // Fill country, region, and city fields (these are now CInput components)
+  const countryField = page.locator('#student-country, #country');
+  if (await countryField.count() > 0) {
+    await countryField.fill('Kazakhstan');
+  }
+  
+  const regionField = page.locator('#student-region, #region');
+  if (await regionField.count() > 0) {
+    await regionField.fill('Almaty');
+  }
+  
+  const cityField = page.locator('#student-city, #city');
+  if (await cityField.count() > 0) {
+    await cityField.fill('Kaskelen');
   }
   
   const genderField = page.locator('#student-gender, #gender');

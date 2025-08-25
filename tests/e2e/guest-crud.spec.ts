@@ -24,7 +24,7 @@ const selectors = {
 
 test.describe('Guest CRUD E2E', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:3000/');
     await page.fill('#login-email', adminEmail);
     await page.fill('#login-password', adminPassword);
     await page.click('button[type="submit"]:has-text("Login")');
@@ -33,7 +33,7 @@ test.describe('Guest CRUD E2E', () => {
     await page.waitForLoadState('networkidle');
     // Navigate to guest-house page if not already there
     if (!page.url().includes('/guest-house')) {
-      await page.goto('http://localhost:5173/guest-house');
+      await page.goto('http://localhost:3000/guest-house');
       await page.waitForLoadState('networkidle');
     }
   });

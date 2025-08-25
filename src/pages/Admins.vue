@@ -32,15 +32,15 @@ import { useToast } from '@/composables/useToast';
 
 const { t } = useI18n();
 const router = useRouter();
-const { showToast } = useToast();
+const { showSuccess, showError } = useToast();
 const admins = ref([]);
 const loading = ref(false);
 
 const columns = [
   { key: 'name', label: t('Name') },
-  { key: 'surname', label: t('Surname') },
+  { key: 'last_name', label: t('Surname') },
   { key: 'email', label: t('E-mail') },
-  { key: 'dormitory', label: t('Dormitory') },
+  { key: 'dormitory_id', label: t('Dormitory') },
   { key: 'actions', label: t('Actions') },
 ];
 
@@ -95,11 +95,11 @@ const deleteAdmin = async (admin) => {
   if (confirm(`Are you sure you want to delete admin ${admin.name}?`)) {
     try {
       await adminService.delete(admin.id);
-      showToast('Admin deleted successfully', 'success');
+      showSuccess('Admin deleted successfully');
       await loadAdmins(); // Reload the list
     } catch (error) {
       console.error('Error deleting admin:', error);
-      showToast('Failed to delete admin', 'error');
+      showError('Failed to delete admin');
     }
   }
 };

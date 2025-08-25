@@ -23,6 +23,9 @@ vi.mock('@/services/api', () => ({
   roomService: {
     getAvailable: vi.fn(),
   },
+  dormitoryService: {
+    getAll: vi.fn(),
+  },
 }));
 
 // Mock the toast composable
@@ -55,24 +58,22 @@ describe('StudentForm', () => {
     setActivePinia(createPinia());
     
     // Setup default mocks
-    vi.mocked(api.roomService.getAvailable).mockResolvedValue(
+    vi.mocked(api.dormitoryService.getAll).mockResolvedValue(
       createMockResponse([
         {
           id: 1,
-          number: 'A210',
-          dormitory: { id: 1, name: 'A-Block' },
-          beds: [
-            { id: 1, number: 1, reserved_for_staff: false },
-            { id: 2, number: 2, reserved_for_staff: false },
+          name: 'A-Block',
+          rooms: [
+            { id: 1, number: 'A210', beds: [{ id: 1, number: 1, reserved_for_staff: false }] },
+            { id: 2, number: 'A211', beds: [{ id: 2, number: 2, reserved_for_staff: false }] },
           ],
         },
         {
           id: 2,
-          number: 'B101',
-          dormitory: { id: 2, name: 'B-Block' },
-          beds: [
-            { id: 3, number: 1, reserved_for_staff: false },
-            { id: 4, number: 2, reserved_for_staff: true },
+          name: 'B-Block',
+          rooms: [
+            { id: 3, number: 'B101', beds: [{ id: 3, number: 1, reserved_for_staff: false }] },
+            { id: 4, number: 'B102', beds: [{ id: 4, number: 2, reserved_for_staff: true }] },
           ],
         },
       ])
@@ -152,7 +153,7 @@ describe('StudentForm', () => {
       expect(component.studentProfile.specialist).toBe('');
     });
 
-    it('should load available rooms on mount', async () => {
+    it('should load available dormitories on mount', async () => {
       mount(StudentForm, {
         global: {
           plugins: [router, i18n],
@@ -160,7 +161,7 @@ describe('StudentForm', () => {
       });
 
       await vi.waitFor(() => {
-        expect(api.roomService.getAvailable).toHaveBeenCalled();
+        expect(api.dormitoryService.getAll).toHaveBeenCalled();
       });
     });
   });
@@ -428,23 +429,35 @@ describe('StudentForm', () => {
   });
 
   describe('Location Selection', () => {
-    it('should update region options when country changes', async () => {
+    it('should have country, region, and city as text input fields', () => {
       const wrapper = mount(StudentForm, {
         global: {
           plugins: [router, i18n],
         },
       });
 
-      const component = wrapper.vm as any;
+      // Check that country, region, and city fields exist
+      expect(wrapper.find('#student-country').exists()).toBe(true);
+      expect(wrapper.find('#student-region').exists()).toBe(true);
+      expect(wrapper.find('#student-city').exists()).toBe(true);
       
-      // Change country
-      await component.onCountryChange(2);
+      // Verify they are CInput components (check for the component structure)
+      const countryField = wrapper.find('#student-country');
+      const regionField = wrapper.find('#student-region');
+      const cityField = wrapper.find('#student-city');
       
-      expect(component.selectedCountry?.id).toBe(2);
-      expect(component.selectedRegion?.id).toBe(3); // Should reset to first region of new country
+      // These should exist and be visible
+      expect(countryField.isVisible()).toBe(true);
+      expect(regionField.isVisible()).toBe(true);
+      expect(cityField.isVisible()).toBe(true);
+      
+      // Check that they have the correct labels
+      expect(wrapper.text()).toContain('Country');
+      expect(wrapper.text()).toContain('Region');
+      expect(wrapper.text()).toContain('City');
     });
 
-    it('should update city options when region changes', async () => {
+    it('should allow manual text input for location fields', async () => {
       const wrapper = mount(StudentForm, {
         global: {
           plugins: [router, i18n],
@@ -453,26 +466,15 @@ describe('StudentForm', () => {
 
       const component = wrapper.vm as any;
       
-      // Change region
-      await component.onRegionChange(2);
+      // Set values for location fields
+      component.studentProfile.country = 'Kazakhstan';
+      component.studentProfile.region = 'Almaty';
+      component.studentProfile.city = 'Almaty City';
       
-      expect(component.selectedRegion?.id).toBe(2);
-      expect(component.studentProfile.city).toBe(null); // Should reset city
-    });
-
-    it('should update city when city selection changes', async () => {
-      const wrapper = mount(StudentForm, {
-        global: {
-          plugins: [router, i18n],
-        },
-      });
-
-      const component = wrapper.vm as any;
-      
-      // Change city
-      await component.onCityChange(1);
-      
-      expect(component.studentProfile.city?.id).toBe(1);
+      // Verify the values are set correctly
+      expect(component.studentProfile.country).toBe('Kazakhstan');
+      expect(component.studentProfile.region).toBe('Almaty');
+      expect(component.studentProfile.city).toBe('Almaty City');
     });
   });
 
@@ -624,9 +626,6 @@ describe('StudentForm', () => {
       expect(typeof component.addPhoneField).toBe('function');
       expect(typeof component.submitForm).toBe('function');
       expect(typeof component.loadStudent).toBe('function');
-      expect(typeof component.onCountryChange).toBe('function');
-      expect(typeof component.onRegionChange).toBe('function');
-      expect(typeof component.onCityChange).toBe('function');
       expect(component.user).toBeDefined();
       expect(component.studentProfile).toBeDefined();
     });

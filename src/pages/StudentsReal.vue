@@ -15,12 +15,12 @@
 
       <!-- Filter Select Boxes -->
       <div class="flex flex-col items-stretch justify-between gap-4 lg:flex-row lg:justify-start">
-        <CSelect
+        <CInput
           id="faculty-filter"
           v-model="filters.faculty"
-          :options="facultyOptions"
+          type="text"
           :label="t('Faculty')"
-          :placeholder="t('Select Faculty')"
+          :placeholder="t('Enter Faculty Name')"
           class="lg:w-40"
         />
         <CSelect
@@ -199,14 +199,6 @@ const filters = ref({
 });
 
 // Options
-const facultyOptions = [
-  { value: "", name: t("All Faculties") },
-  { value: "engineering", name: t("Engineering and natural sciences") },
-  { value: "business", name: t("Business and economics") },
-  { value: "law", name: t("Law and social sciences") },
-  { value: "medicine", name: t("Medicine") },
-];
-
 const roomOptions = ref([
   { value: "", name: t("All Rooms") },
 ]);

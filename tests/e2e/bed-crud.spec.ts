@@ -22,7 +22,7 @@ const selectors = {
 
 test.describe('Bed CRUD E2E', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:3000/');
     await page.fill('#login-email', adminEmail);
     await page.fill('#login-password', adminPassword);
     await page.click('button[type="submit"]:has-text("Login")');
@@ -31,7 +31,7 @@ test.describe('Bed CRUD E2E', () => {
     await page.waitForLoadState('networkidle');
     // Navigate to rooms page if not already there (bed management is within rooms)
     if (!page.url().includes('/rooms')) {
-      await page.goto('http://localhost:5173/rooms');
+      await page.goto('http://localhost:3000/rooms');
       await page.waitForLoadState('networkidle');
     }
   });
@@ -144,7 +144,7 @@ test.describe('Bed CRUD E2E', () => {
     await page.waitForURL(/\/beds/);
     // Try to assign a student to this bed (simulate via UI or API if possible)
     // (This may require navigating to the student assignment form and checking that the bed is disabled/hidden)
-    await page.goto('http://localhost:5173/student-form');
+    await page.goto('http://localhost:3000/student-form');
     await page.selectOption('#student-room', 'A210');
     // Bed select should not allow staff-reserved bed for students
     const bedOptions = await page.$$eval('#student-bed option', opts => opts.map(o => ({ value: o.value, disabled: o.disabled, text: o.textContent })));

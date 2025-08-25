@@ -161,7 +161,7 @@ The tests use three main user roles as defined in the project requirements:
 ## Running Tests
 
 ### Prerequisites
-1. Frontend development server running on `http://localhost:5173`
+1. Frontend development server running on `http://localhost:3000`
 2. Backend API server running on `http://localhost:8000`
 3. Test database with appropriate test data
 

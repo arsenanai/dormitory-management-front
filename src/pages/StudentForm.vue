@@ -61,32 +61,32 @@
           </div>
           <!-- Country Field -->
           <div>
-            <CSelect
+            <CInput
               id="student-country"
-              :model-value="selectedCountry?.id"
-              :options="countries.map((c) => ({ value: c.id, name: c.name }))"
+              v-model="studentProfile.country"
+              type="text"
               :label="t('Country')"
-              @update:model-value="onCountryChange"
+              placeholder="Enter Country"
             />
           </div>
           <!-- Region Field -->
           <div>
-            <CSelect
+            <CInput
               id="student-region"
-              :model-value="selectedRegion?.id"
-              :options="regionOptions"
+              v-model="studentProfile.region"
+              type="text"
               :label="t('Region')"
-              @update:model-value="onRegionChange"
+              placeholder="Enter Region"
             />
           </div>
           <!-- City Field -->
           <div>
-            <CSelect
+            <CInput
               id="student-city"
-              :model-value="studentProfile.city?.id"
-              :options="cityOptions"
+              v-model="studentProfile.city"
+              type="text"
               :label="t('City')"
-              @update:model-value="onCityChange"
+              placeholder="Enter City"
             />
           </div>
           <!-- Phone Numbers (moved to the end) -->
@@ -246,21 +246,23 @@
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <!-- Faculty Field -->
           <div>
-            <CSelect
+            <CInput
               id="student-faculty"
               v-model="studentProfile.faculty"
-              :options="facultyOptions"
+              type="text"
               :label="t('Faculty')"
+              :placeholder="t('Enter Faculty Name')"
               required
             />
           </div>
           <!-- Specialist Field -->
           <div>
-            <CSelect
+            <CInput
               id="student-specialist"
               v-model="studentProfile.specialist"
-              :options="specialistOptions"
+              type="text"
               :label="t('Specialist')"
+              :placeholder="t('Enter Specialty/Program Name')"
               required
             />
           </div>
@@ -286,35 +288,50 @@
               required
             />
           </div>
-          <!-- Dormitory Field -->
+          <!-- Dormitory Field - Only visible after dormitory selection -->
           <div>
             <CSelect
               id="student-dormitory"
               v-model="selectedDormitory"
               :options="dormitoryOptions"
               :label="t('Dormitory')"
+              :disabled="loadingDormitories"
               required
             />
+            <div v-if="loadingDormitories" class="text-sm text-gray-500 mt-1">
+              {{ t('Loading dormitories...') }}
+            </div>
           </div>
-          <!-- Room Field -->
-          <div>
+          <!-- Room Field - Only visible after dormitory selection -->
+          <div v-if="selectedDormitory">
             <CSelect
               id="student-room"
               v-model="studentProfile.room"
               :options="roomOptions"
               :label="t('Room')"
+              :disabled="loadingRooms || roomOptions.length === 0"
               required
             />
+            <div v-if="loadingRooms" class="text-sm text-gray-500 mt-1">
+              {{ t('Loading rooms...') }}
+            </div>
+            <div v-else-if="!loadingRooms && roomOptions.length === 0" class="text-sm text-red-500 mt-1">
+              {{ t('No rooms available in this dormitory') }}
+            </div>
           </div>
-          <!-- Bed Field (NEW) -->
+          <!-- Bed Field - Only visible after room selection -->
           <div v-if="studentProfile.room">
             <CSelect
               id="student-bed"
               v-model="studentProfile.bed"
               :options="bedOptions"
               :label="t('Bed')"
+              :disabled="bedOptions.length === 0"
               required
             />
+            <div v-if="bedOptions.length === 0" class="text-sm text-red-500 mt-1">
+              {{ t('No beds available in this room') }}
+            </div>
           </div>
         </div>
       </fieldset>
@@ -345,13 +362,10 @@ import CCheckbox from "@/components/CCheckbox.vue"; // Added CCheckbox import
 import { PlusIcon, PrinterIcon } from "@heroicons/vue/24/outline";
 import type { User } from "@/models/User";
 import type { StudentProfile } from "@/models/StudentProfile";
-import { Country } from "@/models/Country";
-import { Region } from "@/models/Region";
-import { City } from "@/models/City";
 import { Room } from "@/models/Room";
 import { Dormitory } from "@/models/Dormitory";
 import { useStudentStore } from "@/stores/student";
-import { studentService, authService, roomService } from "@/services/api";
+import { studentService, authService, roomService, dormitoryService } from "@/services/api";
 import { useToast } from "@/composables/useToast";
 
 // --- Mock models (same as Students.vue) ---
@@ -371,32 +385,38 @@ class RoomMock {
   }
 }
 
-// --- Use the same dormitories and rooms as Students.vue ---
-const dormA = new DormitoryMock("A-Block", 300, "female");
-const dormB = new DormitoryMock("B-Block", 300, "male");
-const roomA210 = new RoomMock("A210", dormA, 2, "Near the stairs");
-const roomA211 = new RoomMock("A211", dormA, 2, "");
-const roomB101 = new RoomMock("B101", dormB, 1, "Window view");
-
-const dormitories = ref([dormA, dormB]);
-const rooms = ref([]);
-const allBeds = ref([]);
+// Real dormitories and rooms from API
+const dormitories = ref<Dormitory[]>([]);
+const rooms = ref<Room[]>([]);
+const allBeds = ref<any[]>([]);
 const loadingRooms = ref(false);
+const loadingDormitories = ref(false);
 
 onMounted(async () => {
-  loadingRooms.value = true;
+  loadingDormitories.value = true;
   try {
-    const response = await roomService.getAvailable();
-    rooms.value = response.data || [];
-    // Flatten all available beds for selection
-    allBeds.value = rooms.value.flatMap(room => room.beds.map(bed => ({ ...bed, room })));
+    console.log('Fetching dormitories from public endpoint...');
+    // Fetch dormitories from public endpoint (bypasses role-based filtering)
+    const dormitoriesResponse = await fetch('/api/dormitories/public');
+    console.log('Dormitories response status:', dormitoriesResponse.status);
+    if (dormitoriesResponse.ok) {
+      const data = await dormitoriesResponse.json();
+      console.log('Dormitories data received:', data);
+      dormitories.value = data || [];
+    } else {
+      console.log('Public endpoint failed, falling back to regular endpoint...');
+      // Fallback to regular endpoint
+      const dormitoriesResponse = await dormitoryService.getAll();
+      dormitories.value = dormitoriesResponse.data || [];
+    }
+    console.log('Final dormitories value:', dormitories.value);
   } catch (e) {
-    // fallback or show error
-    rooms.value = [];
-    allBeds.value = [];
+    console.error('Failed to fetch dormitories:', e);
+    dormitories.value = [];
   } finally {
-    loadingRooms.value = false;
+    loadingDormitories.value = false;
   }
+  
   // First try to restore from store
   studentStore.restoreSelectedStudent();
   
@@ -416,28 +436,7 @@ const { showError, showSuccess } = useToast();
 const studentId = computed(() => route.params.id ? Number(route.params.id) : null);
 const isEditing = computed(() => !!studentId.value);
 
-// Sample data for countries, regions, and cities
-const countries = ref<Country[]>([
-  new Country(1, "Kazakhstan"),
-  new Country(2, "Russia"),
-]);
-
-const regions = ref<Region[]>([
-  new Region(1, "Almaty", countries.value[0]),
-  new Region(2, "Zhetisu", countries.value[0]),
-  new Region(3, "Moscow", countries.value[1]),
-]);
-
-const cities = ref<City[]>([
-  new City(1, "Kaskelen", regions.value[0]),
-  new City(2, "Talgar", regions.value[0]),
-  new City(3, "Taldykorgan", regions.value[1]),
-  new City(4, "Moscow City", regions.value[2]),
-]);
-
-// Reactive selections
-const selectedCountry = ref<Country | null>(countries.value[0]);
-const selectedRegion = ref<Region | null>(regions.value[0]);
+// Note: Country, region, and city are now text input fields instead of select dropdowns
 
 // Student Form Data (split into user and studentProfile)
 const user = ref<Partial<User>>({
@@ -455,6 +454,9 @@ const studentProfile = ref<Partial<StudentProfile>>({
   enrollment_year: undefined,
   gender: "",
   blood_type: "",
+  country: "",
+  region: "",
+  city: "",
   parent_name: "",
   parent_phone: "",
   parent_email: "",
@@ -466,18 +468,8 @@ const studentProfile = ref<Partial<StudentProfile>>({
   // ... add all other fields as needed
 });
 
-// Computed for selected dormitory (syncs with student.room)
-const selectedDormitory = computed({
-  get() {
-    return studentProfile.value.room?.dormitory ?? null;
-  },
-  set(newDorm) {
-    // If the current room is not in the new dormitory, reset room
-    if (!studentProfile.value.room || studentProfile.value.room.dormitory !== newDorm) {
-      studentProfile.value.room = null;
-    }
-  }
-});
+// Selected dormitory (separate from room selection)
+const selectedDormitory = ref<number | null>(null);
 
 // Populate the form if editing an existing student
 watch(
@@ -498,6 +490,9 @@ watch(
         enrollment_year: selectedStudent.student_profile?.enrollment_year,
         gender: selectedStudent.student_profile?.gender || "",
         blood_type: selectedStudent.student_profile?.blood_type || "",
+        country: selectedStudent.student_profile?.country || "",
+        region: selectedStudent.student_profile?.region || "",
+        city: selectedStudent.student_profile?.city || "",
         parent_name: selectedStudent.student_profile?.parent_name || "",
         parent_phone: selectedStudent.student_profile?.parent_phone || "",
         parent_email: selectedStudent.student_profile?.parent_email || "",
@@ -515,13 +510,41 @@ watch(
 
 // Dormitory and Room options
 const dormitoryOptions = computed(() =>
-  dormitories.value.map((d) => ({ value: d, name: d.name }))
+  dormitories.value.map((d) => ({ value: d.id, name: d.name }))
 );
 
 const roomOptions = computed(() =>
   rooms.value
-    .map((r) => ({ value: r, name: r.number }))
+    .map((r) => ({ value: r.id, name: r.number }))
 );
+
+// Function to fetch rooms for selected dormitory
+const fetchRoomsForDormitory = async (dormitoryId: number) => {
+  loadingRooms.value = true;
+  try {
+          const response = await dormitoryService.getById(dormitoryId);
+    if (response.data && response.data.rooms) {
+      rooms.value = response.data.rooms;
+      // Flatten all available beds for selection
+      allBeds.value = rooms.value.flatMap(room => 
+        (room.beds || []).map(bed => ({ ...bed, room }))
+      );
+    } else {
+      // Fallback: try to get rooms from rooms endpoint with dormitory filter
+      const roomsResponse = await roomService.getAll({ dormitory_id: dormitoryId });
+      rooms.value = roomsResponse.data?.data || roomsResponse.data || [];
+      allBeds.value = rooms.value.flatMap(room => 
+        (room.beds || []).map(bed => ({ ...bed, room }))
+      );
+    }
+  } catch (e) {
+    console.error('Failed to fetch rooms for dormitory:', e);
+    rooms.value = [];
+    allBeds.value = [];
+  } finally {
+    loadingRooms.value = false;
+  }
+};
 
 // Bed options for selected room
 const bedOptions = computed(() => {
@@ -535,26 +558,36 @@ const bedOptions = computed(() => {
     }));
 });
 
-// Watch for changes to selectedDormitory and reset room if needed
-watch(selectedDormitory, (newDorm) => {
-  if (studentProfile.value.room && studentProfile.value.room.dormitory !== newDorm) {
+// Watch for changes to selectedDormitory and fetch rooms
+watch(selectedDormitory, async (newDormId) => {
+  if (newDormId) {
+    // Reset room and bed when dormitory changes
     studentProfile.value.room = null;
+    studentProfile.value.bed = null;
+    
+    // Fetch rooms for the selected dormitory
+    await fetchRoomsForDormitory(newDormId);
+  } else {
+    // Clear rooms and beds if no dormitory selected
+    rooms.value = [];
+    allBeds.value = [];
+    studentProfile.value.room = null;
+    studentProfile.value.bed = null;
+  }
+});
+
+// Watch for changes to room and reset bed if needed
+watch(() => studentProfile.value.room, (newRoom) => {
+  if (newRoom) {
+    // Reset bed when room changes
+    studentProfile.value.bed = null;
+  } else {
+    // Clear bed if no room selected
+    studentProfile.value.bed = null;
   }
 });
 
 // Options for Select Fields
-const facultyOptions = [
-  { value: "engineering", name: t("Engineering and natural sciences") },
-  { value: "business", name: t("Business and economics") },
-  { value: "law", name: t("Law and social sciences") },
-];
-
-const specialistOptions = [
-  { value: "computer_sciences", name: t("Computer sciences") },
-  { value: "mechanical_engineering", name: t("Mechanical engineering") },
-  { value: "civil_engineering", name: t("Civil engineering") },
-];
-
 const genderOptions = [
   { value: "male", name: t("Male") },
   { value: "female", name: t("Female") },
@@ -571,32 +604,7 @@ const bloodTypeOptions = [
   { value: "O-", name: "O-" },
 ];
 
-// Computed options for region and city based on selection
-const regionOptions = computed(() =>
-  regions.value
-    .filter((r) => r.country?.id === selectedCountry.value?.id)
-    .map((r) => ({ value: r.id, name: r.name, obj: r })),
-);
-
-const cityOptions = computed(() =>
-  cities.value
-    .filter((c) => c.region?.id === selectedRegion.value?.id)
-    .map((c) => ({ value: c.id, name: c.name, obj: c })),
-);
-
-// Watchers to reset dependent selections
-function onCountryChange(id: number) {
-  selectedCountry.value = countries.value.find((c) => c.id === id) || null;
-  selectedRegion.value = regionOptions.value[0]?.obj || null;
-  studentProfile.value.city = null;
-}
-function onRegionChange(id: number) {
-  selectedRegion.value = regions.value.find((r) => r.id === id) || null;
-  studentProfile.value.city = null;
-}
-function onCityChange(id: number) {
-  studentProfile.value.city = cities.value.find((c) => c.id === id) || null;
-}
+// Note: Country, region, and city are now direct text input fields
 
 // Add More Phone Numbers
 const addPhoneField = (): void => {

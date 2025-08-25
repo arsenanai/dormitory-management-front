@@ -244,8 +244,8 @@ describe('Messages.vue', () => {
     await wrapper.vm.$nextTick();
     await new Promise(resolve => setTimeout(resolve, 10));
 
-    const facultySelect = wrapper.find('select#faculty-filter');
-    await facultySelect.setValue('engineering');
+    const facultyInput = wrapper.find('input#faculty-filter');
+    await facultyInput.setValue('engineering');
     await wrapper.vm.$nextTick();
 
     // Check that filter functionality works

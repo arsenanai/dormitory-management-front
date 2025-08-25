@@ -7,7 +7,7 @@ services:
     container_name: crm-frontend-dev
     restart: unless-stopped
     ports:
-      - "3000:5173"
+      - "3000:3000"
       - "9323:9323" # Playwright debug port
     environment:
       NODE_ENV: development
@@ -22,12 +22,12 @@ services:
       STUDENT_PASSWORD: supersecret
       SUPERADMIN_EMAIL: sudo@email.com
       SUPERADMIN_PASSWORD: supersecret
-      PLAYWRIGHT_BASE_URL: http://localhost:5173
+      PLAYWRIGHT_BASE_URL: http://localhost:3000
     volumes:
       - .:/app
       - /app/node_modules
     working_dir: /app
-    command: sh -c "npm install && npm run dev"
+    command: sh -c "npm install && npm run dev -- --port 3000 --strictPort --host"
     networks:
       - testcrm_crm_local_net
 

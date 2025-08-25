@@ -5,7 +5,7 @@ test.describe('Navigation Topbar User Menu - TDD E2E Tests', () => {
   test.describe('User Menu Display and Actions', () => {
     test('should display correct superadmin name and email in topbar user menu', async ({ page }) => {
       // Login as superadmin 
-      await page.goto('http://localhost:5173/');
+      await page.goto('http://localhost:3000/');
       await page.fill('#login-email', process.env.ADMIN_EMAIL || 'admin@email.com');
       await page.fill('#login-password', process.env.ADMIN_PASSWORD || 'supersecret');
       await page.click('button[type="submit"]:has-text("Login")');
@@ -56,7 +56,7 @@ test.describe('Navigation Topbar User Menu - TDD E2E Tests', () => {
 
     test('should display correct student name and email in topbar user menu', async ({ page }) => {
       // Login as student
-      await page.goto('http://localhost:5173/');
+      await page.goto('http://localhost:3000/');
       await page.fill('#login-email', process.env.STUDENT_EMAIL || 'student@email.com');
       await page.fill('#login-password', process.env.STUDENT_PASSWORD || 'supersecret');
       await page.click('button[type="submit"]:has-text("Login")');
@@ -90,7 +90,7 @@ test.describe('Navigation Topbar User Menu - TDD E2E Tests', () => {
 
     test('should open user dropdown menu when clicked', async ({ page }) => {
       // Login as superadmin
-      await page.goto('http://localhost:5173/');
+      await page.goto('http://localhost:3000/');
       await page.fill('#login-email', process.env.ADMIN_EMAIL || 'admin@email.com');
       await page.fill('#login-password', process.env.ADMIN_PASSWORD || 'supersecret');
       await page.click('button[type="submit"]:has-text("Login")');
@@ -150,7 +150,7 @@ test.describe('Navigation Topbar User Menu - TDD E2E Tests', () => {
   test.describe('Profile Navigation from User Menu', () => {
     test('should navigate to admin profile form when admin clicks Profile', async ({ page }) => {
       // Login as superadmin
-      await page.goto('http://localhost:5173/');
+      await page.goto('http://localhost:3000/');
       await page.fill('#login-email', 'admin@sdu.edu.kz');
       await page.fill('#login-password', 'password');
       await page.click('button[type="submit"]:has-text("Login")');
@@ -180,11 +180,11 @@ test.describe('Navigation Topbar User Menu - TDD E2E Tests', () => {
 
     test('should navigate to student profile form when student clicks Profile', async ({ page }) => {
       // Login as student
-      await page.goto('http://localhost:5173/');
+      await page.goto('http://localhost:3000/');
       await page.fill('#login-email', 'alice@student.local');
       await page.fill('#login-password', 'password');
       await page.click('button[type="submit"]:has-text("Login")');
-      await page.waitForURL('http://localhost:5173/main', { timeout: 10000 });
+      await page.waitForURL('http://localhost:3000/main', { timeout: 10000 });
       
       // Open user menu
       await page.click('button.user-menu');
@@ -209,7 +209,7 @@ test.describe('Navigation Topbar User Menu - TDD E2E Tests', () => {
   test.describe('Logout Functionality', () => {
     test('should logout user and redirect to root path when logout clicked', async ({ page }) => {
       // Login as superadmin
-      await page.goto('http://localhost:5173/');
+      await page.goto('http://localhost:3000/');
       await page.fill('#login-email', 'admin@sdu.edu.kz');
       await page.fill('#login-password', 'password');
       await page.click('button[type="submit"]:has-text("Login")');
@@ -229,7 +229,7 @@ test.describe('Navigation Topbar User Menu - TDD E2E Tests', () => {
       await logoutButton.click();
       
       // Wait for redirect to login page
-      await page.waitForURL('http://localhost:5173/', { timeout: 10000 });
+      await page.waitForURL('http://localhost:3000/', { timeout: 10000 });
       
       // Verify we're back to login page
       await expect(page.locator('#login-email')).toBeVisible({ timeout: 5000 });
@@ -238,37 +238,37 @@ test.describe('Navigation Topbar User Menu - TDD E2E Tests', () => {
 
     test('should clear user session and prevent access to protected routes after logout', async ({ page }) => {
       // Login as student
-      await page.goto('http://localhost:5173/');
+      await page.goto('http://localhost:3000/');
       await page.fill('#login-email', 'alice@student.local');
       await page.fill('#login-password', 'password');
       await page.click('button[type="submit"]:has-text("Login")');
-      await page.waitForURL('http://localhost:5173/main', { timeout: 10000 });
+      await page.waitForURL('http://localhost:3000/main', { timeout: 10000 });
       
       // Logout
       await page.click('button.user-menu');
       await page.click('.logout-button');
-      await page.waitForURL('http://localhost:5173/', { timeout: 5000 });
+      await page.waitForURL('http://localhost:3000/', { timeout: 5000 });
       
       // Try to access protected route
-      await page.goto('http://localhost:5173/main');
+      await page.goto('http://localhost:3000/main');
       
       // Should be redirected back to login
-      await expect(page).toHaveURL('http://localhost:5173/');
+      await expect(page).toHaveURL('http://localhost:3000/');
       await expect(page.locator('#login-email')).toBeVisible();
     });
 
     test('should show login form after logout without authentication errors', async ({ page }) => {
       // Login and logout
-      await page.goto('http://localhost:5173/');
+      await page.goto('http://localhost:3000/');
       await page.fill('#login-email', 'admin@sdu.edu.kz');
       await page.fill('#login-password', 'supersecret');
       await page.click('button[type="submit"]:has-text("Login")');
-      await page.waitForURL('http://localhost:5173/main', { timeout: 10000 });
+      await page.waitForURL('http://localhost:3000/main', { timeout: 10000 });
       
       // Logout
       await page.click('button.user-menu');
       await page.click('.logout-button');
-      await page.waitForURL('http://localhost:5173/', { timeout: 5000 });
+      await page.waitForURL('http://localhost:3000/', { timeout: 5000 });
       
       // Verify clean login state (no error messages)
       await expect(page.locator('.error-message')).not.toBeVisible();
@@ -279,8 +279,8 @@ test.describe('Navigation Topbar User Menu - TDD E2E Tests', () => {
       await page.fill('#login-email', 'alice@student.local');
       await page.fill('#login-password', 'password');
       await page.click('button[type="submit"]:has-text("Login")');
-      await page.waitForURL('http://localhost:5173/main', { timeout: 10000 });
-      await expect(page).toHaveURL('http://localhost:5173/main');
+      await page.waitForURL('http://localhost:3000/main', { timeout: 10000 });
+      await expect(page).toHaveURL('http://localhost:3000/main');
     });
   });
 });

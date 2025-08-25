@@ -193,24 +193,6 @@ export const MESSAGE_STATUS = {
 } as const;
 
 /**
- * Faculty constants
- */
-export const FACULTIES = {
-  /** Engineering faculty */
-  ENGINEERING: 'engineering',
-  /** Business faculty */
-  BUSINESS: 'business',
-  /** Law faculty */
-  LAW: 'law',
-  /** Medicine faculty */
-  MEDICINE: 'medicine',
-  /** Arts faculty */
-  ARTS: 'arts',
-  /** Science faculty */
-  SCIENCE: 'science',
-} as const;
-
-/**
  * Gender constants
  */
 export const GENDER = {

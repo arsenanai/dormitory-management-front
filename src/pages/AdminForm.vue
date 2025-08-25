@@ -78,30 +78,12 @@
         </div>
       </div>
 
-      <!-- Admin Profile Fields -->
-      <CInput
-        id="admin-position"
-        v-model="adminProfile.position"
-        :label="t('Position')"
-        placeholder="Enter Position"
-      />
-      <CInput
-        id="admin-department"
-        v-model="adminProfile.department"
-        :label="t('Department')"
-        placeholder="Enter Department"
-      />
+      <!-- Office Phone Field -->
       <CInput
         id="admin-office-phone"
         v-model="adminProfile.office_phone"
         :label="t('Office Phone')"
         placeholder="Enter Office Phone"
-      />
-      <CInput
-        id="admin-office-location"
-        v-model="adminProfile.office_location"
-        :label="t('Office Location')"
-        placeholder="Enter Office Location"
       />
     </div>
 
@@ -207,10 +189,7 @@ const user = ref<Partial<User>>({
   dormitory: null,
 });
 const adminProfile = ref<Partial<AdminProfile>>({
-  position: "",
-  department: "",
   office_phone: "",
-  office_location: "",
   dormitory: null,
 });
 
@@ -289,10 +268,7 @@ const submitForm = async (): Promise<void> => {
           email: user.value.email,
           phone_numbers: cleanPhoneNumbers,
           dormitory: user.value.dormitory,
-          position: adminProfile.value.position,
-          department: adminProfile.value.department,
           office_phone: adminProfile.value.office_phone,
-          office_location: adminProfile.value.office_location,
         };
         await adminService.update(userId.value, updatePayload);
         showSuccess(t("Admin profile updated successfully!"));
@@ -302,14 +278,12 @@ const submitForm = async (): Promise<void> => {
       // For new admin creation, include password fields
       const createPayload = {
         name: user.value.name,
+        surname: user.value.surname,
         email: user.value.email,
         phone_numbers: cleanPhoneNumbers,
         password: user.value.password,
         password_confirmation: user.value.confirmPassword,
-        position: adminProfile.value.position,
-        department: adminProfile.value.department,
         office_phone: adminProfile.value.office_phone,
-        office_location: adminProfile.value.office_location,
       };
       await adminService.create(createPayload);
       showSuccess(t("Admin created successfully!"));
@@ -394,10 +368,8 @@ watch(
       
       // Populate adminProfile fields
       adminProfile.value = {
-        position: selectedUser.admin_profile?.position || "",
-        department: selectedUser.admin_profile?.department || "",
         office_phone: selectedUser.admin_profile?.office_phone || "",
-        office_location: selectedUser.admin_profile?.office_location || "",
+        dormitory: selectedUser.dormitory_id || selectedUser.dormitory || null,
       };
     }
   },
@@ -444,10 +416,7 @@ const loadUser = async (id: number) => {
       user.value.dormitory = updatedUser.dormitory;
     
     adminProfile.value = {
-      position: userData.admin_profile?.position || "",
-      department: userData.admin_profile?.department || "",
       office_phone: userData.admin_profile?.office_phone || "",
-      office_location: userData.admin_profile?.office_location || "",
     };
     
           // Force a re-render to ensure components update

@@ -35,7 +35,7 @@ test.describe('Admin Form Debug Comprehensive', () => {
     console.log('🚀 Starting admin form debug test...');
 
     // Login as sudo user
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:3000/');
     console.log('📍 Navigated to login page');
     
     await page.waitForSelector('#login-email', { timeout: 10000 });
@@ -53,7 +53,7 @@ test.describe('Admin Form Debug Comprehensive', () => {
     console.log('✅ Successfully logged in, on dashboard');
 
     // Navigate to admin form for ID 16
-    await page.goto('http://localhost:5173/admin-form/16');
+    await page.goto('http://localhost:3000/admin-form/16');
     console.log('📍 Navigated to admin form for ID 16');
 
     // Wait for the form to load

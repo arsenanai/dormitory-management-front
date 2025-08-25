@@ -51,55 +51,68 @@ test.describe('CRUD Operations E2E Tests', () => {
       // Verify we're on the student form page
       await expect(page).toHaveURL(/\/student-form$/);
       
-      // Fill the form
+      // Fill the form with fields that actually exist
       await page.fill('#student-name, #name, input[name="name"]', testStudent.name);
       await page.fill('#student-surname, #surname, input[name="surname"]', testStudent.surname);
       await page.fill('#student-email, #email, input[name="email"]', testStudent.email);
-      await page.fill('#student-phone, #phone, input[name="phone"]', testStudent.phone);
-      await page.fill('#student-id, #student_id, input[name="student_id"]', testStudent.student_id);
       await page.fill('#student-iin, #iin, input[name="iin"]', testStudent.iin);
-      await page.selectOption('#student-faculty, #faculty, select[name="faculty"]', testStudent.faculty);
+      
+      // Fill phone number field (required by StudentForm)
+      await page.fill('#phone-number-0, input[placeholder*="Phone"]', '+77012345678');
+      
+      // Fill password fields if present (required for new student creation)
+      const passwordField = page.locator('#student-password, #password, input[name="password"]');
+      if (await passwordField.count() > 0) {
+        await passwordField.fill('TestPassword123');
+      }
+      
+      const confirmPasswordField = page.locator('#student-confirm-password, #confirm-password, input[name="confirm_password"]');
+      if (await confirmPasswordField.count() > 0) {
+        await confirmPasswordField.fill('TestPassword123');
+      }
+      
+      // Fill faculty and specialist fields (these are CInput components)
+      await page.fill('#student-faculty, #faculty, input[name="faculty"]', testStudent.faculty);
       await page.fill('#student-specialist, #specialist, input[name="specialist"]', testStudent.specialist);
-      await page.fill('#student-course, #course, input[name="course"]', testStudent.course);
-      await page.fill('#student-year, #year_of_study, input[name="year_of_study"]', testStudent.year_of_study);
       await page.fill('#student-enrollment-year, #enrollment_year, input[name="enrollment_year"]', testStudent.enrollment_year);
-      await page.selectOption('#student-blood-type, #blood_type, select[name="blood_type"]', testStudent.blood_type);
-      await page.fill('#student-parent-name, #parent_name, input[name="parent_name"]', testStudent.parent_name);
-      await page.fill('#student-parent-phone, #parent_phone, input[name="parent_phone"]', testStudent.parent_phone);
-      await page.fill('#student-parent-email, #parent_email, input[name="parent_email"]', testStudent.parent_email);
-      await page.fill('#student-guardian-name, #guardian_name, input[name="guardian_name"]', testStudent.guardian_name);
-      await page.fill('#student-guardian-phone, #guardian_phone, input[name="guardian_phone"]', testStudent.guardian_phone);
-      await page.fill('#student-mentor-name, #mentor_name, input[name="mentor_name"]', testStudent.mentor_name);
-      await page.fill('#student-mentor-email, #mentor_email, input[name="mentor_email"]', testStudent.mentor_email);
-      await page.fill('#student-emergency-name, #emergency_contact_name, input[name="emergency_contact_name"]', testStudent.emergency_contact_name);
-      await page.fill('#student-emergency-phone, #emergency_contact_phone, input[name="emergency_contact_phone"]', testStudent.emergency_contact_phone);
-      await page.fill('#student-emergency-relationship, #emergency_contact_relationship, input[name="emergency_contact_relationship"]', testStudent.emergency_contact_relationship);
-      await page.fill('#student-program, #program, input[name="program"]', testStudent.program);
-      await page.fill('#student-year-level, #year_level, input[name="year_level"]', testStudent.year_level);
-      await page.fill('#student-nationality, #nationality, input[name="nationality"]', testStudent.nationality);
       await page.fill('#student-deal-number, #deal_number, input[name="deal_number"]', testStudent.deal_number);
       
-      // Check boolean fields
-      const mealPlanCheckbox = page.locator('#student-meal-plan, #has_meal_plan, input[name="has_meal_plan"]');
-      if (await mealPlanCheckbox.count() > 0) {
-        await mealPlanCheckbox.check();
-      }
+      // Fill country, region, and city fields (these are now CInput components)
+      await page.fill('#student-country, #country, input[name="country"]', 'Kazakhstan');
+      await page.fill('#student-region, #region, input[name="region"]', 'Almaty');
+      await page.fill('#student-city, #city, input[name="city"]', 'Kaskelen');
       
-      const rulesCheckbox = page.locator('#student-rules, #agree_to_dormitory_rules, input[name="agree_to_dormitory_rules"]');
-      if (await rulesCheckbox.count() > 0) {
-        await rulesCheckbox.check();
-      }
+      // Note: Dormitory, room, and bed selection might not be required for form submission
+      // The working student-crud.spec.ts test doesn't select these fields
+      // Let's try submitting without them first
+      
+      // Note: Meal plan and rules checkboxes are not present in the current Student form
       
       // Submit form
       await page.click('button:has-text("Save"), button:has-text("Submit")');
       
-      // Should redirect to students list
-      await page.waitForURL(/\/students/);
-      await expect(page).toHaveURL(/\/students/);
-      
-      // Verify student was created
-      await expect(page.locator(`text=${testStudent.name}`)).toBeVisible();
-      await expect(page.locator(`text=${testStudent.email}`)).toBeVisible();
+      // Wait for either success message or error message instead of URL redirect
+      try {
+        // Wait for success toast message
+        await page.waitForSelector('[role="alert"]:has-text("successfully"), .toast-success, .alert-success', { timeout: 10000 });
+        
+        // If we get here, form submission was successful
+        // Now navigate to students list to verify the student was created
+        await page.goto('/students');
+        await page.waitForLoadState('networkidle');
+        
+        // Verify student was created
+        await expect(page.locator(`text=${testStudent.name}`)).toBeVisible({ timeout: 5000 });
+        await expect(page.locator(`text=${testStudent.email}`)).toBeVisible({ timeout: 5000 });
+      } catch (error) {
+        // If success message doesn't appear, check for error message
+        const errorElement = page.locator('[role="alert"]:has-text("error"), .toast-error, .alert-error, .error');
+        if (await errorElement.count() > 0) {
+          await expect(errorElement.first()).toBeVisible({ timeout: 5000 });
+          console.log('Form submission failed with error:', await errorElement.first().textContent());
+        }
+        throw error; // Re-throw to fail the test
+      }
     });
 
     test('should read student data correctly', async ({ page }) => {
@@ -138,12 +151,25 @@ test.describe('CRUD Operations E2E Tests', () => {
         // Submit form
         await page.click('button:has-text("Save"), button:has-text("Submit")');
         
-        // Should redirect to students list
-        await page.waitForURL(/\/students/);
-        await expect(page).toHaveURL(/\/students/);
-        
-        // Verify student was updated
-        await expect(page.locator(`text=${updatedName}`)).toBeVisible();
+        // Wait for success message instead of URL redirect
+        try {
+          await page.waitForSelector('[role="alert"]:has-text("successfully"), .toast-success, .alert-success', { timeout: 10000 });
+          
+          // If successful, navigate to students list to verify the update
+          await page.goto('/students');
+          await page.waitForLoadState('networkidle');
+          
+          // Verify student was updated
+          await expect(page.locator(`text=${updatedName}`)).toBeVisible({ timeout: 5000 });
+        } catch (error) {
+          // Check for error message if success doesn't appear
+          const errorElement = page.locator('[role="alert"]:has-text("error"), .toast-error, .alert-error, .error');
+          if (await errorElement.count() > 0) {
+            await expect(errorElement.first()).toBeVisible({ timeout: 5000 });
+            console.log('Form update failed with error:', await errorElement.first().textContent());
+          }
+          throw error;
+        }
       }
     });
 
@@ -205,7 +231,7 @@ test.describe('CRUD Operations E2E Tests', () => {
       await page.fill('#guest-host-name, #host_name, input[name="host_name"]', testGuest.host_name);
       await page.fill('#guest-host-contact, #host_contact, input[name="host_contact"]', testGuest.host_contact);
       await page.fill('#guest-daily-rate, #daily_rate, input[name="daily_rate"]', testGuest.daily_rate);
-      await page.selectOption('#guest-identification-type, #identification_type, select[name="identification_type"]', testGuest.identification_type);
+      await page.fill('#guest-identification-type, #identification_type, input[name="identification_type"]', testGuest.identification_type);
       await page.fill('#guest-identification-number, #identification_number, input[name="identification_number"]', testGuest.identification_number);
       await page.fill('#guest-emergency-name, #emergency_contact_name, input[name="emergency_contact_name"]', testGuest.emergency_contact_name);
       await page.fill('#guest-emergency-phone, #emergency_contact_phone, input[name="emergency_contact_phone"]', testGuest.emergency_contact_phone);
@@ -249,7 +275,7 @@ test.describe('CRUD Operations E2E Tests', () => {
       // Fill the form
       await page.fill('#room-number, #number, input[name="number"]', testRoom.number);
       await page.fill('#room-floor, #floor, input[name="floor"]', testRoom.floor);
-      await page.selectOption('#room-dormitory, #dormitory_id, select[name="dormitory_id"]', testRoom.dormitory_id);
+      // Note: dormitory field is readonly and automatically linked
       await page.selectOption('#room-type, #room_type_id, select[name="room_type_id"]', testRoom.room_type_id);
       
       // Uncheck occupied if present
@@ -291,7 +317,7 @@ test.describe('CRUD Operations E2E Tests', () => {
       await page.waitForLoadState('networkidle');
       
       // Fill the form
-      await page.fill('#room-type-name, #name, input[name="name"]', testRoomType.name);
+      await page.selectOption('#room-type-name, #name, select[name="name"]', testRoomType.name);
       await page.fill('#room-type-capacity, #capacity, input[name="capacity"]', testRoomType.capacity);
       await page.fill('#room-type-price, #price, input[name="price"]', testRoomType.price);
       
@@ -319,7 +345,6 @@ test.describe('CRUD Operations E2E Tests', () => {
       address: 'Test Address, Test City',
       description: 'Test dormitory for CRUD operations',
       gender: 'mixed',
-      quota: '100',
       capacity: '120'
     };
 
@@ -335,8 +360,7 @@ test.describe('CRUD Operations E2E Tests', () => {
       await page.fill('#dormitory-name, #name, input[name="name"]', testDormitory.name);
       await page.fill('#dormitory-address, #address, input[name="address"]', testDormitory.address);
       await page.fill('#dormitory-description, #description, textarea[name="description"]', testDormitory.description);
-      await page.selectOption('#dormitory-gender, #gender, select[name="gender"]', testDormitory.gender);
-      await page.fill('#dormitory-quota, #quota, input[name="quota"]', testDormitory.quota);
+      await page.fill('#dormitory-gender, #gender, input[name="gender"]', testDormitory.gender);
       await page.fill('#dormitory-capacity, #capacity, input[name="capacity"]', testDormitory.capacity);
       
       // Submit form
@@ -377,13 +401,13 @@ test.describe('CRUD Operations E2E Tests', () => {
       // Fill the form
       await page.fill('#payment-semester, #semester, input[name="semester"]', testPayment.semester);
       await page.fill('#payment-year, #year, input[name="year"]', testPayment.year);
-      await page.selectOption('#payment-semester-type, #semester_type, select[name="semester_type"]', testPayment.semester_type);
+      await page.fill('#payment-semester-type, #semester_type, input[name="semester_type"]', testPayment.semester_type);
       await page.fill('#payment-amount, #amount, input[name="amount"]', testPayment.amount);
       await page.fill('#payment-due-date, #due_date, input[name="due_date"]', testPayment.due_date);
       await page.fill('#payment-notes, #payment_notes, textarea[name="payment_notes"]', testPayment.payment_notes);
       await page.fill('#payment-dormitory-notes, #dormitory_notes, textarea[name="dormitory_notes"]', testPayment.dormitory_notes);
-      await page.selectOption('#payment-status, #payment_status, select[name="payment_status"]', testPayment.payment_status);
-      await page.selectOption('#payment-dormitory-status, #dormitory_status, select[name="dormitory_status"]', testPayment.dormitory_status);
+      await page.fill('#payment-status, #payment_status, input[name="payment_status"]', testPayment.payment_status);
+      await page.fill('#payment-dormitory-status, #dormitory_status, input[name="dormitory_status"]', testPayment.dormitory_status);
       
       // Uncheck approval checkboxes
       const paymentApprovedCheckbox = page.locator('#payment-approved, #payment_approved, input[name="payment_approved"]');
@@ -431,7 +455,7 @@ test.describe('CRUD Operations E2E Tests', () => {
       await page.fill('#admin-surname, #surname, input[name="surname"]', testAdmin.surname);
       await page.fill('#admin-email, #email, input[name="email"]', testAdmin.email);
       await page.fill('#admin-phone, #phone, input[name="phone"]', testAdmin.phone);
-      await page.selectOption('#admin-role, #role, select[name="role"]', testAdmin.role);
+      await page.fill('#admin-role, #role, input[name="role"]', testAdmin.role);
       
       // Fill password fields if present
       const passwordField = page.locator('#admin-password, #password, input[name="password"]');

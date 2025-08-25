@@ -35,6 +35,7 @@
                     :validationState="credentialsValidationState.email"
                     validationstate-attr="validationstate"
                     :validationMessage="credentialsValidationMessage.email"
+                    data-testid="email-input"
                   />
                 </div>
 
@@ -50,10 +51,11 @@
                     validationstate-attr="validationstate"
                     :validationMessage="credentialsValidationMessage.password"
                     pattern=".{6,}"
+                    data-testid="password-input"
                   />
                 </div>
 
-                <CButton type="submit" class="mt-4 w-full" variant="primary">
+                <CButton type="submit" class="mt-4 w-full" variant="primary" data-testid="login-button">
                   {{ t("Login") }}
                 </CButton>
               </form>
@@ -77,7 +79,7 @@
 
             <!-- Registration Tab -->
             <CTab name="registration" :title="t('Registration')" data-testid="registration-tab">
-              <form class="flex flex-col gap-4" @submit.prevent="handleRegistration">
+              <form class="flex flex-col gap-4" @submit.prevent="handleRegistration" novalidate>
                 <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   <div>
                     <CInput
@@ -107,11 +109,12 @@
                   </div>
 
                   <div>
-                    <CSelect
+                    <CInput
                       id="registration-faculty"
                       v-model="registration.faculty"
-                      :options="facultyOptions"
+                      type="text"
                       :label="t('Faculty')"
+                      :placeholder="t('Enter Faculty Name')"
                       required
                       :validationState="registrationValidationState.faculty"
                       :validationMessage="registrationValidationMessage.faculty"
@@ -119,16 +122,15 @@
                   </div>
 
                   <div>
-                    <CSelect
+                    <CInput
                       id="registration-specialist"
                       v-model="registration.specialist"
-                      :options="specialistOptions"
+                      type="text"
                       :label="t('Specialist')"
+                      :placeholder="t('Enter Specialty/Program Name')"
                       required
                       :validationState="registrationValidationState.specialist"
-                      :validationMessage="
-                        registrationValidationMessage.specialist
-                      "
+                      :validationMessage="registrationValidationMessage.specialist"
                     />
                   </div>
 
@@ -205,15 +207,36 @@
                   </div>
 
                   <div>
-                    <CSelect
-                      id="registration-dormitory"
-                      v-model="registration.dormitory"
-                      :options="dormitoryOptions"
-                      :label="t('Select Dormitory')"
-                      required
-                      :validationState="registrationValidationState.dormitory"
-                      :validationMessage="registrationValidationMessage.dormitory"
-                    />
+                    <div class="flex items-end gap-2">
+                      <div class="flex-1">
+                        <CSelect
+                          id="registration-dormitory"
+                          v-model="registration.dormitory"
+                          :options="dormitoryOptions"
+                          :label="t('Select Dormitory')"
+                          required
+                          :validationState="registrationValidationState.dormitory"
+                          :validationMessage="registrationValidationMessage.dormitory"
+                        />
+                      </div>
+                      <CButton
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        :disabled="loadingDormitories"
+                        @click="fetchDormitories"
+                        data-testid="refresh-dormitories"
+                        class="mb-1"
+                      >
+                        <svg v-if="loadingDormitories" class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <svg v-else class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                      </CButton>
+                    </div>
                   </div>
 
                   <div>
@@ -224,7 +247,39 @@
                       :options="roomOptions"
                       :label="t('Select Room')"
                       :disabled="!registration.dormitory || loadingRooms"
-                      required
+                      :validationState="registrationValidationState.room"
+                      :validationMessage="registrationValidationMessage.room"
+                    />
+                  </div>
+
+                  <!-- Location Information -->
+                  <div>
+                    <CInput
+                      id="registration-country"
+                      v-model="registration.country"
+                      type="text"
+                      :label="t('Country')"
+                      :placeholder="t('Enter Country')"
+                    />
+                  </div>
+
+                  <div>
+                    <CInput
+                      id="registration-region"
+                      v-model="registration.region"
+                      type="text"
+                      :label="t('Region')"
+                      :placeholder="t('Enter Region')"
+                    />
+                  </div>
+
+                  <div>
+                    <CInput
+                      id="registration-city"
+                      v-model="registration.city"
+                      type="text"
+                      :label="t('City')"
+                      :placeholder="t('Enter City')"
                     />
                   </div>
                 </div>
@@ -339,6 +394,7 @@ import { UserRegistration, UserStatus } from "@/models/User";
 import { useToast } from "@/composables/useToast";
 import { ref, onMounted, computed, watch } from 'vue';
 import { roomService, dormitoryService } from '@/services/api';
+import { academicService } from '@/services/academicService';
 import i18n from '@/i18n';
 
 const { t } = useI18n();
@@ -351,34 +407,54 @@ const reserveListMessage = ref("");
 const successMessage = ref("");
 
 const handleRegistration = async () => {
-  // Validate registration fields
-  const validationErrors = [];
-  
-  if (!registration.value.name?.trim()) {
-    validationErrors.push(t('Name is required'));
-  }
-  
-  if (!registration.value.email?.trim()) {
-    validationErrors.push(t('Email is required'));
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(registration.value.email)) {
-    validationErrors.push(t('Please enter a valid email address'));
-  }
-  
-  if (!registration.value.password?.trim()) {
-    validationErrors.push(t('Password is required'));
-  } else if (registration.value.password.length < 6) {
-    validationErrors.push(t('Password must be at least 6 characters'));
-  }
-  
-  if (registration.value.password !== registration.value.confirmPassword) {
-    validationErrors.push(t('Passwords do not match'));
-  }
-  
-  if (validationErrors.length > 0) {
-    showError(validationErrors.join(', '));
+  // Reset per-field validation
+  Object.assign(registrationValidationState.value, {
+    iin: '', name: '', faculty: '', specialist: '', enrollmentYear: '', gender: '',
+    email: '', password: '', confirmPassword: '', dormitory: '', room: ''
+  });
+  Object.assign(registrationValidationMessage.value, {
+    iin: '', name: '', faculty: '', specialist: '', enrollmentYear: '', gender: '',
+    email: '', password: '', confirmPassword: '', dormitory: '', room: ''
+  });
+
+  let hasError = false;
+  const setErr = (field: keyof typeof registrationValidationState.value, msg: string) => {
+    // @ts-ignore
+    registrationValidationState.value[field] = 'error';
+    // @ts-ignore
+    registrationValidationMessage.value[field] = msg;
+    hasError = true;
+  };
+
+  // IIN
+  if (!/^\d{12}$/.test(registration.value.iin || '')) setErr('iin', t('IIN must be 12 digits'));
+  // Name
+  if (!registration.value.name?.trim()) setErr('name', t('Name is required'));
+  // Faculty
+  if (!registration.value.faculty?.trim()) setErr('faculty', t('Faculty is required'));
+  // Specialist
+  if (!registration.value.specialist?.trim()) setErr('specialist', t('Specialist is required'));
+  // Enrollment Year
+  if (!/^\d{4}$/.test(registration.value.enrollmentYear || '')) setErr('enrollmentYear', t('Enter 4-digit year'));
+  // Gender
+  if (!registration.value.gender) setErr('gender', t('Gender is required'));
+  // Email
+  const emailOk = /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(registration.value.email || '');
+  if (!emailOk) setErr('email', t('Invalid email format.'));
+  // Passwords
+  if (!registration.value.password || registration.value.password.length < 6) setErr('password', t('Password must be at least 6 characters'));
+  if (registration.value.password !== registration.value.confirmPassword) setErr('confirmPassword', t('Passwords do not match'));
+  // Dormitory & Room
+  if (!registration.value.dormitory) setErr('dormitory', t('Select a dormitory'));
+  if (!registration.value.room) setErr('room', t('Select a room'));
+  // Rules
+  if (!registration.value.agreeToDormitoryRules) showError(t('Please agree to dormitory rules'));
+
+  if (hasError) {
+    showError(t('Please fix the errors in the form'));
     return;
   }
-  
+
   try {
     const payload = {
       iin: registration.value.iin,
@@ -393,7 +469,9 @@ const handleRegistration = async () => {
       password: registration.value.password,
       password_confirmation: registration.value.confirmPassword,
       deal_number: registration.value.dealNumber,
-      city_id: registration.value.city?.id || null,
+      country: registration.value.country,
+      region: registration.value.region,
+      city: registration.value.city,
       files: registration.value.files.filter(f => f !== null && f instanceof File),
       agree_to_dormitory_rules: registration.value.agreeToDormitoryRules,
       user_type: 'student',
@@ -467,7 +545,9 @@ const registration = ref(
     "", // password
     "", // confirmPassword
     "", // dealNumber
-    null, // city
+    "", // country
+    "", // region
+    "", // city
     [null, null, null, null] as (File | null)[], // files
     false, // agreeToDormitoryRules
     "reserved", // status (UserStatus)
@@ -572,39 +652,47 @@ const updateGuestFileInput = (index, file) => {
   guest.value.files[index] = file;
 };
 
-const facultyOptions = [
-  { value: "engineering", name: "Engineering and natural sciences" },
-  { value: "business", name: "Business and economics" },
-  { value: "law", name: "Law and social sciences" },
-];
-
-const specialistOptions = [
-  { value: "computer_sciences", name: "Computer sciences" },
-  { value: "mechanical_engineering", name: "Mechanical engineering" },
-  { value: "civil_engineering", name: "Civil engineering" },
-];
-
 const genderOptions = [
   { value: "male", name: "Male" },
   { value: "female", name: "Female" },
 ];
 
 const dormitoryOptions = ref([]);
+const loadingDormitories = ref(false);
 
-// Fetch dormitories on component mount
-onMounted(async () => {
+// Function to fetch dormitories
+const fetchDormitories = async () => {
+  loadingDormitories.value = true;
   try {
     const response = await dormitoryService.getAll();
-    dormitoryOptions.value = response.data.data.map(dorm => ({
+    // API returns an array directly, not wrapped in data.data
+    const dormitories = Array.isArray(response.data) ? response.data : (response.data.data || []);
+    dormitoryOptions.value = dormitories.map(dorm => ({
       value: dorm.id.toString(),
       name: dorm.name
     }));
+    console.log('✅ Loaded dormitories:', dormitoryOptions.value.length);
   } catch (error) {
     console.error('Failed to fetch dormitories:', error);
     // Fallback to hardcoded options if API fails
     dormitoryOptions.value = [
-      { value: "4", name: "A Block" },
+      { value: "3", name: "A Block" }, // Use dormitory 3 which has beds
     ];
+  } finally {
+    loadingDormitories.value = false;
+  }
+};
+
+// Fetch dormitories on component mount
+onMounted(async () => {
+  await fetchDormitories();
+});
+
+// Watch for tab changes to refresh dormitories when registration tab is activated
+watch(activeTab, async (newTab) => {
+  if (newTab === 'registration') {
+    // Refresh dormitories when switching to registration tab
+    await fetchDormitories();
   }
 });
 
@@ -621,10 +709,36 @@ watch(() => registration.value.dormitory, async (dormitoryId) => {
   }
   loadingRooms.value = true;
   try {
-    const response = await roomService.getAvailable({ dormitory_id: dormitoryId });
-    availableRooms.value = response.data || [];
-    allAvailableBeds.value = availableRooms.value.flatMap(room => room.beds.map(bed => ({ ...bed, room })));
+    console.log('🔄 Loading rooms for dormitory:', dormitoryId);
+    
+    // Use the new public registration endpoint with full URL
+    const response = await fetch(`http://localhost:8000/api/dormitories/${dormitoryId}/registration`);
+    if (!response.ok) {
+      console.error('API response not ok:', response.status, response.statusText);
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    console.log('🔍 API response data:', data);
+    
+    if (data.data && data.data.rooms) {
+      availableRooms.value = data.data.rooms;
+      console.log('✅ Loaded rooms from registration endpoint:', availableRooms.value.length);
+    } else {
+      availableRooms.value = [];
+      console.log('⚠️ No rooms found in dormitory data');
+      console.log('🔍 Full response:', data);
+    }
+    
+    // Extract beds from rooms
+    allAvailableBeds.value = availableRooms.value.flatMap(room => 
+      (room.beds || []).map(bed => ({ ...bed, room }))
+    );
+    
+    console.log('📊 Total rooms available:', availableRooms.value.length);
+    console.log('📊 Total beds available:', allAvailableBeds.value.length);
+    
   } catch (e) {
+    console.error('❌ Failed to load rooms:', e);
     availableRooms.value = [];
     allAvailableBeds.value = [];
   } finally {
@@ -633,7 +747,7 @@ watch(() => registration.value.dormitory, async (dormitoryId) => {
 });
 
 const roomOptions = computed(() =>
-  availableRooms.value.map((r) => ({ value: r.id, name: r.number }))
+  availableRooms.value.map((r) => ({ value: r, name: r.number }))
 );
 const bedOptions = computed(() => {
   if (!registration.value.room) return [];

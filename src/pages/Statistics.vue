@@ -68,12 +68,6 @@ const dashboardStore = useDashboardStore();
 const authStore = useAuthStore();
 
 onMounted(async () => {
-  // Ensure user is authenticated before fetching stats
-  if (!authStore.isAuthenticated) {
-    console.warn('User not authenticated, redirecting to login');
-    return;
-  }
-  
   try {
     await dashboardStore.fetchStats();
   } catch (error) {

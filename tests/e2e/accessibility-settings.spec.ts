@@ -2,7 +2,7 @@ import { test, expect } from './test';
 
 test.describe('Accessibility Settings E2E', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:3000/');
     
     // Try to login
     try {
@@ -18,7 +18,7 @@ test.describe('Accessibility Settings E2E', () => {
     }
     
     // Navigate to account preferences
-    await page.goto('http://localhost:5173/account-preferences');
+    await page.goto('http://localhost:3000/account-preferences');
     await page.waitForLoadState('domcontentloaded');
   });
 

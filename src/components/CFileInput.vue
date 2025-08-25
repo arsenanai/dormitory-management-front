@@ -29,7 +29,20 @@
         <PaperClipIcon
           class="pointer-events-none absolute top-1/2 left-0 h-8 w-8 -translate-y-1/2 pl-3 text-gray-500 dark:text-gray-400"
         />
-        <p class="text-base text-primary-500 dark:text-primary-400">
+        
+        <!-- Show selected file name or default text -->
+        <div v-if="selectedFile" class="text-base text-primary-500 dark:text-primary-400">
+          <span class="font-medium">{{ selectedFile }}</span>
+          <button 
+            type="button" 
+            @click.stop="clearFile" 
+            class="ml-2 text-red-500 hover:text-red-700 text-sm"
+            :title="t('Remove file')"
+          >
+            ×
+          </button>
+        </div>
+        <p v-else class="text-base text-primary-500 dark:text-primary-400">
           {{ t('Drag and drop your file here, or') }}
           <label
             :for="id"
@@ -115,6 +128,14 @@ const focusFileInput = () => {
   if (fileInput.value) {
     fileInput.value.click(); // Programmatically trigger the file input
   }
+};
+
+const clearFile = () => {
+  if (fileInput.value) {
+    fileInput.value.value = ''; // Clear the file input
+  }
+  selectedFile.value = null;
+  emit('change', null);
 };
 
 const handleDragOver = () => {

@@ -143,10 +143,10 @@ test.describe('Authentication Flow', () => {
 
   test('should redirect to login when accessing protected route without auth', async ({ page }) => {
     // Try to access a protected route directly
-    await page.goto('http://localhost:5173/admins');
+    await page.goto('http://localhost:3000/admins');
     
     // Should be redirected to login
-    await expect(page).toHaveURL('http://localhost:5173/');
+    await expect(page).toHaveURL('http://localhost:3000/');
   });
   
   test('should successfully register a student', async ({ page }) => {
@@ -157,15 +157,11 @@ test.describe('Authentication Flow', () => {
     
     // Try to fill form fields, but don't fail if they don't exist
     try {
-      await page.selectOption('#registration-faculty', 'engineering');
-    } catch (e) {
-      console.log('Faculty field not available');
-    }
-    
-    try {
-      await page.selectOption('#registration-specialist', 'computer_sciences');
-    } catch (e) {
-      console.log('Specialist field not available');
+      await page.fill('#registration-faculty', 'Engineering');
+      await page.fill('#registration-specialist', 'Computer Science');
+      console.log('Faculty/Specialist fields filled successfully');
+    } catch (error) {
+      console.log('Faculty/Specialist fields not available');
     }
     
     await page.fill('#registration-enrollment-year', '2023');
@@ -250,8 +246,8 @@ test.describe('Authentication Flow', () => {
     
     // Try to fill form fields, but don't fail if they don't exist
     try {
-      await page.selectOption('#registration-faculty', 'engineering');
-      await page.selectOption('#registration-specialist', 'computer_sciences');
+      await page.fill('#registration-faculty', 'Engineering');
+      await page.fill('#registration-specialist', 'Computer Science');
     } catch (e) {
       console.log('Faculty/Specialist fields not available');
     }
@@ -333,7 +329,7 @@ test.describe('Authentication Flow', () => {
 
   test('should display guest payments in guest house registration page', async ({ page }) => {
     // Go to guest registration page
-    await page.goto('http://localhost:5173/guest-form');
+    await page.goto('http://localhost:3000/guest-form');
     
     // Try to wait for the payments table, but don't fail if it doesn't exist
     try {

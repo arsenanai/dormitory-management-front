@@ -44,7 +44,7 @@
             />
           </div>
           <div class="flex-1 flex justify-end">
-            <CButton variant="primary" @click="navigateToAddRoom">
+            <CButton variant="primary" @click="navigateToAddRoom" data-testid="add-room-button">
               <PlusIcon class="h-5 w-5" />
               {{ t("Add Room") }}
             </CButton>
@@ -62,49 +62,58 @@
         </div>
   
         <!-- Rooms Table -->
-        <CTable v-if="!loading && !error">
-          <CTableHead>
-            <CTableHeadCell>{{ t("Room Number") }}</CTableHeadCell>
-            <CTableHeadCell>{{ t("Dormitory") }}</CTableHeadCell>
-            <CTableHeadCell>{{ t("Room Type") }}</CTableHeadCell>
-            <CTableHeadCell>{{ t("Floor") }}</CTableHeadCell>
-            <CTableHeadCell>{{ t("Beds") }}</CTableHeadCell>
-            <CTableHeadCell>{{ t("Quota") }}</CTableHeadCell>
-            <CTableHeadCell>{{ t("Notes") }}</CTableHeadCell>
-            <CTableHeadCell class="text-right">{{ t("Action") }}</CTableHeadCell>
-          </CTableHead>
-          <CTableBody>
-            <CTableRow v-for="room in paginatedRooms" :key="room.id">
-              <CTableCell>{{ room.number }}</CTableCell>
-              <CTableCell>{{ getDormitoryName(room) }}</CTableCell>
-              <CTableCell>{{ getRoomTypeName(room) }}</CTableCell>
-              <CTableCell>
-                {{ room.floor !== null ? room.floor : '-' }}
-              </CTableCell>
-              <CTableCell>{{ getBedsCount(room) }}</CTableCell>
-              <CTableCell>{{ room.quota || room.room_type?.capacity || '-' }}</CTableCell>
-              <CTableCell>{{ room.notes || '-' }}</CTableCell>
-              <CTableCell class="text-right flex gap-2 justify-end">
-                <CButton @click="navigateToEditRoom(room.id)">
-                  <PencilSquareIcon class="h-5 w-5" /> {{ t("Edit") }}
-                </CButton>
-                <CButton class="text-red-600" @click="deleteRoom(room.id)">
-                  <TrashIcon class="h-5 w-5" /> {{ t("Delete") }}
-                </CButton>
-              </CTableCell>
-            </CTableRow>
-          </CTableBody>
-        </CTable>
+        <div v-if="!loading && !error" class="overflow-x-auto">
+          <table class="w-full text-sm text-left text-gray-500">
+            <thead class="text-xs text-primary-700 uppercase bg-primary-50">
+              <tr>
+                <th class="px-6 py-3">{{ t("Room Number") }}</th>
+                <th class="px-6 py-3">{{ t("Dormitory") }}</th>
+                <th class="px-6 py-3">{{ t("Room Type") }}</th>
+                <th class="px-6 py-3">{{ t("Floor") }}</th>
+                <th class="px-6 py-3">{{ t("Beds") }}</th>
+                <th class="px-6 py-3">{{ t("Quota") }}</th>
+                <th class="px-6 py-3">{{ t("Notes") }}</th>
+                <th class="px-6 py-3 text-right">{{ t("Action") }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-if="paginatedRooms.length === 0" class="bg-white border-b">
+                <td colspan="8" class="px-6 py-4 text-center text-gray-500">
+                  No rooms available
+                </td>
+              </tr>
+              <tr v-for="room in paginatedRooms" :key="room.id" class="bg-white border-b hover:bg-gray-50">
+                <td class="px-6 py-4">{{ room.number }}</td>
+                <td class="px-6 py-4">{{ getDormitoryName(room) }}</td>
+                <td class="px-6 py-4">{{ getRoomTypeName(room) }}</td>
+                <td class="px-6 py-4">{{ room.floor !== null ? room.floor : '-' }}</td>
+                <td class="px-6 py-4">{{ getBedsCount(room) }}</td>
+                <td class="px-6 py-4">{{ room.quota || room.room_type?.capacity || '-' }}</td>
+                <td class="px-6 py-4">{{ room.notes || '-' }}</td>
+                <td class="px-6 py-4 text-right">
+                  <div class="flex gap-2 justify-end">
+                    <CButton @click="navigateToEditRoom(room.id)" data-testid="edit-room-button">
+                      <PencilSquareIcon class="h-5 w-5" /> {{ t("Edit") }}
+                    </CButton>
+                    <CButton class="text-red-600" @click="deleteRoom(room.id)" data-testid="delete-room-button">
+                      <TrashIcon class="h-5 w-5" /> {{ t("Delete") }}
+                    </CButton>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
   
         <!-- Pagination -->
         <div class="flex items-center justify-between">
-          <CButton :disabled="currentPage === 1" @click="currentPage--" :aria-label="t('Previous page')">
+          <CButton :disabled="currentPage === 1" @click="currentPage--" :aria-label="t('Previous page')" data-testid="pagination-button">
             {{ t("Previous") }}
           </CButton>
           <span>
             {{ t("Page") }} {{ currentPage }} {{ t("of") }} {{ totalPages }}
           </span>
-          <CButton :disabled="currentPage === totalPages" @click="currentPage++" :aria-label="t('Next page')">
+          <CButton :disabled="currentPage === totalPages" @click="currentPage++" :aria-label="t('Next page')" data-testid="pagination-button">
             {{ t("Next") }}
           </CButton>
         </div>
@@ -116,15 +125,10 @@
 import Navigation from "@/components/CNavigation.vue";
 import { useI18n } from "vue-i18n";
 import { ref, computed, watch, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import CSelect from "@/components/CSelect.vue";
 import CButton from "@/components/CButton.vue";
 import CTable from "@/components/CTable.vue";
-import CTableHead from "@/components/CTableHead.vue";
-import CTableHeadCell from "@/components/CTableHeadCell.vue";
-import CTableBody from "@/components/CTableBody.vue";
-import CTableRow from "@/components/CTableRow.vue";
-import CTableCell from "@/components/CTableCell.vue";
 import { PlusIcon, PencilSquareIcon, TrashIcon } from "@heroicons/vue/24/outline";
 import { roomService, dormitoryService, roomTypeService } from "@/services/api";
 import { useRoomsStore } from "@/stores/rooms";
@@ -134,6 +138,7 @@ import CInput from "@/components/CInput.vue";
 // i18n and router
 const { t } = useI18n();
 const router = useRouter();
+const route = useRoute();
 
 // store
 const roomsStore = useRoomsStore();
@@ -169,8 +174,31 @@ const loadRooms = async () => {
       return;
     }
 
+    // Prepare filters for backend API
+    const apiFilters: any = {};
+    
+    // Add search term as number filter (backend searches room numbers)
+    if (searchTerm.value.trim()) {
+      apiFilters.number = searchTerm.value.trim();
+    }
+    
+    // Add other filters
+    if (statusFilter.value) {
+      apiFilters.status = statusFilter.value;
+    }
+    
+    if (dormitoryFilter.value) {
+      apiFilters.dormitory_id = dormitoryFilter.value;
+    }
+    
+    if (filters.value.roomType) {
+      apiFilters.room_type_id = filters.value.roomType;
+    }
+
+    console.log('Sending filters to API:', apiFilters);
+
     const [roomsResponse, dormitoriesResponse, roomTypesResponse] = await Promise.all([
-      roomService.getAll(),
+      roomService.getAll(apiFilters),
       dormitoryService.getAll(),
       roomTypeService.getAll()
     ]);
@@ -231,6 +259,24 @@ onMounted(() => {
   roomsStore.clearSelectedRoom();
 });
 
+// Route watcher to reload rooms when the component becomes active again
+watch(route, () => {
+  if (route.path === '/rooms') {
+    loadRooms();
+  }
+});
+
+// Also watch for route path changes more specifically
+watch(() => route.path, (newPath) => {
+  if (newPath === '/rooms') {
+    console.log('Route changed to /rooms, reloading rooms...');
+    loadRooms();
+  }
+});
+
+// Watch for search term and filter changes to reload rooms
+// Note: This watcher will be moved after filters ref is declared
+
 // Status options for filter
 const statusOptions = computed(() => [
   { value: "", name: t("All Statuses") },
@@ -257,42 +303,23 @@ const filters = ref({
   roomType: "",
 });
 
-// Filtered rooms
-const filteredRooms = computed(() => {
-  if (!rooms.value.length) return [];
-  return rooms.value.filter((room) => {
-    // Search filter
-    const searchMatch = !searchTerm.value || 
-      room.number?.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
-      room.description?.toLowerCase().includes(searchTerm.value.toLowerCase());
-    
-    // Status filter
-    const statusMatch = !statusFilter.value || room.status === statusFilter.value;
-    
-    // Dormitory filter
-    const dormMatch = (!filters.value.dormitory && !dormitoryFilter.value) || 
-      room.dormitory_id === parseInt(filters.value.dormitory) ||
-      room.dormitory?.id === parseInt(filters.value.dormitory) ||
-      room.dormitory_id === dormitoryFilter.value ||
-      room.dormitory?.id === dormitoryFilter.value;
-      
-    // Room type filter
-    const typeMatch = !filters.value.roomType || 
-      room.room_type_id === parseInt(filters.value.roomType) ||
-      room.roomType?.id === parseInt(filters.value.roomType);
-      
-    return searchMatch && statusMatch && dormMatch && typeMatch;
-  });
+// Watch for search term and filter changes to reload rooms
+watch([searchTerm, statusFilter, dormitoryFilter, () => filters.value.roomType], () => {
+  console.log('Filters changed, reloading rooms...');
+  loadRooms();
 });
+
+// Note: Filtering is now handled by the backend API
+// The rooms.value array contains only the filtered results
 
 // Pagination
 const currentPage = ref(1);
 const itemsPerPage = ref(10);
 const totalPages = computed(() =>
-  Math.max(1, Math.ceil(filteredRooms.value.length / itemsPerPage.value))
+  Math.max(1, Math.ceil(rooms.value.length / itemsPerPage.value))
 );
 const paginatedRooms = computed(() =>
-  filteredRooms.value.slice(
+  rooms.value.slice(
     (currentPage.value - 1) * itemsPerPage.value,
     currentPage.value * itemsPerPage.value
   )
@@ -313,8 +340,8 @@ const occupancyStats = computed(() => {
   };
 });
 
-// Keep currentPage in range when filteredRooms changes
-watch(filteredRooms, () => {
+// Keep currentPage in range when rooms change
+watch(rooms, () => {
   if (currentPage.value > totalPages.value) currentPage.value = totalPages.value;
 });
 
@@ -420,4 +447,6 @@ function formatPrice(price: number) {
     currency: 'USD'
   }).format(price);
 }
+
+
 </script>

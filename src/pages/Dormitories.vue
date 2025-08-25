@@ -42,9 +42,7 @@
       <template #cell-admin_name="{ row }">
         {{ row.admin?.name || row.admin?.username || row.admin || '-' }}
       </template>
-      <template #cell-quota="{ row }">
-        {{ row.quota || row.capacity || '-' }}
-      </template>
+
       <template #cell-freeBeds="{ row }">
         <span :class="{ 'text-red-500': row.freeBeds === 0 }">
           {{ row.freeBeds || '-' }}
@@ -130,45 +128,40 @@ const loadDormitories = async () => {
   error.value = null;
   try {
     const response = await dormitoryService.getAll();
-    console.log('API Response:', response);
-    console.log('Response type:', typeof response);
-    console.log('Response.data type:', typeof response.data);
-    console.log('Response.data is array:', Array.isArray(response.data));
-    console.log('Response.data length:', response.data ? response.data.length : 'undefined');
+
     
     // Handle different response structures
     if (response && response.data) {
       // If response.data is an array, use it directly (this is what the backend returns)
       if (Array.isArray(response.data)) {
-        console.log('Using response.data as array');
+  
         dorms.value = response.data;
       } 
       // If response.data is an object with data property (paginated structure)
       else if (typeof response.data === 'object' && response.data.data && Array.isArray(response.data.data)) {
-        console.log('Using response.data.data as array');
+
         dorms.value = response.data.data;
       } 
       // If response.data is an object but not an array, try to find data property
       else if (typeof response.data === 'object' && response.data.data) {
-        console.log('Using response.data.data from object');
+
         dorms.value = Array.isArray(response.data.data) ? response.data.data : [];
       }
       // Otherwise, try to use response.data as is
       else {
-        console.log('Using response.data as is');
+
         dorms.value = [];
       }
     } else if (Array.isArray(response)) {
       // Direct array response
-      console.log('Using response as direct array');
+      
       dorms.value = response;
     } else {
-      console.log('No valid data found, setting empty array');
+      
       dorms.value = [];
     }
     
-    console.log('Fetched dormitories:', dorms.value);
-    console.log('Number of dormitories:', dorms.value.length);
+    
   } catch (err) {
     console.error('Error loading dormitories:', err);
     error.value = 'Failed to load dormitories';
@@ -184,12 +177,12 @@ onMounted(() => {
   
   // Listen for dormitory update/creation events
   window.addEventListener('dormitory-updated', () => {
-    console.log('Dormitory updated event received, refreshing data...');
+    
     loadDormitories();
   });
   
   window.addEventListener('dormitory-created', () => {
-    console.log('Dormitory created event received, refreshing data...');
+    
     loadDormitories();
   });
 });
@@ -205,7 +198,7 @@ watch(
   () => route.path,
   (newPath) => {
     if (newPath === '/dormitories') {
-      console.log('Route changed to dormitories, refreshing data...');
+
       loadDormitories();
     }
   }
@@ -287,7 +280,7 @@ const deleteDormitory = async (row: any) => {
 const columns = [
   { key: 'name', label: t('DORMITORY') },
   { key: 'capacity', label: t('STUDENT CAPACITY') },
-  { key: 'quota', label: t('QUOTA') },
+
   { key: 'gender', label: t('GENDER') },
   { key: 'admin_name', label: t('ADMIN USERNAME') },
   { key: 'registered', label: t('REGISTERED STUDENTS') },

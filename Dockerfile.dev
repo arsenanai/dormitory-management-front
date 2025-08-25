@@ -28,4 +28,4 @@ ENV VITE_FALLBACK_LOCALE=en
 EXPOSE 3000 9323
 
 # Default command
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "dev", "--", "--port", "3000", "--strictPort", "--host"]

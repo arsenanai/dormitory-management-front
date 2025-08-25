@@ -44,7 +44,7 @@ test.describe('Admin Form Debug for Admin ID 32', () => {
     });
 
     // Navigate to the app
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:3000/');
 
     // Wait for the page to load
     await page.waitForLoadState('networkidle');

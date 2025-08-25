@@ -15,12 +15,12 @@
 
       <!-- Filter Select Boxes -->
       <div class="flex flex-col items-stretch justify-between gap-4 lg:flex-row lg:justify-start">
-        <CSelect
+        <CInput
           id="faculty-filter"
           v-model="filters.faculty"
-          :options="facultyOptions"
+          type="text"
           :label="t('Faculty')"
-          :placeholder="t('Select Faculty')"
+          :placeholder="t('Enter Faculty Name')"
           class="lg:w-40"
         />
         <CSelect
@@ -61,54 +61,63 @@
       </div>
 
       <!-- Student Table -->
-      <CTable data-testid="students-table">
-        <CTableHead>
-          <CTableHeadCell>
-            <CCheckbox id="select-all-checkbox" />
-          </CTableHeadCell>
-          <CTableHeadCell>{{ t("NAME") }}</CTableHeadCell>
-          <CTableHeadCell>{{ t("SURNAME") }}</CTableHeadCell>
-          <CTableHeadCell>{{ t("STATUS") }}</CTableHeadCell>
-          <CTableHeadCell>{{ t("ENROLMENT YEAR") }}</CTableHeadCell>
-          <CTableHeadCell>{{ t("FACULTY") }}</CTableHeadCell>
-          <CTableHeadCell>{{ t("DORM") }}</CTableHeadCell>
-          <CTableHeadCell>{{ t("ROOM") }}</CTableHeadCell>
-          <CTableHeadCell>{{ t("TELEPHONE") }}</CTableHeadCell>
-          <CTableHeadCell>{{ t("IN/OUT") }}</CTableHeadCell>
-          <CTableHeadCell class="text-right">{{ t("Action") }}</CTableHeadCell>
-        </CTableHead>
-        <CTableBody>
-          <CTableRow v-for="(student, index) in paginatedStudents" :key="student.id || index">
-            <CTableCell>
-              <CCheckbox :id="'checkbox-' + index" />
-            </CTableCell>
-            <CTableCell>{{ student.first_name || student.name }}</CTableCell>
-            <CTableCell>{{ student.last_name || student.surname }}</CTableCell>
-            <CTableCell>{{ student.status }}</CTableCell>
-            <CTableCell>{{ student.enrollment_year || student.year_of_study }}</CTableCell>
-            <CTableCell>{{ student.faculty }}</CTableCell>
-            <CTableCell>
-              {{ student.room?.dormitory?.name || student.dormitory?.name || "" }}
-            </CTableCell>
-            <CTableCell>
-              {{ student.room?.number || student.room || "" }}
-            </CTableCell>
-            <CTableCell>{{ student.phone || student.telephone }}</CTableCell>
-            <CTableCell>
-              <component
-                :is="student.status === t('In') ? CheckCircleIcon : XCircleIcon"
-                :class="student.status === t('In') ? 'text-green-500' : 'text-red-500'"
-                class="mx-auto h-6 w-6"
-              />
-            </CTableCell>
-            <CTableCell class="text-right">
-              <CButton @click="navigateToEditStudent(student.id || index)">
-                <PencilSquareIcon class="h-5 w-5" /> {{ t("Edit") }}
-              </CButton>
-            </CTableCell>
-          </CTableRow>
-        </CTableBody>
-      </CTable>
+      <div class="overflow-x-auto relative border border-gray-300 sm:rounded-lg" data-testid="students-table">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+          <thead class="text-xs text-primary-700 uppercase bg-primary-50 dark:bg-primary-700 dark:text-primary-400">
+            <tr>
+              <th class="px-6 py-3">
+                <CCheckbox id="select-all-checkbox" />
+              </th>
+              <th class="px-6 py-3">{{ t("NAME") }}</th>
+              <th class="px-6 py-3">{{ t("SURNAME") }}</th>
+              <th class="px-6 py-3">{{ t("STATUS") }}</th>
+              <th class="px-6 py-3">{{ t("ENROLMENT YEAR") }}</th>
+              <th class="px-6 py-3">{{ t("FACULTY") }}</th>
+              <th class="px-6 py-3">{{ t("DORM") }}</th>
+              <th class="px-6 py-3">{{ t("ROOM") }}</th>
+              <th class="px-6 py-3">{{ t("TELEPHONE") }}</th>
+              <th class="px-6 py-3">{{ t("IN/OUT") }}</th>
+              <th class="px-6 py-3 text-right">{{ t("Action") }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-if="students.length === 0">
+              <td colspan="11" class="px-6 py-4 text-center text-gray-500">
+                {{ loading ? t("Loading...") : t("No data available") }}
+              </td>
+            </tr>
+            <tr v-for="(student, index) in students" :key="student.id || index" class="bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+              <td class="px-6 py-4">
+                <CCheckbox :id="'checkbox-' + index" />
+              </td>
+              <td class="px-6 py-4">{{ student.first_name || student.name }}</td>
+              <td class="px-6 py-4">{{ student.last_name || student.surname }}</td>
+              <td class="px-6 py-4">{{ student.status }}</td>
+              <td class="px-6 py-4">{{ student.studentProfile?.enrollment_year || student.enrollment_year || student.year_of_study }}</td>
+              <td class="px-6 py-4">{{ student.studentProfile?.faculty || student.faculty }}</td>
+              <td class="px-6 py-4">
+                {{ student.room?.dormitory?.name || student.dormitory?.name || "" }}
+              </td>
+              <td class="px-6 py-4">
+                {{ student.room?.number || student.room || "" }}
+              </td>
+              <td class="px-6 py-4">{{ student.phone_numbers?.[0] || student.phone || student.telephone }}</td>
+              <td class="px-6 py-4">
+                <component
+                  :is="student.status === t('In') ? CheckCircleIcon : XCircleIcon"
+                  :class="student.status === t('In') ? 'text-green-500' : 'text-red-500'"
+                  class="mx-auto h-6 w-6"
+                />
+              </td>
+              <td class="px-6 py-4 text-right">
+                <CButton @click="navigateToEditStudent(student.id || index)">
+                  <PencilSquareIcon class="h-5 w-5" /> {{ t("Edit") }}
+                </CButton>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       <!-- Pagination -->
       <div class="flex items-center justify-between" data-testid="pagination">
@@ -144,7 +153,7 @@
 <script setup>
 import Navigation from "@/components/CNavigation.vue";
 import { useI18n } from "vue-i18n";
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import {
   ArrowDownTrayIcon,
@@ -157,12 +166,6 @@ import CInput from "@/components/CInput.vue";
 import CSelect from "@/components/CSelect.vue";
 import CCheckbox from "@/components/CCheckbox.vue";
 import CButton from "@/components/CButton.vue";
-import CTable from "@/components/CTable.vue";
-import CTableHead from "@/components/CTableHead.vue";
-import CTableHeadCell from "@/components/CTableHeadCell.vue";
-import CTableBody from "@/components/CTableBody.vue";
-import CTableRow from "@/components/CTableRow.vue";
-import CTableCell from "@/components/CTableCell.vue";
 import { useStudentStore } from "@/stores/student";
 import { studentService } from "@/services/api";
 
@@ -182,12 +185,6 @@ const students = ref([]);
 const loading = ref(false);
 const error = ref(null);
 
-const facultyOptions = [
-  { value: "engineering", name: t("Engineering and natural sciences") },
-  { value: "business", name: t("Business and economics") },
-  { value: "law", name: t("Law and social sciences") },
-];
-
 const roomOptions = [
   { value: "a227", name: "A227" },
   { value: "b317", name: "B317" },
@@ -206,22 +203,80 @@ const bulkActionOptions = [
 
 const currentPage = ref(1);
 const itemsPerPage = 10;
-const totalPages = computed(() =>
-  Math.ceil(students.value.length / itemsPerPage),
-);
+
+// Filter students by searchQuery across common fields
+const filteredStudents = computed(() => {
+  const q = (searchQuery.value || '').toLowerCase().trim();
+  console.log('🔍 Filtering students:', {
+    searchQuery: searchQuery.value,
+    trimmedQuery: q,
+    totalStudents: students.value.length,
+    hasQuery: !!q,
+    studentsArrayRef: students.value
+  });
+  
+  if (!q) {
+    console.log('🔍 No search query, returning all students');
+    return students.value;
+  }
+  
+  const filtered = students.value.filter((s) => {
+    const name = (s.first_name || s.name || '').toLowerCase();
+    const surname = (s.last_name || s.surname || '').toLowerCase();
+    const faculty = (s.studentProfile?.faculty || s.faculty || '').toLowerCase();
+    const room = (s.room?.number || s.room || '').toString().toLowerCase();
+    const dorm = (s.room?.dormitory?.name || s.dormitory?.name || '').toLowerCase();
+    const email = (s.email || '').toLowerCase();
+    
+    const matches = (
+      name.includes(q) ||
+      surname.includes(q) ||
+      faculty.includes(q) ||
+      room.includes(q) ||
+      dorm.includes(q) ||
+      email.includes(q)
+    );
+    
+    if (matches) {
+      console.log('🔍 Student matches search:', { name, surname, faculty, room, dorm, email });
+    }
+    
+    return matches;
+  });
+  
+  console.log('🔍 Filtering result:', {
+    originalCount: students.value.length,
+    filteredCount: filtered.length,
+    searchQuery: q
+  });
+  
+  return filtered;
+});
+
+const totalPages = computed(() => Math.ceil(filteredStudents.value.length / itemsPerPage));
+
 const paginatedStudents = computed(() => {
-  console.log('paginatedStudents computed - students.value:', students.value);
-  console.log('paginatedStudents computed - students.value.length:', students.value.length);
-  console.log('paginatedStudents computed - currentPage.value:', currentPage.value);
-  console.log('paginatedStudents computed - itemsPerPage:', itemsPerPage);
+  const start = (currentPage.value - 1) * itemsPerPage;
+  const end = currentPage.value * itemsPerPage;
+  const result = filteredStudents.value.slice(start, end);
   
-  const result = students.value.slice(
-    (currentPage.value - 1) * itemsPerPage,
-    currentPage.value * itemsPerPage,
-  );
-  
-  console.log('paginatedStudents computed - result:', result);
-  console.log('paginatedStudents computed - result.length:', result.length);
+  console.log('📄 Pagination:', {
+    currentPage: currentPage.value,
+    itemsPerPage,
+    start,
+    end,
+    filteredCount: filteredStudents.value.length,
+    paginatedCount: result.length,
+    hasData: result.length > 0,
+    firstStudent: result[0] ? {
+      id: result[0].id,
+      name: result[0].first_name || result[0].name,
+      email: result[0].email,
+      faculty: result[0].studentProfile?.faculty || result[0].faculty,
+      room: result[0].room?.number,
+      dormitory: result[0].room?.dormitory?.name
+    } : 'none'
+  });
   
   return result;
 });
@@ -234,39 +289,61 @@ const fetchStudents = async () => {
   try {
     // Check if user is authenticated
     const token = localStorage.getItem('token');
+    console.log('🔐 Token from localStorage:', token ? 'exists' : 'missing');
+    
     if (!token) {
       error.value = 'Authentication required';
       students.value = [];
       return;
     }
 
-    const response = await studentService.getAll();
-    console.log('API Response:', response);
+    console.log('📡 Making API call to /api/students...');
+    const response = await studentService.getAll({ per_page: 100 });
+    console.log('📡 API Response received:', response);
+    console.log('📡 Response data structure:', {
+      hasData: !!response.data,
+      dataType: typeof response.data,
+      isArray: Array.isArray(response.data),
+      hasDataData: response.data && response.data.data,
+      dataDataIsArray: response.data && response.data.data && Array.isArray(response.data.data)
+    });
     
     // Handle Laravel paginated response structure
     if (response && response.data) {
       // Laravel paginated response: { data: [...], current_page: 1, ... }
       if (response.data.data && Array.isArray(response.data.data)) {
         students.value = response.data.data;
+        console.log('✅ Using paginated response data');
       } else if (Array.isArray(response.data)) {
         // Direct array response
         students.value = response.data;
+        console.log('✅ Using direct array response');
       } else {
         // Fallback - try to find data in the response
         students.value = [];
+        console.log('⚠️ No valid data structure found, setting empty array');
       }
     } else {
       students.value = [];
+      console.log('⚠️ No response data, setting empty array');
     }
     
-    console.log('Fetched students:', students.value);
-    console.log('Number of students:', students.value.length);
+    console.log('📊 Final students array:', students.value);
+    console.log('📊 Number of students:', students.value.length);
+    console.log('📊 First student (if any):', students.value[0]);
   } catch (err) {
-    console.error('Error fetching students:', err);
+    console.error('❌ Error fetching students:', err);
+    console.error('❌ Error details:', {
+      message: err.message,
+      status: err.response?.status,
+      statusText: err.response?.statusText,
+      data: err.response?.data
+    });
     error.value = err.message || 'Failed to fetch students';
     students.value = [];
   } finally {
     loading.value = false;
+    console.log('🏁 fetchStudents completed, loading:', loading.value);
   }
 };
 
@@ -282,9 +359,31 @@ const navigateToEditStudent = (studentId) => {
   }
 };
 
+// Watch for changes in students array
+watch(students, (newStudents, oldStudents) => {
+  console.log('👀 Students array changed:', {
+    oldLength: oldStudents?.length || 0,
+    newLength: newStudents?.length || 0,
+    oldFirst: oldStudents?.[0] || 'none',
+    newFirst: newStudents?.[0] || 'none'
+  });
+  
+  // Force re-computation of filtered and paginated students
+  console.log('👀 After change - filteredStudents.length:', filteredStudents.value.length);
+  console.log('👀 After change - paginatedStudents.length:', paginatedStudents.value.length);
+}, { deep: true });
+
 onMounted(async () => {
+  console.log('🚀 Students component mounted');
+  console.log('🔐 Current auth state:', {
+    hasToken: !!localStorage.getItem('token'),
+    tokenLength: localStorage.getItem('token')?.length || 0
+  });
+  
   studentStore.clearSelectedStudent();
+  console.log('📡 Starting to fetch students...');
   await fetchStudents();
+  console.log('✅ Component mount completed');
 });
 </script>
 

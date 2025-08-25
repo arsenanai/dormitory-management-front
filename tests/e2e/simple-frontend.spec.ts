@@ -69,7 +69,7 @@ test.describe('Simple Frontend Tests', () => {
     await page.click('button[type="submit"]:has-text("Login")');
     
     // Should stay on the same page (no redirect)
-    await expect(page).toHaveURL('http://localhost:5173/');
+    await expect(page).toHaveURL('http://localhost:3000/');
   });
 
   test('should show validation errors for invalid email', async ({ page }) => {
@@ -81,6 +81,6 @@ test.describe('Simple Frontend Tests', () => {
     await page.click('button[type="submit"]:has-text("Login")');
     
     // Should stay on the same page (no redirect)
-    await expect(page).toHaveURL('http://localhost:5173/');
+    await expect(page).toHaveURL('http://localhost:3000/');
   });
 }); 

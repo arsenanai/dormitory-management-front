@@ -23,7 +23,7 @@ const selectors = {
 
 test.describe('Settings E2E', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:5173/');
+    await page.goto('http://localhost:3000/');
     await page.fill('#login-email', adminEmail);
     await page.fill('#login-password', adminPassword);
     await page.click('button[type="submit"]:has-text("Login")');
@@ -32,14 +32,14 @@ test.describe('Settings E2E', () => {
     await page.waitForLoadState('networkidle');
     // Navigate to settings page if not already there
     if (!page.url().includes('/settings')) {
-      await page.goto('http://localhost:5173/settings');
+      await page.goto('http://localhost:3000/settings');
       await page.waitForLoadState('networkidle');
     }
   });
 
   test('should display settings page with all sections', async ({ page }) => {
     // Explicitly navigate to settings page
-    await page.goto('http://localhost:5173/settings');
+    await page.goto('http://localhost:3000/settings');
     await page.waitForLoadState('networkidle');
     
     await expect(page).toHaveURL(/\/settings/);
@@ -203,7 +203,7 @@ test.describe('Settings E2E', () => {
 
   test('should be accessible via navigation', async ({ page }) => {
     // Navigate to main page first
-    await page.goto('http://localhost:5173/main');
+    await page.goto('http://localhost:3000/main');
     await page.waitForLoadState('networkidle');
     
     // Try to find and click settings link in navigation

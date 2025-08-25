@@ -98,7 +98,7 @@ test.describe('Business Rules Enforcement', () => {
   test.describe('Guest Payment Visibility Rules', () => {
     test('guest payments are visible in guest house registration page', async ({ page }) => {
       // Navigate to guest house page
-      await page.goto('http://localhost:5173/guest-house');
+      await page.goto('http://localhost:3000/guest-house');
       await page.waitForLoadState('networkidle');
 
       // Check if guest list is displayed
@@ -123,7 +123,7 @@ test.describe('Business Rules Enforcement', () => {
 
     test('guest payment information is editable in guest form', async ({ page }) => {
       // Navigate to guest house page
-      await page.goto('http://localhost:5173/guest-house');
+      await page.goto('http://localhost:3000/guest-house');
       await page.waitForLoadState('networkidle');
 
       // Click add guest button
@@ -142,7 +142,7 @@ test.describe('Business Rules Enforcement', () => {
 
     test('guest payments can be filtered by payment status', async ({ page }) => {
       // Navigate to guest house page
-      await page.goto('http://localhost:5173/guest-house');
+      await page.goto('http://localhost:3000/guest-house');
       await page.waitForLoadState('networkidle');
 
       // Look for payment status filter
@@ -160,7 +160,7 @@ test.describe('Business Rules Enforcement', () => {
   test.describe('Payment Status Check Rules', () => {
     test('payment status is checked before allowing dormitory access', async ({ page }) => {
       // Navigate to payments page
-      await page.goto('http://localhost:5173/payments');
+      await page.goto('http://localhost:3000/payments');
       await page.waitForLoadState('networkidle');
 
       // Check if payment status indicators are present
@@ -179,7 +179,7 @@ test.describe('Business Rules Enforcement', () => {
 
     test('payment approval workflow affects dormitory access', async ({ page }) => {
       // Navigate to payments page
-      await page.goto('http://localhost:5173/payments');
+      await page.goto('http://localhost:3000/payments');
       await page.waitForLoadState('networkidle');
 
       // Look for payment approval buttons
@@ -196,7 +196,7 @@ test.describe('Business Rules Enforcement', () => {
   test.describe('Registration Limit Rules', () => {
     test('registration closes when student limit is reached', async ({ page }) => {
       // Navigate to student registration page
-      await page.goto('http://localhost:5173/register');
+      await page.goto('http://localhost:3000/register');
       await page.waitForLoadState('networkidle');
 
       // Check if registration form is available
@@ -213,7 +213,7 @@ test.describe('Business Rules Enforcement', () => {
 
     test('only available rooms/beds are shown in registration', async ({ page }) => {
       // Navigate to student registration page
-      await page.goto('http://localhost:5173/register');
+      await page.goto('http://localhost:3000/register');
       await page.waitForLoadState('networkidle');
 
       // Check if room/bed selection is available
@@ -236,7 +236,7 @@ test.describe('Business Rules Enforcement', () => {
   test.describe('Dashboard Business Rules', () => {
     test('dashboard shows accurate statistics based on business rules', async ({ page }) => {
       // Navigate to dashboard
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto('http://localhost:3000/dashboard');
       await page.waitForLoadState('networkidle');
 
       // Check if key statistics are displayed
@@ -250,7 +250,7 @@ test.describe('Business Rules Enforcement', () => {
 
     test('dashboard reflects payment status in statistics', async ({ page }) => {
       // Navigate to dashboard
-      await page.goto('http://localhost:5173/dashboard');
+      await page.goto('http://localhost:3000/dashboard');
       await page.waitForLoadState('networkidle');
 
       // Check if payment-related statistics are shown
@@ -265,20 +265,20 @@ test.describe('Business Rules Enforcement', () => {
   test.describe('Access Control Rules', () => {
     test('role-based access control is enforced', async ({ page }) => {
       // Test admin access to admin-only pages
-      await page.goto('http://localhost:5173/configuration');
+      await page.goto('http://localhost:3000/configuration');
       await page.waitForLoadState('networkidle');
       
       // Admin should have access to configuration page
       await expect(page).toHaveURL(/.*configuration.*/);
 
       // Test student access restrictions
-      await page.goto('http://localhost:5173/login');
+      await page.goto('http://localhost:3000/login');
       await page.fill('[data-testid="email-input"]', 'student@example.com');
       await page.fill('[data-testid="password-input"]', 'password');
       await page.click('[data-testid="login-button"]');
       
       // Student should not have access to admin pages
-      await page.goto('http://localhost:5173/configuration');
+      await page.goto('http://localhost:3000/configuration');
       await page.waitForLoadState('networkidle');
       
       // Should be redirected or show access denied

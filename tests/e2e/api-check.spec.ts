@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test('Check API response for admin ID 16', async ({ page }) => {
   // Navigate to the app
-  await page.goto('http://localhost:5173/');
+  await page.goto('http://localhost:3000/');
   
   // Wait for the page to load
   await page.waitForLoadState('networkidle');

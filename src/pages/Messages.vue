@@ -4,12 +4,12 @@
     <div
       class="mb-4 flex flex-col items-stretch gap-4 lg:flex-row lg:items-center"
     >
-      <CSelect
+      <CInput
         id="faculty-filter"
         v-model="filters.faculty"
-        :options="facultyOptions"
+        type="text"
         :label="t('Faculty')"
-        :placeholder="t('Select Faculty')"
+        :placeholder="t('Enter Faculty Name')"
         class="lg:w-40"
       />
       <CSelect
@@ -117,8 +117,10 @@ import CTableHeadCell from "@/components/CTableHeadCell.vue";
 import CTableBody from "@/components/CTableBody.vue";
 import CTableRow from "@/components/CTableRow.vue";
 import CTableCell from "@/components/CTableCell.vue";
+import CInput from "@/components/CInput.vue"; // Added CInput import
 import { PaperAirplaneIcon } from "@heroicons/vue/24/outline";
 import { messageService, dormitoryService, roomService } from "@/services/api";
+import { useAuthStore } from "@/stores/auth";
 import { useToast } from "@/composables/useToast";
 
 const { t } = useI18n();
@@ -160,8 +162,13 @@ const loadData = async () => {
       return;
     }
 
+    const authStore = useAuthStore();
+    const fetchMessages = authStore.user?.role?.name === 'student'
+      ? messageService.getMyMessages()
+      : messageService.getAll();
+
     const [messagesResponse, dormitoriesResponse, roomsResponse] = await Promise.all([
-      messageService.getMyMessages(),
+      fetchMessages,
       dormitoryService.getAll(),
       roomService.getAll()
     ]);
@@ -222,13 +229,6 @@ onMounted(() => {
 });
 
 // Options for filters
-const facultyOptions = [
-  { value: "", name: t("All Faculties") },
-  { value: "engineering", name: t("Engineering") },
-  { value: "business", name: t("Business") },
-  { value: "law", name: t("Law") },
-];
-
 const roomOptions = computed(() => [
   { value: "", name: t("All Rooms") },
   ...rooms.value.map(room => ({ value: room.id, name: room.number }))
