@@ -84,17 +84,18 @@ interface AdminProfile {
 }
 
 interface Guest {
-  id: number;
+  id?: number;
   name: string;
-  email: string;
-  phone: string;
+  email?: string;
+  phone?: string;
   room_id?: number;
   check_in_date: string;
   check_out_date?: string;
-  payment_status: string;
+  payment_status?: string;
   total_amount: number;
-  created_at: string;
-  updated_at: string;
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface GuestProfile {
@@ -588,6 +589,9 @@ export const guestService = {
   
   export: (params?: FilterParams): Promise<Blob> =>
     api.get("/guests/export", { params, responseType: "blob" }),
+  
+  getAvailableRooms: (): Promise<ApiResponse<Room[]>> =>
+    api.get("/guests/available-rooms"),
 };
 
 // Bed service
@@ -701,23 +705,23 @@ export const cardReaderService = {
     api.get("/card-reader/export", { params, responseType: "blob" }),
 };
 
-// Accounting service
-export const accountingApi = {
-  getAccountingData: (params?: FilterParams): Promise<ApiResponse<PaginatedResponse<Record<string, unknown>>>> =>
-    api.get("/accounting", { params }),
-  
-  getStudentAccounting: (studentId: number, params?: FilterParams): Promise<ApiResponse<Record<string, unknown>>> =>
-    api.get(`/accounting/student/${studentId}`, { params }),
-  
-  getSemesterAccounting: (semester: string, params?: FilterParams): Promise<ApiResponse<PaginatedResponse<Record<string, unknown>>>> =>
-    api.get(`/accounting/semester/${semester}`, { params }),
-  
-  exportAccounting: (params?: FilterParams): Promise<Blob> =>
-    api.get("/accounting/export", { params, responseType: "blob" }),
-  
-  getAccountingStats: (params?: FilterParams): Promise<ApiResponse<Record<string, unknown>>> =>
-    api.get("/accounting/stats", { params }),
-};
+// Accounting service - Commented out
+// export const accountingApi = {
+//   getAccountingData: (params?: FilterParams): Promise<ApiResponse<PaginatedResponse<Record<string, unknown>>>> =>
+//     api.get("/accounting", { params }),
+//   
+//   getStudentAccounting: (studentId: number, params?: FilterParams): Promise<ApiResponse<Record<string, unknown>>> =>
+//     api.get(`/accounting/student/${studentId}`, { params }),
+//   
+//   getSemesterAccounting: (semester: string, params?: FilterParams): Promise<ApiResponse<PaginatedResponse<Record<string, unknown>>>> =>
+//     api.get(`/accounting/semester/${semester}`, { params }),
+//   
+//   exportAccounting: (params?: FilterParams): Promise<Blob> =>
+//     api.get("/accounting/export", { params, responseType: "blob" }),
+//   
+//   getAccountingStats: (params?: FilterParams): Promise<ApiResponse<Record<string, unknown>>> =>
+//     api.get("/accounting/stats", { params }),
+// };
 
 // Dormitory access service
 export const dormitoryAccessService = {

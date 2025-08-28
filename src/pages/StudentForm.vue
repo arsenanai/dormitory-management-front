@@ -96,14 +96,15 @@
             </label>
             <div class="flex flex-col items-stretch gap-2 lg:flex-row lg:items-end">
               <div class="flex flex-col items-stretch gap-2">
-                <CInput
-                  v-for="(phone, index) in user.phone_numbers"
-                  :key="index"
-                  :id="'phone-number-' + index"
-                  v-model="user.phone_numbers[index]"
-                  type="tel"
-                  placeholder="Enter Phone Number"
-                />
+                <div v-for="(phone, index) in user.phone_numbers" :key="index" class="flex items-center gap-2">
+                  <CInput
+                    :id="'phone-number-' + index"
+                    v-model="user.phone_numbers[index]"
+                    type="tel"
+                    placeholder="Enter Phone Number"
+                  />
+                  <CButton variant="danger" v-if="user.phone_numbers.length > 1" @click="removePhoneField(index)"><TrashIcon class="h-5 w-5" /></CButton>
+                </div>
               </div>
               <CButton @click="addPhoneField">
                 <PlusIcon class="h-5 w-5" /> {{ t("Add more") }}
@@ -117,44 +118,55 @@
       <fieldset class="border border-primary-200 rounded p-4">
         <legend class="text-lg font-semibold px-2 text-primary-700">{{ t("Family Information") }}</legend>
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <!-- Father's Name Field -->
+
+          <!-- Parent Name Field -->
           <div>
             <CInput
-              id="student-father-name"
-              v-model="studentProfile.father_name"
+              id="student-parent-name"
+              v-model="studentProfile.parent_name"
               type="text"
-              :label="t('Father\'s Name')"
-              placeholder="Enter Father's Name"
+              :label="t('Parent Name')"
+              placeholder="Enter Parent Name"
             />
           </div>
-          <!-- Mother's Name Field -->
+          <!-- Parent Phone Field -->
           <div>
             <CInput
-              id="student-mother-name"
-              v-model="studentProfile.mother_name"
+              id="student-parent-phone"
+              v-model="studentProfile.parent_phone"
+              type="tel"
+              :label="t('Parent Phone')"
+              placeholder="Enter Parent Phone"
+            />
+          </div>
+          <!-- Parent Email Field -->
+          <div>
+            <CInput
+              id="student-parent-email"
+              v-model="studentProfile.parent_email"
+              type="email"
+              :label="t('Parent Email')"
+              placeholder="Enter Parent Email"
+            />
+          </div>
+          <!-- Mentor Name Field -->
+          <div>
+            <CInput
+              id="student-mentor-name"
+              v-model="studentProfile.mentor_name"
               type="text"
-              :label="t('Mother\'s Name')"
-              placeholder="Enter Mother's Name"
+              :label="t('Mentor Name')"
+              placeholder="Enter Mentor Name"
             />
           </div>
-          <!-- Father's Phone Field -->
+          <!-- Mentor Email Field -->
           <div>
             <CInput
-              id="student-father-phone"
-              v-model="studentProfile.father_phone"
-              type="tel"
-              :label="t('Father\'s Phone')"
-              placeholder="Enter Father's Phone"
-            />
-          </div>
-          <!-- Mother's Phone Field -->
-          <div>
-            <CInput
-              id="student-mother-phone"
-              v-model="studentProfile.mother_phone"
-              type="tel"
-              :label="t('Mother\'s Phone')"
-              placeholder="Enter Mother's Phone"
+              id="student-mentor-email"
+              v-model="studentProfile.mentor_email"
+              type="email"
+              :label="t('Mentor Email')"
+              placeholder="Enter Mentor Email"
             />
           </div>
         </div>
@@ -181,6 +193,16 @@
               type="text"
               :label="t('Allergies')"
               placeholder="Enter Allergies (if any)"
+            />
+          </div>
+          <!-- Violations Field -->
+          <div>
+            <CInput
+              id="student-violations"
+              v-model="studentProfile.violations"
+              type="text"
+              :label="t('Violations')"
+              placeholder="Enter Violations (if any)"
             />
           </div>
         </div>
@@ -234,7 +256,26 @@
               v-model="studentProfile.registration_date"
               type="date"
               :label="t('Registration Date')"
+              :disabled="isEditing"
               required
+            />
+          </div>
+          <!-- Agree to Dormitory Rules Field -->
+          <div>
+            <CCheckbox
+              id="student-agree-rules"
+              v-model="studentProfile.agree_to_dormitory_rules"
+              :label="t('Agree to Dormitory Rules')"
+              :disabled="isEditing"
+              :aria-disabled="isEditing ? 'true' : 'false'"
+            />
+          </div>
+          <!-- Has Meal Plan Field -->
+          <div>
+            <CCheckbox
+              id="student-meal-plan"
+              v-model="studentProfile.has_meal_plan"
+              :label="t('Has Meal Plan')"
             />
           </div>
         </div>
@@ -295,18 +336,21 @@
               v-model="selectedDormitory"
               :options="dormitoryOptions"
               :label="t('Dormitory')"
-              :disabled="loadingDormitories"
+              :disabled="loadingDormitories || isAdmin"
               required
             />
             <div v-if="loadingDormitories" class="text-sm text-gray-500 mt-1">
               {{ t('Loading dormitories...') }}
+            </div>
+            <div v-if="isAdmin" class="text-sm text-gray-500 mt-1">
+              {{ t('Dormitory cannot be changed by admin') }}
             </div>
           </div>
           <!-- Room Field - Only visible after dormitory selection -->
           <div v-if="selectedDormitory">
             <CSelect
               id="student-room"
-              v-model="studentProfile.room"
+              v-model="studentProfile.room_id"
               :options="roomOptions"
               :label="t('Room')"
               :disabled="loadingRooms || roomOptions.length === 0"
@@ -320,10 +364,10 @@
             </div>
           </div>
           <!-- Bed Field - Only visible after room selection -->
-          <div v-if="studentProfile.room">
+          <div v-if="studentProfile.room_id">
             <CSelect
               id="student-bed"
-              v-model="studentProfile.bed"
+              v-model="studentProfile.bed_id"
               :options="bedOptions"
               :label="t('Bed')"
               :disabled="bedOptions.length === 0"
@@ -359,12 +403,13 @@ import CInput from "@/components/CInput.vue";
 import CSelect from "@/components/CSelect.vue";
 import CButton from "@/components/CButton.vue";
 import CCheckbox from "@/components/CCheckbox.vue"; // Added CCheckbox import
-import { PlusIcon, PrinterIcon } from "@heroicons/vue/24/outline";
+import { PlusIcon, PrinterIcon, TrashIcon } from "@heroicons/vue/24/outline";
 import type { User } from "@/models/User";
 import type { StudentProfile } from "@/models/StudentProfile";
 import { Room } from "@/models/Room";
 import { Dormitory } from "@/models/Dormitory";
 import { useStudentStore } from "@/stores/student";
+import { useAuthStore } from "@/stores/auth";
 import { studentService, authService, roomService, dormitoryService } from "@/services/api";
 import { useToast } from "@/composables/useToast";
 
@@ -417,11 +462,13 @@ onMounted(async () => {
     loadingDormitories.value = false;
   }
   
-  // First try to restore from store
-  studentStore.restoreSelectedStudent();
+  // Only restore from store for self-profile flows (not when editing a student by id)
+  if (!isEditing.value) {
+    studentStore.restoreSelectedStudent();
+  }
   
-  // If editing and no data in store, load from API
-  if (isEditing.value && !studentStore.selectedStudent) {
+  // If editing by id, load the specific student
+  if (isEditing.value) {
     await loadStudent(studentId.value!);
   }
 });
@@ -430,11 +477,15 @@ onMounted(async () => {
 const { t } = useI18n();
 const route = useRoute();
 const studentStore = useStudentStore();
+const authStore = useAuthStore();
 const { showError, showSuccess } = useToast();
 
 // Check if we're editing (ID in route params)
 const studentId = computed(() => route.params.id ? Number(route.params.id) : null);
 const isEditing = computed(() => !!studentId.value);
+
+// Check if current user is an admin
+const isAdmin = computed(() => authStore.user?.role?.name === 'admin');
 
 // Note: Country, region, and city are now text input fields instead of select dropdowns
 
@@ -465,7 +516,15 @@ const studentProfile = ref<Partial<StudentProfile>>({
   deal_number: "",
   agree_to_dormitory_rules: false,
   has_meal_plan: false,
-  // ... add all other fields as needed
+  allergies: "",
+  status: "",
+  registration_date: "",
+  violations: "",
+  mentor_name: "",
+  mentor_email: "",
+  room: null,
+  bed: null,
+  bed_id: null,
 });
 
 // Selected dormitory (separate from room selection)
@@ -475,12 +534,16 @@ const selectedDormitory = ref<number | null>(null);
 watch(
   () => studentStore.selectedStudent,
   (selectedStudent) => {
-    if (selectedStudent) {
+    // Do not overwrite when editing a specific student by id
+    if (selectedStudent && !isEditing.value) {
       // Populate user fields
       user.value = {
         name: selectedStudent.first_name || selectedStudent.name || "",
         email: selectedStudent.email || "",
-        phone_numbers: selectedStudent.phone_numbers?.length ? [...selectedStudent.phone_numbers] : selectedStudent.phone ? [selectedStudent.phone] : [""]
+        phone_numbers: (() => {
+          const arr = normalizePhones(selectedStudent.phone_numbers, selectedStudent.phone);
+          return arr.length ? arr : [""];
+        })()
       };
       // Populate studentProfile fields
       studentProfile.value = {
@@ -522,21 +585,23 @@ const roomOptions = computed(() =>
 const fetchRoomsForDormitory = async (dormitoryId: number) => {
   loadingRooms.value = true;
   try {
-          const response = await dormitoryService.getById(dormitoryId);
-    if (response.data && response.data.rooms) {
-      rooms.value = response.data.rooms;
-      // Flatten all available beds for selection
-      allBeds.value = rooms.value.flatMap(room => 
-        (room.beds || []).map(bed => ({ ...bed, room }))
-      );
+    // Try public rooms endpoint first to avoid 403 with role-protected endpoints
+    const publicResp = await fetch(`/api/dormitories/${dormitoryId}/rooms`);
+    if (publicResp.ok) {
+      const data = await publicResp.json();
+      rooms.value = Array.isArray(data) ? data : (data?.rooms || []);
     } else {
-      // Fallback: try to get rooms from rooms endpoint with dormitory filter
-      const roomsResponse = await roomService.getAll({ dormitory_id: dormitoryId });
-      rooms.value = roomsResponse.data?.data || roomsResponse.data || [];
-      allBeds.value = rooms.value.flatMap(room => 
-        (room.beds || []).map(bed => ({ ...bed, room }))
-      );
+      // Fallback to authenticated service(s)
+      try {
+        const response = await dormitoryService.getById(dormitoryId);
+        rooms.value = response.data?.rooms || [];
+      } catch (_) {
+        const roomsResponse = await roomService.getAll({ dormitory_id: dormitoryId });
+        rooms.value = roomsResponse.data?.data || roomsResponse.data || [];
+      }
     }
+    // Flatten all available beds for selection
+    allBeds.value = rooms.value.flatMap(room => (room.beds || []).map(bed => ({ ...bed, room })));
   } catch (e) {
     console.error('Failed to fetch rooms for dormitory:', e);
     rooms.value = [];
@@ -548,42 +613,41 @@ const fetchRoomsForDormitory = async (dormitoryId: number) => {
 
 // Bed options for selected room
 const bedOptions = computed(() => {
-  if (!studentProfile.value.room) return [];
+  const rid = (studentProfile.value as any).room_id || studentProfile.value.room?.id;
+  if (!rid) return [];
   return allBeds.value
-    .filter(b => b.room.id === studentProfile.value.room.id)
+    .filter(b => (b.room?.id || b.room_id) === rid)
+    .filter(bed => !bed.reserved_for_staff) // Exclude staff reserved beds completely
     .map(bed => ({
-      value: bed,
-      name: `${t('Bed')} ${bed.number}${bed.reserved_for_staff ? ' (' + t('Staff Reserved') + ')' : ''}`,
-      disabled: bed.reserved_for_staff // For students, staff-reserved beds are disabled
+      value: bed.id,
+      name: `${t('Bed')} ${bed.bed_number}`,
+      disabled: false // No need to disable since we filtered out staff reserved beds
     }));
 });
 
 // Watch for changes to selectedDormitory and fetch rooms
 watch(selectedDormitory, async (newDormId) => {
   if (newDormId) {
-    // Reset room and bed when dormitory changes
-    studentProfile.value.room = null;
+    (studentProfile.value as any).room_id = null;
     studentProfile.value.bed = null;
-    
-    // Fetch rooms for the selected dormitory
+    studentProfile.value.bed_id = null;
     await fetchRoomsForDormitory(newDormId);
   } else {
-    // Clear rooms and beds if no dormitory selected
     rooms.value = [];
     allBeds.value = [];
-    studentProfile.value.room = null;
+    (studentProfile.value as any).room_id = null;
     studentProfile.value.bed = null;
+    studentProfile.value.bed_id = null;
   }
 });
 
 // Watch for changes to room and reset bed if needed
-watch(() => studentProfile.value.room, (newRoom) => {
-  if (newRoom) {
-    // Reset bed when room changes
-    studentProfile.value.bed = null;
+watch(() => (studentProfile.value as any).room_id, (newRoomId) => {
+  if (newRoomId) {
+    // keep existing bed_id if it matches selected room; it may be set after rooms load
   } else {
-    // Clear bed if no room selected
     studentProfile.value.bed = null;
+    studentProfile.value.bed_id = null;
   }
 });
 
@@ -604,6 +668,12 @@ const bloodTypeOptions = [
   { value: "O-", name: "O-" },
 ];
 
+const statusOptions = [
+  { value: "pending", name: t("Pending") },
+  { value: "active", name: t("Active") },
+  { value: "suspended", name: t("Suspended") },
+];
+
 // Note: Country, region, and city are now direct text input fields
 
 // Add More Phone Numbers
@@ -611,9 +681,38 @@ const addPhoneField = (): void => {
   user.value.phone_numbers.push("");
 };
 
+// Remove a phone number field
+const removePhoneField = (index: number): void => {
+  if (!Array.isArray(user.value.phone_numbers)) return;
+  user.value.phone_numbers.splice(index, 1);
+  if (user.value.phone_numbers.length === 0) user.value.phone_numbers.push("");
+};
+
+// Normalize incoming phone numbers into a string array
+const normalizePhones = (phones: unknown, fallback?: unknown): string[] => {
+  if (Array.isArray(phones)) {
+    return (phones as unknown[]).map(p => (p ?? "").toString());
+  }
+  if (typeof phones === "string") {
+    const trimmed = phones.trim();
+    if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) return parsed.map((p: any) => (p ?? "").toString());
+      } catch (_) {}
+    }
+    return trimmed ? [trimmed] : [];
+  }
+  if (typeof fallback === "string" && (fallback as string).trim() !== "") return [(fallback as string).trim()];
+  return [];
+};
+
 // Submit Form
 const submitForm = async (): Promise<void> => {
-  if (!user.value.phone_numbers?.length || !user.value.phone_numbers[0]) {
+  const cleanedPhones = (user.value.phone_numbers || [])
+    .map(p => (p ?? "").toString().trim())
+    .filter(p => p.length > 0);
+  if (!cleanedPhones.length) {
     showError(t("At least one phone number is required."));
     return;
   }
@@ -621,20 +720,71 @@ const submitForm = async (): Promise<void> => {
     showError(t("Please select a bed."));
     return;
   }
+  
+  // Check if selected bed is staff reserved
+  const selectedBed = allBeds.value.find(b => b.id === studentProfile.value.bed_id);
+  if (selectedBed && selectedBed.reserved_for_staff) {
+    showError(t("Staff reserved beds cannot be selected for students."));
+    return;
+  }
+  
+  // For admins, prevent dormitory changes
+  if (isAdmin.value && isEditing.value) {
+    // Get the original student data to check if dormitory was changed
+    const originalStudent = await studentService.getById(studentId.value!);
+    const originalDormitoryId = originalStudent.data.room?.dormitory_id;
+    
+    if (originalDormitoryId && selectedDormitory.value !== originalDormitoryId) {
+      showError(t("Admins cannot change student dormitory assignments."));
+      return;
+    }
+  }
   try {
+    // Clean profile data - convert empty strings to null for optional fields
+    const cleanProfileData = { ...studentProfile.value };
+    
+    // Convert empty strings to null for optional fields
+    const optionalFields = [
+      'faculty', 'specialist', 'country', 'region', 'city', 'parent_name', 
+      'parent_phone', 'parent_email', 'emergency_contact_name', 'emergency_contact_phone',
+      'deal_number', 'allergies', 'violations', 'mentor_name', 'mentor_email'
+    ];
+    
+    optionalFields.forEach(field => {
+      if (cleanProfileData[field] === '') {
+        cleanProfileData[field] = null;
+      }
+    });
+    
+    // Handle enrollment_year - convert null to undefined if not set
+    if (cleanProfileData.enrollment_year === null || cleanProfileData.enrollment_year === '') {
+      cleanProfileData.enrollment_year = undefined;
+    }
+    
+    // Handle gender - convert empty string to null
+    if (cleanProfileData.gender === '') {
+      cleanProfileData.gender = null;
+    }
+
     // Construct payload
     const payload = {
       user: {
         name: user.value.name,
         email: user.value.email,
-        phone_numbers: user.value.phone_numbers,
+        phone_numbers: cleanedPhones,
         password: user.value.password,
         password_confirmation: user.value.confirmPassword,
       },
       profile: {
-        ...studentProfile.value,
+        ...cleanProfileData,
+        bed_id: studentProfile.value.bed_id || studentProfile.value.bed?.id,
+        room_id: studentProfile.value.room?.id || studentProfile.value.room_id,
       },
     };
+    
+    console.log('Submitting payload:', JSON.stringify(payload, null, 2));
+    console.log('Cleaned profile data:', JSON.stringify(cleanProfileData, null, 2));
+    
     if (isEditing.value) {
       await studentService.update(studentId.value, payload);
       showSuccess(t("Student profile updated successfully!"));
@@ -644,6 +794,9 @@ const submitForm = async (): Promise<void> => {
     }
   } catch (error: any) {
     console.error('Profile update failed:', error);
+    console.error('Error response:', error.response?.data);
+    console.error('Validation errors:', error.response?.data?.errors);
+    console.error('Full error object:', error);
     showError(error.response?.data?.message || t("Failed to save student data"));
   }
 };
@@ -651,16 +804,21 @@ const submitForm = async (): Promise<void> => {
 // Load student from API if editing
 const loadStudent = async (id: number) => {
   try {
-    // Use profile endpoint for current user's own data to avoid permission issues
-    const response = await authService.getProfile();
+    // Use studentService.getById to load specific student data
+    const response = await studentService.getById(id);
     const studentData = response.data;
     
     // Populate form with API data
     user.value = {
       name: studentData.first_name || studentData.name || "",
+      surname: studentData.last_name || "",
       email: studentData.email || "",
-      phone_numbers: studentData.phone_numbers?.length ? [...studentData.phone_numbers] : studentData.phone ? [studentData.phone] : [""]
+      phone_numbers: (() => {
+        const arr = normalizePhones(studentData.phone_numbers, studentData.phone);
+        return arr.length ? arr : [""];
+      })()
     };
+    
     studentProfile.value = {
       iin: studentData.student_profile?.iin || "",
       faculty: studentData.student_profile?.faculty || "",
@@ -668,23 +826,53 @@ const loadStudent = async (id: number) => {
       enrollment_year: studentData.student_profile?.enrollment_year || studentData.enrollment_year,
       gender: studentData.student_profile?.gender || "",
       blood_type: studentData.student_profile?.blood_type || "",
+      country: studentData.student_profile?.country || "",
+      region: studentData.student_profile?.region || "",
+      city: studentData.student_profile?.city || "",
       parent_name: studentData.student_profile?.parent_name || "",
       parent_phone: studentData.student_profile?.parent_phone || "",
       parent_email: studentData.student_profile?.parent_email || "",
+
       emergency_contact_name: studentData.student_profile?.emergency_contact_name || "",
       emergency_contact_phone: studentData.student_profile?.emergency_contact_phone || "",
-      emergency_contact_relationship: studentData.student_profile?.emergency_contact_relationship || "",
-      program: studentData.student_profile?.program || "",
-      year_level: studentData.student_profile?.year_level || "",
-      nationality: studentData.student_profile?.nationality || "",
-      violations: studentData.student_profile?.violations || "",
+      deal_number: studentData.student_profile?.deal_number || "",
       agree_to_dormitory_rules: studentData.student_profile?.agree_to_dormitory_rules || false,
       has_meal_plan: studentData.student_profile?.has_meal_plan || false,
-      registration_limit_reached: studentData.student_profile?.registration_limit_reached || false,
-      is_backup_list: studentData.student_profile?.is_backup_list || false,
+      allergies: studentData.student_profile?.allergies || "",
+      status: studentData.student_profile?.status || studentData.status || "",
+      registration_date: studentData.student_profile?.registration_date || "",
+      violations: studentData.student_profile?.violations || "",
+      mentor_name: studentData.student_profile?.mentor_name || "",
+      mentor_email: studentData.student_profile?.mentor_email || "",
+      room: studentData.room || null,
+      bed: null, // Will be set based on room selection
+      bed_id: null,
     };
+    
+    // Set dormitory, room and bed selection
+    if (studentData.room?.dormitory_id) {
+      selectedDormitory.value = studentData.room.dormitory_id;
+      await fetchRoomsForDormitory(studentData.room.dormitory_id);
+      // Assign room id for select
+      (studentProfile.value as any).room_id = studentData.room.id;
+      // Try to hydrate bed selection if backend provided it
+      const existingBedId = (studentData as any).bed_id || studentData.student_profile?.bed_id;
+      if (existingBedId) {
+        // Check if the existing bed is staff reserved
+        const existingBed = allBeds.value.find(b => b.id === existingBedId);
+        if (existingBed && existingBed.reserved_for_staff) {
+          // Clear bed selection if it's staff reserved
+          studentProfile.value.bed_id = null;
+          console.warn('Cleared staff reserved bed selection for student');
+        } else {
+          studentProfile.value.bed_id = existingBedId as any;
+        }
+      }
+    }
+    
     showSuccess(t("Student data loaded successfully"));
   } catch (error) {
+    console.error('Failed to load student data:', error);
     showError(t("Failed to load student data"));
   }
 };

@@ -44,7 +44,7 @@
             />
           </div>
           <div class="flex-1 flex justify-end">
-            <CButton variant="primary" @click="navigateToAddRoom" data-testid="add-room-button">
+            <CButton @click="navigateToAddRoom" data-testid="add-room-button">
               <PlusIcon class="h-5 w-5" />
               {{ t("Add Room") }}
             </CButton>
@@ -95,8 +95,8 @@
                     <CButton @click="navigateToEditRoom(room.id)" data-testid="edit-room-button">
                       <PencilSquareIcon class="h-5 w-5" /> {{ t("Edit") }}
                     </CButton>
-                    <CButton class="text-red-600" @click="deleteRoom(room.id)" data-testid="delete-room-button">
-                      <TrashIcon class="h-5 w-5" /> {{ t("Delete") }}
+                    <CButton variant="danger" @click="deleteRoom(room.id)" data-testid="delete-room-button">
+                      <TrashIcon class="h5 w-5" /> {{ t("Delete") }}
                     </CButton>
                   </div>
                 </td>
@@ -368,7 +368,7 @@ async function updateRoom(id: number, roomData: any) {
 
 async function deleteRoom(id: number) {
   const confirmed = await showConfirmation(
-    t('Are you sure you want to delete this room?'),
+    t('Are you sure? This change is not recoverable'),
     t('Delete Room')
   );
   

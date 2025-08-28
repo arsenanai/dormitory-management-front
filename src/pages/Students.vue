@@ -51,7 +51,7 @@
         <div class="flex flex-col items-stretch justify-between gap-4 lg:flex-row">
           <CButton>
             <ArrowDownTrayIcon class="h-5 w-5" />
-            {{ t("Export to Excel") }}
+            {{ t("Download") }}
           </CButton>
           <CButton @click="navigateToAddStudent">
             <PlusIcon class="h-5 w-5" />
@@ -90,24 +90,21 @@
               <td class="px-6 py-4">
                 <CCheckbox :id="'checkbox-' + index" />
               </td>
-              <td class="px-6 py-4">{{ student.first_name || student.name }}</td>
-              <td class="px-6 py-4">{{ student.last_name || student.surname }}</td>
-              <td class="px-6 py-4">{{ student.status }}</td>
-              <td class="px-6 py-4">{{ student.studentProfile?.enrollment_year || student.enrollment_year || student.year_of_study }}</td>
-              <td class="px-6 py-4">{{ student.studentProfile?.faculty || student.faculty }}</td>
+              <td class="px-6 py-4">{{ student.firstName || student.first_name || student.name || '-' }}</td>
+              <td class="px-6 py-4">{{ student.lastName || student.last_name || student.surname || '-' }}</td>
+              <td class="px-6 py-4">{{ student.status || '-' }}</td>
+              <td class="px-6 py-4">{{ student.studentProfile?.enrollmentYear || student.enrollmentYear || student.yearOfStudy || '-' }}</td>
+              <td class="px-6 py-4">{{ student.studentProfile?.faculty || student.faculty || '-' }}</td>
+              <td class="px-6 py-4">{{ student.room?.dormitory?.name || student.dormitory?.name || '-' }}</td>
+              <td class="px-6 py-4">{{ student.room?.number || student.room || '-' }}</td>
+              <td class="px-6 py-4">{{ student.phoneNumbers?.[0] || student.phone_numbers?.[0] || student.phone || student.telephone || '-' }}</td>
               <td class="px-6 py-4">
-                {{ student.room?.dormitory?.name || student.dormitory?.name || "" }}
-              </td>
-              <td class="px-6 py-4">
-                {{ student.room?.number || student.room || "" }}
-              </td>
-              <td class="px-6 py-4">{{ student.phone_numbers?.[0] || student.phone || student.telephone }}</td>
-              <td class="px-6 py-4">
-                <component
-                  :is="student.status === t('In') ? CheckCircleIcon : XCircleIcon"
-                  :class="student.status === t('In') ? 'text-green-500' : 'text-red-500'"
-                  class="mx-auto h-6 w-6"
-                />
+                <span v-if="student.status === 'In' || student.status === 'in'" class="text-green-500">
+                  <CheckCircleIcon class="mx-auto h-6 w-6" />
+                </span>
+                <span v-else class="text-red-500">
+                  <XCircleIcon class="mx-auto h-6 w-6" />
+                </span>
               </td>
               <td class="px-6 py-4 text-right">
                 <CButton @click="navigateToEditStudent(student.id || index)">
@@ -142,7 +139,7 @@
           :placeholder="t('Select Action')"
           class="w-auto lg:w-40"
         />
-        <CButton variant="primary">
+        <CButton>
           {{ t("Submit") }}
         </CButton>
       </div>
@@ -221,8 +218,8 @@ const filteredStudents = computed(() => {
   }
   
   const filtered = students.value.filter((s) => {
-    const name = (s.first_name || s.name || '').toLowerCase();
-    const surname = (s.last_name || s.surname || '').toLowerCase();
+    const name = (s.firstName || s.first_name || s.name || '').toLowerCase();
+    const surname = (s.lastName || s.last_name || s.surname || '').toLowerCase();
     const faculty = (s.studentProfile?.faculty || s.faculty || '').toLowerCase();
     const room = (s.room?.number || s.room || '').toString().toLowerCase();
     const dorm = (s.room?.dormitory?.name || s.dormitory?.name || '').toLowerCase();
@@ -270,7 +267,7 @@ const paginatedStudents = computed(() => {
     hasData: result.length > 0,
     firstStudent: result[0] ? {
       id: result[0].id,
-      name: result[0].first_name || result[0].name,
+      name: result[0].firstName || result[0].first_name || result[0].name,
       email: result[0].email,
       faculty: result[0].studentProfile?.faculty || result[0].faculty,
       room: result[0].room?.number,

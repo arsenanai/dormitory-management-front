@@ -15,7 +15,7 @@
             />
           </div>
           <div class="flex-1 flex justify-end">
-            <CButton variant="primary" @click="navigateToAddRoomType">
+            <CButton @click="navigateToAddRoomType">
               <PlusIcon class="h-5 w-5" />
               {{ t("Add Room Type") }}
             </CButton>
@@ -68,7 +68,7 @@
                   <CButton @click="navigateToEditRoomType(roomType.id)">
                     <PencilSquareIcon class="h-5 w-5" /> {{ t("Edit") }}
                   </CButton>
-                  <CButton class="text-red-600" @click="deleteRoomType(roomType.id)">
+                  <CButton variant="danger" @click="deleteRoomType(roomType.id)">
                     <TrashIcon class="h-5 w-5" /> {{ t("Delete") }}
                   </CButton>
                 </CTableCell>
@@ -375,7 +375,7 @@ const { showError, showSuccess, showConfirmation } = useToast();
   
   async function deleteRoomType(id: number) {
     const confirmed = await showConfirmation(
-      t('Are you sure you want to delete this room type?'),
+      t('Are you sure? This change is not recoverable'),
       t('Delete Room Type')
     );
     

@@ -181,6 +181,21 @@
                 "profile": "Мой профиль",
                 "contactReception": "Связаться с ресепшеном"
             }
+        },
+        "form": {
+            "purposeOfVisit": "Цель визита",
+            "hostName": "Имя принимающей стороны",
+            "hostContact": "Контакт принимающей стороны",
+            "identificationType": "Тип удостоверения личности",
+            "identificationNumber": "Номер удостоверения личности",
+            "emergencyName": "Имя экстренного контакта",
+            "emergencyPhone": "Телефон экстренного контакта",
+            "wifiUsername": "Имя пользователя WiFi",
+            "wifiPassword": "Пароль WiFi",
+            "dailyRate": "Дневная ставка",
+            "paymentReceived": "Получена оплата",
+            "enterInformationOrReminder": "Введите информацию или напоминание",
+            "paymentInformation": "Информация об оплате"
         }
     },
     "Messages": "Сообщения",
@@ -211,6 +226,8 @@
     "Action": "Действие",
     "Deactivate": "Деактивировать",
     "Delete": "Удалить",
+    "Are you sure? This change is not recoverable": "Вы уверены? Это изменение необратимо",
+    "Download": "Скачать",
     "Submit": "Отправить",
     "Computer Science": "Компьютерные науки",
     "Management": "Менеджмент",
@@ -364,6 +381,7 @@
     "Save Plan": "Сохранить план",
     "Add Guest": "Добавить гостя",
     "Guest page": "Страница гостя",
+    "Guest Form": "Форма гостя",
     "Firstname": "Имя",
     "Surname": "Фамилия",
     "Tel no": "Номер телефона",
@@ -378,6 +396,8 @@
     "DEBT": "ДОЛГ",
     "Failed to load guest payments": "Не удалось загрузить платежи гостей",
     "Failed to save guest information. Please try again.": "Не удалось сохранить информацию о госте. Попробуйте еще раз.",
+    "Guest information created successfully!": "Информация о госте успешно создана!",
+    "Guest information updated successfully!": "Информация о госте успешно обновлена!",
     "Add Payment": "Добавить платеж",
     "Payment": "Платеж",
     "Payments": "Платежи",

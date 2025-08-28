@@ -18,7 +18,7 @@
       >
         <CButton @click="exportToExcel">
           <ArrowDownTrayIcon class="h-5 w-5" />
-          {{ t("Export to Excel") }}
+          {{ t("Download") }}
         </CButton>
         <CButton @click="navigateToAddDormitory">
           <PlusIcon class="h-5 w-5" />
@@ -53,7 +53,7 @@
           <CButton @click="navigateToEditDormitory(row.id)" size="sm">
             {{ t("Edit") }}
           </CButton>
-          <CButton @click="deleteDormitory(row)" size="sm" variant="danger">
+          <CButton variant="danger" @click="deleteDormitory(row)" size="sm">
             {{ t("Delete") }}
           </CButton>
         </div>
@@ -264,7 +264,12 @@ const navigateToEditDormitory = (id: number): void => {
 
 // Delete function
 const deleteDormitory = async (row: any) => {
-  if (confirm(t('Are you sure you want to delete this dormitory?'))) {
+  const confirmed = await showConfirmation(
+    t('Are you sure? This change is not recoverable'),
+    t('Delete Dormitory')
+  );
+  
+  if (confirmed) {
     try {
       await dormitoryService.delete(row.id);
       showSuccess(t('Dormitory deleted successfully'));

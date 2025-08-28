@@ -19,6 +19,16 @@ const addToast = (toast: Omit<Toast, 'id'>): string => {
   
   // Create and mount the toast component
   const container = document.createElement('div')
+  
+  // Calculate vertical offset for stacking (16px top + 80px spacing * index)
+  const topOffset = 16 + (toasts.value.length - 1) * 80
+  container.style.position = 'fixed'
+  container.style.top = `${topOffset}px`
+  container.style.right = '16px'
+  container.style.zIndex = '9999'
+  container.style.pointerEvents = 'auto'
+  container.style.maxWidth = '400px'
+  
   document.body.appendChild(container)
   
   const app = createApp({
@@ -41,11 +51,24 @@ const removeToast = (id: string) => {
     toasts.value.splice(index, 1)
   }
   
-  // Find and remove the DOM container
+  // Find and remove the specific toast container
   const containers = document.querySelectorAll('div[role="alert"]')
-  containers.forEach(container => {
-    if (container.parentElement?.tagName === 'DIV') {
+  containers.forEach((container, containerIndex) => {
+    if (containerIndex === index && container.parentElement?.tagName === 'DIV') {
       container.parentElement.remove()
+    }
+  })
+  
+  // Reposition remaining toasts
+  repositionToasts()
+}
+
+const repositionToasts = () => {
+  const containers = document.querySelectorAll('div[role="alert"]')
+  containers.forEach((container, index) => {
+    const topOffset = 16 + index * 80
+    if (container.parentElement) {
+      container.parentElement.style.top = `${topOffset}px`
     }
   })
 }

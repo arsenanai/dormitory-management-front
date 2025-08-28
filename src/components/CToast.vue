@@ -1,39 +1,37 @@
 <template>
-  <Teleport to="body">
-    <div 
-      v-if="isVisible" 
-      :class="[toastClasses, `toast-${type}`]"
-      class="fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out max-w-sm"
-      role="alert"
-      @click="close"
-    >
-      <div class="flex items-start gap-3">
-        <!-- Icon -->
-        <div class="flex-shrink-0">
-          <CheckCircleIcon v-if="type === 'success'" class="h-5 w-5" />
-          <ExclamationTriangleIcon v-else-if="type === 'warning'" class="h-5 w-5" />
-          <XCircleIcon v-else-if="type === 'error'" class="h-5 w-5" />
-          <InformationCircleIcon v-else class="h-5 w-5" />
-        </div>
-        
-        <!-- Content -->
-        <div class="flex-1 min-w-0">
-          <p v-if="title" class="text-sm font-medium text-primary-700">{{ title }}</p>
-          <p class="text-sm text-primary-600" :class="{ 'mt-1': title }">{{ message }}</p>
-        </div>
-        
-        <!-- Close button -->
-        <button 
-          v-if="closable"
-          @click.stop="close"
-          class="flex-shrink-0 p-1 rounded-md hover:bg-black hover:bg-opacity-10 transition-colors"
-          :aria-label="$t?.('Close') || 'Close'"
-        >
-          <XMarkIcon class="h-4 w-4" />
-        </button>
+  <div 
+    v-if="isVisible" 
+    :class="[toastClasses, `toast-${type}`]"
+    class="p-4 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out max-w-sm w-full"
+    role="alert"
+    @click="close"
+  >
+    <div class="flex items-start gap-3">
+      <!-- Icon -->
+      <div class="flex-shrink-0">
+        <CheckCircleIcon v-if="type === 'success'" class="h-5 w-5" />
+        <ExclamationTriangleIcon v-else-if="type === 'warning'" class="h-5 w-5" />
+        <XCircleIcon v-else-if="type === 'error'" class="h-5 w-5" />
+        <InformationCircleIcon v-else class="h-5 w-5" />
       </div>
+      
+      <!-- Content -->
+      <div class="flex-1 min-w-0">
+        <p v-if="title" class="text-sm font-medium text-primary-700">{{ title }}</p>
+        <p class="text-sm text-primary-600" :class="{ 'mt-1': title }">{{ message }}</p>
+      </div>
+      
+      <!-- Close button -->
+      <button 
+        v-if="closable"
+        @click.stop="close"
+        class="flex-shrink-0 p-1 rounded-md hover:bg-black hover:bg-opacity-10 transition-colors"
+        aria-label="Close"
+      >
+        <XMarkIcon class="h-4 w-4" />
+      </button>
     </div>
-  </Teleport>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -47,6 +45,7 @@ import {
 } from '@heroicons/vue/24/outline'
 
 export interface ToastProps {
+  id?: string
   type?: 'success' | 'error' | 'warning' | 'info'
   title?: string
   message: string

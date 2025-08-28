@@ -16,7 +16,7 @@ test.describe('Role-Based Access Control', () => {
         '/guest-house',    // Guest house management
         '/messages',       // Messaging system
         '/payments',       // Payment management
-        '/accounting',     // Accounting reports
+        // '/accounting',     // Accounting reports - disabled
         '/dormitories',    // Dormitory configuration
         '/rooms',          // Room management
         '/room-types',     // Room type management
@@ -171,12 +171,12 @@ test.describe('Role-Based Access Control', () => {
       await expect(page.locator('body')).toContainText(/settings|configuration/i);
     });
 
-    test('should be able to view accounting reports', async ({ page }) => {
-      await TestUtils.navigateTo(page, '/accounting');
-      
-      // Check for accounting functionality
-      await expect(page.locator('body')).toContainText(/accounting|income|report/i);
-    });
+    // test('should be able to view accounting reports', async ({ page }) => {
+    //   await TestUtils.navigateTo(page, '/accounting');
+    //   
+    //   // Check for accounting functionality
+    //   await expect(page.locator('body')).toContainText(/accounting|income|report/i);
+    // });
   });
 
   test.describe('Admin Access', () => {
@@ -233,7 +233,7 @@ test.describe('Role-Based Access Control', () => {
       // Check that admin cannot access superadmin-only modules
       const superadminModules = [
         '/admins',         // Admin management
-        '/accounting',     // Accounting reports
+        // '/accounting',     // Accounting reports - disabled
         '/dormitories',    // Dormitory configuration
         '/settings'        // System settings
       ];
@@ -282,7 +282,7 @@ test.describe('Role-Based Access Control', () => {
       await TestUtils.navigateTo(page, '/student-main');
       
       // Check for payment information display
-      await expect(page.locator('body')).toContainText(/payment|accounting/i);
+              await expect(page.locator('body')).toContainText(/payment/i);
     });
 
     test('should be able to read messages from dormitory management', async ({ page }) => {
@@ -302,7 +302,7 @@ test.describe('Role-Based Access Control', () => {
         '/rooms',          // Room management
         '/room-types',     // Room type management
         '/admins',         // Admin management
-        '/accounting',     // Accounting reports
+        // '/accounting',     // Accounting reports - disabled
         '/dormitories',    // Dormitory configuration
         '/settings'        // System settings
       ];

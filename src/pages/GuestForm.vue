@@ -17,7 +17,7 @@
       <div>
         <CInput
           id="guest-last-name"
-          v-model="user.name"
+          v-model="user.lastName"
           type="text"
           :label="t('Surname')"
           placeholder="Enter Surname"
@@ -37,11 +37,23 @@
         />
       </div>
 
+      <!-- Email -->
+      <div>
+        <CInput
+          id="guest-email"
+          v-model="user.email"
+          type="email"
+          :label="t('Email')"
+          placeholder="Enter Email"
+          required
+        />
+      </div>
+
       <!-- Enter Date -->
       <div>
         <CInput
           id="guest-enter-date"
-          v-model="guestProfile.enterDate"
+          v-model="guestProfile.visit_start_date"
           type="date"
           :label="t('Enter date')"
           required
@@ -52,7 +64,7 @@
       <div>
         <CInput
           id="guest-exit-date"
-          v-model="guestProfile.exitDate"
+          v-model="guestProfile.visit_end_date"
           type="date"
           :label="t('Exit date')"
           required
@@ -70,25 +82,81 @@
         />
       </div>
 
-      <!-- WiFi Username -->
+      <!-- Purpose of Visit -->
       <div>
         <CInput
-          id="guest-wifi-username"
-          v-model="guestProfile.wifiUsername"
+          id="guest-purpose"
+          v-model="guestProfile.purpose_of_visit"
           type="text"
-          :label="t('Wifi Username')"
-          placeholder="Enter WiFi Username"
+          :label="t('guest.form.purposeOfVisit')"
+          placeholder="Enter purpose of visit"
+          required
         />
       </div>
 
-      <!-- WiFi Password -->
+      <!-- Host Name -->
       <div>
         <CInput
-          id="guest-wifi-password"
-          v-model="guestProfile.wifiPassword"
+          id="guest-host-name"
+          v-model="guestProfile.host_name"
           type="text"
-          :label="t('Wifi Password')"
-          placeholder="Enter WiFi Password"
+          :label="t('guest.form.hostName')"
+          placeholder="Enter host name"
+        />
+      </div>
+
+      <!-- Host Contact -->
+      <div>
+        <CInput
+          id="guest-host-contact"
+          v-model="guestProfile.host_contact"
+          type="text"
+          :label="t('guest.form.hostContact')"
+          placeholder="Enter host contact"
+        />
+      </div>
+
+      <!-- Identification Type -->
+      <div>
+        <CSelect
+          id="guest-identification-type"
+          v-model="guestProfile.identification_type"
+          :options="identificationOptions"
+          :label="t('guest.form.identificationType')"
+          placeholder="Select identification type"
+        />
+      </div>
+
+      <!-- Identification Number -->
+      <div>
+        <CInput
+          id="guest-identification-number"
+          v-model="guestProfile.identification_number"
+          type="text"
+          :label="t('guest.form.identificationNumber')"
+          placeholder="Enter identification number"
+        />
+      </div>
+
+      <!-- Emergency Contact Name -->
+      <div>
+        <CInput
+          id="guest-emergency-name"
+          v-model="guestProfile.emergency_contact_name"
+          type="text"
+          :label="t('guest.form.emergencyName')"
+          placeholder="Enter emergency contact name"
+        />
+      </div>
+
+      <!-- Emergency Contact Phone -->
+      <div>
+        <CInput
+          id="guest-emergency-phone"
+          v-model="guestProfile.emergency_contact_phone"
+          type="tel"
+          :label="t('guest.form.emergencyPhone')"
+          placeholder="Enter emergency contact phone"
         />
       </div>
 
@@ -97,95 +165,31 @@
         <CTextarea
           id="guest-reminder"
           v-model="guestProfile.reminder"
-          :label="t('Information - Reminder')"
-          :placeholder="t('Enter Information or Reminder')"
-          rows="3"
+          :label="t('guest.form.enterInformationOrReminder')"
+          :placeholder="t('guest.form.enterInformationOrReminder')"
+          :rows="3"
         />
       </div>
     </div>
 
     <hr class="my-4 border-t border-gray-300" />
-    <div class="text-lg font-medium text-primary-700">{{ t('Guest Payments') }}</div>
-    <div v-if="loadingPayments" class="text-primary-600">{{ t('Loading payments...') }}</div>
-    <div v-else-if="paymentsError" class="text-red-600">{{ paymentsError }}</div>
-    <CTable v-else :class="'mb-6'" v-if="guestPayments.length">
-      <CTableHead>
-        <CTableHeadCell>{{ t('Guest Name') }}</CTableHeadCell>
-        <CTableHeadCell>{{ t('Room') }}</CTableHeadCell>
-        <CTableHeadCell>{{ t('Dormitory') }}</CTableHeadCell>
-        <CTableHeadCell>{{ t('Amount') }}</CTableHeadCell>
-        <CTableHeadCell>{{ t('Status') }}</CTableHeadCell>
-        <CTableHeadCell>{{ t('Check-in') }}</CTableHeadCell>
-        <CTableHeadCell>{{ t('Check-out') }}</CTableHeadCell>
-      </CTableHead>
-      <CTableBody>
-        <CTableRow v-for="(payment, idx) in guestPayments" :key="idx">
-                  <CTableCell>{{ t(payment.guest_name) }}</CTableCell>
-        <CTableCell>{{ t(payment.room) }}</CTableCell>
-        <CTableCell>{{ t(payment.dormitory) }}</CTableCell>
-        <CTableCell>{{ t(payment.amount) }}</CTableCell>
-        <CTableCell>{{ t(payment.status) }}</CTableCell>
-        <CTableCell>{{ t(payment.check_in_date) }}</CTableCell>
-        <CTableCell>{{ t(payment.check_out_date) }}</CTableCell>
-        </CTableRow>
-      </CTableBody>
-    </CTable>
-    <div class="text-lg font-medium text-primary-700">{{ t("Payment info") }}</div>
+    <div class="text-lg font-medium text-primary-700">{{ t("guest.form.paymentInformation") }}</div>
 
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <!-- Daily Rate -->
       <div>
         <CInput
           id="guest-daily-rate"
-          v-model="guestProfile.dailyRate"
+          v-model="guestProfile.daily_rate"
           type="number"
-          :label="t('Daily')"
+          :label="t('guest.form.dailyRate')"
           placeholder="Enter Daily Rate"
+          step="0.01"
+          min="0"
         />
       </div>
 
-      <!-- Payment Rows -->
-      <template v-for="(payment, index) in guestProfile.payments" :key="index">
-        <div>
-          <CInput
-            :id="`guest-payment-date-${index}`"
-            v-model="payment.date"
-            type="date"
-            :label="t('Payment Date')"
-          />
-        </div>
-        <div>
-          <CInput
-            :id="`guest-payment-amount-${index}`"
-            v-model="payment.amount"
-            type="number"
-            :label="t('Payment Amount')"
-            placeholder="0"
-          />
-        </div>
-      </template>
 
-      <!-- Paid -->
-      <div>
-        <CInput
-          id="guest-paid"
-          v-model="guestProfile.paid"
-          type="number"
-          :label="t('PAID')"
-          placeholder="Enter Paid Amount"
-        />
-      </div>
-
-      <!-- Debt -->
-      <div>
-        <CInput
-          id="guest-debt"
-          v-model="guestProfile.debt"
-          type="number"
-          :label="t('DEBT')"
-          placeholder="Enter Debt Amount"
-        />
-      </div>
     </div>
 
     <!-- Submit Button -->
@@ -200,55 +204,27 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import Navigation from "@/components/CNavigation.vue";
 import CInput from "@/components/CInput.vue";
 import CSelect from "@/components/CSelect.vue";
 import CButton from "@/components/CButton.vue";
 import { useToast } from "@/composables/useToast";
 import { guestService } from '@/services/api';
-import CTable from "@/components/CTable.vue";
-import CTableHead from "@/components/CTableHead.vue";
-import CTableHeadCell from "@/components/CTableHeadCell.vue";
-import CTableBody from "@/components/CTableBody.vue";
-import CTableRow from "@/components/CTableRow.vue";
-import CTableCell from "@/components/CTableCell.vue";
 import type { User } from "@/models/User";
 import type { GuestProfile } from "@/models/GuestProfile";
 import CTextarea from "@/components/CTextarea.vue";
 
-// Define the type for a payment
-interface Payment {
-  date: string;
-  amount: number | null;
-}
-
-// Define the type for the guest object
-interface Guest {
-  firstName: string;
-  lastName: string;
-  phone: string;
-  enterDate: string;
-  exitDate: string;
-  room: string;
-  wifiUsername: string;
-  wifiPassword: string;
-  reminder: string;
-  dailyRate: number;
-  payments: Payment[];
-  paid: number;
-  debt: number;
-}
-
 const { t } = useI18n();
 const route = useRoute();
+const router = useRouter();
 const { showError, showSuccess } = useToast();
 
 // Check if we're editing (ID in route params)
 const guestId = computed(() => route.params.id ? Number(route.params.id) : null);
 const isEditing = computed(() => !!guestId.value);
 
-// Guest Form Data (split into user and guestProfile)
+// Guest Form Data
 const user = ref<Partial<User>>({
   name: "",
   email: "",
@@ -267,58 +243,113 @@ const phoneNumber = computed({
 });
 
 const guestProfile = ref<Partial<GuestProfile>>({
-  room_type: "",
-  files: [],
-  // ... add all other fields as needed
+  purpose_of_visit: "",
+  host_name: "",
+  host_contact: "",
+  visit_start_date: "",
+  visit_end_date: "",
+  identification_type: "",
+  identification_number: "",
+  emergency_contact_name: "",
+  emergency_contact_phone: "",
+  daily_rate: 0,
+  payment_received: 0,
+  wifiUsername: "",
+  wifiPassword: "",
+  reminder: "",
 });
 
 // Room Options
 const roomOptions: { value: string; name: string }[] = [
-  { value: "A210", name: "A210" },
-  { value: "A211", name: "A211" },
-  { value: "A212", name: "A212" },
+  { value: "1", name: "A210" },
+  { value: "2", name: "A211" },
+  { value: "3", name: "A212" },
 ];
 
-const guestPayments = ref([]);
-const loadingPayments = ref(false);
-const paymentsError = ref("");
+// Identification Options
+const identificationOptions: { value: string; name: string }[] = [
+  { value: "passport", name: "Passport" },
+  { value: "national_id", name: "National ID" },
+  { value: "drivers_license", name: "Driver's License" },
+  { value: "other", name: "Other" },
+];
 
 // Submit Form
 const submitForm = async (): Promise<void> => {
   try {
-    // Construct payload
+    // Construct payload to match backend GuestController validation
     const payload = {
-      user: {
-        name: user.value.name,
-        email: user.value.email,
-        phone_numbers: user.value.phone_numbers,
-        password: user.value.password,
-        password_confirmation: user.value.confirmPassword,
-      },
-      profile: {
-        ...guestProfile.value,
-      },
+      name: `${user.value.name} ${user.value.lastName}`.trim(),
+      email: user.value.email,
+      phone: phoneNumber.value,
+      room_id: guestProfile.value.room ? parseInt(guestProfile.value.room) : undefined,
+      check_in_date: guestProfile.value.visit_start_date,
+      check_out_date: guestProfile.value.visit_end_date,
+      payment_status: 'pending',
+      total_amount: guestProfile.value.daily_rate || 0,
+      notes: guestProfile.value.purpose_of_visit || undefined, // Send purpose as notes
+      host_name: guestProfile.value.host_name || undefined,
+      host_contact: guestProfile.value.host_contact || undefined,
+      identification_type: guestProfile.value.identification_type || undefined,
+      identification_number: guestProfile.value.identification_number || undefined,
+      emergency_contact_name: guestProfile.value.emergency_contact_name || undefined,
+      emergency_contact_phone: guestProfile.value.emergency_contact_phone || undefined,
     };
+    
     if (isEditing.value) {
       await guestService.update(guestId.value, payload);
       showSuccess(t("Guest information updated successfully!"));
+      // Redirect to guest index page after successful update
+      router.push('/guest-house');
     } else {
       await guestService.create(payload);
       showSuccess(t("Guest information created successfully!"));
+      // Redirect to guest index page after successful creation
+      console.log('Redirecting to /guest-house...');
+      await router.push('/guest-house');
+      console.log('Redirect completed');
     }
   } catch (error) {
     showError(t("Failed to save guest information. Please try again."));
   }
 };
 
+
+
 // Load guest from API if editing
 const loadGuest = async (id: number) => {
   try {
-    // const response = await guestService.getById(id);
-    // const guestData = response.data;
+    const response = await guestService.getById(id);
+    const guestData = response.data;
     
-    // For now, just show info message since guestService doesn't exist yet
-    showError(t("Guest service not implemented yet"));
+    // Populate user fields
+    // Split the combined name into first and last names
+    const fullName = guestData.first_name || guestData.name || "";
+    const nameParts = fullName.split(' ');
+    const firstName = nameParts[0] || "";
+    const lastName = nameParts.slice(1).join(' ') || "";
+    
+    user.value = {
+      name: firstName,
+      lastName: lastName,
+      email: guestData.email || "",
+      phone_numbers: guestData.phone_numbers?.length ? [...guestData.phone_numbers] : guestData.phone ? [guestData.phone] : [""]
+    };
+    
+    // Populate guestProfile fields
+    guestProfile.value = {
+      purpose_of_visit: guestData.guest_profile?.purpose_of_visit || guestData.notes || "",
+      host_name: guestData.guest_profile?.host_name || "",
+      host_contact: guestData.guest_profile?.host_contact || "",
+      visit_start_date: guestData.guest_profile?.visit_start_date || "",
+      visit_end_date: guestData.guest_profile?.visit_end_date || "",
+      identification_type: guestData.guest_profile?.identification_type || "",
+      identification_number: guestData.guest_profile?.identification_number || "",
+      emergency_contact_name: guestData.guest_profile?.emergency_contact_name || "",
+      emergency_contact_phone: guestData.guest_profile?.emergency_contact_phone || "",
+      daily_rate: guestData.guest_profile?.daily_rate || 0,
+      reminder: guestData.guest_profile?.reminder || "",
+    };
   } catch (error) {
     showError(t("Failed to load guest data"));
   }
@@ -329,17 +360,6 @@ onMounted(async () => {
   if (isEditing.value) {
     await loadGuest(guestId.value!);
   }
-  // Fetch guest payments
-  loadingPayments.value = true;
-  try {
-    const response = await guestService.getPayments();
-    guestPayments.value = response.data || [];
-  } catch (e) {
-    paymentsError.value = t('Failed to load guest payments');
-    guestPayments.value = [];
-  } finally {
-    loadingPayments.value = false;
-  }
 });
 
 // Populate the form if editing an existing guest
@@ -347,24 +367,7 @@ watch(
   () => guestId.value,
   async (id) => {
     if (id) {
-      try {
-        const response = await guestService.getById(id);
-        const guestData = response.data;
-        // Populate user fields
-        user.value = {
-          name: guestData.first_name || guestData.name || "",
-          email: guestData.email || "",
-          phone_numbers: guestData.phone_numbers?.length ? [...guestData.phone_numbers] : guestData.phone ? [guestData.phone] : [""]
-        };
-        // Populate guestProfile fields
-        guestProfile.value = {
-          room_type: guestData.guest_profile?.room_type || "",
-          files: guestData.guest_profile?.files || [],
-          // ... add all other fields as needed
-        };
-      } catch (error) {
-        showError(t("Failed to load guest data"));
-      }
+      await loadGuest(id);
     }
   },
   { immediate: true }

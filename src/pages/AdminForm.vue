@@ -128,7 +128,7 @@
         />
       </div>
       <div class="mt-4 flex gap-2">
-        <CButton type="button" variant="primary" @click="changePassword">
+        <CButton type="button" @click="changePassword">
           {{ t("Update Password") }}
         </CButton>
         <CButton type="button" @click="cancelPasswordChange">

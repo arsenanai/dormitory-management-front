@@ -32,9 +32,9 @@
           :label="t('End Date')"
           class="w-36"
         />
-        <CButton variant="secondary" @click="exportAccounting" data-testid="export-accounting-button">
-          <span class="material-icons">download</span>
-          {{ t('Export as .xlsx') }}
+        <CButton @click="exportAccounting" data-testid="export-accounting-button">
+          <ArrowDownTrayIcon class="h-5 w-5" />
+          {{ t('Download') }}
         </CButton>
       </div>
       <!-- Loading State -->
@@ -86,6 +86,7 @@ import CTableHeadCell from '@/components/CTableHeadCell.vue';
 import CTableBody from '@/components/CTableBody.vue';
 import CTableRow from '@/components/CTableRow.vue';
 import CTableCell from '@/components/CTableCell.vue';
+import { ArrowDownTrayIcon } from '@heroicons/vue/24/outline';
 
 const { t } = useI18n();
 

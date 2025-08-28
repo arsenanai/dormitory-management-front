@@ -13,8 +13,8 @@
       />
       
       <div class="flex justify-end gap-2">
-        <CButton variant="secondary" @click="closeModal">
-          {{ t('Cancel') }}
+        <CButton @click="closeModal">
+          {{ t('Close') }}
         </CButton>
         <CButton variant="primary" @click="sendResetLink" :loading="loading">
           {{ t('Send Reset Link') }}

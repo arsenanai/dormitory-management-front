@@ -12,6 +12,7 @@ export interface GuestProfile {
   emergency_contact_phone?: string;
   is_approved?: boolean;
   daily_rate?: number;
+  payment_received?: number; // Simple payment received amount
   created_at?: string;
   updated_at?: string;
   [key: string]: any;

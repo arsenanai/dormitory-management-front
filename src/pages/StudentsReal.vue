@@ -51,7 +51,7 @@
         <div class="flex flex-col items-stretch justify-between gap-4 lg:flex-row">
           <CButton @click="exportStudents" :disabled="isLoading">
             <ArrowDownTrayIcon class="h-5 w-5" />
-            {{ t("Export to Excel") }}
+            {{ t("Download") }}
           </CButton>
           <CButton @click="navigateToAddStudent">
             <PlusIcon class="h-5 w-5" />
@@ -108,7 +108,7 @@
             <CTableCell>{{ student.phone || '' }}</CTableCell>
             <CTableCell class="text-right">
               <div class="flex justify-end gap-2">
-                <CButton @click="editStudent(student)" size="small" variant="secondary">
+                <CButton @click="editStudent(student)" size="small">
                   <PencilSquareIcon class="h-4 w-4" />
                 </CButton>
                 <CButton

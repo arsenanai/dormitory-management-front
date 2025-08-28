@@ -7,10 +7,7 @@ const adminPassword = 'supersecret';
 const uniquePaymentDesc = () => `TestPayment${Date.now()}`;
 const paymentTestData = {
   amount: 10000,
-  payment_type: 'monthly_rent',
-  payment_date: '2024-01-01',
-  status: 'completed',
-  description: uniquePaymentDesc(),
+  semester: 'fall',
 };
 
 const selectors = {
@@ -30,7 +27,7 @@ test.describe('Payments CRUD E2E', () => {
     await page.fill('#login-password', adminPassword);
     await page.click('button[type="submit"]:has-text("Login")');
     // Wait for successful login - be more flexible with URL matching
-    await page.waitForURL(/\/(main|dormitories|users|payments|accounting)/, { timeout: 15000 });
+            await page.waitForURL(/\/(main|dormitories|users|payments)/, { timeout: 15000 });
     await page.waitForLoadState('networkidle');
     // Navigate to payments page if not already there
     if (!page.url().includes('/payments')) {
@@ -43,13 +40,10 @@ test.describe('Payments CRUD E2E', () => {
     await page.click(selectors.addButton);
     // Wait for modal to appear (no URL change)
     await page.waitForSelector('form', { timeout: 5000 });
-    // Fill all required fields including user_id
-    await page.fill('input[type="number"] >> nth=0', '1'); // User ID
-    await page.fill('input[type="number"] >> nth=1', String(paymentTestData.amount)); // Amount
-    await page.selectOption('#payment-type', paymentTestData.payment_type);
-    await page.fill('input[type="date"]', paymentTestData.payment_date);
-    await page.selectOption('#payment-status', paymentTestData.status);
-    await page.fill('input[type="text"]', paymentTestData.description);
+    // Fill all required fields with new simplified form structure
+    await page.selectOption('#student-select', '1'); // Select first student
+    await page.fill('input[type="number"] >> nth=0', String(paymentTestData.amount)); // Amount
+    await page.selectOption('#semester-select', 'fall'); // Select semester
     // Wait for save button to be visible and enabled
     const saveBtn = page.locator(selectors.saveButton);
     await expect(saveBtn).toBeVisible({ timeout: 5000 });
@@ -73,7 +67,9 @@ test.describe('Payments CRUD E2E', () => {
     if (await successElements.count() > 0) {
       // Success case - modal should close
       await page.waitForSelector('form', { state: 'hidden', timeout: 5000 });
-      await expect(page.locator(`tr:has-text("${paymentTestData.description}")`)).toBeVisible({ timeout: 5000 });
+      // Verify the payment was created by checking for the amount and semester
+      await expect(page.locator(`tr:has-text("${paymentTestData.amount}")`)).toBeVisible({ timeout: 5000 });
+      await expect(page.locator(`tr:has-text("${paymentTestData.semester}")`)).toBeVisible({ timeout: 5000 });
     } else if (await errorElements.count() > 0) {
       // Error case - check for error message and close modal manually
       const errorText = await errorElements.first().textContent();

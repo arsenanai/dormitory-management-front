@@ -194,18 +194,18 @@ const routes: AppRouteRecordRaw[] = [
       roles: ['admin'],
     },
   },
-  {
-    path: '/accounting',
-    name: 'Accounting',
-    component: () => import('@/pages/Accounting.vue'),
-    meta: {
-      title: 'Accounting',
-      requiresAuth: true,
-      sidebar: true,
-      icon: ClipboardDocumentListIcon,
-      roles: ['sudo', 'admin'],
-    },
-  },
+  // {
+  //   path: '/accounting',
+  //   name: 'Accounting',
+  //   component: () => import('@/pages/Accounting.vue'),
+  //   meta: {
+  //     title: 'Accounting',
+  //     requiresAuth: true,
+  //     sidebar: true,
+  //     icon: ClipboardDocumentListIcon,
+  //     roles: ['sudo', 'admin'],
+  //   },
+  // },
   {
     path: '/settings',
     name: 'Settings',

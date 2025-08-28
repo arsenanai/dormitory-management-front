@@ -11,7 +11,7 @@
           <CButton @click="goToEditAdmin(row)" size="sm">
             Edit
           </CButton>
-          <CButton @click="deleteAdmin(row)" size="sm" variant="danger">
+          <CButton variant="danger" @click="deleteAdmin(row)" size="sm">
             Delete
           </CButton>
         </div>
@@ -92,7 +92,12 @@ const goToEditAdmin = (admin) => {
 };
 
 const deleteAdmin = async (admin) => {
-  if (confirm(`Are you sure you want to delete admin ${admin.name}?`)) {
+  const confirmed = await showConfirmation(
+    t('Are you sure? This change is not recoverable'),
+    t('Delete Admin')
+  );
+  
+  if (confirmed) {
     try {
       await adminService.delete(admin.id);
       showSuccess('Admin deleted successfully');

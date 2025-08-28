@@ -13,10 +13,16 @@
           :label="t('Search')"
         />
       </div>
-      <CButton variant="primary" @click="addGuest">
-        <UserPlusIcon class="h-5 w-5" />
-        {{ t("Add Guest") }}
-      </CButton>
+      <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+        <CButton @click="exportGuests" data-testid="export-guests-button">
+          <ArrowDownTrayIcon class="h-5 w-5" />
+          {{ t('Download') }}
+        </CButton>
+        <CButton @click="addGuest">
+          <UserPlusIcon class="h-5 w-5" />
+          {{ t('Add Guest') }}
+        </CButton>
+      </div>
     </div>
 
     <!-- Loading State -->
@@ -30,37 +36,62 @@
     </div>
 
     <!-- Guests Table -->
-    <CTable v-if="!loading && !error" data-testid="guests-table">
-      <CTableHead>
-        <CTableHeadCell>{{ t("Name") }}</CTableHeadCell>
-        <CTableHeadCell>{{ t("Surname") }}</CTableHeadCell>
-        <CTableHeadCell>{{ t("Enter Date") }}</CTableHeadCell>
-        <CTableHeadCell>{{ t("Exit Date") }}</CTableHeadCell>
-        <CTableHeadCell>{{ t("Telephone") }}</CTableHeadCell>
-        <CTableHeadCell>{{ t("Room") }}</CTableHeadCell>
-        <CTableHeadCell>{{ t("Payment") }}</CTableHeadCell>
-        <CTableHeadCell class="text-right">{{ t("Action") }}</CTableHeadCell>
-      </CTableHead>
-      <CTableBody>
-        <CTableRow v-for="guest in filteredGuests" :key="guest.id">
-          <CTableCell>{{ guest.first_name || guest.name }}</CTableCell>
-          <CTableCell>{{ guest.last_name || guest.surname }}</CTableCell>
-          <CTableCell>{{ formatDate(guest.check_in_date) }}</CTableCell>
-          <CTableCell>{{ formatDate(guest.check_out_date) }}</CTableCell>
-          <CTableCell>{{ guest.phone || guest.telephone }}</CTableCell>
-          <CTableCell>{{ guest.room?.number || guest.room || '-' }}</CTableCell>
-          <CTableCell>{{ formatPayment(guest.payment_status, guest.total_amount) }}</CTableCell>
-          <CTableCell class="flex items-center justify-end gap-2">
-            <CButton @click="editGuest(guest.id)">
-              <PencilSquareIcon class="h-5 w-5" /> {{ t("Edit") }}
-            </CButton>
-            <CButton class="text-red-600" @click="deleteGuest(guest.id)">
-              <TrashIcon class="h-5 w-5" /> {{ t("Delete") }}
-            </CButton>
-          </CTableCell>
-        </CTableRow>
-      </CTableBody>
-    </CTable>
+    <div v-if="!loading" class="overflow-x-auto relative border border-gray-300 sm:rounded-lg" data-testid="guests-table">
+      <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+        <thead class="text-xs text-primary-700 uppercase bg-primary-50 dark:bg-primary-700 dark:text-primary-400">
+          <tr>
+            <th class="px-6 py-3">{{ t("Name") }}</th>
+            <th class="px-6 py-3">{{ t("Surname") }}</th>
+            <th class="px-6 py-3">{{ t("Email") }}</th>
+            <th class="px-6 py-3">{{ t("Purpose") }}</th>
+            <th class="px-6 py-3">{{ t("Enter Date") }}</th>
+            <th class="px-6 py-3">{{ t("Exit Date") }}</th>
+            <th class="px-6 py-3">{{ t("Telephone") }}</th>
+            <th class="px-6 py-3">{{ t("Room") }}</th>
+            <th class="px-6 py-3">{{ t("Payment") }}</th>
+            <th class="px-6 py-3 text-right">{{ t("Action") }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-if="filteredGuests.length === 0">
+            <td colspan="10" class="px-6 py-4 text-center text-gray-500">
+              {{ t("No data available") }}
+            </td>
+          </tr>
+          <tr
+            v-for="guest in filteredGuests"
+            :key="guest.id"
+            class="bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700"
+          >
+            <td class="px-6 py-4">{{ guest.first_name || guest.name }}</td>
+            <td class="px-6 py-4">{{ guest.last_name || guest.surname }}</td>
+            <td class="px-6 py-4">{{ guest.email || '-' }}</td>
+            <td class="px-6 py-4">{{ guest.guest_profile?.purpose_of_visit || guest.notes || '-' }}</td>
+            <td class="px-6 py-4">
+              {{ guest.guest_profile?.visit_start_date ? new Date(guest.guest_profile.visit_start_date).toLocaleDateString() : '-' }}
+              <small class="text-xs text-gray-400">({{ guest.guest_profile?.visit_start_date }})</small>
+            </td>
+            <td class="px-6 py-4">
+              {{ guest.guest_profile?.visit_end_date ? new Date(guest.guest_profile.visit_end_date).toLocaleDateString() : '-' }}
+              <small class="text-xs text-gray-400">({{ guest.guest_profile?.visit_end_date }})</small>
+            </td>
+            <td class="px-6 py-4">{{ guest.phone || guest.telephone || '-' }}</td>
+            <td class="px-6 py-4">{{ guest.room?.number || guest.room || '-' }}</td>
+            <td class="px-6 py-4">{{ guest.payment_status === 'paid' ? `$${parseFloat(guest.total_amount || 0).toFixed(2)}` : guest.payment_status || '-' }}</td>
+            <td class="px-6 py-4">
+              <div class="flex items-center justify-end gap-2">
+                <CButton @click="editGuest(guest.id)">
+                  <PencilSquareIcon class="h-5 w-5" /> {{ t("Edit") }}
+                </CButton>
+                <CButton variant="danger" @click="deleteGuest(guest.id)">
+                  <TrashIcon class="h-5 w-5" /> {{ t("Delete") }}
+                </CButton>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <!-- Pagination -->
     <div v-if="totalPages > 1" class="flex items-center justify-between mt-4" data-testid="pagination">
@@ -84,16 +115,12 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import CInput from "@/components/CInput.vue";
 import CButton from "@/components/CButton.vue";
-import CTable from "@/components/CTable.vue";
-import CTableHead from "@/components/CTableHead.vue";
-import CTableHeadCell from "@/components/CTableHeadCell.vue";
-import CTableBody from "@/components/CTableBody.vue";
-import CTableRow from "@/components/CTableRow.vue";
-import CTableCell from "@/components/CTableCell.vue";
+
 import {
   UserPlusIcon,
   PencilSquareIcon,
   TrashIcon,
+  ArrowDownTrayIcon
 } from "@heroicons/vue/24/outline";
 import { guestService } from "@/services/api";
 import { useToast } from "@/composables/useToast";
@@ -124,6 +151,18 @@ const paginatedGuests = computed(() =>
   ),
 );
 
+// Filtered Guests (fix dependency: base on full guests list)
+const filteredGuests = computed(() => {
+  const list = guests.value;
+  if (!searchQuery.value) return list;
+  const q = searchQuery.value.toLowerCase();
+  return list.filter((guest) =>
+    `${guest.first_name || guest.name} ${guest.last_name || guest.surname} ${guest.email || ''} ${guest.guest_profile?.purpose_of_visit || guest.notes || ''} ${guest.phone || guest.telephone} ${guest.room?.number || guest.room}`
+      .toLowerCase()
+      .includes(q),
+  );
+});
+
 // Fetch guests from API
 const fetchGuests = async () => {
   loading.value = true;
@@ -140,6 +179,12 @@ const fetchGuests = async () => {
 
     const response = await guestService.getAll();
     console.log('API Response:', response.data);
+    const firstItem = Array.isArray(response.data?.data)
+      ? response.data.data[0]
+      : Array.isArray(response.data)
+        ? response.data[0]
+        : null;
+    console.log('First guest data:', firstItem);
     
     // Handle both paginated and non-paginated responses
     if (response.data.data && Array.isArray(response.data.data)) {
@@ -155,25 +200,14 @@ const fetchGuests = async () => {
     
     console.log('Fetched guests:', guests.value);
     console.log('Number of guests:', guests.value.length);
-  } catch (err) {
+  } catch (err: any) {
     console.error('Error fetching guests:', err);
-    error.value = err.message || 'Failed to fetch guests';
+    error.value = err?.message || 'Failed to fetch guests';
     guests.value = [];
   } finally {
     loading.value = false;
   }
 };
-
-// Filtered Guests
-const filteredGuests = computed(() => {
-  if (!searchQuery.value) return paginatedGuests.value;
-  
-  return paginatedGuests.value.filter((guest) =>
-    `${guest.first_name || guest.name} ${guest.last_name || guest.surname} ${guest.phone || guest.telephone} ${guest.room?.number || guest.room}`
-      .toLowerCase()
-      .includes(searchQuery.value.toLowerCase()),
-  );
-});
 
 // Helper functions
 const formatDate = (dateString: string) => {
@@ -201,7 +235,7 @@ const editGuest = (id: number): void => {
 // Delete Guest
 const deleteGuest = async (id: number): Promise<void> => {
   const confirmed = await showConfirmation(
-    t('Are you sure you want to delete this guest?'),
+    t('Are you sure? This change is not recoverable'),
     t('Delete Guest')
   );
   
@@ -213,6 +247,28 @@ const deleteGuest = async (id: number): Promise<void> => {
     } catch (err) {
       showError(t('Failed to delete guest'));
     }
+  }
+};
+
+// Export guests
+const exportGuests = async (): Promise<void> => {
+  try {
+    const params: any = {};
+    if (searchQuery.value) params.search = searchQuery.value;
+    const response = await guestService.export(params);
+    const blob = new Blob([
+      (response && (response as any).data) ? (response as any).data : response
+    ], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'guests.xlsx');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    showError(t('Failed to export guests'));
   }
 };
 
