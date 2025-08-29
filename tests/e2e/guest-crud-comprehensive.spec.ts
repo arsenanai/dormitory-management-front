@@ -84,13 +84,13 @@ test.describe('Guest CRUD Comprehensive Tests', () => {
     await page.waitForSelector('[data-testid="guests-table"]');
     
     // Wait for the guest data to appear
-    await page.waitForFunction(() => {
+    await page.waitForFunction((firstName, lastName) => {
       const rows = document.querySelectorAll('[data-testid="guests-table"] tbody tr');
       return Array.from(rows).some(row => 
-        row.textContent?.includes(guestData.firstName) && 
-        row.textContent?.includes(guestData.lastName)
+        row.textContent?.includes(firstName) && 
+        row.textContent?.includes(lastName)
       );
-    });
+    }, guestData.firstName, guestData.lastName);
 
     // Verify guest data in table
     const guestRow = page.locator('[data-testid="guests-table"] tbody tr').filter({
@@ -127,13 +127,13 @@ test.describe('Guest CRUD Comprehensive Tests', () => {
     await page.waitForSelector('[data-testid="guests-table"]');
     
     // Wait for updated data to appear
-    await page.waitForFunction(() => {
+    await page.waitForFunction((firstName, purpose) => {
       const rows = document.querySelectorAll('[data-testid="guests-table"] tbody tr');
       return Array.from(rows).some(row => 
-        row.textContent?.includes(updatedFirstName) && 
-        row.textContent?.includes(updatedPurpose)
+        row.textContent?.includes(firstName) && 
+        row.textContent?.includes(purpose)
       );
-    });
+    }, updatedFirstName, updatedPurpose);
 
     // Verify updated data
     const updatedGuestRow = page.locator('[data-testid="guests-table"] tbody tr').filter({
@@ -155,12 +155,12 @@ test.describe('Guest CRUD Comprehensive Tests', () => {
     });
     
     // Wait for guest to be removed from table
-    await page.waitForFunction(() => {
+    await page.waitForFunction((firstName) => {
       const rows = document.querySelectorAll('[data-testid="guests-table"] tbody tr');
       return !Array.from(rows).some(row => 
-        row.textContent?.includes(updatedFirstName)
+        row.textContent?.includes(firstName)
       );
-    });
+    }, updatedFirstName);
     
     console.log('✅ Guest deleted successfully');
 
