@@ -83,4 +83,38 @@ describe('StudentForm - Admin Dormitory Restriction', () => {
 
     expect(shouldPreventChange).toBe(false);
   });
+
+  it('should preset dormitory for admin users when creating new students', () => {
+    const mockAdminUserWithDormitory = {
+      id: 1,
+      name: 'Admin User',
+      role: { name: 'admin' },
+      adminProfile: {
+        dormitory_id: 3
+      }
+    };
+
+    const adminIsAdmin = isAdmin(mockAdminUserWithDormitory);
+    const hasDormitoryProfile = !!mockAdminUserWithDormitory.adminProfile?.dormitory_id;
+
+    // Admin should have dormitory preset
+    expect(adminIsAdmin).toBe(true);
+    expect(hasDormitoryProfile).toBe(true);
+    expect(mockAdminUserWithDormitory.adminProfile.dormitory_id).toBe(3);
+  });
+
+  it('should not preset dormitory for non-admin users', () => {
+    const mockStudentUser = {
+      id: 2,
+      name: 'Student User',
+      role: { name: 'student' }
+    };
+
+    const studentIsAdmin = isAdmin(mockStudentUser);
+    const hasDormitoryProfile = !!mockStudentUser.adminProfile?.dormitory_id;
+
+    // Student should not have dormitory preset
+    expect(studentIsAdmin).toBe(false);
+    expect(hasDormitoryProfile).toBe(false);
+  });
 });

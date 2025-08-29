@@ -2,12 +2,43 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Student Form Functionality', () => {
   test.beforeEach(async ({ page }) => {
+    // Go to login page
     await page.goto('/', { timeout: 60000 });
     await page.waitForLoadState('networkidle');
-    await page.fill('#login-email', 'admin@email.com');
-    await page.fill('#login-password', 'supersecret');
-    await page.click('[data-testid="login-button"]');
+    
+    // Fill login form
+    const emailField = page.locator('#login-email');
+    const passwordField = page.locator('#login-password');
+    const loginButton = page.locator('[data-testid="login-button"]');
+    
+    await emailField.fill('admin@email.com');
+    await passwordField.fill('supersecret');
+    
+    // Click login
+    await loginButton.click();
+    
+    // Wait for redirect to main page
     await page.waitForURL('/main', { timeout: 30000 });
+    
+    // Wait a bit for the auth store to be populated
+    await page.waitForTimeout(2000);
+    
+    // Debug: Check if authentication actually worked
+    const token = await page.evaluate(() => localStorage.getItem('token'));
+    const user = await page.evaluate(() => localStorage.getItem('user'));
+    
+    console.log('After login - Token in localStorage:', !!token);
+    console.log('After login - User in localStorage:', !!user);
+    
+    if (user) {
+      const userData = JSON.parse(user);
+      console.log('After login - User data:', {
+        id: userData.id,
+        role: userData.role?.name,
+        adminProfile: userData.adminProfile,
+        dormitoryId: userData.adminProfile?.dormitory_id
+      });
+    }
   });
 
   test('should display all form fields correctly', async ({ page }) => {
@@ -190,5 +221,55 @@ test.describe('Student Form Functionality', () => {
 
     // Verify changes were saved
     await expect(page.getByText('Updated Student Name')).toBeVisible();
+  });
+
+  test('should preset dormitory for admin users when creating new students', async ({ page }) => {
+    await page.goto('/students');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(2000);
+
+    // Click add student button
+    await page.click('button:has-text("Add Student")');
+    await page.waitForURL(/student-form/);
+
+    // Wait for dormitory field to be visible
+    await page.waitForSelector('#student-dormitory', { timeout: 10000 });
+
+    // Debug: Check the dormitory field state
+    const dormitoryField = page.locator('#student-dormitory');
+    console.log('Dormitory field found:', await dormitoryField.count());
+    console.log('Dormitory field disabled:', await dormitoryField.isDisabled());
+    console.log('Dormitory field value:', await dormitoryField.inputValue());
+    console.log('Dormitory field HTML:', await dormitoryField.innerHTML());
+
+    // Debug: Check browser console for any errors or logs
+    const logs = await page.evaluate(() => {
+      return window.console.logs || [];
+    });
+    console.log('Browser console logs:', logs);
+
+    // Debug: Check if the dormitory preset logic executed
+    const dormitoryPresetExecuted = await page.evaluate(() => {
+      // Check if the dormitory preset logic ran
+      return window.dormitoryPresetExecuted || false;
+    });
+    console.log('Dormitory preset logic executed:', dormitoryPresetExecuted);
+
+    // Check if dormitory field is disabled (read-only for admins)
+    await expect(dormitoryField).toBeDisabled();
+
+    // Verify that dormitory field has a value (should be preset)
+    const dormitoryValue = await dormitoryField.inputValue();
+    console.log('Dormitory value:', dormitoryValue);
+    expect(dormitoryValue).not.toBe('');
+
+    // Verify the help text is shown
+    const helpText = page.locator('text=Dormitory preset to your assigned dormitory');
+    await expect(helpText).toBeVisible();
+
+    // Verify that rooms are loaded for the preset dormitory
+    await page.waitForSelector('#student-room', { timeout: 10000 });
+    const roomField = page.locator('#student-room');
+    await expect(roomField).toBeVisible();
   });
 });
