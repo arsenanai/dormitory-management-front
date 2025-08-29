@@ -2,16 +2,26 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Guest CRUD Comprehensive Tests', () => {
   test.beforeEach(async ({ page }) => {
-    // Navigate to login page
-    await page.goto('/login');
+    // Go to root page and wait for login form
+    await page.goto('/', { timeout: 60000 });
+    await page.waitForLoadState('networkidle');
     
-    // Login as admin
-    await page.fill('#email', process.env.ADMIN_EMAIL || 'admin@email.com');
-    await page.fill('#password', process.env.ADMIN_PASSWORD || 'password');
-    await page.click('[data-testid="login-button"]');
+    // Fill login form
+    const emailField = page.locator('#login-email');
+    const passwordField = page.locator('#login-password');
+    const loginButton = page.locator('[data-testid="login-button"]');
     
-    // Wait for successful login
-    await page.waitForURL('/dashboard');
+    await emailField.fill('admin@email.com');
+    await passwordField.fill('supersecret');
+    
+    // Click login
+    await loginButton.click();
+    
+    // Wait for redirect to main page
+    await page.waitForURL('/main', { timeout: 30000 });
+    
+    // Wait a bit for the auth store to be populated
+    await page.waitForTimeout(2000);
   });
 
   test('should create, read, edit, and delete a guest successfully', async ({ page }) => {
