@@ -25,6 +25,28 @@ test.describe('Guest CRUD Comprehensive Tests', () => {
   });
 
   test('should create, read, edit, and delete a guest successfully', async ({ page }) => {
+    // Set up network monitoring for debugging
+    page.on('requestfailed', request => {
+      console.log('❌ Request failed:', request.url(), request.failure()?.errorText);
+    });
+    
+    page.on('response', response => {
+      if (response.url().includes('/guests/') && response.status() >= 400) {
+        console.log('❌ Guest API error:', response.url(), response.status(), response.statusText());
+      }
+      // Monitor all guest API responses
+      if (response.url().includes('/guests/')) {
+        console.log('🔍 Guest API response:', response.url(), response.status(), response.statusText());
+      }
+    });
+    
+    // Monitor all requests to see what's being called
+    page.on('request', request => {
+      if (request.url().includes('/guests/')) {
+        console.log('🔍 Guest API request:', request.method(), request.url());
+      }
+    });
+    
     const timestamp = Date.now();
     const guestData = {
       firstName: `Test Guest ${timestamp}`,
@@ -188,19 +210,65 @@ test.describe('Guest CRUD Comprehensive Tests', () => {
     // Step 6: Delete the guest (DELETE)
     console.log('🔍 Deleting guest...');
     
-    // Set up dialog handler before clicking delete
-    page.on('dialog', dialog => {
-      console.log('🔍 Dialog appeared:', dialog.type(), dialog.message());
-      expect(dialog.type()).toBe('confirm');
-      dialog.accept();
-      console.log('✅ Dialog accepted');
+    // Debug: Get the guest ID from the row before deletion
+    console.log('🔍 Getting guest ID for deletion...');
+    const deleteButton = updatedGuestRow.locator('button:has-text("Delete")');
+    const deleteButtonAttributes = await deleteButton.evaluate(el => {
+      const attrs = {};
+      for (let attr of el.attributes) {
+        attrs[attr.name] = attr.value;
+      }
+      return attrs;
     });
+    console.log('🔍 Delete button attributes:', deleteButtonAttributes);
     
     // Click delete button
-    await updatedGuestRow.locator('button:has-text("Delete")').click();
+    await deleteButton.click();
     
-    // Wait a bit for the deletion to process
+    // Wait for the custom confirmation modal to appear
+    console.log('🔍 Waiting for confirmation modal...');
+    await page.waitForSelector('[role="dialog"], .confirmation-modal, .modal, [data-testid="confirmation-modal"]', { timeout: 5000 });
+    
+    // Look for the confirm button in the modal
+    const confirmButton = page.locator('button:has-text("Confirm"), button:has-text("Delete"), button:has-text("Yes"), [data-testid="confirm-button"]').first();
+    
+    if (await confirmButton.count() > 0) {
+      console.log('✅ Confirmation modal found, clicking confirm...');
+      // Use force: true to bypass pointer event interception
+      await confirmButton.click({ force: true });
+    } else {
+      console.log('⚠️ No confirm button found, trying to find any button in modal...');
+      const modalButtons = page.locator('[role="dialog"] button, .confirmation-modal button, .modal button');
+      if (await modalButtons.count() > 0) {
+        // Click the first button (usually confirm) with force
+        await modalButtons.first().click({ force: true });
+        console.log('✅ Clicked first button in modal');
+      } else {
+        console.log('❌ No buttons found in modal');
+        throw new Error('No confirmation buttons found in delete modal');
+      }
+    }
+    
+    // Wait for the modal to disappear and deletion to process
     await page.waitForTimeout(2000);
+    
+    // Debug: Check if there are any error messages or success messages
+    console.log('🔍 Checking for success/error messages...');
+    const successMessages = page.locator('.text-green-600, .text-green-500, [role="alert"]:has-text("success")');
+    const errorMessages = page.locator('.text-red-600, .text-red-500, [role="alert"]:has-text("error")');
+    
+    if (await successMessages.count() > 0) {
+      console.log('✅ Success messages found:', await successMessages.count());
+      // Get text from first success message
+      const firstSuccess = successMessages.first();
+      console.log('✅ First success message:', await firstSuccess.textContent());
+    }
+    if (await errorMessages.count() > 0) {
+      console.log('❌ Error messages found:', await errorMessages.count());
+      // Get text from first error message
+      const firstError = errorMessages.first();
+      console.log('❌ First error message:', await firstError.textContent());
+    }
     
     // Check if guest was removed from table
     console.log('🔍 Checking if guest was removed from table...');

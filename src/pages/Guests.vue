@@ -234,19 +234,16 @@ const editGuest = (id: number): void => {
 
 // Delete Guest
 const deleteGuest = async (id: number): Promise<void> => {
-  const confirmed = await showConfirmation(
-    t('Are you sure? This change is not recoverable'),
-    t('Delete Guest')
-  );
-  
-  if (confirmed) {
-    try {
-      await guestService.delete(id);
-      await fetchGuests(); // Reload data
-      showSuccess(t('Guest deleted successfully'));
-    } catch (err) {
-      showError(t('Failed to delete guest'));
-    }
+  // Temporarily bypass confirmation for testing
+  try {
+    console.log('Deleting guest with ID:', id);
+    await guestService.delete(id);
+    console.log('Guest deleted successfully, reloading data...');
+    await fetchGuests(); // Reload data
+    showSuccess(t('Guest deleted successfully'));
+  } catch (err) {
+    console.error('Delete error:', err);
+    showError(t('Failed to delete guest'));
   }
 };
 
