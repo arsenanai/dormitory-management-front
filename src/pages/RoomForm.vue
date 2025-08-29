@@ -23,8 +23,7 @@
             v-model="room.floor"
             type="number"
             :label="t('Floor')"
-            placeholder="Enter Floor"
-            required
+            placeholder="Enter Floor (Optional)"
             data-testid="room-floor-input"
           />
         </div>
@@ -340,7 +339,7 @@ const updateBedsPreview = () => {
     // Populate form with API data
     room.value = {
       number: roomData.number || "",
-      floor: roomData.floor || "",
+      floor: roomData.floor || null,
       notes: roomData.notes || "",
       dormitory: roomData.dormitory || dormitories.value[0] || null,
       roomType: roomData.room_type || roomData.roomType || null, // API returns room_type (snake_case)
@@ -390,7 +389,7 @@ watch(
     if (selectedRoom) {
       room.value = {
         number: selectedRoom.number || "",
-        floor: selectedRoom.floor || "",
+        floor: selectedRoom.floor || null,
         notes: selectedRoom.notes || "",
         dormitory: selectedRoom.dormitory || dormitories[0],
         roomType: selectedRoom.roomType || null,

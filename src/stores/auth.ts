@@ -53,6 +53,28 @@ export const useAuthStore = defineStore('auth', () => {
   /** Error message for failed operations */
   const error = ref<string | null>(null)
 
+  // Initialize auth store from localStorage
+  const initializeAuthStore = () => {
+    try {
+      const storedToken = localStorage.getItem('token')
+      const storedUser = localStorage.getItem('user')
+      
+      if (storedToken && storedUser) {
+        token.value = storedToken
+        user.value = JSON.parse(storedUser)
+        console.log('🔐 Auth store initialized from localStorage:', { token: !!storedToken, user: !!storedUser })
+      }
+    } catch (error) {
+      console.error('Failed to initialize auth store from localStorage:', error)
+      // Clear corrupted data
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+    }
+  }
+
+  // Initialize the store when it's created
+  initializeAuthStore()
+
   // Getters
   /** Whether the user is currently authenticated */
   const isAuthenticated = computed(() => !!token.value)
@@ -94,9 +116,12 @@ export const useAuthStore = defineStore('auth', () => {
       token.value = response.data.token
       user.value = response.data.user
 
-      // Store token in localStorage for persistence
+      // Store token and user data in localStorage for persistence
       if (token.value) {
         localStorage.setItem('token', token.value)
+      }
+      if (user.value) {
+        localStorage.setItem('user', JSON.stringify(user.value))
       }
 
       // Redirect based on role
@@ -179,6 +204,7 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = null
     user.value = null
     localStorage.removeItem('token')
+    localStorage.removeItem('user')
     router.push('/')
   }
 

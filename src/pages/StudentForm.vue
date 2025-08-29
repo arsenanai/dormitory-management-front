@@ -336,13 +336,16 @@
               v-model="selectedDormitory"
               :options="dormitoryOptions"
               :label="t('Dormitory')"
-              :disabled="loadingDormitories || isAdmin"
+              :disabled="loadingDormitories || (isAdmin && !isEditing)"
               required
             />
             <div v-if="loadingDormitories" class="text-sm text-gray-500 mt-1">
               {{ t('Loading dormitories...') }}
             </div>
-            <div v-if="isAdmin" class="text-sm text-gray-500 mt-1">
+            <div v-if="isAdmin && !isEditing" class="text-sm text-gray-500 mt-1">
+              {{ t('Dormitory preset to your assigned dormitory') }}
+            </div>
+            <div v-if="isAdmin && isEditing" class="text-sm text-gray-500 mt-1">
               {{ t('Dormitory cannot be changed by admin') }}
             </div>
           </div>
@@ -438,6 +441,11 @@ const loadingRooms = ref(false);
 const loadingDormitories = ref(false);
 
 onMounted(async () => {
+  console.log('🚀 StudentForm - Component mounted');
+  console.log('🚀 StudentForm - Auth store user:', authStore.user);
+  console.log('🚀 StudentForm - Is admin:', isAdmin.value);
+  console.log('🚀 StudentForm - Admin profile:', authStore.user?.admin_profile);
+  
   loadingDormitories.value = true;
   try {
     console.log('Fetching dormitories from public endpoint...');
@@ -464,13 +472,17 @@ onMounted(async () => {
   
   // Only restore from store for self-profile flows (not when editing a student by id)
   if (!isEditing.value) {
+    console.log('🚀 StudentForm - Not editing, restoring from store');
     studentStore.restoreSelectedStudent();
   }
   
   // If editing by id, load the specific student
   if (isEditing.value) {
+    console.log('🚀 StudentForm - Editing, loading student');
     await loadStudent(studentId.value!);
   }
+  
+  console.log('🚀 StudentForm - onMounted completed');
 });
 
 // i18n and store
@@ -571,16 +583,6 @@ watch(
   { immediate: true }
 );
 
-// Dormitory and Room options
-const dormitoryOptions = computed(() =>
-  dormitories.value.map((d) => ({ value: d.id, name: d.name }))
-);
-
-const roomOptions = computed(() =>
-  rooms.value
-    .map((r) => ({ value: r.id, name: r.number }))
-);
-
 // Function to fetch rooms for selected dormitory
 const fetchRoomsForDormitory = async (dormitoryId: number) => {
   loadingRooms.value = true;
@@ -597,7 +599,7 @@ const fetchRoomsForDormitory = async (dormitoryId: number) => {
         rooms.value = response.data?.rooms || [];
       } catch (_) {
         const roomsResponse = await roomService.getAll({ dormitory_id: dormitoryId });
-        rooms.value = roomsResponse.data?.data || roomsResponse.data || [];
+        rooms.value = response.data?.data || response.data || [];
       }
     }
     // Flatten all available beds for selection
@@ -610,6 +612,37 @@ const fetchRoomsForDormitory = async (dormitoryId: number) => {
     loadingRooms.value = false;
   }
 };
+
+// Watch for auth store user changes to preset dormitory for admins
+watch(
+  () => authStore.user,
+  async (user) => {
+    console.log('Auth store user changed:', user);
+    console.log('Is admin:', isAdmin.value);
+    console.log('Admin profile:', user?.admin_profile);
+    console.log('Dormitory ID:', user?.admin_profile?.dormitory_id);
+    console.log('Is editing:', isEditing.value);
+    
+    // For admins creating new students, preset dormitory with admin's dormitory
+    if (user && isAdmin.value && user.admin_profile?.dormitory_id && !isEditing.value) {
+      console.log('Setting dormitory preset for admin:', user.admin_profile.dormitory_id);
+      selectedDormitory.value = user.admin_profile.dormitory_id;
+      // Fetch rooms for the admin's dormitory
+      await fetchRoomsForDormitory(user.admin_profile.dormitory_id);
+    }
+  },
+  { immediate: true }
+);
+
+// Dormitory and Room options
+const dormitoryOptions = computed(() =>
+  dormitories.value.map((d) => ({ value: d.id, name: d.name }))
+);
+
+const roomOptions = computed(() =>
+  rooms.value
+    .map((r) => ({ value: r.id, name: r.number }))
+);
 
 // Bed options for selected room
 const bedOptions = computed(() => {
@@ -642,10 +675,19 @@ watch(selectedDormitory, async (newDormId) => {
 });
 
 // Watch for changes to room and reset bed if needed
-watch(() => (studentProfile.value as any).room_id, (newRoomId) => {
-  if (newRoomId) {
-    // keep existing bed_id if it matches selected room; it may be set after rooms load
-  } else {
+watch(() => (studentProfile.value as any).room_id, (newRoomId, oldRoomId) => {
+  if (newRoomId && oldRoomId && newRoomId !== oldRoomId) {
+    // Reset bed when room changes to a different room
+    studentProfile.value.bed = null;
+    studentProfile.value.bed_id = null;
+  } else if (newRoomId && oldRoomId === undefined) {
+    // Initial room selection - don't reset bed yet
+  } else if (!newRoomId) {
+    // Reset bed when room is cleared
+    studentProfile.value.bed = null;
+    studentProfile.value.bed_id = null;
+  } else if (oldRoomId && newRoomId !== oldRoomId) {
+    // Room changed from one value to another (including from undefined)
     studentProfile.value.bed = null;
     studentProfile.value.bed_id = null;
   }
