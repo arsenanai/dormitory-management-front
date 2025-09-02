@@ -164,7 +164,7 @@
               :key="payment.id"
               class="bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700"
             >
-              <td class="px-6 py-4">{{ payment.user?.name || '-' }}</td>
+              <td class="px-6 py-4">{{ payment.user?.name || '-' }}{{ payment.user?.email ? ` (${payment.user.email})` : '' }}</td>
               <td class="px-6 py-4">{{ parseFloat(payment.amount || 0).toFixed(2) }} KZT</td>
               <td class="px-6 py-4">{{ payment.semester || '-' }}</td>
               <td class="px-6 py-4">
@@ -224,7 +224,9 @@
               data-testid="payment-student-select"
               v-model="formData.user_id"
               :label="t('Student')"
-              :options="studentOptions"
+              :options="debugStudentOptions"
+              :disabled="loadingStudents"
+              :placeholder="loadingStudents ? t('Loading students...') : t('Select a student')"
               required
             />
             <CInput
@@ -233,6 +235,16 @@
               :label="t('Amount')"
               type="number"
               step="0.01"
+              required
+            />
+            <CInput
+              v-model="formData.academic_year"
+              data-testid="payment-academic-year-input"
+              :label="t('Academic Year')"
+              type="number"
+              min="2020"
+              max="2030"
+              :placeholder="new Date().getFullYear().toString()"
               required
             />
             <CSelect
@@ -300,6 +312,7 @@ const { showError, showSuccess } = useToast();
 // State
 const payments = ref<any[]>([]);
 const loading = ref(false);
+const loadingStudents = ref(false);
 const error = ref<string | null>(null);
 const total = ref<number>(0);
 const searchTerm = ref<string>("");
@@ -328,7 +341,8 @@ const predefinedRangeOptions = [
 const formData = ref({
   user_id: "",
   amount: "",
-  semester: ""
+  semester: "",
+  academic_year: ""
 });
 
 // Filter options
@@ -566,31 +580,49 @@ const closePaymentForm = () => {
 };
 
 const editPayment = async (payment: any) => {
+  console.log('Edit payment called with:', payment);
   selectedPayment.value = payment;
   showForm.value = true;
   const currentUserId: number | undefined = (payment.user_id ?? payment.userId ?? payment.user?.id);
+  console.log('Current user ID:', currentUserId);
   await loadStudents(currentUserId);
+  
+  // Parse the semester field to extract year and semester
+  const { year, semester } = parseSemester(payment.semester);
+  
   formData.value = {
     user_id: currentUserId ? String(currentUserId) : "",
     amount: payment.amount?.toString() || "",
-    semester: payment.semester || currentSemester()
+    semester: semester,
+    academic_year: year
   };
+  
+  console.log('Form data set:', formData.value);
+  console.log('Student options at edit:', studentOptions.value.length);
 };
 
 const resetForm = () => {
+  const currentYear = new Date().getFullYear();
   formData.value = {
     user_id: "",
     amount: "",
-    semester: currentSemester()
+    semester: currentSemester(),
+    academic_year: currentYear.toString()
   };
 };
 
 const handleFormSubmit = async (data: any) => {
   try {
+    // Combine academic year and semester into the semester field
+    const submissionData = {
+      ...data,
+      semester: formatSemester(data.academic_year, data.semester)
+    };
+    
     if (selectedPayment.value) {
-      await updatePayment(selectedPayment.value.id, data);
+      await updatePayment(selectedPayment.value.id, submissionData);
     } else {
-      await createPayment(data);
+      await createPayment(submissionData);
     }
     await loadPayments();
     closePaymentForm();
@@ -613,24 +645,100 @@ function currentSemester(): string {
   return 'fall';
 }
 
+// Helper functions for semester parsing
+function parseSemester(semesterString: string): { year: string; semester: string } {
+  if (!semesterString) {
+    const currentYear = new Date().getFullYear();
+    return { year: currentYear.toString(), semester: currentSemester() };
+  }
+  
+  const parts = semesterString.split('-');
+  if (parts.length === 2) {
+    return { year: parts[0], semester: parts[1] };
+  }
+  
+  // Fallback: assume it's just a semester without year
+  const currentYear = new Date().getFullYear();
+  return { year: currentYear.toString(), semester: semesterString };
+}
+
+function formatSemester(year: string, semester: string): string {
+  return `${year}-${semester}`;
+}
+
 // Student options (name surname email)
 const studentOptions = ref<Array<{ value: string; name: string }>>([]);
 
-// Load students function
+// Watch studentOptions for debugging
+watch(studentOptions, (newOptions) => {
+  console.log('StudentOptions changed:', newOptions.length, 'options');
+  if (newOptions.length > 0) {
+    console.log('First option:', newOptions[0]);
+  }
+}, { deep: true });
+
+// Debug computed property to see studentOptions in template
+const debugStudentOptions = computed(() => {
+  console.log('Template accessing studentOptions:', studentOptions.value.length);
+  return studentOptions.value;
+});
+
+// Load students function - optimized for payment form
 const loadStudents = async (ensureUserId?: number) => {
+  loadingStudents.value = true;
   try {
-    const res: any = await studentService.getAll({ per_page: 100 });
+    console.log('Starting loadStudents with ensureUserId:', ensureUserId);
+    
+    // Check authentication token
+    const token = localStorage.getItem('token');
+    console.log('Using token:', token ? token.substring(0, 20) + '...' : 'No token');
+    
+    // Test direct fetch to see what's happening
+    const directResponse = await fetch('http://localhost:8000/api/students?fields=id,name,email&per_page=1000', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
+    
+    const directData = await directResponse.json();
+    console.log('Direct fetch response:', directData);
+    console.log('Direct fetch students count:', directData.data?.length || 'No data');
+    
+    // Load all students from admin's dormitory with only essential fields
+    const res: any = await studentService.getAll({ 
+      per_page: 1000,
+      fields: 'id,name,email' // Only fetch essential fields for better performance
+    });
+    
+    console.log('API Response:', res);
+    console.log('Response structure:', {
+      hasData: !!res?.data,
+      hasDataData: !!res?.data?.data,
+      isArray: Array.isArray(res),
+      dataLength: res?.data?.data?.length || res?.data?.length || (Array.isArray(res) ? res.length : 'N/A')
+    });
     
     // Backend-тен келетін жауап структурасын дұрыс өңдеу
     let users: Array<any> = [];
     if (res?.data?.data) {
       users = res.data.data; // Paginated response
+      console.log('Using paginated response structure');
     } else if (res?.data) {
       users = res.data; // Direct array
+      console.log('Using direct array response structure');
     } else if (Array.isArray(res)) {
       users = res; // Direct array
+      console.log('Using direct array response');
+    } else {
+      console.log('Unknown response structure, using empty array');
     }
     
+    console.log('Processed users:', users.length);
+    console.log('First user:', users[0]);
+    
+    // Create options with only essential fields (id, name, email)
     const options = users
       .filter(u => u && u.id) // Filter out users without id
       .map(u => ({ 
@@ -638,19 +746,30 @@ const loadStudents = async (ensureUserId?: number) => {
         name: `${u.name || 'Unknown'}${u.email ? ` (${u.email})` : ''}` 
       }));
     
+    console.log('Student options created:', options.length);
+    console.log('First option:', options[0]);
+    
     // Ensure current user exists in options for edit mode
     if (ensureUserId && !options.some(o => o.value === String(ensureUserId))) {
+      console.log('Current user not found in options, fetching individually...');
       // Try to fetch specific student details via userService
       try {
         const one: any = await studentService.getById(ensureUserId);
         const u = one?.data || {};
         options.push({ value: String(ensureUserId), name: `${u.name || 'Student'}${u.email ? ` (${u.email})` : ''}` });
-      } catch {}
+        console.log('Added missing student:', u.name);
+      } catch (err) {
+        console.error('Failed to fetch individual student:', err);
+      }
     }
+    
     studentOptions.value = options;
+    console.log('Final student options set:', studentOptions.value.length);
   } catch (err) {
     console.error('Failed to load students:', err);
     studentOptions.value = [];
+  } finally {
+    loadingStudents.value = false;
   }
 };
 

@@ -412,13 +412,6 @@ const isAdmin = computed(() => {
   return authStore.user?.role?.name === 'admin';
 });
 
-const showForm = ref(false);
-const editingMessage = ref<any>(null);
-const form = ref({
-  title: '',
-  content: '',
-});
-
 const openCreateModal = () => {
   editingMessage.value = null;
   form.value = { title: '', content: '' };

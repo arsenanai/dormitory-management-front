@@ -5,7 +5,7 @@
     role="dialog"
   >
     <div
-      class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative border border-primary-200"
+      class="bg-white rounded-lg shadow-lg pt-10 px-3 pb-3 w-full max-w-md relative border border-primary-200"
       @click.stop
       ref="modalContent"
       tabindex="-1"
