@@ -178,13 +178,11 @@ const fetchGuests = async () => {
     }
 
     const response = await guestService.getAll();
-    console.log('API Response:', response.data);
     const firstItem = Array.isArray(response.data?.data)
       ? response.data.data[0]
       : Array.isArray(response.data)
         ? response.data[0]
         : null;
-    console.log('First guest data:', firstItem);
     
     // Handle both paginated and non-paginated responses
     if (response.data.data && Array.isArray(response.data.data)) {
@@ -198,8 +196,6 @@ const fetchGuests = async () => {
       guests.value = [];
     }
     
-    console.log('Fetched guests:', guests.value);
-    console.log('Number of guests:', guests.value.length);
   } catch (err: any) {
     console.error('Error fetching guests:', err);
     error.value = err?.message || 'Failed to fetch guests';
@@ -234,12 +230,11 @@ const editGuest = (id: number): void => {
 
 // Delete Guest
 const deleteGuest = async (id: number): Promise<void> => {
-  // Temporarily bypass confirmation for testing
+  const confirmed = await showConfirmation(t('Are you sure you want to delete this guest?'));
+  if (!confirmed) return;
   try {
-    console.log('Deleting guest with ID:', id);
     await guestService.delete(id);
-    console.log('Guest deleted successfully, reloading data...');
-    await fetchGuests(); // Reload data
+    await fetchGuests();
     showSuccess(t('Guest deleted successfully'));
   } catch (err) {
     console.error('Delete error:', err);
