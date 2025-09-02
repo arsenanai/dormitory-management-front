@@ -114,7 +114,7 @@
 
 
       <!-- Payments Table -->
-      <div v-if="!loading && !error" class="overflow-x-auto relative border border-gray-300 sm:rounded-lg">
+      <div v-if="!loading && !error" class="overflow-x-auto relative border border-gray-300 sm:rounded-lg" data-testid="payments-table">
         <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
           <thead class="text-xs text-primary-700 uppercase bg-primary-50 dark:bg-primary-700 dark:text-primary-400">
             <tr>

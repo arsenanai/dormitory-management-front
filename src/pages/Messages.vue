@@ -63,7 +63,7 @@
       {{ error }}
     </div>
 
-    <CTable v-if="!loading && !error">
+    <CTable v-if="!loading && !error" data-testid="messages-table">
       <CTableHead>
         <CTableHeadCell>{{ t("FROM") }}</CTableHeadCell>
         <CTableHeadCell>{{ t("TO") }}</CTableHeadCell>
