@@ -27,137 +27,84 @@ test.describe('Payment CRUD Comprehensive Tests', () => {
   test('should create, read, edit, and delete a payment successfully', async ({ page }) => {
     const timestamp = Date.now();
     const paymentData = {
-      userId: '1', // This will need to be a valid user ID
-      semester: '2025-fall',
-      year: '2025',
-      semesterType: 'fall',
-      amount: '50000',
-      contractNumber: `CONTRACT-${timestamp}`,
-      contractDate: '2024-08-15',
-      paymentDate: '2024-09-01',
-      paymentMethod: 'bank_transfer',
-      paymentNotes: 'Test payment for E2E testing',
-      dormitoryNotes: 'Dormitory access approved for testing'
+      userId: '1',
+      semester: 'fall',
+      amount: '500.50'
     };
 
     // Step 1: Navigate to Payments page
-    console.log('🔍 Navigating to Payments page...');
     await page.goto('/payments');
     await page.waitForSelector('[data-testid="payments-table"]');
-    console.log('✅ Payments page loaded');
 
     // Step 2: Create a new payment
-    console.log('🔍 Creating new payment...');
-    await page.click('text=Add Payment');
-    await page.waitForURL('/payment-form');
-
-    // Fill in payment form
-    await page.selectOption('#payment-user-id', paymentData.userId);
-    await page.selectOption('#payment-semester', paymentData.semester);
-    await page.fill('#payment-year', paymentData.year);
-    await page.selectOption('#payment-semester-type', paymentData.semesterType);
-    await page.fill('#payment-amount', paymentData.amount);
-    await page.fill('#payment-contract-number', paymentData.contractNumber);
-    await page.fill('#payment-contract-date', paymentData.contractDate);
-    await page.fill('#payment-payment-date', paymentData.paymentDate);
-    await page.selectOption('#payment-payment-method', paymentData.paymentMethod);
-    await page.fill('#payment-payment-notes', paymentData.paymentNotes);
-    await page.fill('#payment-dormitory-notes', paymentData.dormitoryNotes);
-
-    // Submit the form
-    await page.click('button:has-text("Submit")');
-    
-    // Wait for redirect to payments page
-    await page.waitForURL('/payments');
-    console.log('✅ Payment created successfully');
+    await page.getByTestId('add-payment-button').click();
+    await page.getByTestId('payment-student-select').selectOption(paymentData.userId);
+    await page.getByTestId('payment-amount-input').fill(paymentData.amount);
+    await page.getByTestId('payment-semester-select').selectOption(paymentData.semester);
+    await page.getByTestId('payment-submit-button').click();
+    await page.waitForSelector('[data-testid="payments-table"]');
 
     // Step 3: Verify payment appears in the list (READ)
-    console.log('🔍 Verifying payment appears in list...');
     await page.waitForSelector('[data-testid="payments-table"]');
     
     // Wait for the payment data to appear
     await page.waitForFunction(() => {
       const rows = document.querySelectorAll('[data-testid="payments-table"] tbody tr');
-      return Array.from(rows).some(row => 
-        row.textContent?.includes(paymentData.contractNumber)
-      );
+      return Array.from(rows).some(row => row.textContent?.includes('500.50'));
     });
 
     // Verify payment data in table
-    const paymentRow = page.locator('[data-testid="payments-table"] tbody tr').filter({
-      hasText: paymentData.contractNumber
-    });
+    const paymentRow = page.locator('[data-testid="payments-table"] tbody tr').filter({ hasText: '500.50' });
     
-    expect(await paymentRow.locator('td').nth(0).textContent()).toContain(paymentData.contractNumber);
-    expect(await paymentRow.locator('td').nth(1).textContent()).toContain(paymentData.amount);
-    console.log('✅ Payment data verified in table');
+    await expect(paymentRow.locator('td').nth(1)).toContainText('500.50');
 
     // Step 4: Edit the payment (EDIT)
-    console.log('🔍 Editing payment...');
     await paymentRow.locator('button:has-text("Edit")').click();
-    await page.waitForURL(/\/payment-form\/\d+/);
+    await page.getByTestId('payment-amount-input').fill('600.75');
+    await page.getByTestId('payment-submit-button').click();
+    await page.waitForSelector('[data-testid="payments-table"]');
 
     // Update payment information
-    const updatedAmount = '60000';
-    const updatedNotes = `${paymentData.paymentNotes} - Updated`;
-    
-    await page.fill('#payment-amount', updatedAmount);
-    await page.fill('#payment-payment-notes', updatedNotes);
-    
-    // Submit the form
-    await page.click('button:has-text("Submit")');
-    
-    // Wait for redirect back to payments page
-    await page.waitForURL('/payments');
-    console.log('✅ Payment updated successfully');
+    const updatedAmount = '600.75';
 
     // Step 5: Verify the update (READ again)
-    console.log('🔍 Verifying payment update...');
     await page.waitForSelector('[data-testid="payments-table"]');
     
     // Wait for updated data to appear
     await page.waitForFunction(() => {
       const rows = document.querySelectorAll('[data-testid="payments-table"] tbody tr');
-      return Array.from(rows).some(row => 
-        row.textContent?.includes(updatedAmount) && 
-        row.textContent?.includes(updatedNotes)
-      );
+      return Array.from(rows).some(row => row.textContent?.includes('600.75'));
     });
 
     // Verify updated data
-    const updatedPaymentRow = page.locator('[data-testid="payments-table"] tbody tr').filter({
-      hasText: paymentData.contractNumber
-    });
-    
-    expect(await updatedPaymentRow.locator('td').nth(1).textContent()).toContain(updatedAmount);
-    console.log('✅ Payment update verified');
+    const updatedPaymentRow = page.locator('[data-testid="payments-table"] tbody tr').filter({ hasText: '600.75' });
+    await expect(updatedPaymentRow.locator('td').nth(1)).toContainText(updatedAmount);
+
+    // Verify persistence after refresh
+    await page.reload();
+    await page.waitForSelector('[data-testid="payments-table"]');
+    await expect(page.locator('[data-testid="payments-table"] tbody')).toContainText('600.75');
 
     // Step 6: Delete the payment (DELETE)
-    console.log('🔍 Deleting payment...');
     await updatedPaymentRow.locator('button:has-text("Delete")').click();
-    
-    // Handle confirmation dialog if it appears
-    page.on('dialog', dialog => {
-      expect(dialog.type()).toBe('confirm');
-      dialog.accept();
-    });
-    
+    // Confirm via modal
+    const confirmBtn = page.locator('.modal [data-testid="confirm-button"], .modal button:has-text("Delete")');
+    if (await confirmBtn.count()) await confirmBtn.first().click();
+
     // Wait for payment to be removed from table
     await page.waitForFunction(() => {
       const rows = document.querySelectorAll('[data-testid="payments-table"] tbody tr');
-      return !Array.from(rows).some(row => 
-        row.textContent?.includes(paymentData.contractNumber)
-      );
+      return !Array.from(rows).some(row => row.textContent?.includes('600.75'));
     });
-    
-    console.log('✅ Payment deleted successfully');
 
     // Step 7: Final verification - payment should not exist
-    const deletedPaymentRow = page.locator('[data-testid="payments-table"] tbody tr').filter({
-      hasText: paymentData.contractNumber
-    });
+    const deletedPaymentRow = page.locator('[data-testid="payments-table"] tbody tr').filter({ hasText: '600.75' });
     expect(await deletedPaymentRow.count()).toBe(0);
-    console.log('✅ Payment deletion verified - payment no longer exists');
+
+    // Verify after refresh
+    await page.reload();
+    await page.waitForSelector('[data-testid="payments-table"]');
+    expect(await page.locator('[data-testid="payments-table"] tbody tr').filter({ hasText: '600.75' }).count()).toBe(0);
   });
 
   test('should handle payment form validation errors', async ({ page }) => {

@@ -192,6 +192,7 @@
           <div class="space-y-4">
             <CSelect
               id="student-select"
+              data-testid="payment-student-select"
               v-model="formData.user_id"
               :label="t('Student')"
               :options="studentOptions"
@@ -199,6 +200,7 @@
             />
             <CInput
               v-model="formData.amount"
+              data-testid="payment-amount-input"
               :label="t('Amount')"
               type="number"
               step="0.01"
@@ -206,6 +208,7 @@
             />
             <CSelect
               id="semester-select"
+              data-testid="payment-semester-select"
               v-model="formData.semester"
               :label="t('Semester')"
               :options="semesterOptions"
@@ -217,7 +220,7 @@
             <CButton @click="closePaymentForm">
               {{ t('Cancel') }}
             </CButton>
-            <CButton type="submit" variant="primary">
+            <CButton type="submit" variant="primary" data-testid="payment-submit-button">
               {{ selectedPayment ? t('Update') : t('Create') }}
             </CButton>
           </div>
