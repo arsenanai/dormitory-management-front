@@ -166,7 +166,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: ChatBubbleLeftRightIcon,
-      roles: ['student'],
+      roles: ['student', 'admin'],
     },
   },
   {

@@ -38,9 +38,18 @@ test.describe('Payment CRUD Comprehensive Tests', () => {
 
     // Step 2: Create a new payment
     await page.getByTestId('add-payment-button').click();
-    await page.getByTestId('payment-student-select').selectOption(paymentData.userId);
-    await page.getByTestId('payment-amount-input').fill(paymentData.amount);
-    await page.getByTestId('payment-semester-select').selectOption(paymentData.semester);
+    // Pick first available student option
+    const firstStudentValue = await page.evaluate(() => {
+      const sel = document.querySelector('#student-select') as HTMLSelectElement | null;
+      if (!sel) return null;
+      const opt = Array.from(sel.options).find(o => o.value);
+      return opt ? opt.value : null;
+    });
+    if (firstStudentValue) {
+      await page.locator('#student-select').selectOption(firstStudentValue);
+    }
+    await page.getByTestId('payment-amount-input').locator('input').fill(paymentData.amount);
+    await page.locator('#semester-select').selectOption(paymentData.semester);
     await page.getByTestId('payment-submit-button').click();
     await page.waitForSelector('[data-testid="payments-table"]');
 
@@ -50,17 +59,16 @@ test.describe('Payment CRUD Comprehensive Tests', () => {
     // Wait for the payment data to appear
     await page.waitForFunction(() => {
       const rows = document.querySelectorAll('[data-testid="payments-table"] tbody tr');
-      return Array.from(rows).some(row => row.textContent?.includes('500.50'));
+      return Array.from(rows).some(row => row.textContent?.includes('500.50 KZT'));
     });
 
     // Verify payment data in table
-    const paymentRow = page.locator('[data-testid="payments-table"] tbody tr').filter({ hasText: '500.50' });
-    
-    await expect(paymentRow.locator('td').nth(1)).toContainText('500.50');
+    const paymentRow = page.locator('[data-testid="payments-table"] tbody tr').filter({ hasText: '500.50 KZT' });
+    await expect(paymentRow.locator('td').nth(1)).toContainText('500.50 KZT');
 
     // Step 4: Edit the payment (EDIT)
     await paymentRow.locator('button:has-text("Edit")').click();
-    await page.getByTestId('payment-amount-input').fill('600.75');
+    await page.getByTestId('payment-amount-input').locator('input').fill('600.75');
     await page.getByTestId('payment-submit-button').click();
     await page.waitForSelector('[data-testid="payments-table"]');
 
@@ -73,61 +81,59 @@ test.describe('Payment CRUD Comprehensive Tests', () => {
     // Wait for updated data to appear
     await page.waitForFunction(() => {
       const rows = document.querySelectorAll('[data-testid="payments-table"] tbody tr');
-      return Array.from(rows).some(row => row.textContent?.includes('600.75'));
+      return Array.from(rows).some(row => row.textContent?.includes('600.75 KZT'));
     });
 
     // Verify updated data
-    const updatedPaymentRow = page.locator('[data-testid="payments-table"] tbody tr').filter({ hasText: '600.75' });
-    await expect(updatedPaymentRow.locator('td').nth(1)).toContainText(updatedAmount);
+    const updatedPaymentRow = page.locator('[data-testid="payments-table"] tbody tr').filter({ hasText: '600.75 KZT' });
+    await expect(updatedPaymentRow.locator('td').nth(1)).toContainText(`${updatedAmount} KZT`);
 
     // Verify persistence after refresh
     await page.reload();
     await page.waitForSelector('[data-testid="payments-table"]');
-    await expect(page.locator('[data-testid="payments-table"] tbody')).toContainText('600.75');
+    await expect(page.locator('[data-testid="payments-table"] tbody')).toContainText('600.75 KZT');
 
     // Step 6: Delete the payment (DELETE)
     await updatedPaymentRow.locator('button:has-text("Delete")').click();
     // Confirm via modal
-    const confirmBtn = page.locator('.modal [data-testid="confirm-button"], .modal button:has-text("Delete")');
-    if (await confirmBtn.count()) await confirmBtn.first().click();
+    const modal = page.locator('[role="dialog"]');
+    const confirmBtn = modal.locator('button:has-text("Delete")');
+    if (await confirmBtn.count()) await confirmBtn.first().click({ force: true });
 
     // Wait for payment to be removed from table
     await page.waitForFunction(() => {
       const rows = document.querySelectorAll('[data-testid="payments-table"] tbody tr');
-      return !Array.from(rows).some(row => row.textContent?.includes('600.75'));
+      return !Array.from(rows).some(row => row.textContent?.includes('600.75 KZT'));
     });
 
     // Step 7: Final verification - payment should not exist
-    const deletedPaymentRow = page.locator('[data-testid="payments-table"] tbody tr').filter({ hasText: '600.75' });
+    const deletedPaymentRow = page.locator('[data-testid="payments-table"] tbody tr').filter({ hasText: '600.75 KZT' });
     expect(await deletedPaymentRow.count()).toBe(0);
 
     // Verify after refresh
     await page.reload();
     await page.waitForSelector('[data-testid="payments-table"]');
-    expect(await page.locator('[data-testid="payments-table"] tbody tr').filter({ hasText: '600.75' }).count()).toBe(0);
+    expect(await page.locator('[data-testid="payments-table"] tbody tr').filter({ hasText: '600.75 KZT' }).count()).toBe(0);
   });
 
   test('should handle payment form validation errors', async ({ page }) => {
-    console.log('🔍 Testing payment form validation...');
-    
-    // Navigate to payment form
-    await page.goto('/payment-form');
-    
-    // Try to submit empty form
-    await page.click('button:has-text("Submit")');
-    
-    // Should stay on form page (validation error)
-    expect(page.url()).toContain('/payment-form');
-    
-    // Fill only required fields partially
-    await page.fill('#payment-amount', '1000');
-    // Don't fill other required fields
-    
-    await page.click('button:has-text("Submit")');
-    
-    // Should still stay on form page
-    expect(page.url()).toContain('/payment-form');
-    console.log('✅ Form validation working correctly');
+    // Open payments and modal
+    await page.goto('/payments');
+    await page.waitForSelector('[data-testid="payments-table"]');
+    await page.getByTestId('add-payment-button').click();
+
+    // Try to submit empty modal form
+    await page.getByTestId('payment-submit-button').click();
+
+    // Modal should still be visible (validation prevented close)
+    await expect(page.getByTestId('payment-student-select')).toBeVisible();
+
+    // Partially fill amount only and submit again
+    await page.getByTestId('payment-amount-input').locator('input').fill('1000');
+    await page.getByTestId('payment-submit-button').click();
+
+    // Still visible due to missing required fields
+    await expect(page.getByTestId('payment-student-select')).toBeVisible();
   });
 
   test('should search and filter payments', async ({ page }) => {

@@ -39,19 +39,30 @@ test.describe('Message CRUD Comprehensive Tests', () => {
     // Step 1: Navigate to Messages page
     console.log('🔍 Navigating to Messages page...');
     await page.goto('/messages');
-    await page.waitForSelector('[data-testid="messages-table"]');
+    await page.waitForLoadState('networkidle');
+    // Ensure we are on /messages
+    try { await page.waitForURL('/messages', { timeout: 5000 }); } catch {}
+    // If redirected, log and try again
+    const currentUrl = page.url();
+    if (!currentUrl.endsWith('/messages')) {
+      await page.goto('/messages');
+      await page.waitForLoadState('networkidle');
+    }
+    // For admin, wait for add button; fallback to table for student
+    const addBtn = page.getByTestId('add-message-button');
+    const pageMarker = page.getByTestId('messages-page');
+    if (await addBtn.count()) {
+      await addBtn.waitFor({ state: 'visible' });
+    } else {
+      await pageMarker.waitFor({ state: 'visible' });
+    }
     console.log('✅ Messages page loaded');
 
     // Step 2: Create a new message
     console.log('🔍 Creating new message...');
-    await page.click('text=Add Message');
-    await page.waitForURL('/message-form');
-
-    // Fill in message form
-    await page.fill('#message-title', messageData.title);
-    await page.fill('#message-content', messageData.content);
-    await page.selectOption('#message-type', messageData.type);
-    await page.selectOption('#message-recipient-type', messageData.recipientType);
+    await page.getByTestId('add-message-button').click();
+    await page.getByTestId('message-title-input').fill(messageData.title);
+    await page.getByTestId('message-content-input').fill(messageData.content);
     
     // Handle recipient IDs (this might be a multi-select or different input type)
     if (await page.locator('#message-recipient-ids').count() > 0) {
@@ -67,10 +78,8 @@ test.describe('Message CRUD Comprehensive Tests', () => {
     }
 
     // Submit the form
-    await page.click('button:has-text("Submit")');
-    
-    // Wait for redirect to messages page
-    await page.waitForURL('/messages');
+    await page.getByTestId('message-submit-button').click();
+    await page.waitForSelector('[data-testid="messages-table"]');
     console.log('✅ Message created successfully');
 
     // Step 3: Verify message appears in the list (READ)
@@ -96,21 +105,18 @@ test.describe('Message CRUD Comprehensive Tests', () => {
 
     // Step 4: Edit the message (EDIT)
     console.log('🔍 Editing message...');
-    await messageRow.locator('button:has-text("Edit")').click();
-    await page.waitForURL(/\/message-form\/\d+/);
+    await messageRow.getByTestId('edit-message-button').click();
 
     // Update message information
     const updatedTitle = `${messageData.title} - Updated`;
     const updatedContent = `${messageData.content} - Updated content`;
     
-    await page.fill('#message-title', updatedTitle);
-    await page.fill('#message-content', updatedContent);
+    await page.getByTestId('message-title-input').fill(updatedTitle);
+    await page.getByTestId('message-content-input').fill(updatedContent);
     
     // Submit the form
-    await page.click('button:has-text("Submit")');
-    
-    // Wait for redirect back to messages page
-    await page.waitForURL('/messages');
+    await page.getByTestId('message-submit-button').click();
+    await page.waitForSelector('[data-testid="messages-table"]');
     console.log('✅ Message updated successfully');
 
     // Step 5: Verify the update (READ again)
@@ -136,13 +142,10 @@ test.describe('Message CRUD Comprehensive Tests', () => {
 
     // Step 6: Delete the message (DELETE)
     console.log('🔍 Deleting message...');
-    await updatedMessageRow.locator('button:has-text("Delete")').click();
-    
-    // Handle confirmation dialog if it appears
-    page.on('dialog', dialog => {
-      expect(dialog.type()).toBe('confirm');
-      dialog.accept();
-    });
+    await updatedMessageRow.getByTestId('delete-message-button').click();
+    const modal = page.locator('[role="dialog"]');
+    const confirmBtn = modal.locator('button:has-text("Delete")');
+    if (await confirmBtn.count()) await confirmBtn.first().click({ force: true });
     
     // Wait for message to be removed from table
     await page.waitForFunction(() => {

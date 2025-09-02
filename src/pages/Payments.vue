@@ -90,20 +90,49 @@
         
         <!-- Action Buttons Section -->
         <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
-          <CButton @click="showPaymentForm" data-testid="add-payment-button">
+          <CButton @click="showPaymentForm" data-testid="add-payment-button" :disabled="loading">
             <PencilSquareIcon class="h-5 w-5" />
             {{ t("Add Payment") }}
           </CButton>
-          <CButton @click="exportPayments" data-testid="export-payments-button">
+          <CButton @click="exportPayments" data-testid="export-payments-button" :disabled="loading">
             <ArrowDownTrayIcon class="h-5 w-5" />
             {{ t("Download") }}
           </CButton>
         </div>
       </div>
 
-      <!-- Loading State -->
-      <div v-if="loading" class="loading-text text-center py-4">
-        {{ t("Loading...") }}
+      <!-- Loading State with Skeleton -->
+      <div v-if="loading" class="overflow-x-auto relative border border-gray-300 sm:rounded-lg">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+          <thead class="text-xs text-primary-700 uppercase bg-primary-50 dark:bg-primary-700 dark:text-primary-400">
+            <tr>
+              <th class="px-6 py-3">{{ t("User") }}</th>
+              <th class="px-6 py-3">{{ t("Amount") }}</th>
+              <th class="px-6 py-3">{{ t("Semester") }}</th>
+              <th class="px-6 py-3">{{ t("Actions") }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Skeleton rows -->
+            <tr v-for="i in 3" :key="`skeleton-${i}`" class="bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+              <td class="px-6 py-4">
+                <div class="h-4 bg-gray-200 rounded animate-pulse"></div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="h-4 bg-gray-200 rounded animate-pulse w-20"></div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="h-4 bg-gray-200 rounded animate-pulse w-16"></div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex gap-2">
+                  <div class="h-8 bg-gray-200 rounded animate-pulse w-12"></div>
+                  <div class="h-8 bg-gray-200 rounded animate-pulse w-16"></div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <!-- Error State -->
@@ -136,14 +165,14 @@
               class="bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700"
             >
               <td class="px-6 py-4">{{ payment.user?.name || '-' }}</td>
-              <td class="px-6 py-4">${{ parseFloat(payment.amount || 0).toFixed(2) }}</td>
+              <td class="px-6 py-4">{{ parseFloat(payment.amount || 0).toFixed(2) }} KZT</td>
               <td class="px-6 py-4">{{ payment.semester || '-' }}</td>
               <td class="px-6 py-4">
                 <div class="flex gap-2">
-                  <CButton @click="editPayment(payment)" size="small">
+                  <CButton @click="editPayment(payment)" size="small" :disabled="loading">
                     {{ t('Edit') }}
                   </CButton>
-                  <CButton variant="danger" @click="confirmDeletePayment(payment.id)" size="small">
+                  <CButton variant="danger" @click="confirmDeletePayment(payment.id)" size="small" :disabled="loading">
                     {{ t('Delete') }}
                   </CButton>
                 </div>
@@ -156,27 +185,27 @@
       <!-- Pagination -->
       <div v-if="totalPages > 1" class="flex justify-center gap-2 mt-4">
         <CButton 
-          @click="currentPage = Math.max(1, currentPage - 1)"
-          :disabled="currentPage === 1"
+          @click="goToPrevPage"
+          :disabled="currentPage === 1 || loading"
           size="small"
         >
-          {{ t('Previous') }}
+          <ChevronLeftIcon class="h-4 w-4" />
         </CButton>
         <span class="px-4 py-2">
           {{ t('Page') }} {{ currentPage }} {{ t('of') }} {{ totalPages }}
         </span>
         <CButton 
-          @click="currentPage = Math.min(totalPages, currentPage + 1)"
-          :disabled="currentPage === totalPages"
+          @click="goToNextPage"
+          :disabled="currentPage === totalPages || loading"
           size="small"
         >
-          {{ t('Next') }}
+          <ChevronRightIcon class="h-4 w-4" />
         </CButton>
       </div>
 
       <!-- Total Amount Display -->
       <div v-if="payments.length > 0" class="mt-4 p-4 bg-primary-50 rounded">
-        <h3 class="text-lg font-semibold text-primary-700">{{ t('Total Amount') }}: ${{ totalAmount.toFixed(2) }}</h3>
+        <h3 class="text-lg font-semibold text-primary-700">{{ t('Total Amount') }}: {{ totalAmount.toFixed(2) }} KZT</h3>
       </div>
     </div>
 
@@ -256,8 +285,8 @@ import CTableCell from "@/components/CTableCell.vue";
 import CButton from "@/components/CButton.vue";
 import CModal from "@/components/CModal.vue"; // Added CModal import
 import CConfirmationModal from "@/components/CConfirmationModal.vue";
-import { PencilSquareIcon, ArrowDownTrayIcon } from "@heroicons/vue/24/outline";
-import { paymentService } from "@/services/api";
+import { PencilSquareIcon, ArrowDownTrayIcon, ChevronLeftIcon, ChevronRightIcon } from "@heroicons/vue/24/outline";
+import { paymentService, userService, studentService } from "@/services/api";
 import { usePaymentsStore } from "@/stores/payments";
 import { useToast } from "@/composables/useToast";
 
@@ -272,6 +301,7 @@ const { showError, showSuccess } = useToast();
 const payments = ref<any[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
+const total = ref<number>(0);
 const searchTerm = ref<string>("");
 const statusFilter = ref<string>("");
 const typeFilter = ref<string>("");
@@ -353,10 +383,10 @@ const loadPayments = async () => {
     
     if (response.data && response.data.data) {
       payments.value = response.data.data;
-      // total.value = response.data.total || 0; // total is not defined, using filteredPayments.length instead
+      total.value = response.data.total || 0;
     } else {
       payments.value = [];
-      // total.value = 0; // total is not defined
+      total.value = 0;
     }
   } catch (err) {
     error.value = 'Failed to load payments';
@@ -374,45 +404,18 @@ onMounted(() => {
 // Watch filters and reload payments
 watch([searchTerm, statusFilter, typeFilter, semesterFilter, yearFilter, startDate, endDate, predefinedRange], loadPayments);
 
-// Filtered payments
-const filteredPayments = computed(() => {
-  let filtered = payments.value;
-
-  // Apply search filter
-  if (searchTerm.value) {
-    filtered = filtered.filter(payment =>
-      payment.user?.name?.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
-      payment.description?.toLowerCase().includes(searchTerm.value.toLowerCase())
-    );
-  }
-
-  // Apply status filter
-  if (statusFilter.value) {
-    filtered = filtered.filter(payment => payment.status === statusFilter.value);
-  }
-
-  // Apply type filter
-  if (typeFilter.value) {
-    filtered = filtered.filter(payment => payment.payment_type === typeFilter.value);
-  }
-
-  return filtered;
-});
-
 // Pagination
 const totalPages = computed(() => {
-  return Math.ceil(filteredPayments.value.length / itemsPerPage.value);
+  return Math.ceil(total.value / itemsPerPage.value);
 });
 
 const paginatedPayments = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value;
-  const end = start + itemsPerPage.value;
-  return filteredPayments.value.slice(start, end);
+  return payments.value; // Backend already returns paginated data
 });
 
 // Total amount calculation
 const totalAmount = computed(() => {
-  return filteredPayments.value.reduce((total, payment) => {
+  return payments.value.reduce((total, payment) => {
     return total + (parseFloat(payment.amount) || 0);
   }, 0);
 });
@@ -442,7 +445,24 @@ const getStatusColor = (status: string) => {
 // CRUD operations
 const createPayment = async (paymentData: any) => {
   try {
-    const response = await paymentService.create(paymentData);
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const today = `${yyyy}-${mm}-${dd}`;
+    const payload: any = {
+      user_id: Number(paymentData.user_id),
+      amount: Number(paymentData.amount),
+      // Map to backend-required fields with sensible defaults
+      contract_number: `AUTO-${Date.now()}`,
+      contract_date: today,
+      payment_date: today,
+      payment_method: 'bank_transfer',
+      semester: paymentData.semester || 'fall',
+      year: yyyy,
+      semester_type: (paymentData.semester || 'fall'),
+    };
+    const response = await paymentService.create(payload);
     payments.value.push(response.data);
     showSuccess(t('Payment created successfully'));
     return response.data;
@@ -454,12 +474,21 @@ const createPayment = async (paymentData: any) => {
 
 const updatePayment = async (id: number, paymentData: any) => {
   try {
-    const response = await paymentService.update(id, paymentData);
+    const payload: any = {
+      amount: paymentData.amount ? Number(paymentData.amount) : undefined,
+      semester: paymentData.semester,
+    };
+    const response = await paymentService.update(id, payload);
     const index = payments.value.findIndex(p => p.id === id);
     if (index !== -1) {
       payments.value[index] = response.data;
     }
     showSuccess(t('Payment updated successfully'));
+    try {
+      const updated = response.data;
+      const newStatus = (updated?.status === 'completed') ? 'active' : (updated?.status === 'pending' ? 'pending' : undefined);
+      if (updated?.user_id && newStatus) await studentService.update(updated.user_id, { status: newStatus });
+    } catch {}
     return response.data;
   } catch (err) {
     showError(t('Failed to update payment'));
@@ -536,14 +565,16 @@ const closePaymentForm = () => {
   resetForm();
 };
 
-const editPayment = (payment: any) => {
+const editPayment = async (payment: any) => {
   selectedPayment.value = payment;
+  showForm.value = true;
+  const currentUserId: number | undefined = (payment.user_id ?? payment.userId ?? payment.user?.id);
+  await loadStudents(currentUserId);
   formData.value = {
-    user_id: payment.user_id?.toString() || "",
+    user_id: currentUserId ? String(currentUserId) : "",
     amount: payment.amount?.toString() || "",
     semester: payment.semester || currentSemester()
   };
-  showForm.value = true;
 };
 
 const resetForm = () => {
@@ -561,6 +592,7 @@ const handleFormSubmit = async (data: any) => {
     } else {
       await createPayment(data);
     }
+    await loadPayments();
     closePaymentForm();
   } catch (err) {
     // Error handling is done in the CRUD methods
@@ -585,18 +617,39 @@ function currentSemester(): string {
 const studentOptions = ref<Array<{ value: string; name: string }>>([]);
 
 // Load students function
-const loadStudents = async () => {
+const loadStudents = async (ensureUserId?: number) => {
   try {
-    // For now, create some mock student options since we don't have a students API
-    // In a real implementation, this would fetch from /api/students or /api/users
-    studentOptions.value = [
-      { value: '1', name: 'John Doe (john@example.com)' },
-      { value: '2', name: 'Jane Smith (jane@example.com)' },
-      { value: '3', name: 'Bob Johnson (bob@example.com)' }
-    ];
+    const res: any = await studentService.getAll({ per_page: 100 });
+    
+    // Backend-тен келетін жауап структурасын дұрыс өңдеу
+    let users: Array<any> = [];
+    if (res?.data?.data) {
+      users = res.data.data; // Paginated response
+    } else if (res?.data) {
+      users = res.data; // Direct array
+    } else if (Array.isArray(res)) {
+      users = res; // Direct array
+    }
+    
+    const options = users
+      .filter(u => u && u.id) // Filter out users without id
+      .map(u => ({ 
+        value: String(u.id), 
+        name: `${u.name || 'Unknown'}${u.email ? ` (${u.email})` : ''}` 
+      }));
+    
+    // Ensure current user exists in options for edit mode
+    if (ensureUserId && !options.some(o => o.value === String(ensureUserId))) {
+      // Try to fetch specific student details via userService
+      try {
+        const one: any = await studentService.getById(ensureUserId);
+        const u = one?.data || {};
+        options.push({ value: String(ensureUserId), name: `${u.name || 'Student'}${u.email ? ` (${u.email})` : ''}` });
+      } catch {}
+    }
+    studentOptions.value = options;
   } catch (err) {
     console.error('Failed to load students:', err);
-    // Fallback to empty array
     studentOptions.value = [];
   }
 };
@@ -606,6 +659,26 @@ const navigateToEditPayment = (payment: any) => {
   paymentsStore.setSelectedPayment(payment);
   const id = payment.id || payment.contract_number || payment.dogovorNumber;
   router.push(`/payment-form/${id}`);
+};
+
+// Pagination handlers
+const goToPage = (page: number) => {
+  currentPage.value = page;
+  loadPayments();
+};
+
+const goToNextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++;
+    loadPayments();
+  }
+};
+
+const goToPrevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--;
+    loadPayments();
+  }
 };
 </script>
 

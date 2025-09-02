@@ -1,5 +1,6 @@
 <template>
   <Navigation :title="t('My messages')">
+    <div data-testid="messages-page">
     <!-- Filters -->
     <div
       class="mb-4 flex flex-col items-stretch gap-4 lg:flex-row lg:items-center"
@@ -28,6 +29,11 @@
         :placeholder="t('Select Dormitory')"
         class="lg:w-40"
       />
+    </div>
+
+    <!-- Admin Actions -->
+    <div v-if="isAdmin" class="mb-4 flex justify-end gap-2">
+      <CButton data-testid="add-message-button" @click="openCreateModal">{{ t('Add Message') }}</CButton>
     </div>
 
     <!-- Message Input -->
@@ -63,12 +69,14 @@
       {{ error }}
     </div>
 
-    <CTable v-if="!loading && !error" data-testid="messages-table">
+    <div v-if="!loading && !error" data-testid="messages-table">
+    <CTable>
       <CTableHead>
         <CTableHeadCell>{{ t("FROM") }}</CTableHeadCell>
         <CTableHeadCell>{{ t("TO") }}</CTableHeadCell>
         <CTableHeadCell>{{ t("SUBJECT") }}</CTableHeadCell>
         <CTableHeadCell>{{ t("DATE-TIME") }}</CTableHeadCell>
+        <CTableHeadCell v-if="isAdmin">{{ t('Actions') }}</CTableHeadCell>
       </CTableHead>
       <CTableBody>
         <CTableRow
@@ -86,9 +94,16 @@
           <CTableCell>{{ msg.receiver?.name || msg.to || t('All') }}</CTableCell>
           <CTableCell>{{ msg.subject || t('No Subject') }}</CTableCell>
           <CTableCell>{{ formatDate(msg.created_at || msg.dateTime) }}</CTableCell>
+          <CTableCell v-if="isAdmin">
+            <div class="flex gap-2 justify-end">
+              <CButton size="small" @click.stop="openEditModal(msg)" data-testid="edit-message-button">{{ t('Edit') }}</CButton>
+              <CButton size="small" variant="danger" @click.stop="confirmDelete(msg.id)" data-testid="delete-message-button">{{ t('Delete') }}</CButton>
+            </div>
+          </CTableCell>
         </CTableRow>
       </CTableBody>
     </CTable>
+    </div>
 
     <!-- Selected Message -->
     <div class="mt-6">
@@ -101,7 +116,36 @@
         readonly
       />
     </div>
+    </div>
   </Navigation>
+
+  <!-- Create/Edit Modal -->
+  <CModal v-if="isAdmin" v-model="showForm">
+    <template #header>
+      <h2 class="text-xl font-bold">{{ editingMessage ? t('Edit Message') : t('Add Message') }}</h2>
+    </template>
+    <form @submit.prevent="submitForm">
+      <div class="space-y-4">
+        <CInput data-testid="message-title-input" v-model="form.title" :label="t('Title')" required />
+        <CTextarea data-testid="message-content-input" v-model="form.content" :label="t('Content')" required />
+      </div>
+      <div class="flex justify-end gap-2 mt-4">
+        <CButton @click="closeForm">{{ t('Cancel') }}</CButton>
+        <CButton type="submit" variant="primary" data-testid="message-submit-button">{{ editingMessage ? t('Update') : t('Create') }}</CButton>
+      </div>
+    </form>
+  </CModal>
+
+  <!-- Delete Confirmation -->
+  <CConfirmationModal
+    v-if="isAdmin && showDelete"
+    :message="t('Are you sure? This change is not recoverable')"
+    :title="t('Delete Message')"
+    :confirm-text="t('Delete')"
+    :cancel-text="t('Cancel')"
+    @confirm="deleteMessage"
+    @cancel="showDelete = false"
+  />
 </template>
 
 <script setup lang="ts">
@@ -122,9 +166,13 @@ import { PaperAirplaneIcon } from "@heroicons/vue/24/outline";
 import { messageService, dormitoryService, roomService } from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
 import { useToast } from "@/composables/useToast";
+import CModal from "@/components/CModal.vue";
+import CConfirmationModal from "@/components/CConfirmationModal.vue";
 
 const { t } = useI18n();
 const { showError, showSuccess } = useToast();
+const authStore = useAuthStore();
+const isAdmin = computed(() => authStore.user?.role?.name === 'admin' || authStore.user?.role === 'admin');
 
 // Define types for filters
 interface Filter {
@@ -257,6 +305,51 @@ const filteredMessages = computed(() => {
 const selectedMessage = ref<string>("");
 const selectedMessageIndex = ref<number | null>(null);
 
+// Admin CRUD state
+const showForm = ref(false);
+const showDelete = ref(false);
+const editingMessage = ref<any|null>(null);
+const messageToDelete = ref<number|null>(null);
+const form = ref({ title: '', content: '' });
+
+const openCreateModal = () => { editingMessage.value = null; form.value = { title: '', content: '' }; showForm.value = true; };
+const openEditModal = (msg: any) => { editingMessage.value = msg; form.value = { title: msg.title || '', content: msg.content || '' }; showForm.value = true; };
+const closeForm = () => { showForm.value = false; };
+const submitForm = async () => {
+  try {
+    if (!form.value.title || !form.value.content) return; // minimal validation
+    if (editingMessage.value) {
+      const res = await messageService.update(editingMessage.value.id, { title: form.value.title, content: form.value.content, type: 'general', receiver_id: editingMessage.value.receiver_id || authStore.user?.id });
+      // Update in local list
+      const idx = messages.value.findIndex((m: any) => m.id === editingMessage.value.id);
+      if (idx !== -1) messages.value[idx] = res.data;
+      showSuccess(t('Message updated successfully'));
+    } else {
+      const res = await messageService.create({ title: form.value.title, content: form.value.content, type: 'general', receiver_id: authStore.user?.id });
+      // Append to list
+      messages.value.unshift(res.data);
+      showSuccess(t('Message created successfully'));
+    }
+    showForm.value = false;
+  } catch (e) {
+    showError(t('Failed to save message'));
+  }
+};
+
+const confirmDelete = (id: number) => { messageToDelete.value = id; showDelete.value = true; };
+const deleteMessage = async () => {
+  if (!messageToDelete.value) return;
+  try {
+    await messageService.delete(messageToDelete.value);
+    messages.value = messages.value.filter((m: any) => m.id !== messageToDelete.value);
+    showSuccess(t('Message deleted successfully'));
+  } catch (e) {
+    showError(t('Failed to delete message'));
+  } finally {
+    showDelete.value = false; messageToDelete.value = null;
+  }
+};
+
 // Send Message
 const sendMessage = async (): Promise<void> => {
   if (!message.value.trim()) return;
@@ -312,6 +405,75 @@ const setFirstMessageActive = () => {
 watch(filteredMessages, () => {
   setFirstMessageActive();
 }, { immediate: true });
+
+// Admin CRUD state
+const isAdmin = computed(() => {
+  const authStore = useAuthStore();
+  return authStore.user?.role?.name === 'admin';
+});
+
+const showForm = ref(false);
+const editingMessage = ref<any>(null);
+const form = ref({
+  title: '',
+  content: '',
+});
+
+const openCreateModal = () => {
+  editingMessage.value = null;
+  form.value = { title: '', content: '' };
+  showForm.value = true;
+};
+
+const openEditModal = (message: any) => {
+  editingMessage.value = message;
+  form.value = { title: message.subject || '', content: message.content || '' };
+  showForm.value = true;
+};
+
+const closeForm = () => {
+  showForm.value = false;
+  editingMessage.value = null;
+};
+
+const submitForm = async () => {
+  if (!form.value.title.trim() || !form.value.content.trim()) {
+    showError(t('Title and content are required'));
+    return;
+  }
+
+  try {
+    if (editingMessage.value) {
+      await messageService.update(editingMessage.value.id, form.value);
+      showSuccess(t('Message updated successfully'));
+    } else {
+      await messageService.create(form.value);
+      showSuccess(t('Message created successfully'));
+    }
+    await loadData();
+    closeForm();
+  } catch (err) {
+    showError(t('Failed to save message'));
+  }
+};
+
+const showDelete = ref(false);
+const deleteMessage = async () => {
+  if (!editingMessage.value?.id) return;
+  try {
+    await messageService.delete(editingMessage.value.id);
+    showSuccess(t('Message deleted successfully'));
+    await loadData();
+    closeForm();
+  } catch (err) {
+    showError(t('Failed to delete message'));
+  }
+};
+
+const confirmDelete = (id: number) => {
+  editingMessage.value = { id };
+  showDelete.value = true;
+};
 </script>
 
 <style scoped>
