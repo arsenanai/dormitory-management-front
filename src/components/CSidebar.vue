@@ -30,9 +30,9 @@
             aria-hidden="true"
           />
           <span class="flex-1">{{ t(menu.meta.title) }}</span>
-          <!-- Badge for messages -->
+          <!-- Badge for messages (students only) -->
           <span 
-            v-if="menu.name === 'Messages' && unreadMessagesCount > 0"
+            v-if="menu.name === 'Messages' && authStore.userRole === 'student' && unreadMessagesCount > 0"
             class="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center min-w-[20px]"
           >
             {{ unreadMessagesCount > 99 ? '99+' : unreadMessagesCount }}

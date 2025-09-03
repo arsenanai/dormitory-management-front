@@ -246,39 +246,43 @@ const recipientTypeOptions = computed(() => [
 
 // Filter rooms by admin's dormitory
 const filteredRoomOptions = computed(() => {
-  const adminDormitoryId = authStore.user?.dormitory_id;
-  if (adminDormitoryId) {
-    return [
-      { value: "", name: t("All Rooms") },
-      ...rooms.value
-        .filter(room => room.dormitory_id === adminDormitoryId)
-        .map(room => ({ value: room.id, name: room.number }))
-    ];
-  }
-  return [{ value: "", name: t("All Rooms") }];
+  // The backend already filters rooms by admin's dormitory when calling roomService.getAll()
+  // So we can use all the rooms returned from the API
+  return [
+    { value: "", name: t("All Rooms") },
+    ...rooms.value.map(room => ({ value: room.id, name: room.number }))
+  ];
 });
 
 // Load data on component mount
 const loadData = async () => {
   loading.value = true;
   error.value = null;
+  
   try {
-    const token = localStorage.getItem('token');
-    if (!token) {
+    // Check if user is authenticated via auth store
+    const isUserAuthenticated = authStore.isAuthenticated && authStore.user;
+    
+    if (!isUserAuthenticated) {
       error.value = 'Authentication required';
       messages.value = [];
       rooms.value = [];
       return;
     }
 
-    const authStore = useAuthStore();
+    // For students, fetch their messages (messages sent to their dormitory or room)
     const fetchMessages = authStore.user?.role?.name === 'student'
       ? messageService.getMyMessages({ page: currentPage.value, per_page: itemsPerPage })
       : messageService.getAll({ page: currentPage.value, per_page: itemsPerPage });
 
+    // For admin users, fetch rooms from their assigned dormitory
+    const fetchRooms = authStore.user?.role?.name === 'admin' && authStore.user?.adminProfile?.dormitory_id
+      ? roomService.getByDormitory(authStore.user.adminProfile.dormitory_id)
+      : roomService.getAll();
+
     const [messagesResponse, roomsResponse] = await Promise.all([
       fetchMessages,
-      roomService.getAll()
+      fetchRooms
     ]);
     
     // Handle Laravel paginated response structure for messages
@@ -300,10 +304,12 @@ const loadData = async () => {
     
     // Handle Laravel paginated response structure for rooms
     if (roomsResponse && roomsResponse.data) {
-      if (roomsResponse.data.data && Array.isArray(roomsResponse.data.data)) {
-        rooms.value = roomsResponse.data.data;
-      } else if (Array.isArray(roomsResponse.data)) {
+      if (Array.isArray(roomsResponse.data)) {
+        // Direct array response (from getByDormitory)
         rooms.value = roomsResponse.data;
+      } else if (roomsResponse.data.data && Array.isArray(roomsResponse.data.data)) {
+        // Paginated response (from getAll)
+        rooms.value = roomsResponse.data.data;
       } else {
         rooms.value = [];
       }
@@ -318,7 +324,7 @@ const loadData = async () => {
     console.log('Items per page:', itemsPerPage);
     console.log('Calculated total pages:', Math.ceil(totalMessages.value / itemsPerPage));
     console.log('Fetched rooms:', rooms.value.length);
-  } catch (err) {
+  } catch (err: any) {
     console.error('Error loading messages:', err);
     error.value = 'Failed to load messages data';
     showError(t('Failed to load messages data'));
@@ -490,7 +496,7 @@ const submitForm = async () => {
       content: form.value.content,
       type: form.value.type,
       recipient_type: form.value.recipient_type,
-      dormitory_id: authStore.user?.dormitory_id, // Use admin's assigned dormitory
+      dormitory_id: authStore.user?.adminProfile?.dormitory_id, // Use admin's assigned dormitory
       room_id: form.value.room_id,
       receiver_id: authStore.user?.id
     };

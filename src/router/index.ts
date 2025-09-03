@@ -55,7 +55,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: HomeIcon,
-      roles: ['sudo', 'admin', 'student', 'guest'],
+      roles: ['sudo', 'admin', 'guest'],
     },
   },
   {
@@ -110,13 +110,25 @@ const routes: AppRouteRecordRaw[] = [
   },
   {
     path: '/student-main',
-    name: 'Student Main',
+    name: 'Main',
     component: () => import('@/pages/StudentMain.vue'),
     meta: {
-      title: 'Student Main',
+      title: 'Main',
       requiresAuth: true,
       sidebar: true,
       icon: HomeIcon,
+      roles: ['student'],
+    },
+  },
+  {
+    path: '/student-messages',
+    name: 'Student Messages',
+    component: () => import('@/pages/StudentMessages.vue'),
+    meta: {
+      title: 'My Messages',
+      requiresAuth: true,
+      sidebar: true,
+      icon: ChatBubbleLeftRightIcon,
       roles: ['student'],
     },
   },
@@ -166,7 +178,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: ChatBubbleLeftRightIcon,
-      roles: ['student', 'admin'],
+      roles: ['admin'],
     },
   },
   {
