@@ -54,3 +54,11 @@ debug-*.gif
 debug-*.svg
 debug-*.log
 debug-*.txt
+
+# Ignore test reports and screenshots
+playwright-report/
+-test-results/
+/test-results/
+**/test-results/
+messages-*.png
+*debug*.png
