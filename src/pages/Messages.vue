@@ -1,145 +1,187 @@
 <template>
-  <Navigation :title="t('My messages')">
+  <Navigation :title="t('Messages')">
     <div data-testid="messages-page">
-    <!-- Filters -->
-    <div
-      class="mb-4 flex flex-col items-stretch gap-4 lg:flex-row lg:items-center"
-    >
-      <CInput
-        id="faculty-filter"
-        v-model="filters.faculty"
-        type="text"
-        :label="t('Faculty')"
-        :placeholder="t('Enter Faculty Name')"
-        class="lg:w-40"
-      />
-      <CSelect
-        id="room-filter"
-        v-model="filters.room"
-        :options="roomOptions"
-        :label="t('Room')"
-        :placeholder="t('Select Room')"
-        class="lg:w-40"
-      />
-      <CSelect
-        id="dormitory-filter"
-        v-model="filters.dormitory"
-        :options="dormitoryOptions"
-        :label="t('Dormitory')"
-        :placeholder="t('Select Dormitory')"
-        class="lg:w-40"
-      />
-    </div>
+      <!-- Search and Actions Bar -->
+      <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <!-- Unified Search Field -->
+        <div class="flex-1 max-w-md">
+          <CInput
+            id="unified-search"
+            v-model="searchQuery"
+            type="text"
+            :label="t('Search')"
+            :placeholder="t('Search by room or message text...')"
+            class="w-full"
+          />
+        </div>
+        
+        <!-- Add Message Button -->
+        <div v-if="isAdmin" class="flex-shrink-0">
+          <CButton 
+            data-testid="add-message-button" 
+            @click="openCreateModal"
+            variant="primary"
+          >
+            {{ t('Add Message') }}
+          </CButton>
+        </div>
+      </div>
 
-    <!-- Admin Actions -->
-    <div v-if="isAdmin" class="mb-4 flex justify-end gap-2">
-      <CButton data-testid="add-message-button" @click="openCreateModal">{{ t('Add Message') }}</CButton>
-    </div>
+      <!-- Messages Table -->
+      <div class="bg-white rounded-lg overflow-hidden">
+        <!-- Loading State -->
+        <div v-if="loading" class="text-center py-8 text-primary-600">
+          {{ t("Loading...") }}
+        </div>
 
-    <!-- Message Input -->
-    <div class="mb-4">
-      <CTextarea
-        id="message-input"
-        v-model="message"
-        :label="t('Message')"
-        :placeholder="t('Enter your message here')"
-        :validationMessage="t('This field cannot be empty.')"
-      />
-    </div>
+        <!-- Error State -->
+        <div v-else-if="error" class="text-center py-8 text-red-500">
+          {{ error }}
+        </div>
 
-    <!-- Send Button -->
-    <div class="mb-6 flex justify-end">
-      <CButton variant="primary" @click="sendMessage">
-        <PaperAirplaneIcon class="h-5 w-5" /> {{ t("Send") }}
-      </CButton>
-    </div>
+        <!-- Empty State -->
+        <div v-else-if="filteredMessages.length === 0" class="text-center py-8 text-gray-500">
+          <div class="text-4xl mb-4">📬</div>
+          <p class="text-lg">{{ isAdmin ? t('No messages yet') : t('No messages received yet') }}</p>
+          <p class="text-sm mt-2">{{ isAdmin ? t('Create your first message to get started') : t('Messages from administrators will appear here') }}</p>
+        </div>
 
-    <!-- Message History -->
-    <h2 class="mb-4 text-lg font-bold text-gray-800">
-      {{ t("Message History") }}
-    </h2>
-
-    <!-- Loading State -->
-    <div v-if="loading" class="text-center py-4 text-primary-600">
-      {{ t("Loading...") }}
-    </div>
-
-    <!-- Error State -->
-    <div v-if="error" class="text-red-500 text-center py-4">
-      {{ error }}
-    </div>
-
-    <div v-if="!loading && !error" data-testid="messages-table">
-    <CTable>
-      <CTableHead>
-        <CTableHeadCell>{{ t("FROM") }}</CTableHeadCell>
-        <CTableHeadCell>{{ t("TO") }}</CTableHeadCell>
-        <CTableHeadCell>{{ t("SUBJECT") }}</CTableHeadCell>
-        <CTableHeadCell>{{ t("DATE-TIME") }}</CTableHeadCell>
-        <CTableHeadCell v-if="isAdmin">{{ t('Actions') }}</CTableHeadCell>
-      </CTableHead>
-      <CTableBody>
-        <CTableRow
-          v-for="(msg, index) in filteredMessages"
-          :key="msg.id || index"
-          @click="selectMessage(msg, index)"
-          :class="{
-            'bg-gray-100 text-gray-900': selectedMessageIndex === index,
-            'cursor-pointer hover:bg-gray-50': selectedMessageIndex !== index,
-          }"
-          tabindex="0"
-          class=""
-        >
-          <CTableCell>{{ msg.sender?.name || msg.from || t('System') }}</CTableCell>
-          <CTableCell>{{ msg.receiver?.name || msg.to || t('All') }}</CTableCell>
-          <CTableCell>{{ msg.subject || t('No Subject') }}</CTableCell>
-          <CTableCell>{{ formatDate(msg.created_at || msg.dateTime) }}</CTableCell>
-          <CTableCell v-if="isAdmin">
-            <div class="flex gap-2 justify-end">
-              <CButton size="small" @click.stop="openEditModal(msg)" data-testid="edit-message-button">{{ t('Edit') }}</CButton>
-              <CButton size="small" variant="danger" @click.stop="confirmDelete(msg.id)" data-testid="delete-message-button">{{ t('Delete') }}</CButton>
-            </div>
-          </CTableCell>
-        </CTableRow>
-      </CTableBody>
-    </CTable>
-    </div>
-
-    <!-- Selected Message -->
-    <div class="mt-6">
-      <CTextarea
-        id="selected-message"
-        v-model="selectedMessage"
-        :label="t('Selected Message')"
-        :placeholder="t('No message selected')"
-        :rows="5"
-        readonly
-      />
-    </div>
+        <!-- Messages Table -->
+        <div v-else data-testid="messages-table">
+          <CTable 
+            :data="paginatedMessages"
+            :columns="tableColumns"
+            :loading="loading"
+            hoverable
+          >
+            <template #cell-room="{ row }">
+              <div class="font-medium">
+                {{ getRoomDisplayName(row) }}
+              </div>
+              <div v-if="row.type" class="text-xs text-gray-500">
+                {{ t(row.type) }}
+              </div>
+            </template>
+            
+            <template #cell-message="{ row }">
+              <div class="max-w-md">
+                <div class="font-medium text-gray-900 mb-1">
+                  {{ row.title || row.subject || t('No Subject') }}
+                </div>
+                <div class="text-sm text-gray-600 line-clamp-2">
+                  {{ row.content }}
+                </div>
+              </div>
+            </template>
+            
+            <template #cell-sent="{ row }">
+              <div class="text-sm text-gray-500">
+                {{ formatDate(row.created_at || row.dateTime) }}
+              </div>
+            </template>
+            
+            <template #cell-actions="{ row }" v-if="isAdmin">
+              <div class="flex gap-2 justify-end">
+                <CButton 
+                  size="small" 
+                  @click="openEditModal(row)" 
+                  data-testid="edit-message-button"
+                >
+                  {{ t('Edit') }}
+                </CButton>
+                <CButton 
+                  size="small" 
+                  variant="danger" 
+                  @click="confirmDelete(row.id)" 
+                  data-testid="delete-message-button"
+                >
+                  {{ t('Delete') }}
+                </CButton>
+              </div>
+            </template>
+          </CTable>
+          
+          <!-- Pagination Controls -->
+          <div v-if="totalPages > 1" class="flex justify-center gap-2 mt-4">
+            <CButton 
+              @click="goToPrevPage"
+              :disabled="currentPage === 1 || loading"
+              size="small"
+            >
+              <ChevronLeftIcon class="h-4 w-4" />
+            </CButton>
+            <span class="px-4 py-2">
+              {{ t('Page') }} {{ currentPage }} {{ t('of') }} {{ totalPages }}
+            </span>
+            <CButton 
+              @click="goToNextPage"
+              :disabled="currentPage === totalPages || loading"
+              size="small"
+            >
+              <ChevronRightIcon class="h-4 w-4" />
+            </CButton>
+          </div>
+        </div>
+      </div>
     </div>
   </Navigation>
 
-  <!-- Create/Edit Modal -->
+  <!-- Create/Edit Message Modal -->
   <CModal v-if="isAdmin" v-model="showForm">
     <template #header>
-      <h2 class="text-xl font-bold">{{ editingMessage ? t('Edit Message') : t('Add Message') }}</h2>
+      <h2 class="text-xl font-bold">{{ editingMessage ? t('Edit Message') : t('New Message') }}</h2>
     </template>
     <form @submit.prevent="submitForm">
       <div class="space-y-4">
-        <CInput data-testid="message-title-input" v-model="form.title" :label="t('Title')" required />
-        <CTextarea data-testid="message-content-input" v-model="form.content" :label="t('Content')" required />
+        <CInput 
+          id="message-title-input"
+          data-testid="message-title-input" 
+          v-model="form.title" 
+          :label="t('Title')" 
+          required 
+        />
+        <CTextarea 
+          id="message-content-input"
+          data-testid="message-content-input" 
+          v-model="form.content" 
+          :label="t('Content')" 
+          required 
+        />
+        
+        <!-- Recipient Type Selection -->
+        <CSelect 
+          id="recipient-type-select"
+          data-testid="recipient-type-select"
+          v-model="form.recipient_type" 
+          :label="t('Recipient Type')" 
+          :options="recipientTypeOptions"
+          required 
+        />
+        
+        <!-- Room Selection (only show if recipient_type is room) -->
+        <CSelect 
+          id="room-select"
+          v-if="form.recipient_type === 'room'"
+          data-testid="room-select"
+          v-model="form.room_id" 
+          :label="t('Room')" 
+          :options="filteredRoomOptions"
+          required 
+        />
       </div>
-      <div class="flex justify-end gap-2 mt-4">
+      <div class="flex justify-end gap-2 mt-6">
         <CButton @click="closeForm">{{ t('Cancel') }}</CButton>
-        <CButton type="submit" variant="primary" data-testid="message-submit-button">{{ editingMessage ? t('Update') : t('Create') }}</CButton>
+        <CButton type="submit" variant="primary" data-testid="submit-message-button">
+          {{ editingMessage ? t('Update') : t('Create') }}
+        </CButton>
       </div>
     </form>
   </CModal>
 
-  <!-- Delete Confirmation -->
+  <!-- Delete Confirmation Modal -->
   <CConfirmationModal
     v-if="isAdmin && showDelete"
-    :message="t('Are you sure? This change is not recoverable')"
+    :message="t('Are you sure you want to delete this message? This action cannot be undone.')"
     :title="t('Delete Message')"
     :confirm-text="t('Delete')"
     :cancel-text="t('Cancel')"
@@ -151,6 +193,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/vue/24/outline";
 import Navigation from "@/components/CNavigation.vue";
 import CSelect from "@/components/CSelect.vue";
 import CButton from "@/components/CButton.vue";
@@ -161,9 +204,8 @@ import CTableHeadCell from "@/components/CTableHeadCell.vue";
 import CTableBody from "@/components/CTableBody.vue";
 import CTableRow from "@/components/CTableRow.vue";
 import CTableCell from "@/components/CTableCell.vue";
-import CInput from "@/components/CInput.vue"; // Added CInput import
-import { PaperAirplaneIcon } from "@heroicons/vue/24/outline";
-import { messageService, dormitoryService, roomService } from "@/services/api";
+import CInput from "@/components/CInput.vue";
+import { messageService, roomService } from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
 import { useToast } from "@/composables/useToast";
 import CModal from "@/components/CModal.vue";
@@ -174,77 +216,86 @@ const { showError, showSuccess } = useToast();
 const authStore = useAuthStore();
 const isAdmin = computed(() => authStore.user?.role?.name === 'admin' || authStore.user?.role === 'admin');
 
-// Define types for filters
-interface Filter {
-  faculty: string;
-  room: string;
-  dormitory: string;
-}
-
-// Filters
-const filters = ref<Filter>({
-  faculty: "",
-  room: "",
-  dormitory: "",
-});
-
 // Data
 const messages = ref<any[]>([]);
-const dormitories = ref<any[]>([]);
 const rooms = ref<any[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
+
+// Search
+const searchQuery = ref("");
+
+// Form state
+const showForm = ref(false);
+const editingMessage = ref<any|null>(null);
+const showDelete = ref(false);
+const messageToDelete = ref<number|null>(null);
+const form = ref({ 
+  title: '', 
+  content: '', 
+  recipient_type: 'all',
+  room_id: "",
+  type: 'general'
+});
+
+// Recipient type options
+const recipientTypeOptions = computed(() => [
+  { value: 'all', name: t('All Students') },
+  { value: 'room', name: t('Specific Room') }
+]);
+
+// Filter rooms by admin's dormitory
+const filteredRoomOptions = computed(() => {
+  const adminDormitoryId = authStore.user?.dormitory_id;
+  if (adminDormitoryId) {
+    return [
+      { value: "", name: t("All Rooms") },
+      ...rooms.value
+        .filter(room => room.dormitory_id === adminDormitoryId)
+        .map(room => ({ value: room.id, name: room.number }))
+    ];
+  }
+  return [{ value: "", name: t("All Rooms") }];
+});
 
 // Load data on component mount
 const loadData = async () => {
   loading.value = true;
   error.value = null;
   try {
-    // Check if user is authenticated
     const token = localStorage.getItem('token');
     if (!token) {
       error.value = 'Authentication required';
       messages.value = [];
-      dormitories.value = [];
       rooms.value = [];
       return;
     }
 
     const authStore = useAuthStore();
     const fetchMessages = authStore.user?.role?.name === 'student'
-      ? messageService.getMyMessages()
-      : messageService.getAll();
+      ? messageService.getMyMessages({ page: currentPage.value, per_page: itemsPerPage })
+      : messageService.getAll({ page: currentPage.value, per_page: itemsPerPage });
 
-    const [messagesResponse, dormitoriesResponse, roomsResponse] = await Promise.all([
+    const [messagesResponse, roomsResponse] = await Promise.all([
       fetchMessages,
-      dormitoryService.getAll(),
       roomService.getAll()
     ]);
     
     // Handle Laravel paginated response structure for messages
     if (messagesResponse && messagesResponse.data) {
-      if (messagesResponse.data.data && Array.isArray(messagesResponse.data.data)) {
-        messages.value = messagesResponse.data.data;
-      } else if (Array.isArray(messagesResponse.data)) {
+      if (Array.isArray(messagesResponse.data)) {
         messages.value = messagesResponse.data;
+        totalMessages.value = messagesResponse.data.length;
+      } else if (messagesResponse.data.data && Array.isArray(messagesResponse.data.data)) {
+        messages.value = messagesResponse.data.data;
+        totalMessages.value = messagesResponse.data.total || 0;
       } else {
         messages.value = [];
+        totalMessages.value = 0;
       }
     } else {
       messages.value = [];
-    }
-    
-    // Handle Laravel paginated response structure for dormitories
-    if (dormitoriesResponse && dormitoriesResponse.data) {
-      if (dormitoriesResponse.data.data && Array.isArray(dormitoriesResponse.data.data)) {
-        dormitories.value = dormitoriesResponse.data.data;
-      } else if (Array.isArray(dormitoriesResponse.data)) {
-        dormitories.value = dormitoriesResponse.data;
-      } else {
-        dormitories.value = [];
-      }
-    } else {
-      dormitories.value = [];
+      totalMessages.value = 0;
     }
     
     // Handle Laravel paginated response structure for rooms
@@ -260,9 +311,13 @@ const loadData = async () => {
       rooms.value = [];
     }
     
-    console.log('Fetched messages:', messages.value);
-    console.log('Fetched dormitories:', dormitories.value);
-    console.log('Fetched rooms:', rooms.value);
+    console.log('Fetched messages:', messages.value.length);
+    console.log('Total messages:', totalMessages.value);
+    console.log('Total pages:', totalPages.value);
+    console.log('Current page:', currentPage.value);
+    console.log('Items per page:', itemsPerPage);
+    console.log('Calculated total pages:', Math.ceil(totalMessages.value / itemsPerPage));
+    console.log('Fetched rooms:', rooms.value.length);
   } catch (err) {
     console.error('Error loading messages:', err);
     error.value = 'Failed to load messages data';
@@ -276,67 +331,194 @@ onMounted(() => {
   loadData();
 });
 
-// Options for filters
-const roomOptions = computed(() => [
-  { value: "", name: t("All Rooms") },
-  ...rooms.value.map(room => ({ value: room.id, name: room.number }))
-]);
+// Pagination
+const currentPage = ref(1);
+const itemsPerPage = 10;
+const totalMessages = ref(0);
 
-const dormitoryOptions = computed(() => [
-  { value: "", name: t("All Dormitories") },
-  ...dormitories.value.map(dorm => ({ value: dorm.id, name: dorm.name }))
-]);
+// Paginated messages from backend
+const paginatedMessages = computed(() => {
+  return messages.value; // Backend already returns paginated data
+});
 
-// Message Input
-const message = ref<string>("");
+// Pagination info
+const totalPages = computed(() => Math.ceil(totalMessages.value / itemsPerPage));
+const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage);
+const endIndex = computed(() => Math.min(startIndex.value + itemsPerPage, totalMessages.value));
 
-// Filtered messages
+// Visible pages for pagination controls
+const visiblePages = computed(() => {
+  const pages = [];
+  const maxVisible = 5;
+  let start = Math.max(1, currentPage.value - Math.floor(maxVisible / 2));
+  let end = Math.min(totalPages.value, start + maxVisible - 1);
+  
+  if (end - start + 1 < maxVisible) {
+    start = Math.max(1, end - maxVisible + 1);
+  }
+  
+  for (let i = start; i <= end; i++) {
+    pages.push(i);
+  }
+  return pages;
+});
+
+// Change page function
+const changePage = (page: number) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page;
+    loadData(); // Reload data with new page
+  }
+};
+
+// Pagination handlers
+const goToPage = (page: number) => {
+  currentPage.value = page;
+  loadData();
+};
+
+const goToNextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++;
+    loadData();
+  }
+};
+
+const goToPrevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--;
+    loadData();
+  }
+};
+
+// Reset pagination when search changes
+watch(searchQuery, () => {
+  currentPage.value = 1;
+  loadData(); // Reload data when search changes
+});
+
+// Table columns configuration
+const tableColumns = computed(() => {
+  const columns = [
+    { key: 'room', label: t('Room') },
+    { key: 'message', label: t('Message') },
+    { key: 'sent', label: t('Sent') }
+  ];
+  
+  if (isAdmin.value) {
+    columns.push({ key: 'actions', label: t('Actions') });
+  }
+  
+  return columns;
+});
+
+// Filtered messages based on search query
 const filteredMessages = computed(() => {
   if (!messages.value.length) return [];
+  
+  const query = searchQuery.value.toLowerCase().trim();
+  if (!query) return messages.value;
+  
   return messages.value.filter(msg => {
-    const facultyMatch = !filters.value.faculty || msg.faculty === filters.value.faculty;
-    const roomMatch = !filters.value.room || msg.room_id === parseInt(filters.value.room);
-    const dormMatch = !filters.value.dormitory || msg.dormitory_id === parseInt(filters.value.dormitory);
-    return facultyMatch && roomMatch && dormMatch;
+    const roomMatch = getRoomDisplayName(msg).toLowerCase().includes(query);
+    const titleMatch = (msg.title || msg.subject || '').toLowerCase().includes(query);
+    const contentMatch = (msg.content || '').toLowerCase().includes(query);
+    
+    return roomMatch || titleMatch || contentMatch;
   });
 });
 
-// Selected Message
-const selectedMessage = ref<string>("");
-const selectedMessageIndex = ref<number | null>(null);
+// Helper function to get room display name
+const getRoomDisplayName = (msg: any) => {
+  if (msg.recipient_type === 'all') {
+    return t('All Rooms');
+  }
+  
+  if (msg.room_id) {
+    const room = rooms.value.find(r => r.id === msg.room_id);
+    return room ? room.number : t('Unknown Room');
+  }
+  
+  return t('All Rooms');
+};
 
-// Admin CRUD state
-const showForm = ref(false);
-const showDelete = ref(false);
-const editingMessage = ref<any|null>(null);
-const messageToDelete = ref<number|null>(null);
-const form = ref({ title: '', content: '' });
+// Modal functions
+const openCreateModal = () => { 
+  editingMessage.value = null; 
+  form.value = { 
+    title: '', 
+    content: '', 
+    recipient_type: 'all',
+    room_id: "",
+    type: 'general'
+  }; 
+  showForm.value = true; 
+};
 
-const openCreateModal = () => { editingMessage.value = null; form.value = { title: '', content: '' }; showForm.value = true; };
-const openEditModal = (msg: any) => { editingMessage.value = msg; form.value = { title: msg.title || '', content: msg.content || '' }; showForm.value = true; };
-const closeForm = () => { showForm.value = false; };
+const openEditModal = (msg: any) => { 
+  editingMessage.value = msg; 
+  form.value = { 
+    title: msg.title || '', 
+    content: msg.content || '',
+    recipient_type: msg.recipient_type || 'all',
+    room_id: msg.room_id || "",
+    type: msg.type || 'general'
+  }; 
+  showForm.value = true; 
+};
+
+const closeForm = () => { 
+  showForm.value = false; 
+  form.value = { 
+    title: '', 
+    content: '', 
+    recipient_type: 'all',
+    room_id: "",
+    type: 'general'
+  };
+};
+
 const submitForm = async () => {
   try {
-    if (!form.value.title || !form.value.content) return; // minimal validation
+    if (!form.value.title || !form.value.content) {
+      showError(t('Please fill in all required fields'));
+      return;
+    }
+    
+    const messageData = {
+      title: form.value.title,
+      content: form.value.content,
+      type: form.value.type,
+      recipient_type: form.value.recipient_type,
+      dormitory_id: authStore.user?.dormitory_id, // Use admin's assigned dormitory
+      room_id: form.value.room_id,
+      receiver_id: authStore.user?.id
+    };
+    
     if (editingMessage.value) {
-      const res = await messageService.update(editingMessage.value.id, { title: form.value.title, content: form.value.content, type: 'general', receiver_id: editingMessage.value.receiver_id || authStore.user?.id });
-      // Update in local list
+      const res = await messageService.update(editingMessage.value.id, messageData);
       const idx = messages.value.findIndex((m: any) => m.id === editingMessage.value.id);
       if (idx !== -1) messages.value[idx] = res.data;
       showSuccess(t('Message updated successfully'));
     } else {
-      const res = await messageService.create({ title: form.value.title, content: form.value.content, type: 'general', receiver_id: authStore.user?.id });
-      // Append to list
+      const res = await messageService.create(messageData);
       messages.value.unshift(res.data);
       showSuccess(t('Message created successfully'));
     }
     showForm.value = false;
+    await loadData();
   } catch (e) {
+    console.error('Error submitting form:', e);
     showError(t('Failed to save message'));
   }
 };
 
-const confirmDelete = (id: number) => { messageToDelete.value = id; showDelete.value = true; };
+// Delete functions
+const confirmDelete = (id: number) => { 
+  messageToDelete.value = id; 
+  showDelete.value = true; 
+};
+
 const deleteMessage = async () => {
   if (!messageToDelete.value) return;
   try {
@@ -346,45 +528,8 @@ const deleteMessage = async () => {
   } catch (e) {
     showError(t('Failed to delete message'));
   } finally {
-    showDelete.value = false; messageToDelete.value = null;
-  }
-};
-
-// Send Message
-const sendMessage = async (): Promise<void> => {
-  if (!message.value.trim()) return;
-  
-  try {
-    const messageData = {
-      content: message.value,
-      subject: t('New Message'),
-      faculty: filters.value.faculty,
-      room_id: filters.value.room ? parseInt(filters.value.room) : null,
-      dormitory_id: filters.value.dormitory ? parseInt(filters.value.dormitory) : null,
-    };
-    
-    await messageService.create(messageData);
-    message.value = '';
-    await loadData(); // Reload messages
-    showSuccess(t('Message sent successfully'));
-  } catch (err) {
-    showError(t('Failed to send message'));
-  }
-};
-
-// Select Message
-const selectMessage = (msg: any, index: number): void => {
-  selectedMessage.value = msg.content || msg.message || '';
-  selectedMessageIndex.value = index;
-  
-  // Mark as read if not already read
-  if (!msg.is_read && msg.id) {
-    const markAsReadPromise = messageService.markAsRead(msg.id);
-    if (markAsReadPromise && typeof markAsReadPromise.catch === 'function') {
-      markAsReadPromise.catch(err => {
-        showError(t('Failed to mark message as read'));
-      });
-    }
+    showDelete.value = false; 
+    messageToDelete.value = null;
   }
 };
 
@@ -393,82 +538,13 @@ const formatDate = (dateString: string) => {
   if (!dateString) return '-';
   return new Date(dateString).toLocaleString();
 };
-
-// Set the first message as active on component mount
-const setFirstMessageActive = () => {
-  if (filteredMessages.value.length > 0) {
-    selectMessage(filteredMessages.value[0], 0);
-  }
-};
-
-// Watch for filtered messages changes
-watch(filteredMessages, () => {
-  setFirstMessageActive();
-}, { immediate: true });
-
-// Admin CRUD state
-const isAdmin = computed(() => {
-  const authStore = useAuthStore();
-  return authStore.user?.role?.name === 'admin';
-});
-
-const openCreateModal = () => {
-  editingMessage.value = null;
-  form.value = { title: '', content: '' };
-  showForm.value = true;
-};
-
-const openEditModal = (message: any) => {
-  editingMessage.value = message;
-  form.value = { title: message.subject || '', content: message.content || '' };
-  showForm.value = true;
-};
-
-const closeForm = () => {
-  showForm.value = false;
-  editingMessage.value = null;
-};
-
-const submitForm = async () => {
-  if (!form.value.title.trim() || !form.value.content.trim()) {
-    showError(t('Title and content are required'));
-    return;
-  }
-
-  try {
-    if (editingMessage.value) {
-      await messageService.update(editingMessage.value.id, form.value);
-      showSuccess(t('Message updated successfully'));
-    } else {
-      await messageService.create(form.value);
-      showSuccess(t('Message created successfully'));
-    }
-    await loadData();
-    closeForm();
-  } catch (err) {
-    showError(t('Failed to save message'));
-  }
-};
-
-const showDelete = ref(false);
-const deleteMessage = async () => {
-  if (!editingMessage.value?.id) return;
-  try {
-    await messageService.delete(editingMessage.value.id);
-    showSuccess(t('Message deleted successfully'));
-    await loadData();
-    closeForm();
-  } catch (err) {
-    showError(t('Failed to delete message'));
-  }
-};
-
-const confirmDelete = (id: number) => {
-  editingMessage.value = { id };
-  showDelete.value = true;
-};
 </script>
 
 <style scoped>
-/* Add custom styles if needed */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 </style>
