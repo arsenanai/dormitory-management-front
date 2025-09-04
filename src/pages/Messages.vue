@@ -127,55 +127,56 @@
   </Navigation>
 
   <!-- Create/Edit Message Modal -->
+  <!-- Debug: showForm = {{ showForm }}, isAdmin = {{ isAdmin }} -->
   <CModal v-if="isAdmin" v-model="showForm">
-    <template #header>
-      <h2 class="text-xl font-bold">{{ editingMessage ? t('Edit Message') : t('New Message') }}</h2>
-    </template>
-    <form @submit.prevent="submitForm">
-      <div class="space-y-4">
-        <CInput 
-          id="message-title-input"
-          data-testid="message-title-input" 
-          v-model="form.title" 
-          :label="t('Title')" 
-          required 
-        />
-        <CTextarea 
-          id="message-content-input"
-          data-testid="message-content-input" 
-          v-model="form.content" 
-          :label="t('Content')" 
-          required 
-        />
-        
-        <!-- Recipient Type Selection -->
-        <CSelect 
-          id="recipient-type-select"
-          data-testid="recipient-type-select"
-          v-model="form.recipient_type" 
-          :label="t('Recipient Type')" 
-          :options="recipientTypeOptions"
-          required 
-        />
-        
-        <!-- Room Selection (only show if recipient_type is room) -->
-        <CSelect 
-          id="room-select"
-          v-if="form.recipient_type === 'room'"
-          data-testid="room-select"
-          v-model="form.room_id" 
-          :label="t('Room')" 
-          :options="filteredRoomOptions"
-          required 
-        />
-      </div>
-      <div class="flex justify-end gap-2 mt-6">
-        <CButton @click="closeForm">{{ t('Cancel') }}</CButton>
-        <CButton type="submit" variant="primary" data-testid="submit-message-button">
-          {{ editingMessage ? t('Update') : t('Create') }}
-        </CButton>
-      </div>
-    </form>
+    <div>
+      <h2 class="text-xl font-bold mb-4">{{ editingMessage ? t('Edit Message') : t('New Message') }}</h2>
+      <form @submit.prevent="submitForm">
+        <div class="space-y-4">
+          <CInput 
+            id="message-title-input"
+            data-testid="message-title-input" 
+            v-model="form.title" 
+            :label="t('Title')" 
+            required 
+          />
+          <CTextarea 
+            id="message-content-input"
+            data-testid="message-content-input" 
+            v-model="form.content" 
+            :label="t('Content')" 
+            required 
+          />
+          
+          <!-- Recipient Type Selection -->
+          <CSelect 
+            id="recipient-type-select"
+            data-testid="recipient-type-select"
+            v-model="form.recipient_type" 
+            :label="t('Recipient Type')" 
+            :options="recipientTypeOptions"
+            required 
+          />
+          
+          <!-- Room Selection (only show if recipient_type is room) -->
+          <CSelect 
+            id="room-select"
+            v-if="form.recipient_type === 'room'"
+            data-testid="room-select"
+            v-model="form.room_id" 
+            :label="t('Room')" 
+            :options="filteredRoomOptions"
+            required 
+          />
+        </div>
+        <div class="flex justify-end gap-2 mt-6">
+          <CButton @click="closeForm">{{ t('Cancel') }}</CButton>
+          <CButton type="submit" variant="primary" data-testid="submit-message-button">
+            {{ editingMessage ? t('Update') : t('Create') }}
+          </CButton>
+        </div>
+      </form>
+    </div>
   </CModal>
 
   <!-- Delete Confirmation Modal -->
@@ -450,6 +451,7 @@ const getRoomDisplayName = (msg: any) => {
 
 // Modal functions
 const openCreateModal = () => { 
+  console.log('openCreateModal called');
   editingMessage.value = null; 
   form.value = { 
     title: '', 
@@ -459,6 +461,7 @@ const openCreateModal = () => {
     type: 'general'
   }; 
   showForm.value = true; 
+  console.log('showForm set to:', showForm.value);
 };
 
 const openEditModal = (msg: any) => { 

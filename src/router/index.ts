@@ -125,7 +125,7 @@ const routes: AppRouteRecordRaw[] = [
     name: 'Student Messages',
     component: () => import('@/pages/StudentMessages.vue'),
     meta: {
-      title: 'My Messages',
+      title: 'All Messages',
       requiresAuth: true,
       sidebar: true,
       icon: ChatBubbleLeftRightIcon,

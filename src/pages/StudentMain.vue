@@ -1,17 +1,22 @@
 <template>
   <Navigation :title="t('Student\'s page')">
-    <!-- Dormitory Access Status (NEW) -->
+    <!-- Access status derived from student's status -->
     <div v-if="dormitoryAccessLoading" class="bg-primary-100 text-primary-800 p-3 rounded animate-pulse">
-      {{ t('Loading dormitory access information...') }}
+      {{ t('Loading status...') }}
     </div>
-
-    <div v-if="!canAccessDormitory" class="bg-red-100 text-red-800 p-3 rounded">
-      {{ t('Access Denied') }}
-      <div class="text-xs mt-1">{{ dormitoryAccessReason }}</div>
-    </div>
-    <div v-else class="bg-green-100 text-green-800 p-3 rounded">
-      {{ t('Access Granted') }}
-      <div class="text-xs mt-1">{{ t('You have access to the dormitory.') }}</div>
+    <div v-else>
+      <div v-if="studentStatus === 'inactive'" class="bg-red-100 text-red-800 p-3 rounded">
+        {{ t('Access Denied') }}
+        <div class="text-xs mt-1">{{ t('Your account is inactive.') }}</div>
+      </div>
+      <div v-else-if="studentStatus === 'pending'" class="bg-yellow-100 text-yellow-800 p-3 rounded">
+        {{ t('Access Pending') }}
+        <div class="text-xs mt-1">{{ t('Your account is pending approval.') }}</div>
+      </div>
+      <div v-else class="bg-green-100 text-green-800 p-3 rounded">
+        {{ t('Access Granted') }}
+        <div class="text-xs mt-1">{{ t('You have access to the dormitory.') }}</div>
+      </div>
     </div>
 
     <!-- Room Information -->
@@ -62,17 +67,7 @@
     <!-- Messages Section -->
     <div class="mb-6">
       <h2 class="flex items-center gap-2 text-lg font-bold text-gray-800">
-        {{ t("MESSAGES") }}
-        <span
-          class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-200 text-xs font-semibold text-blue-800"
-        >
-          {{ dashboardData.my_messages || 0 }}
-        </span>
-        <span v-if="dashboardData.unread_messages_count > 0"
-          class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-red-200 text-xs font-semibold text-red-800"
-        >
-          {{ dashboardData.unread_messages_count }}
-        </span>
+        {{ t('Recent messages') }}
       </h2>
 
       <!-- Messages Table -->
@@ -81,6 +76,7 @@
         :data="messages" 
         :loading="messagesLoading"
         hoverable
+        data-testid="messages-table"
         @row-click="handleMessageClick"
       />
     </div>
@@ -112,9 +108,11 @@ import Navigation from "@/components/CNavigation.vue";
 import CTable from "@/components/CTable.vue";
 import CTextarea from "@/components/CTextarea.vue";
 import { Message } from "@/models/Message"; // Import the Message class
-import { dormitoryAccessService, dashboardService } from '@/services/api';
+import { dashboardService, messageService } from '@/services/api';
+import { useAuthStore } from "@/stores/auth";
 
 const { t } = useI18n();
+const authStore = useAuthStore();
 
 // Message table columns
 const messageColumns = [
@@ -135,11 +133,10 @@ const messages = ref<Message[]>([]);
 const selectedMessage = ref<Message | null>(null);
 const selectedMessageIndex = ref<number | null>(null);
 
-// Dormitory Access Status
-const canAccessDormitory = ref<boolean>(true);
+// Status banner
 const dormitoryAccessChecked = ref<boolean>(false);
-const dormitoryAccessReason = ref<string>('');
 const dormitoryAccessLoading = ref<boolean>(true);
+const studentStatus = ref<string>('active');
 
 // Select Message
 const selectMessage = (message: Message, index: number): void => {
@@ -155,44 +152,75 @@ const handleMessageClick = (message: Message): void => {
   }
 };
 
-// Fetch dashboard data
+// Format date helper
+const formatDate = (dateString: string) => {
+  if (!dateString) return '-';
+  return new Date(dateString).toLocaleString();
+};
+
+// Fetch dashboard data (do not touch messages loaded from my-messages)
 const fetchDashboardData = async () => {
   try {
     const response = await dashboardService.getStudentStats();
     dashboardData.value = response.data;
     roomInfo.value = response.data.room_info;
-    
-    // Convert API messages to Message objects if available
-    if (response.data.messages && Array.isArray(response.data.messages)) {
-      messages.value = response.data.messages.map((msg: any) => 
-        new Message(
-          msg.sender_name || 'Admin',
-          msg.receiver_name || 'All',
-          msg.subject || 'No Subject',
-          msg.created_at || new Date().toISOString(),
-          msg.content || 'No content'
-        )
-      );
-    }
   } catch (error) {
     console.error('Failed to fetch dashboard data:', error);
-    // Fallback to default messages if API fails
-    messages.value = [
-      new Message(
-        "Admin",
-        "All",
-        "Welcome",
-        "01-09-2024 11:34",
-        "Welcome to the dormitory management system!",
-      ),
-      new Message(
-        "Admin",
-        "All",
-        "Reminder",
-        "02-09-2024 10:00",
-        "Don't forget to complete your registration.",
-      ),
-    ];
+  }
+};
+
+// Fetch recent admin messages
+const fetchRecentAdminMessages = async () => {
+  messagesLoading.value = true;
+  
+  try {
+    
+    // Check authentication status
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    
+    if (!token) {
+      console.error('❌ No authentication token found!');
+      return;
+    }
+    
+    // Use the correct endpoint for students to get their messages, limit to 3 recent
+    const params = { page: 1, per_page: 3 } as const;
+    const response = await messageService.getMyMessages(params as any);
+    
+    if (response && response.data) {
+      
+      let messagesArray: any[] = [];
+      
+      if (Array.isArray(response.data)) {
+        messagesArray = response.data;
+      } else if (response.data.data && Array.isArray(response.data.data)) {
+        messagesArray = response.data.data;
+      } else {
+        messagesArray = [];
+      }
+      
+      // Sort by id desc explicitly, take 3, convert to Message objects
+      messages.value = messagesArray
+        .sort((a: any, b: any) => (b?.id || 0) - (a?.id || 0))
+        .slice(0, 3)
+        .map((msg: any) => new Message(
+          msg.sender?.name || 'Admin',
+          msg.receiver_name || 'All',
+          msg.title || msg.subject || 'No Subject',
+          msg.created_at || msg.sent_at || new Date().toISOString(),
+          msg.content || 'No content'
+        ));
+    } else {
+      messages.value = [];
+      
+    }
+    
+  } catch (error) {
+    
+    messages.value = [];
+  } finally {
+    messagesLoading.value = false;
   }
 };
 
@@ -202,13 +230,21 @@ onMounted(async () => {
   messagesLoading.value = true;
   
   try {
-    // Fetch dormitory access status
-    const accessResponse = await dormitoryAccessService.check();
-    canAccessDormitory.value = !!accessResponse.data.can_access;
-    dormitoryAccessReason.value = accessResponse.data.reason || (accessResponse.data.can_access ? '' : t('No current semester payment or payment not approved.'));
     
-    // Fetch dashboard data
-    await fetchDashboardData();
+    // derive status from auth store
+    studentStatus.value = (authStore.user?.status as string) || 'active';
+    // Fire messages request immediately so it appears in Network panel regardless of profile
+    try {
+      await fetchRecentAdminMessages();
+    } catch (err) {
+      
+    }
+    // Fetch dashboard data and recent messages in parallel
+    await Promise.all([
+      fetchDashboardData(),
+      fetchRecentAdminMessages()
+    ]);
+    
     
     // Set the latest message as active if available
     if (messages.value.length > 0) {
@@ -216,27 +252,10 @@ onMounted(async () => {
       selectMessage(messages.value[latestIndex], latestIndex);
     }
   } catch (e) {
-    console.error('Error loading student dashboard:', e);
-    canAccessDormitory.value = false;
-    dormitoryAccessReason.value = t('Unable to check access status.');
+    console.error('❌ Error loading student dashboard:', e);
     
-    // Set fallback messages
-    messages.value = [
-      new Message(
-        "Admin",
-        "All",
-        "Welcome",
-        "01-09-2024 11:34",
-        "Welcome to the dormitory management system!",
-      ),
-      new Message(
-        "Admin",
-        "All",
-        "Reminder",
-        "02-09-2024 10:00",
-        "Don't forget to complete your registration.",
-      ),
-    ];
+    // Don't set fallback messages - let the API handle it
+    messages.value = [];
   } finally {
     dormitoryAccessChecked.value = true;
     dormitoryAccessLoading.value = false;
@@ -246,5 +265,10 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* Add custom styles if needed */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <Navigation :title="t('My Messages')">
+  <Navigation :title="t('All Messages')">
     <div data-testid="student-messages-page">
       <!-- Search Field -->
       <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
