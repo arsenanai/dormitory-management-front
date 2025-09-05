@@ -16,7 +16,7 @@ export interface User {
   password?: string;
   status: UserStatus;
   role_id?: number;
-  role?: Role;
+  role?: Role | string;
   room?: Room;
   city?: City;
   // Student-specific fields (some may be moved to StudentProfile)

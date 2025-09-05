@@ -5,12 +5,14 @@ import { createPinia, setActivePinia } from 'pinia';
 import Messages from '@/pages/Messages.vue';
 import { messageService, dormitoryService, roomService } from '@/services/api';
 import i18n from '@/i18n';
-import type { AxiosResponse } from 'axios';
+import type { ApiResponse } from '@/services/api';
 
-// Helper function to create a mock AxiosResponse
-function createMockAxiosResponse<T>(data: T): AxiosResponse<T> {
+// Helper function to create a mock ApiResponse
+function createMockAxiosResponse<T>(data: T): ApiResponse<T> {
   return {
+    success: true,
     data,
+    message: 'Success',
     status: 200,
     statusText: 'OK',
     headers: {},

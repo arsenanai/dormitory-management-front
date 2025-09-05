@@ -18,6 +18,12 @@ vi.mock('@/services/api', () => ({
     update: vi.fn(),
     getById: vi.fn(),
   },
+  dormitoryService: {
+    getAll: vi.fn(),
+  },
+  roomTypeService: {
+    getAll: vi.fn(),
+  },
 }));
 
 // Mock the toast composable
@@ -59,6 +65,22 @@ describe('RoomForm', () => {
         dormitory: { id: 1, name: 'A-BLOCK' },
         roomType: { id: 1, name: 'Standard' },
       })
+    );
+
+    // Mock dormitory service
+    vi.mocked(api.dormitoryService.getAll).mockResolvedValue(
+      createMockResponse([
+        { id: 1, name: 'A-BLOCK' },
+        { id: 2, name: 'B-BLOCK' }
+      ])
+    );
+
+    // Mock room type service
+    vi.mocked(api.roomTypeService.getAll).mockResolvedValue(
+      createMockResponse([
+        { id: 1, name: 'Standard', capacity: 2 },
+        { id: 2, name: 'Lux', capacity: 3 }
+      ])
     );
   });
 

@@ -5,17 +5,19 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useDormitoriesStore } from '@/stores/dormitories'
 import api, { dormitoryService } from '@/services/api'
+import type { ApiResponse } from '@/services/api'
 
-// Helper function to create mock Axios responses
-import { AxiosResponse } from 'axios'
-function createAxiosResponse(data: any): AxiosResponse {
+// Helper function to create mock ApiResponse
+function createAxiosResponse(data: any): ApiResponse<any> {
   return {
+    success: true,
     data,
+    message: 'Success',
     status: 200,
     statusText: 'OK',
     headers: {},
     config: { headers: {} }
-  } as AxiosResponse
+  }
 }
 
 // Mock the API service

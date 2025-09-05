@@ -226,7 +226,8 @@ export const useSettingsStore = defineStore('settings', () => {
       const response = await api.put('/configurations/dormitory', settings);
       dormitorySettings.value = response.data;
       error.value = null;
-      showToast('success', 'Dormitory settings updated successfully');
+      const { showSuccess } = useToast();
+      showSuccess('Dormitory settings updated successfully');
       return response.data;
     } catch (err: any) {
       error.value = err;

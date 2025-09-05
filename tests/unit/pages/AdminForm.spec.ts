@@ -49,7 +49,11 @@ vi.mock('@/stores/auth', () => ({
 }));
 
 // Helper function to create mock response
-const createMockResponse = (data: any) => ({ data });
+const createMockResponse = (data: any) => ({ 
+  success: true, 
+  data, 
+  message: 'Success' 
+});
 
 describe('AdminForm', () => {
   beforeEach(() => {

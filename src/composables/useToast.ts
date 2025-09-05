@@ -1,6 +1,23 @@
 import { ref, createApp, h, type Component } from 'vue'
-import CToast, { type ToastProps } from '@/components/CToast.vue'
-import CConfirmationModal, { type ConfirmationModalProps } from '@/components/CConfirmationModal.vue'
+import CToast from '@/components/CToast.vue'
+import CConfirmationModal from '@/components/CConfirmationModal.vue'
+
+// Define types locally since Vue components don't export TypeScript types
+export interface ToastProps {
+  type?: 'success' | 'error' | 'warning' | 'info'
+  message: string
+  persistent?: boolean
+  duration?: number
+}
+
+export interface ConfirmationModalProps {
+  message: string
+  title?: string
+  confirmText?: string
+  cancelText?: string
+  onConfirm?: () => void
+  onCancel?: () => void
+}
 
 export interface Toast extends ToastProps {
   id: string

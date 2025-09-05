@@ -133,7 +133,13 @@ describe('Payments.vue', () => {
 
   it('loads payments on mount', async () => {
     const mockGetAll = vi.mocked(paymentService.getAll)
-    mockGetAll.mockResolvedValue(createAxiosResponse(mockPayments))
+    mockGetAll.mockResolvedValue(createAxiosResponse({ data: mockPayments, total: mockPayments.length }))
+
+    // Mock localStorage to have a token
+    const mockLocalStorage = {
+      getItem: vi.fn().mockReturnValue('mock-token')
+    }
+    Object.defineProperty(window, 'localStorage', { value: mockLocalStorage })
 
     await wrapper.vm.loadPayments()
 
@@ -145,7 +151,8 @@ describe('Payments.vue', () => {
     wrapper.vm.loading = true
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.find('.loading-text').exists()).toBe(true)
+    // Check for skeleton loading instead of loading-text
+    expect(wrapper.find('.animate-pulse').exists()).toBe(true)
   })
 
   it('handles error state', async () => {
@@ -156,33 +163,51 @@ describe('Payments.vue', () => {
   })
 
   it('filters payments by search term', async () => {
-    wrapper.vm.payments = mockPayments
-    wrapper.vm.searchTerm = 'John'
-    await wrapper.vm.$nextTick()
+    const mockGetAll = vi.mocked(paymentService.getAll)
+    mockGetAll.mockResolvedValue(createAxiosResponse({ data: [mockPayments[0]], total: 1 }))
 
-    const filteredPayments = wrapper.vm.filteredPayments
-    expect(filteredPayments).toHaveLength(1)
-    expect(filteredPayments[0].user.name).toBe('John Doe')
+    // Mock localStorage to have a token
+    const mockLocalStorage = {
+      getItem: vi.fn().mockReturnValue('mock-token')
+    }
+    Object.defineProperty(window, 'localStorage', { value: mockLocalStorage })
+
+    wrapper.vm.searchTerm = 'John'
+    await wrapper.vm.loadPayments()
+
+    expect(mockGetAll).toHaveBeenCalledWith({ search: 'John', page: 1, per_page: 10 })
   })
 
   it('filters payments by status', async () => {
-    wrapper.vm.payments = mockPayments
-    wrapper.vm.statusFilter = 'completed'
-    await wrapper.vm.$nextTick()
+    const mockGetAll = vi.mocked(paymentService.getAll)
+    mockGetAll.mockResolvedValue(createAxiosResponse({ data: [mockPayments[0]], total: 1 }))
 
-    const filteredPayments = wrapper.vm.filteredPayments
-    expect(filteredPayments).toHaveLength(1)
-    expect(filteredPayments[0].status).toBe('completed')
+    // Mock localStorage to have a token
+    const mockLocalStorage = {
+      getItem: vi.fn().mockReturnValue('mock-token')
+    }
+    Object.defineProperty(window, 'localStorage', { value: mockLocalStorage })
+
+    wrapper.vm.statusFilter = 'completed'
+    await wrapper.vm.loadPayments()
+
+    expect(mockGetAll).toHaveBeenCalledWith({ status: 'completed', page: 1, per_page: 10 })
   })
 
   it('filters payments by type', async () => {
-    wrapper.vm.payments = mockPayments
-    wrapper.vm.typeFilter = 'monthly_rent'
-    await wrapper.vm.$nextTick()
+    const mockGetAll = vi.mocked(paymentService.getAll)
+    mockGetAll.mockResolvedValue(createAxiosResponse({ data: [mockPayments[0]], total: 1 }))
 
-    const filteredPayments = wrapper.vm.filteredPayments
-    expect(filteredPayments).toHaveLength(1)
-    expect(filteredPayments[0].payment_type).toBe('monthly_rent')
+    // Mock localStorage to have a token
+    const mockLocalStorage = {
+      getItem: vi.fn().mockReturnValue('mock-token')
+    }
+    Object.defineProperty(window, 'localStorage', { value: mockLocalStorage })
+
+    wrapper.vm.typeFilter = 'monthly_rent'
+    await wrapper.vm.loadPayments()
+
+    expect(mockGetAll).toHaveBeenCalledWith({ type: 'monthly_rent', page: 1, per_page: 10 })
   })
 
   it('creates new payment', async () => {
@@ -190,33 +215,49 @@ describe('Payments.vue', () => {
     const newPaymentData = {
       user_id: 1,
       amount: 300.00,
-      payment_type: 'deposit',
-      payment_date: '2024-01-17',
-      description: 'Security deposit'
+      semester: 'fall',
+      academic_year: '2024'
     }
     mockCreate.mockResolvedValue(createAxiosResponse({ id: 3, ...newPaymentData }))
 
     await wrapper.vm.createPayment(newPaymentData)
 
-    expect(mockCreate).toHaveBeenCalledWith(newPaymentData)
+    // The component transforms the data before sending to API
+    expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({
+      user_id: 1,
+      amount: 300.00,
+      semester: 'fall',
+      contract_number: expect.any(String),
+      contract_date: expect.any(String),
+      payment_date: expect.any(String),
+      payment_method: 'bank_transfer',
+      year: expect.any(Number),
+      semester_type: 'fall'
+    }))
   })
 
   it('updates existing payment', async () => {
     const mockUpdate = vi.mocked(paymentService.update)
     mockUpdate.mockResolvedValue(createAxiosResponse({ ...mockPayments[0], amount: 600.00 }))
 
-    const updatedPayment = { ...mockPayments[0], amount: 600.00 }
+    const updatedPayment = { amount: 600.00, semester: 'spring' }
 
     await wrapper.vm.updatePayment(1, updatedPayment)
 
-    expect(mockUpdate).toHaveBeenCalledWith(1, updatedPayment)
+    // The component only sends specific fields for updates
+    expect(mockUpdate).toHaveBeenCalledWith(1, expect.objectContaining({
+      amount: 600.00,
+      semester: 'spring'
+    }))
   })
 
   it('deletes payment', async () => {
     const mockDelete = vi.mocked(paymentService.delete)
     mockDelete.mockResolvedValue(createAxiosResponse({ message: 'Payment deleted' }))
 
-    await wrapper.vm.deletePayment(1)
+    // Set up the payment to delete
+    wrapper.vm.paymentToDelete = 1
+    await wrapper.vm.deletePayment()
 
     expect(mockDelete).toHaveBeenCalledWith(1)
   })
@@ -243,6 +284,12 @@ describe('Payments.vue', () => {
   })
 
   it('handles API errors gracefully', async () => {
+    // Mock localStorage to have a token so it doesn't show "Authentication required"
+    const mockLocalStorage = {
+      getItem: vi.fn().mockReturnValue('mock-token')
+    }
+    Object.defineProperty(window, 'localStorage', { value: mockLocalStorage })
+    
     const mockGetAll = vi.mocked(paymentService.getAll)
     mockGetAll.mockRejectedValue(new Error('API Error'))
 
@@ -259,13 +306,14 @@ describe('Payments.vue', () => {
       user: { ...mockPayments[0].user, id: i + 1 }
     }))
 
-    wrapper.vm.payments = manyPayments
-    wrapper.vm.itemsPerPage = 10
-    wrapper.vm.currentPage = 1
-    await wrapper.vm.$nextTick()
+    const mockGetAll = vi.mocked(paymentService.getAll)
+    mockGetAll.mockResolvedValue(createAxiosResponse({ data: manyPayments, total: 25 }))
 
+    await wrapper.vm.loadPayments()
+
+    // With server-side pagination, paginatedPayments returns all payments from API
     const paginatedPayments = wrapper.vm.paginatedPayments
-    expect(paginatedPayments).toHaveLength(10)
+    expect(paginatedPayments).toHaveLength(25)
     expect(paginatedPayments[0].id).toBe(1)
   })
 
@@ -329,15 +377,26 @@ describe('Payments.vue', () => {
     const formData = {
       user_id: 1,
       amount: 300.00,
-      payment_type: 'deposit',
-      payment_date: '2024-01-17',
-      description: 'Security deposit'
+      semester: 'fall',
+      academic_year: '2024'
     }
     mockCreate.mockResolvedValue(createAxiosResponse({ id: 3, ...formData }))
 
     await wrapper.vm.handleFormSubmit(formData)
 
-    expect(mockCreate).toHaveBeenCalledWith(formData)
+    // The component transforms the form data before sending to API
+    // It calls createPayment which transforms the data
+    expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({
+      user_id: 1,
+      amount: 300.00,
+      semester: 'fall', // The createPayment method uses the semester directly, not combined
+      contract_number: expect.any(String),
+      contract_date: expect.any(String),
+      payment_date: expect.any(String),
+      payment_method: 'bank_transfer',
+      year: expect.any(Number),
+      semester_type: 'fall'
+    }))
     expect(wrapper.vm.showForm).toBe(false)
   })
 })

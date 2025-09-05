@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import api, { authService } from '@/services/api'
-import { User } from '@/models/User'
+import { User, UserStatus } from '@/models/User'
 
 /**
  * Interface for login credentials
@@ -56,6 +56,11 @@ export const useAuthStore = defineStore('auth', () => {
   // Initialize auth store from localStorage
   const initializeAuthStore = () => {
     try {
+      // Check if localStorage is available (for tests)
+      if (typeof localStorage === 'undefined' || !localStorage.getItem) {
+        return
+      }
+      
       const storedToken = localStorage.getItem('token')
       const storedUser = localStorage.getItem('user')
       
@@ -66,21 +71,45 @@ export const useAuthStore = defineStore('auth', () => {
       }
     } catch (error) {
       console.error('Failed to initialize auth store from localStorage:', error)
-      // Clear corrupted data
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
+      // Clear corrupted data only if localStorage is available
+      if (typeof localStorage !== 'undefined' && localStorage.removeItem) {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+      }
     }
   }
 
-  // Initialize the store when it's created
-  initializeAuthStore()
+  // Initialize the store when it's created (only if localStorage is available)
+  if (typeof localStorage !== 'undefined') {
+    initializeAuthStore()
+  }
 
   // Getters
   /** Whether the user is currently authenticated */
   const isAuthenticated = computed(() => !!token.value)
   
   /** Current user's role name or null if not authenticated */
-  const userRole = computed(() => user.value?.role?.name || null)
+  const userRole = computed(() => {
+    console.log('🔍 AuthStore - userRole computed, user.value:', user.value);
+    console.log('🔍 AuthStore - user.value?.role:', user.value?.role);
+    
+    if (!user.value?.role) return null;
+    
+    // If role is an object with name property
+    if (typeof user.value.role === 'object' && user.value.role.name) {
+      console.log('🔍 AuthStore - role is object, name:', user.value.role.name);
+      return user.value.role.name;
+    }
+    
+    // If role is a string, use it directly
+    if (typeof user.value.role === 'string') {
+      console.log('🔍 AuthStore - role is string:', user.value.role);
+      return user.value.role;
+    }
+    
+    console.log('🔍 AuthStore - role is neither string nor object with name');
+    return null;
+  })
   
   /** User's full name (first_name + last_name) */
   const fullName = computed(() =>
@@ -114,7 +143,16 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await authService.login(credentials)
 
       token.value = response.data.token
-      user.value = response.data.user
+      // Convert API User to model User type
+      const apiUser = response.data.user
+      user.value = {
+        id: apiUser.id,
+        name: apiUser.name,
+        email: apiUser.email,
+        phone_numbers: apiUser.phone_numbers,
+        status: 'active' as UserStatus, // Default to active for logged in users
+        role: apiUser.role // Store role as string from API
+      }
 
       // Store token and user data in localStorage for persistence
       if (token.value) {
@@ -127,8 +165,9 @@ export const useAuthStore = defineStore('auth', () => {
       // Redirect based on role
       let redirectPath = '/main'
       
-      if (user.value?.role?.name) {
-        switch (user.value.role.name) {
+      const roleName = userRole.value
+      if (roleName) {
+        switch (roleName) {
           case 'student':
             redirectPath = '/student-main'
             break
@@ -225,7 +264,16 @@ export const useAuthStore = defineStore('auth', () => {
       error.value = null
 
       const response = await authService.getProfile()
-      user.value = response.data
+      // Convert API User to model User type
+      const apiUser = response.data
+      user.value = {
+        id: apiUser.id,
+        name: apiUser.name,
+        email: apiUser.email,
+        phone_numbers: apiUser.phone_numbers,
+        status: 'active' as UserStatus, // Default to active for logged in users
+        role: apiUser.role // Store role as string from API
+      }
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to load profile'
       throw err
@@ -256,7 +304,16 @@ export const useAuthStore = defineStore('auth', () => {
       error.value = null
 
       const response = await authService.updateProfile(profileData)
-      user.value = response.data
+      // Convert API User to model User type
+      const apiUser = response.data
+      user.value = {
+        id: apiUser.id,
+        name: apiUser.name,
+        email: apiUser.email,
+        phone_numbers: apiUser.phone_numbers,
+        status: 'active' as UserStatus, // Default to active for logged in users
+        role: apiUser.role // Store role as string from API
+      }
 
       return response.data
     } catch (err: any) {
@@ -347,7 +404,7 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = true
       error.value = null
 
-      const response = await authService.resetPassword({ email })
+      const response = await authService.resetPassword(email)
       return response.data
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to send reset link'
@@ -379,7 +436,7 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = true
       error.value = null
       
-      const response = await authService.resetPassword(resetData)
+      const response = await authService.resetPasswordConfirm(resetData)
       return response.data
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to reset password'

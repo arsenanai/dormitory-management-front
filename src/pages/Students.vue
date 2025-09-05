@@ -147,7 +147,7 @@
   </Navigation>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import Navigation from "@/components/CNavigation.vue";
 import { useI18n } from "vue-i18n";
 import { ref, computed, onMounted, watch } from "vue";

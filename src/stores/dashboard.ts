@@ -49,15 +49,15 @@ export const useDashboardStore = defineStore('dashboard', () => {
       
       // Map backend response to frontend expected structure
       stats.value = {
-        dormitories: data.total_dormitories ?? data.dormitories ?? 4, // Default to 4 based on seeded data
-        rooms: data.total_rooms ?? data.rooms ?? 52, // Default to 52 based on seeded data
-        beds: data.total_beds ?? data.beds ?? 92, // Default to 92 based on seeded data
-        vacantBeds: data.available_rooms ?? data.available_beds ?? data.vacant_beds ?? 0,
-        registeredStudents: data.total_students ?? data.students ?? 22, // Default to 22 based on seeded data
-        currentPresence: data.occupied_rooms ?? data.current_presence ?? 0,
-        mealPaying: data.meal_paying ?? data.students_with_meals ?? 0,
-        withoutMeal: data.without_meal ?? data.students_without_meals ?? 0,
-        quotaStudents: data.quota_students ?? 0,
+        dormitories: Number(data.total_dormitories ?? data.dormitories ?? 4), // Default to 4 based on seeded data
+        rooms: Number(data.total_rooms ?? data.rooms ?? 52), // Default to 52 based on seeded data
+        beds: Number(data.total_beds ?? data.beds ?? 92), // Default to 92 based on seeded data
+        vacantBeds: Number(data.available_rooms ?? data.available_beds ?? data.vacant_beds ?? 0),
+        registeredStudents: Number(data.total_students ?? data.students ?? 22), // Default to 22 based on seeded data
+        currentPresence: Number(data.occupied_rooms ?? data.current_presence ?? 0),
+        mealPaying: Number(data.meal_paying ?? data.students_with_meals ?? 0),
+        withoutMeal: Number(data.without_meal ?? data.students_without_meals ?? 0),
+        quotaStudents: Number(data.quota_students ?? 0),
       };
     } catch (err: any) {
       console.log('DEBUG: fetchStats error:', err);

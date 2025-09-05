@@ -7,7 +7,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
-    setupFiles: ['./tests/urlPolyfill.js', './tests/setupMocks.ts', './tests/setup.ts'],
+    setupFiles: ['./tests/urlPolyfill.ts', './tests/setupMocks.ts', './tests/setup.ts'],
     exclude: ['**/e2e/**', '**/node_modules/**'],
     env: {
       VITE_API_BASE_URL: '/api'

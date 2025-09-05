@@ -378,9 +378,9 @@ router.beforeEach(async (to, from, next) => {
     // Redirect authenticated users away from login page
     const redirectPath = getRedirectPath(userRole);
     next({ path: redirectPath });
-  } else if (to.meta?.roles && to.meta.roles.length > 0) {
+  } else if (to.meta?.roles && (to.meta.roles as string[]).length > 0) {
     // Check role-based access
-    if (!userRole || !to.meta.roles.includes(userRole)) {
+    if (!userRole || !(to.meta.roles as string[]).includes(userRole)) {
       const redirectPath = getRedirectPath(userRole);
       
       // Prevent infinite redirect by checking if we're already trying to redirect to the same path

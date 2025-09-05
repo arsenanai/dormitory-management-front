@@ -10,7 +10,7 @@
     :rows="rows"
     :placeholder="placeholder"
     :value="modelValue"
-    @input="updateValue($event.target.value)"
+    @input="updateValue(($event.target as HTMLTextAreaElement).value)"
     :class="[
       baseTextareaClass,
       validationState === 'success' ? successClass : 
@@ -24,7 +24,7 @@
   </p>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, watch } from "vue";
 
 // Props
@@ -93,7 +93,7 @@ watch(
 );
 
 // Methods
-const updateValue = (value) => {
+const updateValue = (value: string) => {
   inputValue.value = value;
   emit("update:modelValue", value);
 };

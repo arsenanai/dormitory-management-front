@@ -23,7 +23,9 @@ vi.mock('@/services/api', () => ({
 
 // Helper function to create mock API responses
 const createMockResponse = (data: any) => ({
+  success: true,
   data,
+  message: 'Success',
   status: 200,
   statusText: 'OK',
   headers: {},

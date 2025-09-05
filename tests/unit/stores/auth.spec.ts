@@ -78,10 +78,12 @@ describe('Auth Store', () => {
   it('should login successfully', async () => {
     const authStore = useAuthStore();
     const mockResponse = {
+      success: true,
       data: {
         token: 'mock-token',
         user: { id: 1, name: 'Test User', email: 'test@example.com' }
-      }
+      },
+      message: 'Success'
     };
 
     vi.mocked(authService.login).mockResolvedValueOnce(mockResponse);
@@ -140,7 +142,11 @@ describe('Auth Store', () => {
     const authStore = useAuthStore();
     const mockUser = { id: 1, name: 'Test User', email: 'test@example.com' };
     
-    vi.mocked(authService.getProfile).mockResolvedValueOnce({ data: mockUser });
+    vi.mocked(authService.getProfile).mockResolvedValueOnce({ 
+      success: true, 
+      data: mockUser, 
+      message: 'Success' 
+    });
 
     await authStore.loadProfile();
 
@@ -171,7 +177,11 @@ describe('Auth Store', () => {
     const authStore = useAuthStore();
     const updatedUser = { id: 1, name: 'Updated User', email: 'updated@example.com' };
     
-    vi.mocked(authService.updateProfile).mockResolvedValueOnce({ data: updatedUser });
+    vi.mocked(authService.updateProfile).mockResolvedValueOnce({ 
+      success: true, 
+      data: updatedUser, 
+      message: 'Success' 
+    });
 
     const profileData = { name: 'Updated User' };
     await authStore.updateProfile(profileData);

@@ -105,19 +105,16 @@ describe('Settings.vue', () => {
     const wrapper = mount(Settings);
     
     expect(wrapper.text()).toContain('Settings & Configuration');
-    expect(wrapper.text()).toContain('Dormitory Settings');
-    expect(wrapper.text()).toContain('SMTP Configuration');
-    expect(wrapper.text()).toContain('Card Reader Configuration');
-    expect(wrapper.text()).toContain('1C Integration Configuration');
-    expect(wrapper.text()).toContain('Language File Management');
-    expect(wrapper.text()).toContain('System Logs');
+    expect(wrapper.text()).toContain('Feature Toggles');
+    expect(wrapper.text()).toContain('1C Integration');
+    expect(wrapper.text()).toContain('Kaspi Integration');
+    expect(wrapper.text()).toContain('Card Security');
   });
 
-  it('should call fetchAllSettings and fetchSystemLogs on mount', () => {
+  it('should call fetchAllSettings on mount', () => {
     mount(Settings);
     
     expect(mockSettingsStore.fetchAllSettings).toHaveBeenCalled();
-    expect(mockSettingsStore.fetchSystemLogs).toHaveBeenCalled();
   });
 
   it('should display initialize defaults button', () => {

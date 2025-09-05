@@ -219,33 +219,42 @@ describe('Rooms.vue', () => {
   })
 
   it('filters rooms by search term', async () => {
-    wrapper.vm.rooms = mockRooms
+    const mockGetAll = vi.mocked(roomService.getAll)
+    mockGetAll.mockResolvedValue(createMockAxiosResponse({ data: [mockRooms[0]] }))
+    
     wrapper.vm.searchTerm = '101'
     await wrapper.vm.$nextTick()
-
-    const filteredRooms = wrapper.vm.filteredRooms
-    expect(filteredRooms).toHaveLength(1)
-    expect(filteredRooms[0].room_number).toBe('101')
+    
+    // Wait for the watcher to trigger loadRooms
+    await wrapper.vm.$nextTick()
+    
+    expect(mockGetAll).toHaveBeenCalledWith({ number: '101' })
   })
 
   it('filters rooms by status', async () => {
-    wrapper.vm.rooms = mockRooms
+    const mockGetAll = vi.mocked(roomService.getAll)
+    mockGetAll.mockResolvedValue(createMockAxiosResponse({ data: [mockRooms[0]] }))
+    
     wrapper.vm.statusFilter = 'available'
     await wrapper.vm.$nextTick()
-
-    const filteredRooms = wrapper.vm.filteredRooms
-    expect(filteredRooms).toHaveLength(1)
-    expect(filteredRooms[0].status).toBe('available')
+    
+    // Wait for the watcher to trigger loadRooms
+    await wrapper.vm.$nextTick()
+    
+    expect(mockGetAll).toHaveBeenCalledWith({ status: 'available' })
   })
 
   it('filters rooms by dormitory', async () => {
-    wrapper.vm.rooms = mockRooms
+    const mockGetAll = vi.mocked(roomService.getAll)
+    mockGetAll.mockResolvedValue(createMockAxiosResponse({ data: mockRooms }))
+    
     wrapper.vm.dormitoryFilter = 1
     await wrapper.vm.$nextTick()
-
-    const filteredRooms = wrapper.vm.filteredRooms
-    expect(filteredRooms).toHaveLength(2)
-    expect(filteredRooms[0].dormitory_id).toBe(1)
+    
+    // Wait for the watcher to trigger loadRooms
+    await wrapper.vm.$nextTick()
+    
+    expect(mockGetAll).toHaveBeenCalledWith({ dormitory_id: 1 })
   })
 
   it('creates new room', async () => {
