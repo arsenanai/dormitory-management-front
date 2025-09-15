@@ -17,7 +17,7 @@ import { initFlowbite } from "flowbite";
 import { useAuthStore } from '@/stores/auth';
 
 // Hardcoded version label
-const appVersion = "1.0.1";
+const appVersion = ref("");
 
 // Initialize the router
 const router = useRouter();
@@ -31,6 +31,12 @@ watch(
   },
 );
 
+const fetchAppVersion = async () => {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/app-version`);
+  const data = await response.json();
+  appVersion.value = data.version;
+};
+
 // Initialize Flowbite and auth on component mount
 onMounted(async () => {
   initFlowbite();
@@ -39,6 +45,7 @@ onMounted(async () => {
   } catch (error) {
     console.warn('Auth initialization failed:', error);
   }
+  await fetchAppVersion();
 });
 </script>
 
