@@ -16,6 +16,8 @@ vi.mock('@/services/api', () => ({
 vi.mock('@/composables/useToast', () => ({
   useToast: () => ({
     showToast: vi.fn(),
+    showError: vi.fn(),
+    showSuccess: vi.fn(),
   }),
 }));
 
@@ -410,21 +412,17 @@ describe('Settings Store', () => {
 
       const api = (await import('@/services/api')).default;
       vi.mocked(api.get)
-        .mockResolvedValueOnce({ data: mockSmtpSettings })
         .mockResolvedValueOnce({ data: mockCardReaderSettings })
         .mockResolvedValueOnce({ data: mockOnecSettings })
-        .mockResolvedValueOnce({ data: mockDormitorySettings })
-        .mockResolvedValueOnce({ data: mockLanguages });
+        .mockResolvedValueOnce({ data: { kaspi_enabled: false, kaspi_api_key: null, kaspi_merchant_id: null, kaspi_webhook_url: null } });
 
       const store = useSettingsStore();
       await store.fetchAllSettings();
 
-      expect(api.get).toHaveBeenCalledTimes(5);
-      expect(store.smtpSettings).toEqual(mockSmtpSettings);
+      expect(api.get).toHaveBeenCalledTimes(3);
       expect(store.cardReaderSettings).toEqual(mockCardReaderSettings);
       expect(store.onecSettings).toEqual(mockOnecSettings);
-      expect(store.dormitorySettings).toEqual(mockDormitorySettings);
-      expect(store.installedLanguages).toEqual(mockLanguages);
+      expect(store.kaspiSettings).toEqual({ kaspi_enabled: false, kaspi_api_key: null, kaspi_merchant_id: null, kaspi_webhook_url: null });
       expect(store.loading).toBe(false);
       expect(store.error).toBeNull();
     });

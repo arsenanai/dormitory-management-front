@@ -500,7 +500,6 @@ describe('DormitoryForm - Comprehensive Tests', () => {
         admin_id: 1,
         address: '',
         description: '',
-        quota: 0,
         phone: '',
         rooms: []
       });
@@ -540,7 +539,6 @@ describe('DormitoryForm - Comprehensive Tests', () => {
         admin_id: 1,
         address: '123 Test Street',
         description: 'Test dormitory description',
-        quota: 250,
         phone: '+1234567890',
         rooms: []
       });

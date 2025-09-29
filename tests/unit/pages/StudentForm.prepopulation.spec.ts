@@ -569,13 +569,20 @@ describe('StudentForm Prepopulation Tests', () => {
 
       // Set bed selection
       component.studentProfile.bed = { id: 1, number: 1, reserved_for_staff: false };
+      component.studentProfile.bed_id = 1;
 
       // Submit the form
       await component.submitForm();
 
       // Verify bed_id is included in the payload
-      const updateCall = vi.mocked(api.studentService.update).mock.calls[0];
-      expect(updateCall[1].profile.bed_id).toBe(1);
+      expect(api.studentService.update).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({
+          profile: expect.objectContaining({
+            bed_id: 1
+          })
+        })
+      );
     });
   });
 

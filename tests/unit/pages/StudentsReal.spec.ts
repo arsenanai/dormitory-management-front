@@ -149,7 +149,7 @@ describe('StudentsReal.vue', () => {
 
   it('renders correctly', () => {
     expect(wrapper.text()).toContain('Add Student');
-    expect(wrapper.text()).toContain('Export to Excel');
+    expect(wrapper.text()).toContain('Download');
   });
 
   it('loads students on mount', () => {

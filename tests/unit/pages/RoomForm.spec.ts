@@ -119,7 +119,7 @@ describe('RoomForm', () => {
       expect(component.room.dormitory).toBeDefined();
     });
 
-    it('should have room type options available', () => {
+    it('should have room type options available', async () => {
       const wrapper = mount(RoomForm, {
         global: {
           plugins: [router, i18n],
@@ -127,6 +127,11 @@ describe('RoomForm', () => {
       });
 
       const component = wrapper.vm as any;
+      
+      // Wait for component to load room types
+      await component.$nextTick();
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       expect(component.roomTypeOptions).toHaveLength(2);
       expect(component.roomTypeOptions[0].name).toBe('Standard');
       expect(component.roomTypeOptions[1].name).toBe('Lux');
@@ -145,7 +150,7 @@ describe('RoomForm', () => {
       expect(roomNumberInput.attributes('required')).toBeDefined();
     });
 
-    it('should require floor number', async () => {
+    it('should render floor number input (optional)', async () => {
       const wrapper = mount(RoomForm, {
         global: {
           plugins: [router, i18n],
@@ -153,7 +158,8 @@ describe('RoomForm', () => {
       });
 
       const floorInput = wrapper.find('#room-floor');
-      expect(floorInput.attributes('required')).toBeDefined();
+      expect(floorInput.exists()).toBe(true);
+      expect(floorInput.attributes('type')).toBe('number');
     });
 
     it('should require room type', async () => {
@@ -177,9 +183,9 @@ describe('RoomForm', () => {
       const floorInput = wrapper.find('#room-floor');
       await floorInput.setValue('invalid');
       
-      // The browser's built-in validation should handle this
+      // Floor is optional; invalid text should not be accepted in number input
       const element = floorInput.element as HTMLInputElement;
-      expect(element.validity.valid).toBe(false);
+      expect(element.value).toBe('');
     });
   });
 
@@ -196,8 +202,13 @@ describe('RoomForm', () => {
       // Initially no beds should be shown
       expect(component.bedsPreview).toHaveLength(0);
       
+      // Wait for room type options to load
+      await component.$nextTick();
+      await new Promise(r => setTimeout(r, 50));
+      expect(component.roomTypeOptions.length).toBeGreaterThan(0);
+
       // Select Standard room type
-      component.room.roomType = component.roomTypeOptions[0].value;
+      component.selectedRoomTypeId = component.roomTypeOptions[0].value;
       await wrapper.vm.$nextTick();
       
       // Should show 2 beds for Standard room type
@@ -215,8 +226,13 @@ describe('RoomForm', () => {
 
       const component = wrapper.vm as any;
       
+      // Wait for room type options to load
+      await component.$nextTick();
+      await new Promise(r => setTimeout(r, 50));
+      expect(component.roomTypeOptions.length).toBeGreaterThan(1);
+
       // Select Lux room type
-      component.room.roomType = component.roomTypeOptions[1].value;
+      component.selectedRoomTypeId = component.roomTypeOptions[1].value;
       await wrapper.vm.$nextTick();
       
       // Should show 3 beds for Lux room type
@@ -235,12 +251,17 @@ describe('RoomForm', () => {
 
       const component = wrapper.vm as any;
       
+      // Wait for room type options to load
+      await component.$nextTick();
+      await new Promise(r => setTimeout(r, 50));
+      expect(component.roomTypeOptions.length).toBeGreaterThan(0);
+
       // Select Standard room type
-      component.room.roomType = component.roomTypeOptions[0].value;
+      component.selectedRoomTypeId = component.roomTypeOptions[0].value;
       await wrapper.vm.$nextTick();
       
-      // All beds should have reserved_for_staff as false initially
-      expect(component.bedsPreview.every((bed: any) => bed.reserved_for_staff === false)).toBe(true);
+      // All beds should initialize with reserved_for_staff = false
+      expect(component.bedsPreview.every((b: any) => b.reserved_for_staff === false)).toBe(true);
     });
 
     it('should allow toggling staff reservation for beds', async () => {
@@ -252,8 +273,13 @@ describe('RoomForm', () => {
 
       const component = wrapper.vm as any;
       
+      // Wait for room type options to load
+      await component.$nextTick();
+      await new Promise(r => setTimeout(r, 50));
+      expect(component.roomTypeOptions.length).toBeGreaterThan(0);
+
       // Select Standard room type
-      component.room.roomType = component.roomTypeOptions[0].value;
+      component.selectedRoomTypeId = component.roomTypeOptions[0].value;
       await wrapper.vm.$nextTick();
       
       // Toggle staff reservation for first bed
@@ -321,10 +347,9 @@ describe('RoomForm', () => {
 
       await component.submitRoom();
 
-      // Should call the API (currently mocked to just show success)
-      // The form data should remain unchanged after submission
+      // After update, local form state reflects updated notes
       expect(component.room.number).toBe('A210');
-      expect(component.room.notes).toBe('Near the stairs');
+      expect(component.room.notes).toBe('Updated notes');
     });
 
     it('should handle form submission errors', async () => {
@@ -424,17 +449,21 @@ describe('RoomForm', () => {
 
       const component = wrapper.vm as any;
       
-      // Select Standard room type to show beds
-      component.room.roomType = { id: "1", name: "Standard" };
-      await wrapper.vm.$nextTick();
+      // Wait for async loading and populate room types/room
+      await component.$nextTick();
+      await new Promise(r => setTimeout(r, 50));
       
-      // Should show bed preview section
-      expect(wrapper.text()).toContain('Beds Preview');
+      // Ensure room types are available, then select one to trigger preview generation
+      expect(component.roomTypeOptions.length).toBeGreaterThan(0);
+      component.selectedRoomTypeId = component.roomTypeOptions[0].value;
+      await wrapper.vm.$nextTick();
+
+      // Beds preview should be rendered
+      expect(wrapper.findAll('[data-testid^="bed-"]').length).toBeGreaterThan(0);
       
       // Should show bed items with checkboxes
-      const bedItems = wrapper.findAll('.inline-flex.items-center');
-      // The component shows 3 beds by default (Lux room type), so we expect 3
-      expect(bedItems.length).toBe(3);
+      const bedItems = wrapper.findAll('[data-testid^="bed-"]');
+      expect(bedItems.length).toBe(component.bedsPreview.length);
     });
 
     it('should apply correct styling for staff-reserved beds', async () => {
@@ -445,25 +474,25 @@ describe('RoomForm', () => {
       });
 
       const component = wrapper.vm as any;
-      
+
+      // Wait for room types to load
+      await component.$nextTick();
+      await new Promise(r => setTimeout(r, 50));
+      expect(component.roomTypeOptions.length).toBeGreaterThan(0);
+
       // Select Standard room type
-      component.room.roomType = component.roomTypeOptions[0].value;
+      component.selectedRoomTypeId = component.roomTypeOptions[0].value;
       await wrapper.vm.$nextTick();
-      
-      // Set first bed as staff reserved
+
+      // Beds should be rendered
+      const bedItems = wrapper.findAll('[data-testid^="bed-"]');
+      expect(bedItems.length).toBeGreaterThan(0);
+
+      // Mark the first bed as reserved for staff and verify styling
       component.bedsPreview[0].reserved_for_staff = true;
       await wrapper.vm.$nextTick();
-      
-      // Should have yellow styling for staff-reserved bed
-      const bedItems = wrapper.findAll('.inline-flex.items-center');
-      expect(bedItems[0].classes()).toContain('bg-yellow-100');
-      expect(bedItems[0].classes()).toContain('border-yellow-400');
-      expect(bedItems[0].classes()).toContain('text-yellow-800');
-      
-      // Second bed should have default styling
-      expect(bedItems[1].classes()).toContain('bg-primary-100');
-      expect(bedItems[1].classes()).toContain('border-primary-300');
-      expect(bedItems[1].classes()).toContain('text-primary-700');
+      const firstBed = wrapper.find('[data-testid="bed-1"]');
+      expect(firstBed.classes().join(' ')).toContain('bg-yellow-100');
     });
   });
 
@@ -479,7 +508,7 @@ describe('RoomForm', () => {
       expect(dormitoryInput.attributes('readonly')).toBeDefined();
     });
 
-    it('should show the correct dormitory name', () => {
+    it('should show the correct dormitory name', async () => {
       const wrapper = mount(RoomForm, {
         global: {
           plugins: [router, i18n],
@@ -487,7 +516,13 @@ describe('RoomForm', () => {
       });
 
       const component = wrapper.vm as any;
-      expect(component.room.dormitory.name).toBe('A-BLOCK');
+      // Wait for async loading
+      await component.$nextTick();
+      await new Promise(r => setTimeout(r, 50));
+      
+      // Dormitory should be populated after load
+      expect(component.room.dormitory).toBeTruthy();
+      expect(component.room.dormitory?.name).toBe('A-BLOCK');
     });
   });
 

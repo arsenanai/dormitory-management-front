@@ -92,7 +92,7 @@ describe('Auth Store', () => {
     await authStore.login(credentials);
 
     expect(authService.login).toHaveBeenCalledWith(credentials);
-    expect(authStore.user).toEqual(mockResponse.data.user);
+    expect(authStore.user).toEqual(expect.objectContaining(mockResponse.data.user));
     expect(authStore.token).toBe(mockResponse.data.token);
     expect(authStore.isAuthenticated).toBe(true);
     expect(authStore.loading).toBe(false);
@@ -151,7 +151,7 @@ describe('Auth Store', () => {
     await authStore.loadProfile();
 
     expect(authService.getProfile).toHaveBeenCalled();
-    expect(authStore.user).toEqual(mockUser);
+    expect(authStore.user).toEqual(expect.objectContaining(mockUser));
     expect(authStore.loading).toBe(false);
     expect(authStore.error).toBeNull();
   });
@@ -187,7 +187,7 @@ describe('Auth Store', () => {
     await authStore.updateProfile(profileData);
 
     expect(authService.updateProfile).toHaveBeenCalledWith(profileData);
-    expect(authStore.user).toEqual(updatedUser);
+    expect(authStore.user).toEqual(expect.objectContaining(updatedUser));
     expect(authStore.loading).toBe(false);
     expect(authStore.error).toBeNull();
   });

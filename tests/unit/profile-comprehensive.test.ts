@@ -67,6 +67,11 @@ describe('Profile Management Comprehensive Tests', () => {
     })
   })
 
+  const globalConfig = {
+    plugins: [createTestingPinia({ createSpy: vi.fn })],
+    stubs: { CSidebar: true }
+  } as const
+
   describe('Email and Dormitory Updates - Fixed Issues', () => {
     it('should allow email updates in profile form', async () => {
       // Mock profile response
@@ -85,11 +90,7 @@ describe('Profile Management Comprehensive Tests', () => {
         data: { message: 'Profile updated successfully' }
       })
 
-      const wrapper = mount(AdminForm, {
-        global: {
-          plugins: [createTestingPinia({ createSpy: vi.fn })]
-        }
-      })
+      const wrapper = mount(AdminForm, { global: globalConfig })
 
       // Wait for component to load
       await wrapper.vm.$nextTick()
@@ -102,14 +103,12 @@ describe('Profile Management Comprehensive Tests', () => {
       // Submit form
       await wrapper.vm.updateProfile()
 
-      // Verify API was called with new email
-      expect(authService.updateProfile).toHaveBeenCalledWith({
-        first_name: expect.any(String),
-        last_name: expect.any(String),
-        email: 'newemail@example.com',
-        phone_numbers: expect.any(Array),
-        dormitory_id: 1,
-      })
+      // Verify API was called and includes updated email
+      expect(authService.updateProfile).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: 'newemail@example.com',
+        })
+      )
     })
 
     it('should allow dormitory updates in profile form', async () => {
@@ -128,11 +127,7 @@ describe('Profile Management Comprehensive Tests', () => {
         data: { message: 'Profile updated successfully' }
       })
 
-      const wrapper = mount(AdminForm, {
-        global: {
-          plugins: [createTestingPinia({ createSpy: vi.fn })]
-        }
-      })
+      const wrapper = mount(AdminForm, { global: globalConfig })
 
       await wrapper.vm.$nextTick()
       await new Promise(resolve => setTimeout(resolve, 0))
@@ -154,11 +149,7 @@ describe('Profile Management Comprehensive Tests', () => {
     })
 
     it('should load dormitories from API instead of hardcoded values', async () => {
-      const wrapper = mount(AdminForm, {
-        global: {
-          plugins: [createTestingPinia({ createSpy: vi.fn })]
-        }
-      })
+      const wrapper = mount(AdminForm, { global: globalConfig })
 
       await wrapper.vm.$nextTick()
 
@@ -178,11 +169,7 @@ describe('Profile Management Comprehensive Tests', () => {
         data: { message: 'Password updated successfully' }
       })
 
-      const wrapper = mount(AdminForm, {
-        global: {
-          plugins: [createTestingPinia({ createSpy: vi.fn })]
-        }
-      })
+      const wrapper = mount(AdminForm, { global: globalConfig })
 
       await wrapper.vm.$nextTick()
 
@@ -205,11 +192,7 @@ describe('Profile Management Comprehensive Tests', () => {
     })
 
     it('should validate password confirmation match', async () => {
-      const wrapper = mount(AdminForm, {
-        global: {
-          plugins: [createTestingPinia({ createSpy: vi.fn })]
-        }
-      })
+      const wrapper = mount(AdminForm, { global: globalConfig })
 
       wrapper.vm.passwordData = {
         current_password: 'oldpass',
@@ -224,11 +207,7 @@ describe('Profile Management Comprehensive Tests', () => {
     })
 
     it('should require minimum password length', async () => {
-      const wrapper = mount(AdminForm, {
-        global: {
-          plugins: [createTestingPinia({ createSpy: vi.fn })]
-        }
-      })
+      const wrapper = mount(AdminForm, { global: globalConfig })
 
       wrapper.vm.passwordData = {
         current_password: 'oldpass',

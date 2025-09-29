@@ -221,7 +221,15 @@ describe('AdminForm', () => {
 
       await component.submitForm();
 
-      expect(api.adminService.create).toHaveBeenCalledWith({ name: 'John', email: 'john.doe@example.com', phone_numbers: ['+1234567890'], password: 'password123', password_confirmation: 'password123', office_phone: '+1234567890' });
+      expect(api.adminService.create).toHaveBeenCalledWith({
+        name: 'John',
+        surname: 'Doe', 
+        email: 'john.doe@example.com',
+        phone_numbers: ['+1234567890'],
+        password: 'password123',
+        password_confirmation: 'password123',
+        office_phone: '+1234567890'
+      });
     });
 
     it('should update profile for existing admin', async () => {

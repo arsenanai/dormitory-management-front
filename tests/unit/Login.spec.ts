@@ -58,6 +58,9 @@ describe('Login.vue Registration', () => {
       specialist: 'computer_sciences',
       gender: 'female',
       phoneNumbers: ['1234567890'],
+      // Provide required dormitory and room to satisfy validation
+      dormitory: '3',
+      room: { id: 1, number: '101' },
       dealNumber: 'DEAL123',
       city: null,
       files: [],

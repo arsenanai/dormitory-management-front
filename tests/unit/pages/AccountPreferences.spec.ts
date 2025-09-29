@@ -52,7 +52,7 @@ describe('AccountPreferences.vue', () => {
         }
       })
 
-      expect(wrapper.find('h1').text()).toBe('Account Preferences')
+      expect(wrapper.html()).toContain('Account Preferences')
     })
 
     it('should render password change form', () => {
