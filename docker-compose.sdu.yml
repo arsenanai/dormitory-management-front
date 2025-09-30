@@ -1,0 +1,22 @@
+services:
+  # Frontend - Vue.js
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-https://dorm.sdu.edu.kz/api}
+        NODE_ENV: ${NODE_ENV:-production}
+    container_name: crm-frontend
+    restart: unless-stopped
+    ports:
+      - "8002:80" # CRITICAL: Expose the port for the reverse proxy
+    environment:
+      # This sets the environment for the running container's web server
+      NODE_ENV: production
+    networks:
+      - it_services_net
+
+networks:
+  it_services_net:
+    external: true

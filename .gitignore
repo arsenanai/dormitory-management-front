@@ -62,3 +62,6 @@ playwright-report/
 **/test-results/
 messages-*.png
 *debug*.png
+docker-compose.local.yml
+docker-compose.override.yml
+docker-compose.dev.yml
