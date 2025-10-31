@@ -83,46 +83,7 @@
             :label="t('Phone')"
             placeholder="Enter Phone Number"
           />
-        </div>
-
-        <!-- Room Selection -->
-        <div class="lg:col-span-2">
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            {{ t('Rooms') }}
-          </label>
-          <div class="space-y-3">
-            <!-- Existing Rooms -->
-            <div v-for="(room, index) in dormitory.rooms" :key="index" class="flex items-center gap-3 p-3 border border-gray-300 dark:border-gray-600 rounded-md">
-              <CSelect
-                :id="`room-${index}`"
-                v-model="room.id"
-                :options="roomOptions"
-                :label="t('Room')"
-                placeholder="Select a Room"
-                required
-                class="flex-1"
-              />
-              <CButton
-                variant="danger"
-                size="sm"
-                @click="removeRoom(index)"
-                class="shrink-0"
-              >
-                {{ t('Remove') }}
-              </CButton>
-            </div>
-            
-            <!-- Add Room Button -->
-            <CButton
-              variant="secondary"
-              @click="addRoom"
-              class="w-full"
-            >
-              <PlusIcon class="h-5 w-5 mr-2" />
-              {{ t('Add Room') }}
-            </CButton>
-          </div>
-        </div>
+        </div>  
 
         <!-- Computed Fields (Display-Only) -->
         <div>
@@ -339,35 +300,6 @@ const loadDormitory = async (id: number) => {
   }
 };
 
-// Populate the form if editing an existing dormitory
-// Only restore from store if we're NOT editing (i.e., creating new dormitory)
-watch(
-  () => dormitoryStore.selectedDormitory,
-  (selectedDormitory: any) => {
-    if (selectedDormitory && !isEditing.value) {
-      // Only update if we don't already have admin_id set (to avoid overriding from API)
-      const currentAdminId = dormitory.value.admin_id;
-      dormitory.value = new Dormitory(
-        selectedDormitory.name || "",
-        selectedDormitory.capacity || 0,
-        selectedDormitory.gender || "",
-        selectedDormitory.admin || "",
-        currentAdminId !== null && currentAdminId !== undefined ? currentAdminId : (selectedDormitory.admin_id || null),
-        selectedDormitory.address || "",
-        selectedDormitory.description || "",
-
-        selectedDormitory.phone || "",
-        // Computed fields should be 0 for form display (they're calculated by backend)
-        0, // registered
-        0, // freeBeds
-        0, // rooms_count
-        selectedDormitory.rooms || [] // Include rooms array
-      );
-    }
-  },
-  { immediate: true }
-);
-
 // Watch for route changes to handle direct navigation to edit URLs
 watch(
   () => route.params.id,
@@ -402,11 +334,7 @@ onMounted(async () => {
   
   // If editing, always load fresh data from API (don't rely on store)
   if (isEditing.value && dormitoryId.value) {
-
     await loadDormitory(dormitoryId.value);
-  } else {
-    // Only restore from store for new dormitory creation
-    dormitoryStore.restoreSelectedDormitory();
   }
 });
 

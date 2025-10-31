@@ -133,7 +133,11 @@ function getRowKey(row: any, index: number): string | number {
 }
 
 function getColumnValue(row: any, column: Column): any {
-  return row[column.key]
+  if (column.key.includes('.')) {
+    return column.key.split('.').reduce((obj, key) => (obj && obj[key] !== undefined ? obj[key] : null), row)
+  } else {
+    return row[column.key]
+  }
 }
 
 function formatColumnValue(row: any, column: Column): string {

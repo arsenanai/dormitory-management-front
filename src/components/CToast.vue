@@ -25,7 +25,7 @@
       <button 
         v-if="closable"
         @click.stop="close"
-        class="flex-shrink-0 p-1 rounded-md hover:bg-black hover:bg-opacity-10 transition-colors"
+        :class="closeButtonClasses"
         aria-label="Close"
       >
         <XMarkIcon class="h-4 w-4" />
@@ -80,6 +80,20 @@ const toastClasses = computed(() => {
       return `${baseClasses} bg-yellow-50 border-yellow-400 text-yellow-800`
     default:
       return `${baseClasses} bg-blue-50 border-blue-400 text-blue-800`
+  }
+})
+
+const closeButtonClasses = computed(() => {
+  const base = 'flex-shrink-0 p-1 rounded-md transition-colors'
+  switch (props.type) {
+    case 'success':
+      return `${base} hover:bg-green-100`
+    case 'error':
+      return `${base} hover:bg-red-100`
+    case 'warning':
+      return `${base} hover:bg-yellow-100`
+    default:
+      return `${base} hover:bg-blue-100`
   }
 })
 

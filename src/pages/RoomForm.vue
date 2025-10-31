@@ -1,4 +1,3 @@
-<!-- filepath: /Users/rsa/lab/dormitory-management-front/src/pages/RoomForm.vue -->
 <template>
   <Navigation :title="t('Add/Edit Room')">
     <h1 data-testid="room-form-title">{{ isEditing ? t('Edit Room') : t('Add Room') }}</h1>
@@ -38,19 +37,6 @@
             data-testid="room-notes-input"
           />
         </div>
-        <!-- Dormitory (readonly, linked to first dormitory) -->
-        <div>
-          <CInput
-            id="room-dormitory"
-            :model-value="room.dormitory?.name"
-            :label="t('Dormitory')"
-            readonly
-            data-testid="dormitory-select"
-          />
-          <div v-if="loadingDormitories" class="text-sm text-gray-500 mt-1">
-            {{ t('Loading dormitories...') }}
-          </div>
-        </div>
         <!-- Room Type -->
         <div>
           <CSelect
@@ -73,37 +59,41 @@
         <div>
           <CInput
             id="room-quota"
-            v-model="room.quota"
+            v-model="room.roomType.capacity"
             type="number"
-            :label="t('Quota')"
-            placeholder="Enter Room Quota"
-            required
+            :label="t('Capacity')"
+            placeholder="t('Room Capacity')"
+            :readonly="true"
             data-testid="room-quota-input"
           />
         </div>
-      </div>
-      <!-- Beds Preview with Staff Reservation Toggle -->
-      <div v-if="room.roomType" class="mt-6">
-        <div class="font-semibold mb-2">{{ t('Beds Preview') }}</div>
-        <div class="flex flex-wrap gap-2">
-          <div
-            v-for="bed in bedsPreview"
-            :key="bed.id"
-            :data-testid="`bed-${bed.number}`"
-            class="inline-flex items-center px-3 py-1 rounded border"
-            :class="bed.reserved_for_staff ? 'bg-yellow-100 border-yellow-400 text-yellow-800' : 'bg-primary-100 border-primary-300 text-primary-700'"
-          >
-            <span>{{ t('Bed') }} {{ bed.number }}</span>
-            <CCheckbox
-              v-model="bed.reserved_for_staff"
-              :label="t('Reserved for Staff')"
-              class="ml-2"
-            />
+        <!-- Reserved Beds -->
+        <div>
+          <label for="staff-beds" class="block text-sm font-medium text-gray-900 dark:text-white">
+            {{ t('Staff reservation') }}
+          </label>
+          <div id="staff-beds" class="flex flex-col gap-2">
+            <div
+              v-for="(bed, index) in bedsPreview"
+              :key="bed.id"
+              :data-testid="`bed-${bed.number}`"
+              class="inline-flex items-center px-3 py-1 rounded border"
+              :class="bed.reserved_for_staff ? 'bg-yellow-100 border-yellow-400 text-yellow-800' : 'bg-primary-100 border-primary-300 text-primary-700'"
+            >
+              <span>{{ t('Bed') }} {{room.number}}-{{ index + 1 }}</span>
+              <CCheckbox
+                :id="'room-bed-' + bed.id"
+                v-model="bed.reserved_for_staff"
+                :label="bed.is_occupied ? `${t('Occupied by')}: ${bed.user?.first_name} ${bed.user?.last_name}` : t('Reserved for Staff')"
+                class="ml-2"
+                :disabled="bed.is_occupied === true"
+              />
+            </div>
           </div>
         </div>
       </div>
       <!-- Submit Button -->
-      <div class="mt-6 flex flex-row items-end justify-end gap-2">
+      <div class="mt-4 flex flex-row items-end justify-end gap-2">
         <CButton variant="primary" type="submit" data-testid="submit-room-button">
           {{ t("Submit") }}
         </CButton>
@@ -122,13 +112,12 @@ import CSelect from "@/components/CSelect.vue";
 import CButton from "@/components/CButton.vue";
 import CCheckbox from "@/components/CCheckbox.vue";
 import { Room } from "@/models/Room";
-import { Dormitory } from "@/models/Dormitory";
 import { RoomType } from "@/models/RoomType";
 import { Bed } from "@/models/Bed";
 import { useRoomsStore } from "@/stores/rooms";
 import { useAuthStore } from "@/stores/auth";
 import { useToast } from "@/composables/useToast";
-import { roomService, dormitoryService, roomTypeService } from "@/services/api";
+import { roomService, roomTypeService, bedService } from "@/services/api";
 import api from "@/services/api";
 
 // i18n, router, and stores
@@ -144,7 +133,6 @@ const roomId = computed(() => route.params.id ? Number(route.params.id) : null);
 const isEditing = computed(() => !!roomId.value);
 
 // Real dormitories and room types from API
-const dormitories = ref<Dormitory[]>([]);
 const roomTypes = ref<RoomType[]>([]);
 const loadingDormitories = ref(false);
 const loadingRoomTypes = ref(false);
@@ -161,7 +149,17 @@ const roomTypeOptions = computed(() =>
 const selectedRoomTypeId = ref<number | null>(null);
 
 // Room form state
-const room = ref(new Room("", null, "", null, null, [], 1)); // Default quota of 1
+const room = ref(
+  new Room(
+    "",   // number
+    null, // floor
+    "",   // notes
+    null, // dormitory
+    new RoomType('1', 'standard'), // roomType
+    [],   // beds
+    2     // quota
+  )
+);
 
 // Store original bed data from API for updates
 const originalBeds = ref<any[]>([]);
@@ -171,180 +169,132 @@ const bedsPreview = ref<any[]>([]);
 
 // Function to update beds preview
 const updateBedsPreview = () => {
-  if (!room.value.roomType) {
-    bedsPreview.value = [];
-    return;
-  }
-  
-  // If editing and we have existing beds, use them
-  if (isEditing.value && originalBeds.value.length > 0) {
-    bedsPreview.value = originalBeds.value.map(bed => ({
-      id: bed.id,
-      number: bed.bed_number || bed.number, // API returns bed_number, model expects number
-      reserved_for_staff: bed.reserved_for_staff || false
-    }));
-  } else {
-    // Otherwise, generate preview beds based on room type capacity
-    const capacity = room.value.roomType.capacity || room.value.quota || 2;
-    const beds = [];
+  // Always generate beds based on the room type's capacity.
+  if (room.value.roomType?.capacity && room.value.roomType.capacity > 0) {
+    const capacity = room.value.roomType.capacity;
+    const newPreviewBeds = [];
+    const newOriginalBeds = [];
+
     for (let i = 1; i <= capacity; i++) {
-      beds.push({
-        id: `bed-${i}`,
+      // Find the corresponding original bed if it exists (by bed_number)
+      const originalBed = originalBeds.value.find(b => parseInt(b.bed_number || b.number, 10) === i);
+
+      const bedData = {
+        // Use the original bed's ID if it exists, otherwise generate a temporary one.
+        id: originalBed ? originalBed.id : null,
         number: i.toString(),
-        reserved_for_staff: false
-      });
+        bed_number: i.toString(),
+        reserved_for_staff: originalBed ? originalBed.reserved_for_staff || false : false,
+        is_occupied: originalBed ? originalBed.is_occupied || false : false,
+        user: originalBed ? originalBed.user : null,
+      };
+
+      newPreviewBeds.push(bedData);
+      if (originalBed) {
+        newOriginalBeds.push(originalBed); // Keep existing bed data for submission
+      }
     }
-    bedsPreview.value = beds;
+    bedsPreview.value = newPreviewBeds;
+  } else {
+    // If no capacity, clear the preview.
+    bedsPreview.value = [];
   }
 };
 
-  // Submit handler
-  async function submitRoom() {
-    try {
-      // Check permissions for admin users
-      if (authStore.user && authStore.user.role?.name === 'admin') {
-        const userDormitoryId = authStore.user.admin_profile?.dormitory_id;
-        if (userDormitoryId && dormitories.value[0]?.id !== userDormitoryId) {
-          showError(t("Access denied: You can only create rooms in your assigned dormitory"));
-          return;
-        }
-      }
-      
-      // Validate required fields
-      if (!room.value.number || !room.value.roomType) {
-        showError(t("Please fill in all required fields"));
-        return;
-      }
-      
-      // Prepare room data for API
-      const roomData = {
-        number: room.value.number,
-        floor: room.value.floor,
-        notes: room.value.notes,
-        dormitory_id: dormitories.value[0]?.id,
-        room_type_id: room.value.roomType?.id || null,
-        quota: room.value.quota || 2,
-      };
-      
-      // If editing, also update bed reservations
-      if (isEditing.value && originalBeds.value.length > 0) {
-        console.log('Updating bed reservations:', originalBeds.value);
-        
-        // Update bed reservations
-        const bedUpdatePromises = originalBeds.value.map(async (bed) => {
-          try {
-            const response = await api.put(`/beds/${bed.id}`, {
-              reserved_for_staff: bed.reserved_for_staff
-            });
-            
-            console.log(`Bed ${bed.id} updated successfully:`, response.data);
-            return { success: true, bedId: bed.id };
-          } catch (bedError) {
-            console.error(`Error updating bed ${bed.id}:`, bedError);
-            return { success: false, bedId: bed.id, error: bedError };
-          }
-        });
-        
-        // Wait for all bed updates to complete
-        const bedUpdateResults = await Promise.all(bedUpdatePromises);
-        const failedUpdates = bedUpdateResults.filter(result => !result.success);
-        
-        if (failedUpdates.length > 0) {
-          console.error('Some bed updates failed:', failedUpdates);
-          showError(t(`Failed to update ${failedUpdates.length} bed(s). Please try again.`));
-          return; // Don't proceed with room update if bed updates failed
-        }
-        
-        console.log('All bed updates completed successfully');
-      }
-    
-    // If editing, update the room, otherwise create new
-    if (isEditing.value) {
-      console.log('Updating room with ID:', roomId.value);
-      console.log('Update data:', roomData);
-      try {
-        await roomService.update(roomId.value!, roomData);
-        console.log('Room updated successfully');
-        showSuccess(t("Room updated successfully!"));
-      } catch (updateError) {
-        console.error('Update error:', updateError);
-        throw updateError;
-      }
-    } else {
-      console.log('Creating new room');
-      console.log('Create data:', roomData);
-      try {
-        await roomService.create(roomData);
-        console.log('Room created successfully');
-        showSuccess(t("Room created successfully!"));
-      } catch (createError) {
-        console.error('Create error:', createError);
-        throw createError;
-      }
+// Submit handler
+async function submitRoom() {
+  try {
+    // Validate required fields
+    if (!room.value.number || !room.value.roomType) {
+      showError(t("Please fill in all required fields"));
+      return;
     }
+    console.log('Submitting room form: ', room.value);
+    // Prepare room data for API
+    const roomData = {
+      number: room.value.number,
+      floor: room.value.floor,
+      notes: room.value.notes,
+      room_type_id: room.value.roomType?.id || null,
+      dormitory_id: room.value.dormitory?.id || null,
+    } as any;
     
-    console.log('Navigating back to rooms page');
-    // Navigate back to rooms page
-    router.push('/rooms');
-  } catch (error) {
-    console.error('Error saving room:', error);
-    showError(t("Failed to save room. Please try again."));
+    // If editing, also update bed reservations
+    //if (isEditing.value) {
+      // Include bed reservation data in the main room update payload
+      roomData.beds = bedsPreview.value
+        .map(bed => ({ id: bed.id, reserved_for_staff: !!bed.reserved_for_staff }));
+    //}
+  
+  // If editing, update the room, otherwise create new
+  if (isEditing.value) {
+    console.log('Updating room with ID:', roomId.value);
+    console.log('Update data:', roomData);
+    try {
+      await roomService.update(roomId.value!, roomData);
+      console.log('Room updated successfully');
+      showSuccess(t("Room updated successfully!"));
+    } catch (updateError) {
+      console.error('Update error:', updateError);
+      throw updateError;
+    }
+  } else {
+    console.log('Creating new room');
+    console.log('Create data:', roomData);
+    try {
+      await roomService.create(roomData);
+      console.log('Room created successfully');
+      showSuccess(t("Room created successfully!"));
+    } catch (createError) {
+      console.error('Create error:', createError);
+      throw createError;
+    }
   }
+  
+  console.log('Navigating back to rooms page');
+  // Navigate back to rooms page
+  router.push('/rooms');
+} catch (error) {
+  console.error('Error saving room:', error);
+  showError(t("Failed to save room. Please try again."));
+}
 }
 
-  // Load room from API if editing
-  const loadRoom = async (id: number) => {
-    try {
-      // Ensure room types are loaded before loading room data
-      if (roomTypes.value.length === 0) {
-        console.log('Room types not loaded yet, loading them first...');
-        await loadDormitoriesAndRoomTypes();
-      }
-      
-      const response = await roomService.getById(id);
-      const roomData = response.data;
-      
-      // Check if admin user has permission to access this room
-      if (isEditing.value && authStore.user && authStore.user.role?.name === 'admin') {
-        // Get user's assigned dormitory from their profile
-        const userDormitoryId = authStore.user.admin_profile?.dormitory_id;
-        
-        if (userDormitoryId && roomData.dormitory_id !== userDormitoryId) {
-          console.log('Access denied: Admin user cannot access room from different dormitory');
-          showError(t("Access denied: You can only edit rooms in your assigned dormitory"));
-          // Redirect back to rooms page
-          router.push('/rooms');
-          return;
-        }
-        
-        console.log('Admin user has permission to access this room');
-      }
+// Load room from API if editing
+const loadRoom = async (id: number) => {
+  try {
+    // Ensure room types are loaded before loading room data
+    if (roomTypes.value.length === 0) {
+      console.log('Room types not loaded yet, loading them first...');
+      await loadRoomTypes();
+    }
     
-    console.log('=== API RESPONSE DEBUG ===');
-    console.log('Full API response:', response);
-    console.log('Response data:', roomData);
-    console.log('Response data keys:', Object.keys(roomData));
-    console.log('Room type from API (roomType):', roomData.roomType);
-    console.log('Room type from API (room_type):', roomData.room_type);
-    console.log('Room type type:', typeof (roomData.room_type || roomData.roomType));
-    console.log('Room type keys:', (roomData.room_type || roomData.roomType) ? Object.keys(roomData.room_type || roomData.roomType) : 'null');
-    console.log('Available room types:', roomTypes.value);
-    console.log('Room type options:', roomTypeOptions.value);
-    console.log('=== END API DEBUG ===');
+    const response = await roomService.getById(id);
+    const roomData = response.data;
     
     // Store original bed data from API for updates
-    originalBeds.value = roomData.beds || [];
+    // IMPORTANT: We need to sync the beds with the room type's capacity
+    const capacity = roomData.room_type?.capacity || roomData.quota || 0;
+    const existingBeds = roomData.beds || [];
+    const syncedBeds = [];
+    for (let i = 1; i <= capacity; i++) {
+      const existingBed = existingBeds.find(b => parseInt(b.bed_number, 10) === i);
+      if (existingBed) {
+        syncedBeds.push(existingBed);
+      }
+    }
+    originalBeds.value = syncedBeds;
     console.log('Original beds loaded:', originalBeds.value);
     
     // Populate form with API data
     room.value = {
-      number: roomData.number || "",
-      floor: roomData.floor || null,
-      notes: roomData.notes || "",
-      dormitory: roomData.dormitory || dormitories.value[0] || null,
-      roomType: roomData.room_type || roomData.roomType || null, // API returns room_type (snake_case)
-      quota: roomData.quota || 2,
-      beds: roomData.beds || [], // Load existing beds from API
+      number:   roomData.number || "",
+      floor:    roomData.floor || null,
+      notes:    roomData.notes || "",
+      roomType: roomData.room_type || null, // API returns room_type (snake_case)
+      quota:    roomData.quota || 4,
+      beds:     roomData.beds || [], // Load existing beds from API
+      dormitory: roomData.dormitory || null,
     } as Room;
     
     // Update beds preview after loading room data
@@ -382,44 +332,16 @@ const updateBedsPreview = () => {
   }
 };
 
-// Populate the form if editing an existing room
-watch(
-  () => roomStore.selectedRoom,
-  (selectedRoom) => {
-    if (selectedRoom) {
-      room.value = {
-        number: selectedRoom.number || "",
-        floor: selectedRoom.floor || null,
-        notes: selectedRoom.notes || "",
-        dormitory: selectedRoom.dormitory || dormitories[0],
-        roomType: selectedRoom.roomType || null,
-        quota: selectedRoom.quota || 2,
-      };
-      
-      // Sync the selected room type ID
-      if (room.value.roomType) {
-        selectedRoomTypeId.value = room.value.roomType.id;
-      }
+// Watch for changes in the selected room type ID from the dropdown
+watch(selectedRoomTypeId, (newId) => {
+  if (newId) {
+    const newRoomType = roomTypes.value.find(rt => rt.id === newId);
+    if (newRoomType) {
+      // Update the entire roomType object on the room
+      room.value.roomType = newRoomType;
+      // Trigger the beds preview to update with the new capacity
+      updateBedsPreview();
     }
-  },
-  { immediate: true }
-);
-
-// Watch for changes in selectedRoomTypeId and update room.roomType
-watch(selectedRoomTypeId, (newValue) => {
-  if (newValue) {
-    room.value.roomType = roomTypes.value.find(rt => rt.id === newValue) || null;
-    updateBedsPreview(); // Update beds preview when room type changes
-  } else {
-    room.value.roomType = null;
-    updateBedsPreview();
-  }
-});
-
-// Also watch for changes in room.roomType and sync selectedRoomTypeId
-watch(() => room.value.roomType, (newRoomType) => {
-  if (newRoomType && newRoomType.id !== selectedRoomTypeId.value) {
-    selectedRoomTypeId.value = newRoomType.id;
   }
 });
 
@@ -427,14 +349,16 @@ watch(() => room.value.roomType, (newRoomType) => {
 watch(bedsPreview, (newBedsPreview) => {
   if (isEditing.value && originalBeds.value.length > 0) {
     console.log('Beds preview changed, syncing to originalBeds:', newBedsPreview);
-    // Update originalBeds with the new reservation status
-    newBedsPreview.forEach((previewBed, index) => {
-      if (originalBeds.value[index] && previewBed.id) {
-        // For editing mode, bed IDs are numbers from API
-        // For preview mode, bed IDs are strings like 'bed-1'
-        if (typeof previewBed.id === 'number' || (typeof previewBed.id === 'string' && previewBed.id.startsWith('bed-'))) {
-          originalBeds.value[index].reserved_for_staff = previewBed.reserved_for_staff;
-          console.log(`Updated bed ${originalBeds.value[index].id} reserved_for_staff to:`, previewBed.reserved_for_staff);
+    // Sync changes from the preview back to the originalBeds array for submission
+    newBedsPreview.forEach((previewBed) => {
+      // Find the corresponding bed in the original data by ID or number
+      const originalBed = originalBeds.value.find(b => b.id === previewBed.id);
+      
+      if (originalBed) {
+        // Only update if the value has actually changed
+        if (originalBed.reserved_for_staff !== previewBed.reserved_for_staff) {
+          console.log(`Syncing bed ${originalBed.id}: reserved_for_staff from ${originalBed.reserved_for_staff} to ${previewBed.reserved_for_staff}`);
+          originalBed.reserved_for_staff = previewBed.reserved_for_staff;
         }
       }
     });
@@ -452,7 +376,7 @@ watch(bedsPreview, (newBedsPreview) => {
     }
     
     // Load dormitories and room types from API first
-    await loadDormitoriesAndRoomTypes();
+    await loadRoomTypes();
     
     console.log('Dormitories and room types loaded');
     console.log('Current room state:', room.value);
@@ -461,8 +385,6 @@ watch(bedsPreview, (newBedsPreview) => {
     if (isEditing.value) {
       console.log('Loading room from API, ID:', roomId.value);
       await loadRoom(roomId.value!);
-      
-      // Debug: Check the final state
       console.log('Final room state after loading:', room.value);
       console.log('Final roomType:', room.value.roomType);
       console.log('Final selectedRoomTypeId:', selectedRoomTypeId.value);
@@ -475,22 +397,10 @@ watch(bedsPreview, (newBedsPreview) => {
     console.log('Final room state after mount:', room.value);
   });
 
-// Load dormitories and room types
-// TODO: Implement full CSV business logic:
-// - Dormitory Admin should only see their assigned dormitory
-// - Room types should be filtered by dormitory context
-// - Quota should be dormitory-specific
-// - Room management should be restricted to assigned dormitory
-const loadDormitoriesAndRoomTypes = async () => {
-  loadingDormitories.value = true;
+const loadRoomTypes = async () => {
   loadingRoomTypes.value = true;
   
   try {
-    // Load dormitories
-    const dormitoriesResponse = await dormitoryService.getAll();
-    dormitories.value = dormitoriesResponse.data || [];
-    
-    // Load room types (these are global, not dormitory-specific)
     const roomTypesResponse = await roomTypeService.getAll();
     if (roomTypesResponse.data && roomTypesResponse.data.data) {
       roomTypes.value = roomTypesResponse.data.data;
@@ -498,11 +408,6 @@ const loadDormitoriesAndRoomTypes = async () => {
       roomTypes.value = roomTypesResponse.data;
     } else {
       roomTypes.value = [];
-    }
-    
-    // Set default dormitory if available
-    if (dormitories.value.length > 0) {
-      room.value.dormitory = dormitories.value[0];
     }
     
     // Only set default room type for new rooms, not when editing

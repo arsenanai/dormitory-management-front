@@ -23,7 +23,6 @@
 
       <!-- Dormitory Field - Show when editing -->
       <CSelect
-        v-if="isEditing"
         id="admin-dormitory"
         v-model="user.dormitory"
         :options="dormitoryOptions"
@@ -284,6 +283,7 @@ const submitForm = async (): Promise<void> => {
         password: user.value.password,
         password_confirmation: user.value.confirmPassword,
         office_phone: adminProfile.value.office_phone,
+        dormitory: user.value.dormitory,
       };
       await adminService.create(createPayload);
       showSuccess(t("Admin created successfully!"));
@@ -305,7 +305,7 @@ const updateProfile = async (): Promise<void> => {
       last_name: user.value.surname,
       email: user.value.email,
       phone_numbers: cleanPhoneNumbers,
-      dormitory_id: user.value.dormitory,
+      dormitory_id: user.value.admin_dormitory.id,
     };
     
     await authService.updateProfile(payload);
@@ -364,12 +364,12 @@ watch(
       user.value.phone_numbers = selectedUser.phone_numbers?.length ? selectedUser.phone_numbers : selectedUser.phone ? [selectedUser.phone] : [""];
       user.value.password = ""; // Clear password when editing
       user.value.confirmPassword = ""; // Clear confirm password when editing
-      user.value.dormitory = selectedUser.dormitory_id || selectedUser.dormitory || null;
+      user.value.dormitory = selectedUser.admin_dormitory.id || null;
       
       // Populate adminProfile fields
       adminProfile.value = {
         office_phone: selectedUser.admin_profile?.office_phone || "",
-        dormitory: selectedUser.dormitory_id || selectedUser.dormitory || null,
+        dormitory: selectedUser.admin_dormitory.id || null,
       };
     }
   },
@@ -405,7 +405,7 @@ const loadUser = async (id: number) => {
           return [""]; // Default to empty string in array
         }
       })(),
-      dormitory: userData.dormitory_id || userData.dormitory || null,
+      dormitory: userData.admin_dormitory?.id || null,
     };
     
           // Update each field individually to ensure reactivity

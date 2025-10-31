@@ -32,7 +32,7 @@ import { useToast } from '@/composables/useToast';
 
 const { t } = useI18n();
 const router = useRouter();
-const { showSuccess, showError } = useToast();
+const { showError, showSuccess, showConfirmation } = useToast();
 const admins = ref([]);
 const loading = ref(false);
 
@@ -40,7 +40,7 @@ const columns = [
   { key: 'name', label: t('Name') },
   { key: 'last_name', label: t('Surname') },
   { key: 'email', label: t('E-mail') },
-  { key: 'dormitory_id', label: t('Dormitory') },
+  { key: 'admin_dormitory.name', label: t('Dormitory') },
   { key: 'actions', label: t('Actions') },
 ];
 

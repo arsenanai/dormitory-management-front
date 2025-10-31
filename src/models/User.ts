@@ -14,6 +14,7 @@ export interface User {
   phone_numbers?: string[];
   room_id?: number;
   password?: string;
+  password_confirmation?: string;
   status: UserStatus;
   role_id?: number;
   role?: Role | string;

@@ -1,110 +1,83 @@
 <template>
   <Navigation :title="isEditing ? t('Edit Room Type') : t('Add Room Type')">
     <div class="max-w-2xl mx-auto">
-      <h1 class="text-2xl font-bold text-gray-900 mb-6">
+      <h1 class="text-2xl font-bold text-gray-900 mb-6" data-testid="form-title">
         {{ isEditing ? t('Edit Room Type') : t('Add Room Type') }}
       </h1>
       
       <form name="room-type-form" @submit.prevent="handleSubmit">
-      <div v-if="error" class="mb-4 p-4 bg-red-100 text-red-700 rounded border border-red-300">
-        {{ error }}
-      </div>
+        <div v-if="error" class="mb-4 p-4 bg-red-100 text-red-700 rounded border border-red-300">
+          {{ error }}
+        </div>
 
-      <!-- Room Type Name -->
-      <div class="mb-4">
-        <label for="room-type-name" class="block text-sm font-medium text-gray-700 mb-2">
-          {{ t('Room Type Name') }} *
-        </label>
-        <select
+        <!-- Room Type Name -->
+        <CInput
           id="room-type-name"
-          name="room-type-name"
           v-model="form.name"
+          type="text"
+          :label="t('Room Type Name')"
           required
-          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-        >
-          <option value="">{{ t('Select room type') }}</option>
-          <option value="standard">{{ t('Standard') }}</option>
-          <option value="lux">{{ t('Lux') }}</option>
-        </select>
-        <div v-if="errors.name" class="mt-1 text-sm text-red-600">{{ errors.name }}</div>
-      </div>
+          :placeholder="t('Enter room type name')"
+          :error="errors.name"
+          class="mb-4"
+        />
 
-      <!-- Room Type Description -->
-      <div class="mb-4">
-        <label for="room-type-description" class="block text-sm font-medium text-gray-700 mb-2">
-          {{ t('Room Type Description') }}
-        </label>
-        <textarea
+        <!-- Room Type Description -->
+        <CTextarea
           id="room-type-description"
-          name="room-type-description"
           v-model="form.description"
+          :label="t('Room Type Description')"
           rows="3"
-          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
           :placeholder="t('Enter room type description (optional)')"
-        ></textarea>
-        <div v-if="errors.description" class="mt-1 text-sm text-red-600">{{ errors.description }}</div>
-      </div>
+          :error="errors.description"
+          class="mb-4"
+        />
 
-      <!-- Room Type Capacity -->
-      <div class="mb-4">
-        <label for="room-type-capacity" class="block text-sm font-medium text-gray-700 mb-2">
-          {{ t('Room Type Capacity') }} *
-        </label>
-        <input
+        <!-- Room Type Capacity -->
+        <CInput
           id="room-type-capacity"
-          name="room-type-capacity"
           v-model="form.capacity"
           type="number"
+          :label="t('Room Type Capacity')"
           min="1"
-          max="4"
           required
-          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
           :placeholder="t('Enter room capacity')"
+          :error="errors.capacity"
+          class="mb-4"
         />
-        <div v-if="errors.capacity" class="mt-1 text-sm text-red-600">{{ errors.capacity }}</div>
-      </div>
 
-      <!-- Room Type Price -->
-      <div class="mb-6">
-        <label for="room-type-price" class="block text-sm font-medium text-gray-700 mb-2">
-          {{ t('Room Type Price') }} *
-        </label>
-        <div class="relative">
-          <span class="absolute left-3 top-2 text-gray-500">$</span>
-          <input
-            id="room-type-price"
-            name="room-type-price"
-            v-model="form.price"
-            type="number"
-            min="0"
-            step="0.01"
-            required
-            class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-            :placeholder="t('Enter room price')"
-          />
-        </div>
-        <div v-if="errors.price" class="mt-1 text-sm text-red-600">{{ errors.price }}</div>
-      </div>
+        <!-- Room Type Price -->
+        <CInput
+          id="room-type-price"
+          v-model="form.price"
+          type="number"
+          :label="t('Room Type Price') + ` (${currencySymbol})`"
+          min="0"
+          step="0.01"
+          required
+          :placeholder="t('Enter room price')"
+          :error="errors.price"
+          class="mb-6"
+        />
 
-      <!-- Submit and Cancel Buttons -->
-      <div class="flex gap-4">
-        <button
+        <!-- Submit and Cancel Buttons -->
+        <div class="flex gap-4">
+          <CButton
           type="submit"
           :disabled="loading"
-          class="px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50"
-        >
-          <span v-if="loading">{{ t('Saving...') }}</span>
-          <span v-else>{{ isEditing ? t('Update') : t('Create') }}</span>
-        </button>
-        <button
-          type="button"
-          @click="goBack"
-          class="px-6 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
-        >
-          {{ t('Cancel') }}
-        </button>
-      </div>
-    </form>
+          variant="primary"
+          :loading="loading"
+          >
+            {{ isEditing ? t('Update') : t('Create') }}
+          </CButton>
+          <CButton
+            type="button"
+            @click="goBack"
+          >
+            {{ t('Cancel') }}
+          </CButton>
+        </div>
+      </form>
     </div>
   </Navigation>
 </template>
@@ -113,8 +86,11 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import Navigation from '@/components/CNavigation.vue';
-import { roomTypeService } from '@/services/api';
+import Navigation from '@/components/CNavigation.vue'; 
+import { roomTypeService, configurationService } from '@/services/api';
+import CInput from '@/components/CInput.vue';
+import CTextarea from '@/components/CTextarea.vue';
+import CButton from '@/components/CButton.vue';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -132,19 +108,15 @@ const form = ref({
 const loading = ref(false);
 const error = ref('');
 const errors = ref<Record<string, string>>({});
-
-// Auto-set capacity and price based on room type selection
-watch(() => form.value.name, (newName) => {
-  if (newName === 'standard') {
-    form.value.capacity = 2;
-    form.value.price = 150.00;
-  } else if (newName === 'lux') {
-    form.value.capacity = 1;
-    form.value.price = 300.00;
-  }
-});
+const currencySymbol = ref('USD');
 
 onMounted(async () => {
+  try {
+    const currencyResponse = await configurationService.getCurrency();
+    currencySymbol.value = currencyResponse.data.currency_symbol || 'USD';
+  } catch (e) {
+    console.error("Failed to load currency symbol", e);
+  }
   if (isEditing.value) {
     await loadRoomType();
   }
@@ -152,15 +124,15 @@ onMounted(async () => {
 
 // Watch for route changes to handle navigation
 watch(() => route.params.id, async (newId) => {
-  if (newId && isEditing.value) {
+  if (newId && isEditing.value && route.name === 'Room Type Basic Form') {
     await loadRoomType();
   }
 }, { immediate: true });
 
 async function loadRoomType() {
   try {
-    loading.value = true;
-    const response = await roomTypeService.get(parseInt(route.params.id as string));
+    loading.value = true;    
+    const response = await roomTypeService.getById(parseInt(route.params.id as string));
     const roomType = response.data;
     
     form.value = {
@@ -191,7 +163,7 @@ async function handleSubmit() {
       hasErrors = true;
     }
     if (form.value.capacity < 1) {
-      errors.value.capacity = t('Capacity must be at least 1');
+      errors.value.capacity = t('Capacity must be at least 1'); // This validation is now client-side only
       hasErrors = true;
     }
     if (form.value.price < 0) {

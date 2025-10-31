@@ -516,7 +516,7 @@ export const roomTypeService = {
     api.delete(`/room-types/${id}`),
   
   export: (params?: FilterParams): Promise<Blob> =>
-    api.get("/room-types/export", { params, responseType: "blob" }),
+    api.get("/room-types/export", { params, responseType: "blob" })
 };
 
 // Dormitory service
@@ -655,6 +655,12 @@ export const configurationService = {
       headers: { "Content-Type": "multipart/form-data" },
     });
   },
+
+  getCurrency: (): Promise<ApiResponse<{ currency_symbol: string }>> =>
+    api.get("/configurations/currency"),
+  
+  updateCurrency: (currency: string): Promise<ApiResponse<{ message: string }>> =>
+    api.put("/configurations/currency", { currency_symbol: currency }),
 };
 
 // Dashboard service

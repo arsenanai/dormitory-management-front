@@ -16,8 +16,11 @@
       validationState === 'success' ? successClass : 
       validationState === 'error' ? errorClass : 
       validationClass,
+      { 'cursor-not-allowed bg-gray-100 dark:bg-gray-800': readonly }
     ]"
     :readonly="readonly"
+    :tabindex="readonly ? -1 : 0"
+    @focus="onFocus"
   ></textarea>
   <p v-if="!isValid" class="mt-1 text-sm text-red-600 dark:text-red-500">
     {{ validationMessage }}
@@ -25,7 +28,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref, watch, defineEmits } from "vue";
 
 // Props
 const {
@@ -78,7 +81,7 @@ const {
 });
 
 // Emits
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits(["update:modelValue", "focus"]);
 
 // State
 const inputValue = ref(modelValue);
@@ -100,6 +103,14 @@ const updateValue = (value: string) => {
 
 const validateInput = () => {
   isValid.value = inputValue.value.trim().length > 0;
+};
+
+const onFocus = (event: Event) => {
+  if (readonly) {
+    (event.target as HTMLTextAreaElement).blur();
+    return;
+  }
+  emit("focus", event);
 };
 
 // Classes

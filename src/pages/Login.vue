@@ -100,7 +100,7 @@
                       v-model="registration.name"
                       type="text"
                       :label="t('Fullname')"
-                      :placeholder="t('Fullname')"
+                      :placeholder="t('Name Surname')"
                       required
                       :validationState="registrationValidationState.name"
                       :validationMessage="registrationValidationMessage.name"
@@ -204,6 +204,31 @@
                       "
                       pattern=".{6,}"
                     />
+                  </div>
+                  <div>
+                    <CInput
+                      id="registration-deal-number"
+                      v-model="registration.dealNumber"
+                      type="text"
+                      :label="t('Deal Number')"
+                      :placeholder="t('Enter Deal Number')"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                      {{ t("Phone Numbers") }}
+                    </label>
+                    <div v-for="(phone, index) in registration.phoneNumbers" :key="index" class="flex items-center gap-2 mb-2">
+                      <CInput
+                        :id="`phone-number-${index}`"
+                        v-model="registration.phoneNumbers[index]"
+                        type="tel"
+                        :placeholder="t('Enter Phone Number')"
+                        class="flex-1"
+                      />
+                      <CButton type="button" variant="danger" v-if="registration.phoneNumbers.length > 1" @click="removePhoneField(index)">-</CButton>
+                    </div>
+                    <CButton type="button" @click="addPhoneField" class="w-full">{{ t("Add more") }}</CButton>
                   </div>
 
                   <div>
@@ -652,6 +677,15 @@ const updateGuestFileInput = (index, file) => {
   guest.value.files[index] = file;
 };
 
+const addPhoneField = () => {
+  registration.value.phoneNumbers.push('');
+};
+
+const removePhoneField = (index: number) => {
+  if (registration.value.phoneNumbers.length > 1) {
+    registration.value.phoneNumbers.splice(index, 1);
+  }
+};
 const genderOptions = [
   { value: "male", name: "Male" },
   { value: "female", name: "Female" },
@@ -712,7 +746,7 @@ watch(() => registration.value.dormitory, async (dormitoryId) => {
     console.log('🔄 Loading rooms for dormitory:', dormitoryId);
     
     // Use the new public registration endpoint with full URL
-    const response = await fetch(`http://localhost:8000/api/dormitories/${dormitoryId}/registration`);
+    const response = await fetch(`/api/dormitories/${dormitoryId}/registration`);
     if (!response.ok) {
       console.error('API response not ok:', response.status, response.statusText);
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -755,7 +789,7 @@ const bedOptions = computed(() => {
     .filter(b => b.room.id === registration.value.room.id)
     .map(bed => ({
       value: bed,
-      name: `Bed ${bed.number}${bed.reserved_for_staff ? ' (Staff Reserved)' : ''}`,
+      name: `${bed.room.number}-${bed.number}${bed.reserved_for_staff ? ' (Staff Reserved)' : ''}`,
       disabled: bed.reserved_for_staff
     }));
 });
@@ -824,7 +858,11 @@ const handleLogin = async () => {
     // The auth store will handle the redirect
     showSuccess(t("Login successful"));
   } catch (error) {
-    showError(t("Login failed"));
+    // possible messages
+    // t('auth.not_assigned_admin')
+    // t('auth.not_approved')
+    // t('auth.invalid_credentials')
+    showError(t("Login failed") + ": "+ t(error.response.data.message));
   }
 };
 const handleGuestRegistration = async () => {

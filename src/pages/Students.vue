@@ -68,16 +68,15 @@
               <th class="px-6 py-3">
                 <CCheckbox id="select-all-checkbox" />
               </th>
-              <th class="px-6 py-3">{{ t("NAME") }}</th>
-              <th class="px-6 py-3">{{ t("SURNAME") }}</th>
+              <th class="px-6 py-3">{{ t("STUDENT") }}</th>
               <th class="px-6 py-3">{{ t("STATUS") }}</th>
               <th class="px-6 py-3">{{ t("ENROLMENT YEAR") }}</th>
               <th class="px-6 py-3">{{ t("FACULTY") }}</th>
               <th class="px-6 py-3">{{ t("DORM") }}</th>
-              <th class="px-6 py-3">{{ t("ROOM") }}</th>
+              <th class="px-6 py-3">{{ t("BED") }}</th>
               <th class="px-6 py-3">{{ t("TELEPHONE") }}</th>
               <th class="px-6 py-3">{{ t("IN/OUT") }}</th>
-              <th class="px-6 py-3 text-right">{{ t("Action") }}</th>
+              <th class="px-6 py-3 text-right"></th>
             </tr>
           </thead>
           <tbody>
@@ -90,13 +89,12 @@
               <td class="px-6 py-4">
                 <CCheckbox :id="'checkbox-' + index" />
               </td>
-              <td class="px-6 py-4">{{ student.firstName || student.first_name || student.name || '-' }}</td>
-              <td class="px-6 py-4">{{ student.lastName || student.last_name || student.surname || '-' }}</td>
+              <td class="px-6 py-4">{{ student.name || '-' }}</td>
               <td class="px-6 py-4">{{ student.status || '-' }}</td>
               <td class="px-6 py-4">{{ student.studentProfile?.enrollmentYear || student.enrollmentYear || student.yearOfStudy || '-' }}</td>
               <td class="px-6 py-4">{{ student.studentProfile?.faculty || student.faculty || '-' }}</td>
               <td class="px-6 py-4">{{ student.room?.dormitory?.name || student.dormitory?.name || '-' }}</td>
-              <td class="px-6 py-4">{{ student.room?.number || student.room || '-' }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">{{student.room.number}}-{{ student.student_bed?.bed_number }}</td>
               <td class="px-6 py-4">{{ student.phoneNumbers?.[0] || student.phone_numbers?.[0] || student.phone || student.telephone || '-' }}</td>
               <td class="px-6 py-4">
                 <span v-if="student.status === 'In' || student.status === 'in'" class="text-green-500">

@@ -39,7 +39,6 @@
               <CTableHeadCell>{{ t("Room Type Name") }}</CTableHeadCell>
               <CTableHeadCell>{{ t("Capacity") }}</CTableHeadCell>
               <CTableHeadCell>{{ t("Price") }}</CTableHeadCell>
-              <CTableHeadCell>{{ t("Photos") }}</CTableHeadCell>
               <CTableHeadCell class="text-right">{{ t("Action") }}</CTableHeadCell>
             </CTableHead>
             <CTableBody>
@@ -49,21 +48,6 @@
                 </CTableCell>
                 <CTableCell>{{ roomType.capacity || getBedCount(roomType) }}</CTableCell>
                 <CTableCell>{{ formatPrice(roomType.price || 0) }}</CTableCell>
-                <CTableCell>
-                  <div v-if="roomType.photos && roomType.photos.length > 0" class="flex gap-1">
-                    <img 
-                      v-for="(photo, photoIndex) in roomType.photos.slice(0, 3)" 
-                      :key="photoIndex"
-                      :src="photo" 
-                      :alt="`Room photo ${photoIndex + 1}`"
-                      class="w-8 h-8 object-cover rounded border"
-                    />
-                    <span v-if="roomType.photos.length > 3" class="text-xs text-primary-500 self-center">
-                      +{{ roomType.photos.length - 3 }} {{ t('more') }}
-                    </span>
-                  </div>
-                  <span v-else class="text-primary-400 text-sm">{{ t("No photos") }}</span>
-                </CTableCell>
                 <CTableCell class="text-right flex gap-2 justify-end">
                   <CButton @click="navigateToEditRoomType(roomType.id)">
                     <PencilSquareIcon class="h-5 w-5" /> {{ t("Edit") }}
@@ -106,7 +90,7 @@
   import CTableRow from "@/components/CTableRow.vue";
   import CTableCell from "@/components/CTableCell.vue";
   import { PlusIcon, PencilSquareIcon, TrashIcon } from "@heroicons/vue/24/outline";
-  import { roomTypeService, dormitoryService } from "@/services/api";
+  import { roomTypeService, dormitoryService, configurationService } from "@/services/api";
   import { useRoomTypesStore } from "@/stores/roomTypes";
 import { useToast } from "@/composables/useToast";
   
@@ -123,6 +107,7 @@ const { showError, showSuccess, showConfirmation } = useToast();
   const dormitories = ref<any[]>([]);
   const loading = ref(false);
   const error = ref<string | null>(null);
+  const currencySymbol = ref('USD');
   
   // Load data on component mount
   const loadData = async () => {
@@ -130,9 +115,11 @@ const { showError, showSuccess, showConfirmation } = useToast();
     error.value = null;
     try {
        const [roomTypesResponse, dormitoriesResponse] = await Promise.all([
-         roomTypeService.getAll(),
-         dormitoryService.getAll()
+        roomTypeService.getAll(),
+        dormitoryService.getAll(),
        ]);
+      const currencyResponse = await configurationService.getCurrency();
+      currencySymbol.value = currencyResponse.data.currency_symbol || 'USD';
       
       // Handle Laravel paginated response structure for room types
       if (roomTypesResponse && roomTypesResponse.data) {
@@ -215,12 +202,13 @@ const { showError, showSuccess, showConfirmation } = useToast();
   
   // Get bed count from minimap JSON or bed count field
   function getBedCount(roomType: any): number {
-    // Try to get from bed_count field first
-    if (roomType.bed_count) return roomType.bed_count;
+    // Prefer the 'beds' array length if it exists
+    if (Array.isArray(roomType.beds)) {
+      return roomType.beds.length;
+    }
     
-    // Try to parse from minimap JSON
     try {
-      const beds = JSON.parse(roomType.minimap || '[]');
+      const beds = JSON.parse(roomType.beds || '[]');
       return Array.isArray(beds) ? beds.length : 0;
     } catch {
       return 0;
@@ -307,10 +295,7 @@ const { showError, showSuccess, showConfirmation } = useToast();
   
   // Utility functions
   const formatPrice = (price: number): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(price);
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: currencySymbol.value }).format(price);
   };
 
   const formatAmenities = (amenities: string[]): string => {
@@ -362,7 +347,7 @@ const { showError, showSuccess, showConfirmation } = useToast();
 
   // Navigation actions
   function navigateToAddRoomType() {
-    router.push("/room-type-basic");
+    router.push("/room-type-form");
   }
   
   function navigateToEditRoomType(id: number) {
@@ -370,7 +355,7 @@ const { showError, showSuccess, showConfirmation } = useToast();
     if (roomType) {
       roomTypesStore.setSelectedRoomType(roomType);
     }
-    router.push(`/room-type-basic/${id}`);
+    router.push(`/room-type-form/${id}`);
   }
   
   async function deleteRoomType(id: number) {

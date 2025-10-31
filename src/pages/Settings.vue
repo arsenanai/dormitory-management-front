@@ -5,14 +5,23 @@
         <h1>{{ t('Settings & Configuration') }}</h1>
       </div>
 
-
-
-
-
       <!-- Feature Toggles Section -->
       <section>
         <h2 class="text-lg font-semibold mb-4 text-primary-700">{{ t('Feature Toggles') }}</h2>
         <form @submit.prevent="saveAllSettings" class="space-y-6">
+
+          <!-- General Settings -->
+          <div class="border border-gray-200 rounded-lg p-4">
+            <h3 class="text-md font-medium mb-3 text-primary-600">{{ t('General Settings') }}</h3>
+            <CInput
+              id="currency-symbol"
+              v-model="generalSettingsForm.currency_symbol"
+              :label="t('Currency Symbol')"
+              :placeholder="t('e.g., USD, KZT')"
+              class="mb-4"
+              required
+            />
+          </div>
           
           <!-- 1C Integration Toggle -->
           <div class="border border-gray-200 rounded-lg p-4">
@@ -144,16 +153,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import Navigation from '@/components/CNavigation.vue';
 import CButton from '@/components/CButton.vue';
 import CInput from '@/components/CInput.vue';
 import CCheckbox from '@/components/CCheckbox.vue';
-import { useSettingsStore, type CardReaderSettings, type OneCSettings, type KaspiSettings } from '@/stores/settings';
+import { useSettingsStore, type CardReaderSettings, type OneCSettings, type KaspiSettings, type GeneralSettings } from '@/stores/settings';
 
-const { t } = useI18n();
+const { t } = useI18n(); 
 const settingsStore = useSettingsStore();
+
+const generalSettingsForm = reactive({
+  currency_symbol: 'USD',
+});
+
 
 // Form data
 const kaspiForm = reactive<KaspiSettings>({
@@ -189,12 +203,16 @@ const onecForm = reactive<OneCSettings>({
 
 
 // Computed
-const { loading } = settingsStore;
+const loading = computed(() => settingsStore.loading); 
 
 // Methods
 const loadSettings = async () => {
   await settingsStore.fetchAllSettings();
   
+  if (settingsStore.generalSettings) {
+    Object.assign(generalSettingsForm, settingsStore.generalSettings);
+  }
+
   if (settingsStore.cardReaderSettings) {
     Object.assign(cardReaderForm, settingsStore.cardReaderSettings);
   }
@@ -207,6 +225,10 @@ const loadSettings = async () => {
 
 const saveAllSettings = async () => {
   try {
+    const generalPayload: GeneralSettings = {
+      currency_symbol: generalSettingsForm.currency_symbol || 'USD'
+    };
+
     const cardPayload: CardReaderSettings = {
       card_reader_enabled: !!cardReaderForm.card_reader_enabled,
       card_reader_host: String(cardReaderForm.card_reader_host || ''),
@@ -232,6 +254,7 @@ const saveAllSettings = async () => {
     };
 
     await Promise.all([
+      settingsStore.updateCurrencySettings(generalPayload),
       settingsStore.updateCardReaderSettings(cardPayload),
       settingsStore.updateOnecSettings(onecPayload),
       settingsStore.updateKaspiSettings(kaspiPayload),
@@ -250,7 +273,7 @@ const removeLocation = (index: number) => {
 };
 
 // Lifecycle
-onMounted(() => {
-  loadSettings();
+onMounted(async () => {
+  await loadSettings();
 });
 </script> 

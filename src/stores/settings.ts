@@ -60,6 +60,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const onecSettings = ref<OneCSettings | null>(null);
   const kaspiSettings = ref<KaspiSettings | null>(null);
   const dormitorySettings = ref<DormitorySettings | null>(null);
+  const generalSettings = ref<GeneralSettings | null>(null);
   const installedLanguages = ref<string[]>([]);
   const systemLogs = ref<SystemLog[]>([]);
   const loading = ref(false);
@@ -70,6 +71,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const hasCardReaderSettings = computed(() => cardReaderSettings.value !== null);
   const hasOnecSettings = computed(() => onecSettings.value !== null);
   const hasDormitorySettings = computed(() => dormitorySettings.value !== null);
+  const hasGeneralSettings = computed(() => generalSettings.value !== null);
 
   // Actions
   const fetchSmtpSettings = async () => {
@@ -198,6 +200,39 @@ export const useSettingsStore = defineStore('settings', () => {
     } catch (err: any) {
       error.value = err;
       showError(err.response?.data?.message || 'Failed to update Kaspi settings');
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const fetchCurrencySettings = async () => {
+    try {
+      loading.value = true;
+      error.value = null;
+      const response = await api.get('/configurations/currency');
+      generalSettings.value = response.data;
+      error.value = null;
+    } catch (err: any) {
+      error.value = err;
+      showError(err.response?.data?.message || 'Failed to fetch currency settings');
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const updateCurrencySettings = async (settings: GeneralSettings) => {
+    try {
+      loading.value = true;
+      error.value = null;
+      const response = await api.put('/configurations/currency', settings);
+      generalSettings.value = settings; // Optimistic update
+      error.value = null;
+      showSuccess('Currency settings updated successfully');
+      return response.data;
+    } catch (err: any) {
+      error.value = err;
+      showError(err.response?.data?.message || 'Failed to update currency settings');
       throw err;
     } finally {
       loading.value = false;
@@ -335,6 +370,8 @@ export const useSettingsStore = defineStore('settings', () => {
       fetchCardReaderSettings(),
       fetchOnecSettings(),
       fetchKaspiSettings(),
+      fetchDormitorySettings(),
+      fetchCurrencySettings(),
     ]);
   };
 
@@ -345,6 +382,7 @@ export const useSettingsStore = defineStore('settings', () => {
     onecSettings,
     kaspiSettings,
     dormitorySettings,
+    generalSettings,
     installedLanguages,
     systemLogs,
     loading,
@@ -355,6 +393,7 @@ export const useSettingsStore = defineStore('settings', () => {
     hasCardReaderSettings,
     hasOnecSettings,
     hasDormitorySettings,
+    hasGeneralSettings,
     
     // Actions
     fetchSmtpSettings,
@@ -367,6 +406,8 @@ export const useSettingsStore = defineStore('settings', () => {
     updateKaspiSettings,
     fetchDormitorySettings,
     updateDormitorySettings,
+    fetchCurrencySettings,
+    updateCurrencySettings,
     fetchInstalledLanguages,
     uploadLanguageFile,
     fetchSystemLogs,

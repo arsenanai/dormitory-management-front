@@ -25,15 +25,6 @@
               class="lg:w-40"
             />
             
-            <!-- Dormitory Filter -->
-            <CSelect
-              id="dormitory-filter"
-              v-model="dormitoryFilter"
-              :options="dormitoryOptions"
-              :label="t('Dormitory')"
-              :placeholder="t('Select Dormitory')"
-              class="lg:w-40"
-            />
             <CSelect
               id="room-type-filter"
               v-model="filters.roomType"
@@ -71,7 +62,7 @@
                 <th class="px-6 py-3">{{ t("Room Type") }}</th>
                 <th class="px-6 py-3">{{ t("Floor") }}</th>
                 <th class="px-6 py-3">{{ t("Beds") }}</th>
-                <th class="px-6 py-3">{{ t("Quota") }}</th>
+                <th class="px-6 py-3">{{ t("Free beds") }}</th>
                 <th class="px-6 py-3">{{ t("Notes") }}</th>
                 <th class="px-6 py-3 text-right">{{ t("Action") }}</th>
               </tr>
@@ -83,12 +74,12 @@
                 </td>
               </tr>
               <tr v-for="room in paginatedRooms" :key="room.id" class="bg-white border-b hover:bg-gray-50">
-                <td class="px-6 py-4">{{ room.number }}</td>
+                <td class="px-6 py-4 font-medium">{{ room.number }}</td>
                 <td class="px-6 py-4">{{ getDormitoryName(room) }}</td>
                 <td class="px-6 py-4">{{ getRoomTypeName(room) }}</td>
                 <td class="px-6 py-4">{{ room.floor !== null ? room.floor : '-' }}</td>
                 <td class="px-6 py-4">{{ getBedsCount(room) }}</td>
-                <td class="px-6 py-4">{{ room.quota || room.room_type?.capacity || '-' }}</td>
+                <td class="px-6 py-4">{{ getFreeBeds(room) }}</td>
                 <td class="px-6 py-4">{{ room.notes || '-' }}</td>
                 <td class="px-6 py-4 text-right">
                   <div class="flex gap-2 justify-end">
@@ -151,6 +142,11 @@ const roomTypes = ref<any[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
 
+// Pagination state
+const currentPage = ref(1);
+const totalPages = ref(1);
+const perPage = ref(15); // Default, will be updated from API
+
 // Search and filter state
 const searchTerm = ref('');
 const statusFilter = ref('');
@@ -176,6 +172,7 @@ const loadRooms = async () => {
 
     // Prepare filters for backend API
     const apiFilters: any = {};
+    apiFilters.page = currentPage.value;
     
     // Add search term as number filter (backend searches room numbers)
     if (searchTerm.value.trim()) {
@@ -206,6 +203,10 @@ const loadRooms = async () => {
     // Handle Laravel paginated response structure for rooms
     if (roomsResponse && roomsResponse.data) {
       if (roomsResponse.data.data && Array.isArray(roomsResponse.data.data)) {
+        // Update pagination state from API response
+        currentPage.value = roomsResponse.data.current_page;
+        totalPages.value = roomsResponse.data.last_page;
+        perPage.value = roomsResponse.data.per_page;
         rooms.value = roomsResponse.data.data;
       } else if (Array.isArray(roomsResponse.data)) {
         rooms.value = roomsResponse.data;
@@ -305,25 +306,14 @@ const filters = ref({
 
 // Watch for search term and filter changes to reload rooms
 watch([searchTerm, statusFilter, dormitoryFilter, () => filters.value.roomType], () => {
+  currentPage.value = 1; // Reset to first page on filter change
   console.log('Filters changed, reloading rooms...');
   loadRooms();
 });
 
-// Note: Filtering is now handled by the backend API
-// The rooms.value array contains only the filtered results
-
-// Pagination
-const currentPage = ref(1);
-const itemsPerPage = ref(10);
-const totalPages = computed(() =>
-  Math.max(1, Math.ceil(rooms.value.length / itemsPerPage.value))
-);
-const paginatedRooms = computed(() =>
-  rooms.value.slice(
-    (currentPage.value - 1) * itemsPerPage.value,
-    currentPage.value * itemsPerPage.value
-  )
-);
+// The `rooms` ref now holds the already-paginated data for the current page.
+// We can use it directly in the template.
+const paginatedRooms = computed(() => rooms.value);
 
 // Occupancy stats
 const occupancyStats = computed(() => {
@@ -341,7 +331,12 @@ const occupancyStats = computed(() => {
 });
 
 // Keep currentPage in range when rooms change
-watch(rooms, () => {
+watch(currentPage, (newPage, oldPage) => {
+  if (newPage !== oldPage) {
+    loadRooms();
+  }
+});
+watch(paginatedRooms, () => {
   if (currentPage.value > totalPages.value) currentPage.value = totalPages.value;
 });
 
@@ -403,10 +398,6 @@ function navigateToAddRoom() {
 }
 
 function navigateToEditRoom(id: number) {
-  const room = rooms.value.find(r => r.id === id);
-  if (room) {
-    roomsStore.setSelectedRoom(room);
-  }
   router.push(`/room-form/${id}`);
 }
 
@@ -424,12 +415,12 @@ const getRoomTypeName = (room: any) => {
 };
 
 const getBedsCount = (room: any) => {
-  return room.beds?.length || room.beds_count || 0;
+  return room.beds?.length || 0;
 };
 
-// Additional helper functions expected by tests
-function getAvailableCapacity(room: any) {
-  return (room.capacity || 0) - (room.current_occupancy || 0);
+const getFreeBeds = (room: any) => {
+  if (!room.beds || !Array.isArray(room.beds)) return 0;
+  return room.beds.filter((bed: any) => !bed.is_occupied && !bed.reserved_for_staff).length;
 }
 
 function getStatusColor(status: string) {

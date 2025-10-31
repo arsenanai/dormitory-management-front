@@ -57,8 +57,20 @@
         :autocomplete="autocomplete"
         :minlength="minLength"
         :maxlength="maxLength"
+        :list="datalistId"
+        :tabindex="readonly ? -1 : undefined"
       />
 
+      <!-- Datalist for autocomplete options (countries/regions/cities) -->
+      <datalist v-if="list && datalistId" :id="datalistId">
+        <option
+          v-for="(opt, idx) in list"
+          :key="idx"
+          :value="typeof opt === 'string' ? opt : opt.id"
+        >
+          <template v-if="typeof opt === 'object' && opt.value">{{ opt.value }}</template>
+        </option>
+      </datalist>
       <!-- Suffix elements -->
       <div v-if="suffix || clearable || loading" class="absolute inset-y-0 right-0 flex items-center pr-3">
         <!-- Loading spinner -->
@@ -98,7 +110,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineProps, defineEmits, useAttrs } from "vue";
+import { computed, defineProps, defineEmits, useAttrs, type PropType } from "vue";
 import {
   MagnifyingGlassIcon,
   EnvelopeIcon,
@@ -131,7 +143,8 @@ const props = defineProps({
   suffix: String,
   clearable: Boolean,
   loading: Boolean,
-  class: String
+  class: String,
+  list: { type: Array as PropType<Array<string | { id: string; value: string }>>, default: undefined }
 });
 
 const emit = defineEmits([
@@ -149,6 +162,12 @@ const $attrs = useAttrs();
 const dataTestId = props.dataTestId || $attrs['data-testid'] || undefined;
 const idProp = props.id || $attrs['id'] || undefined;
 
+// computed id for datalist (used as input's list attr)
+const datalistId = computed(() => {
+  if (!props.list || (Array.isArray(props.list) && props.list.length === 0)) return undefined;
+  return idProp ? `${idProp}-datalist` : (dataTestId ? `${dataTestId}-datalist` : undefined);
+});
+
 function onInput(event: Event) {
   const value = (event.target as HTMLInputElement).value;
   const finalValue = props.mask ? applyMask(value, props.mask) : value;
@@ -156,6 +175,10 @@ function onInput(event: Event) {
 }
 
 function onFocus(event: Event) {
+  if (props.readonly) {
+    (event.target as HTMLInputElement).blur();
+    return;
+  }
   emit("focus", event);
 }
 
@@ -224,7 +247,7 @@ const stateClasses = computed(() => {
   const classes = [];
   
   if (props.disabled) classes.push('disabled opacity-50 cursor-not-allowed');
-  if (props.readonly) classes.push('readonly bg-gray-100');
+  if (props.readonly) classes.push('readonly bg-gray-100 cursor-not-allowed');
   
   return classes.join(' ');
 });

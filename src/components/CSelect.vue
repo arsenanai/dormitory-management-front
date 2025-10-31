@@ -6,7 +6,7 @@
       :for="id"
       :class="['block text-sm font-medium', disabled ? 'text-gray-400' : 'text-gray-900 dark:text-white']"
     >
-      {{ label }}
+      {{ label }}{{ required ? '*' : '' }}
     </label>
 
     <!-- Select Dropdown -->
@@ -16,10 +16,13 @@
       :class="[
         baseSelectClass,
         validationClass,
-        disabled ? disabledSelectClass : '',
+        disabled || readonly ? disabledSelectClass : '',
       ]"
       :required="required"
       :disabled="disabled"
+      :readonly="readonly"
+      :tabindex="readonly ? -1 : 0"
+      @focus="onFocus"
     >
       <option v-if="placeholder" disabled value="">{{ placeholder }}</option>
       <!-- options must always have a defined value (string | number) -->
@@ -60,6 +63,7 @@ interface Props {
   validationState?: "success" | "error" | "";
   validationMessage?: string;
   disabled?: boolean;
+  readonly?: boolean;
 }
 
 // Define props
@@ -73,6 +77,7 @@ const safeOptions: ComputedRef<Array<{ value: string | number; name: string }>> 
 // Emit events
 const emit = defineEmits<{
   (event: "update:modelValue", value: string | number): void;
+  (event: "focus", event: Event): void;
 }>();
 
 // Internal state for v-model
@@ -92,12 +97,20 @@ watch(internalValue, (newValue) => {
   emit("update:modelValue", newValue);
 });
 
+function onFocus(event: Event) {
+  if (props.readonly) {
+    (event.target as HTMLSelectElement).blur();
+    return;
+  }
+  emit("focus", event);
+}
+
 // Base Classes
 const baseSelectClass =
   "bg-gray-50 border text-gray-900 text-sm rounded-lg focus:ring-4 focus:ring-primary-300 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-700 dark:focus:border-primary-500";
 
 // Disabled Classes
-const disabledSelectClass = 'cursor-not-allowed bg-gray-100 border-gray-300 text-gray-400';
+const disabledSelectClass = 'cursor-not-allowed bg-gray-100 border-gray-300 text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-500';
 
 // Validation Classes
 const validationClass = computed(() => {

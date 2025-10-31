@@ -46,7 +46,7 @@
         v-model.number="roomType.price"
         :label="t('Room Price')"
         type="number"
-        placeholder="Enter room price"
+        placeholder="t('Enter room price')"
         min="0"
         step="0.01"
         required
@@ -342,13 +342,18 @@ async function handleSubmit() {
   error.value = null;
   const valid = validateForm();
   if (!valid) return false;
+
+  // Ensure beds data is included in the submission
+  roomType.value.beds = beds.value;
+  roomType.value.minimap = JSON.stringify(beds.value);
+
   try {
     if (isEditing.value) {
       await roomTypeService.update(roomTypeId.value!, roomType.value);
     } else {
       await roomTypeService.create(roomType.value);
     }
-    showSuccess(t('Room type plan created successfully!'));
+    showSuccess(t('Room type plan saved successfully!'));
     return true;
   } catch (e: any) {
     error.value = e.message || 'API Error';
@@ -446,23 +451,6 @@ function selectBed(idx: number) {
 function rotateBed(deg: number) {
   if (selectedBedIdx.value !== null) {
     beds.value[selectedBedIdx.value].rotation += deg;
-  }
-}
-
-async function savePlan() {
-  try {
-    roomType.value.minimap = JSON.stringify(beds.value);
-    roomType.value.beds = beds.value;
-    
-    if (isEditing.value) {
-      // await roomTypeService.update(roomTypeId.value!, roomType.value);
-      showSuccess(t("Room type plan updated successfully!"));
-    } else {
-      // await roomTypeService.create(roomType.value);
-      showSuccess(t("Room type plan created successfully!"));
-    }
-  } catch (error) {
-    showError(t("Failed to save room type plan. Please try again."));
   }
 }
 

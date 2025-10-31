@@ -1,4 +1,4 @@
-<template>
+<template> 
   <div
     class="flex w-full flex-col items-start justify-center"
     @dragover.prevent="handleDragOver"
@@ -30,12 +30,12 @@
           class="pointer-events-none absolute top-1/2 left-0 h-8 w-8 -translate-y-1/2 pl-3 text-gray-500 dark:text-gray-400"
         />
         
-        <!-- Show selected file name or default text -->
-        <div v-if="selectedFile" class="text-base text-primary-500 dark:text-primary-400">
-          <span class="font-medium">{{ selectedFile }}</span>
+        <!-- Show selected file name, existing file path, or default text -->
+        <div v-if="displayFileName" class="text-base text-primary-500 dark:text-primary-400">
+          <span class="font-medium">{{ displayFileName }}</span>
           <button 
             type="button" 
-            @click.stop="clearFile" 
+            @click.stop="clearFile"
             class="ml-2 text-red-500 hover:text-red-700 text-sm"
             :title="t('Remove file')"
           >
@@ -80,6 +80,7 @@ interface Props {
   name?: string;
   allowedExtensions?: string[];
   multiple?: boolean; // Support multiple files
+  filePath?: string | null; // Prop to show an existing file path
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -87,6 +88,7 @@ const props = withDefaults(defineProps<Props>(), {
   allowedExtensions: () => ["jpg", "jpeg", "png", "gif", "pdf"],
   maxFileSize: 5 * 1024 * 1024,
 });
+
 
 // Define emits
 const emit = defineEmits<{
@@ -107,6 +109,14 @@ const labelClass = computed(() => {
   return validationMessage.value
     ? "text-red-700 dark:text-red-500"
     : "text-gray-900 dark:text-white";
+});
+
+const displayFileName = computed(() => {
+  if (selectedFile.value) {
+    return selectedFile.value;
+  }
+  // Show the base name of the existing file path
+  return props.filePath ? props.filePath.split('/').pop() : null;
 });
 
 // Methods

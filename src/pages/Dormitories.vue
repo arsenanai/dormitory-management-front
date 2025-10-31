@@ -108,7 +108,7 @@ const route = useRoute();
 
 // store
 const dormitoriesStore = useDormitoriesStore();
-const { showError, showSuccess } = useToast();
+const { showError, showSuccess, showConfirmation } = useToast();
 
 const searchQuery = ref<string>("");
 const bulkAction = ref<string>("");
