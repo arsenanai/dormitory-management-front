@@ -236,10 +236,12 @@
                       <div class="flex-1">
                         <CSelect
                           id="registration-dormitory"
-                          v-model="registration.dormitory"
-                          :options="dormitoryOptions"
+                          v-model="registration.dormitoryId"
+                          :options="filteredDormitoryOptions"
                           :label="t('Select Dormitory')"
                           required
+                          :disabled="!registration.gender"
+                          :placeholder="filteredDormitoryOptions.length === 0 ? t('No Dormitory exist for selected gender') : t('Select Dormitory')"
                           :validationState="registrationValidationState.dormitory"
                           :validationMessage="registrationValidationMessage.dormitory"
                         />
@@ -267,11 +269,11 @@
                   <div>
                     <CSelect
                       id="registration-room"
-                      data-testid="registration-room"
-                      v-model="registration.room"
+                      data-testid="registration-room" 
+                      v-model="registration.roomId"
                       :options="roomOptions"
                       :label="t('Select Room')"
-                      :disabled="!registration.dormitory || loadingRooms"
+                      :disabled="!registration.dormitoryId || loadingRooms"
                       :validationState="registrationValidationState.room"
                       :validationMessage="registrationValidationMessage.room"
                     />
@@ -469,11 +471,14 @@ const handleRegistration = async () => {
   // Passwords
   if (!registration.value.password || registration.value.password.length < 6) setErr('password', t('Password must be at least 6 characters'));
   if (registration.value.password !== registration.value.confirmPassword) setErr('confirmPassword', t('Passwords do not match'));
-  // Dormitory & Room
-  if (!registration.value.dormitory) setErr('dormitory', t('Select a dormitory'));
-  if (!registration.value.room) setErr('room', t('Select a room'));
-  // Rules
-  if (!registration.value.agreeToDormitoryRules) showError(t('Please agree to dormitory rules'));
+  // Dormitory & Room validation
+  if (!registration.value.dormitoryId) setErr('dormitory', t('Select a dormitory'));
+  if (!registration.value.roomId) setErr('room', t('Select a room'));
+  // Rules - This was the source of the silent failure.
+  if (!registration.value.agreeToDormitoryRules) {
+    showError(t('Please agree to dormitory rules'));
+    hasError = true; // Explicitly mark that there is an error.
+  }
 
   if (hasError) {
     showError(t('Please fix the errors in the form'));
@@ -490,7 +495,7 @@ const handleRegistration = async () => {
       gender: registration.value.gender,
       email: registration.value.email,
       phone_numbers: registration.value.phoneNumbers.filter(p => p && p.trim() !== ''),
-      room_id: registration.value.room?.id || null,
+      room_id: registration.value.roomId,
       password: registration.value.password,
       password_confirmation: registration.value.confirmPassword,
       deal_number: registration.value.dealNumber,
@@ -517,6 +522,7 @@ const handleRegistration = async () => {
     }
     activeTab.value = 'login';
   } catch (error: any) {
+    console.error('Registration error:', error);
     if (error.response && error.response.status === 403 && error.response.data && error.response.data.message && error.response.data.message.includes('closed')) {
       registrationClosed.value = true;
       showError(t('Registration is closed. Student limit reached.'));
@@ -566,7 +572,8 @@ const registration = ref(
     "", // gender
     "", // email
     [""], // phoneNumbers
-    null, // room
+    null, // roomId
+    null, // dormitoryId
     "", // password
     "", // confirmPassword
     "", // dealNumber
@@ -575,6 +582,7 @@ const registration = ref(
     "", // city
     [null, null, null, null] as (File | null)[], // files
     false, // agreeToDormitoryRules
+    null, // dormitoryId
     "reserved", // status (UserStatus)
     [], // roles
   ),
@@ -703,7 +711,8 @@ const fetchDormitories = async () => {
     const dormitories = Array.isArray(response.data) ? response.data : (response.data.data || []);
     dormitoryOptions.value = dormitories.map(dorm => ({
       value: dorm.id.toString(),
-      name: dorm.name
+      name: dorm.name,
+      gender: dorm.gender, // Keep the gender property for filtering
     }));
     console.log('✅ Loaded dormitories:', dormitoryOptions.value.length);
   } catch (error) {
@@ -730,12 +739,22 @@ watch(activeTab, async (newTab) => {
   }
 });
 
-const availableRooms = ref([]);
+const availableRooms = ref<any[]>([]);
 const allAvailableBeds = ref([]);
 const loadingRooms = ref(false);
 
-watch(() => registration.value.dormitory, async (dormitoryId) => {
-  registration.value.room = ""; // Reset room selection
+const filteredDormitoryOptions = computed(() => {
+  const gender = registration.value.gender;
+  if (!gender) {
+    return dormitoryOptions.value;
+  }
+  return dormitoryOptions.value.filter(dorm => {
+    return dorm.gender === 'mixed' || dorm.gender === gender;
+  });
+});
+
+watch(() => registration.value.dormitoryId, async (dormitoryId) => {
+  registration.value.roomId = null; // Reset room selection
   if (!dormitoryId) {
     availableRooms.value = [];
     allAvailableBeds.value = [];
@@ -781,12 +800,12 @@ watch(() => registration.value.dormitory, async (dormitoryId) => {
 });
 
 const roomOptions = computed(() =>
-  availableRooms.value.map((r) => ({ value: r, name: r.number }))
+  availableRooms.value.map((r) => ({ value: r.id, name: r.number }))
 );
 const bedOptions = computed(() => {
-  if (!registration.value.room) return [];
+  if (!registration.value.roomId) return [];
   return allAvailableBeds.value
-    .filter(b => b.room.id === registration.value.room.id)
+    .filter(b => b.room.id === registration.value.roomId)
     .map(bed => ({
       value: bed,
       name: `${bed.room.number}-${bed.number}${bed.reserved_for_staff ? ' (Staff Reserved)' : ''}`,
@@ -868,7 +887,8 @@ const handleLogin = async () => {
 const handleGuestRegistration = async () => {
   try {
     const payload = {
-      ...guest.value,
+      name: guest.value.name,
+      room_type: guest.value.roomType, // Corrected from roomType to room_type
       user_type: 'guest',
     };
     const response = await authStore.register(payload);

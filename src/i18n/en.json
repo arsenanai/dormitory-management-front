@@ -22,6 +22,7 @@
     "Loading...": "Loading...",
     "Loading dormitories...": "Loading dormitories...",
     "Loading rooms...": "Loading rooms...",
+    "No Dormitory exist for selected gender": "No Dormitory exist for selected gender",
     "Loading room types...": "Loading room types...",
     "No rooms available in this dormitory": "No rooms available in this dormitory",
     "No beds available in this room": "No beds available in this room",
@@ -50,7 +51,6 @@
     "Messages": "Messages",
     "Accounting": "Accounting",
     "Configuration": "Configuration",
-    "Logout": "Logout",
     "Students List": "Students List",
     "Search": "Search",
     "Faculty": "Faculty",
@@ -316,6 +316,7 @@
     "Enter Date": "Enter Date",
     "Profile": "Profile",
     "Settings": "Settings",
+    "Logout": "Logout",
     "Confirm Action": "Confirm Action",
     "Open Modal": "Open Modal",
     "Test Modal": "Test Modal",
@@ -870,5 +871,7 @@
     "STUDENT": "STUDENT",
     "BED": "BED",
     "to": "to",
-    "results": "results"
+    "results": "results",
+    "Name Surname": "Name Surname",
+    "Enter Phone Number": "Enter Phone Number"
 }

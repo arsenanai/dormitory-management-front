@@ -3,24 +3,29 @@
     <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
       <thead v-if="columns.length > 0" class="text-xs text-primary-700 uppercase bg-primary-50 dark:bg-primary-700 dark:text-primary-400">
         <tr>
-          <th v-if="selectable" class="p-4">
-            <input
-              type="checkbox"
-              v-model="selectAll"
-              @change="handleSelectAll"
-              class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-            />
+          <!-- Checkbox header cell: Render slot if provided, otherwise render default checkbox if selectable -->
+          <th v-if="hasCheckboxColumn" class="p-4">
+            <slot name="header-checkbox">
+              <!-- Fallback for backward compatibility when `selectable` is true but slot is not used -->
+              <input
+                v-if="selectable"
+                type="checkbox"
+                v-model="selectAll"
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+              />
+            </slot>
           </th>
           <th
-            v-for="column in columns"
+            v-for="column in dataColumns"
             :key="column.key"
             :class="[
-              'px-6 py-3 cursor-pointer hover:bg-gray-200',
+              'px-6 py-3',
+              column.sortable ? 'cursor-pointer hover:bg-gray-200' : '',
               column.class || ''
             ]"
             @click="column.sortable ? handleSort(column.key) : null"
           >
-            {{ column.label }}
+            <span>{{ column.label }}</span>
             <span v-if="column.sortable && sortBy === column.key">
               {{ sortDirection === 'asc' ? '↑' : '↓' }}
             </span>
@@ -43,16 +48,21 @@
           ]"
           @click="handleRowClick(row)"
         >
-          <td v-if="selectable" class="p-4">
-            <input
-              type="checkbox"
-              :checked="selectedRows.includes(row)"
-              @change="handleRowSelect(row)"
-              class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-            />
+          <!-- Checkbox body cell -->
+          <td v-if="hasCheckboxColumn" class="px-6 py-4">
+            <slot :name="`cell-checkbox`" :row="row">
+              <!-- Fallback for backward compatibility -->
+              <input
+                v-if="selectable"
+                type="checkbox"
+                :checked="selectedRows.includes(row)"
+                @change="handleRowSelect(row)"
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+              />
+            </slot>
           </td>
           <td
-            v-for="column in columns"
+            v-for="column in dataColumns"
             :key="`${getRowKey(row, index)}-${column.key}`"
             :class="['px-6 py-4', column.class || '']"
           >
@@ -122,7 +132,16 @@ const selectAll = computed({
 })
 
 const totalColumns = computed(() => {
-  return props.columns.length + (props.selectable ? 1 : 0)
+  // A column is either defined in `columns` prop or added via `selectable` prop.
+  return props.columns.length;
+})
+
+const hasCheckboxColumn = computed(() => {
+  return props.selectable || props.columns.some(c => c.key === 'checkbox');
+});
+
+const dataColumns = computed(() => {
+  return props.columns.filter(c => c.key !== 'checkbox');
 })
 
 function getRowKey(row: any, index: number): string | number {
@@ -161,11 +180,6 @@ function handleSort(columnKey: string): void {
   }
   
   emit('sort', { column: columnKey, direction: sortDirection.value })
-}
-
-function handleSelectAll(): void {
-  selectedRows.value = selectAll.value ? [...props.data] : []
-  emit('selection-change', selectedRows.value)
 }
 
 function handleRowSelect(row: any): void {

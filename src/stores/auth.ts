@@ -90,20 +90,16 @@ export const useAuthStore = defineStore('auth', () => {
   
   /** Current user's role name or null if not authenticated */
   const userRole = computed(() => {
-    console.log('🔍 AuthStore - userRole computed, user.value:', user.value);
-    console.log('🔍 AuthStore - user.value?.role:', user.value?.role);
     
     if (!user.value?.role) return null;
     
     // If role is an object with name property
     if (typeof user.value.role === 'object' && user.value.role.name) {
-      console.log('🔍 AuthStore - role is object, name:', user.value.role.name);
       return user.value.role.name;
     }
     
     // If role is a string, use it directly
     if (typeof user.value.role === 'string') {
-      console.log('🔍 AuthStore - role is string:', user.value.role);
       return user.value.role;
     }
     
@@ -151,7 +147,8 @@ export const useAuthStore = defineStore('auth', () => {
         email: apiUser.email,
         phone_numbers: apiUser.phone_numbers,
         status: 'active' as UserStatus, // Default to active for logged in users
-        role: apiUser.role // Store role as string from API
+        role: apiUser.role, // Store role as string from API
+        dormitory: apiUser.dormitory // Standardized dormitory property
       }
 
       // Store token and user data in localStorage for persistence
@@ -272,7 +269,8 @@ export const useAuthStore = defineStore('auth', () => {
         email: apiUser.email,
         phone_numbers: apiUser.phone_numbers,
         status: 'active' as UserStatus, // Default to active for logged in users
-        role: apiUser.role // Store role as string from API
+        role: apiUser.role, // Store role as string from API
+        dormitory: apiUser.dormitory, // Standardized dormitory property
       }
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to load profile'
@@ -312,7 +310,8 @@ export const useAuthStore = defineStore('auth', () => {
         email: apiUser.email,
         phone_numbers: apiUser.phone_numbers,
         status: 'active' as UserStatus, // Default to active for logged in users
-        role: apiUser.role // Store role as string from API
+        role: apiUser.role, // Store role as string from API
+        dormitory: apiUser.dormitory, // Standardized dormitory property
       }
 
       return response.data

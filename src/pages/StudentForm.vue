@@ -43,7 +43,7 @@
             <CSelect
               id="student-gender"
               v-model="user.student_profile.gender"
-              :options="genderOptions"
+              :options="filteredGenderOptions"
               :label="t('Gender')"
               required
             />
@@ -390,18 +390,12 @@
       <fieldset class="border border-primary-200 rounded p-4">
         <legend class="text-lg font-semibold px-2 text-primary-700">{{ t("Documents") }}</legend>
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2" data-testid="document-uploads">
-          <div v-for="(file, index) in user.student_profile.files" :key="`file-${index}`">
-            <CFileLink
-              v-if="isEditing && typeof file === 'string' && file"
-              :id="`student-file-link-${index}`"
-              :label="registrationFileLabels[index]"
-              :file-path="file"
-            />
-            <CFileInput
-              v-else
-              :id="`student-file-${index}`"
-              :label="registrationFileLabels[index]"
-              :file-path="typeof file === 'string' ? file : undefined"
+          <div v-for="(file, index) in (user.student_profile.files || [])" :key="`file-${index}`">
+            <CFileLink v-if="isEditing" :id="`student-file-link-${index}`" :label="registrationFileLabels[index]" :file-path="typeof file === 'string' ? file : null" />
+            <CFileInput 
+              v-else 
+              :id="`student-file-${index}`" 
+              :label="registrationFileLabels[index]" 
               @change="(newFile) => handleFileChange(index, newFile)"
             />
           </div>
@@ -594,6 +588,17 @@ const genderOptions = [
   { value: "female", name: t("Female") },
 ];
 
+const filteredGenderOptions = computed(() => {
+  let dormGenderPolicy: string | undefined;
+  try {
+    dormGenderPolicy = rooms.value[0].dormitory.gender;
+    if (dormGenderPolicy && dormGenderPolicy !== "mixed") {
+      return genderOptions.filter((opt) => opt.value === dormGenderPolicy);
+    }
+  } catch (e) {}
+  return genderOptions;
+});
+
 const bloodTypeOptions = [
   { value: "A+", name: "A+" },
   { value: "A-", name: "A-" },
@@ -728,6 +733,10 @@ const submitForm = async (): Promise<void> => {
         ...user.value, // User fields
         ...user.value.student_profile, // Flattened student_profile fields
       };
+      // When editing, we don't re-upload files. The backend should not expect them.
+      // The existing file paths are already in the database.
+      delete payload.files;
+
       await studentService.update(studentId.value, payload);
       showSuccess(t("Student profile updated successfully!"));
     } else {

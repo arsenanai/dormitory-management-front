@@ -5,7 +5,7 @@
       <div>
         <CInput
           id="guest-first-name"
-          v-model="user.name"
+          v-model="user.first_name"
           type="text"
           :label="t('Firstname')"
           placeholder="Enter Firstname"
@@ -17,7 +17,7 @@
       <div>
         <CInput
           id="guest-last-name"
-          v-model="user.lastName"
+          v-model="user.last_name"
           type="text"
           :label="t('Surname')"
           placeholder="Enter Surname"
@@ -75,7 +75,7 @@
       <div>
         <CSelect
           id="guest-room"
-          v-model="guestProfile.room"
+          v-model="user.room_id"
           :options="roomOptions"
           :label="t('Select room')"
           required
@@ -177,13 +177,13 @@
 
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <!-- Daily Rate -->
-      <div>
+      <div data-testid="paid-amount-input-container">
         <CInput
           id="guest-daily-rate"
-          v-model="guestProfile.daily_rate"
+          v-model="guestProfile.total_amount"
           type="number"
-          :label="t('guest.form.dailyRate')"
-          placeholder="Enter Daily Rate"
+          :label="`${t('Paid Amount')} (${currencySymbol})`"
+          placeholder="Enter Paid Amount"
           step="0.01"
           min="0"
         />
@@ -210,15 +210,18 @@ import CInput from "@/components/CInput.vue";
 import CSelect from "@/components/CSelect.vue";
 import CButton from "@/components/CButton.vue";
 import { useToast } from "@/composables/useToast";
-import { guestService } from '@/services/api';
+import { guestService, roomService } from '@/services/api';
+import { useSettingsStore } from '@/stores/settings';
 import type { User } from "@/models/User";
 import type { GuestProfile } from "@/models/GuestProfile";
+import { getCurrencySymbol } from "@/utils/formatters";
 import CTextarea from "@/components/CTextarea.vue";
 
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const { showError, showSuccess } = useToast();
+const settingsStore = useSettingsStore();
 
 // Check if we're editing (ID in route params)
 const guestId = computed(() => route.params.id ? Number(route.params.id) : null);
@@ -226,10 +229,12 @@ const isEditing = computed(() => !!guestId.value);
 
 // Guest Form Data
 const user = ref<Partial<User>>({
-  name: "",
+  first_name: "",
+  last_name: "",
   email: "",
   phone_numbers: [""],
   password: "",
+  room_id: null,
   confirmPassword: "",
 });
 
@@ -252,19 +257,46 @@ const guestProfile = ref<Partial<GuestProfile>>({
   identification_number: "",
   emergency_contact_name: "",
   emergency_contact_phone: "",
-  daily_rate: 0,
+  total_amount: 0,
   payment_received: 0,
   wifiUsername: "",
   wifiPassword: "",
   reminder: "",
 });
 
+const currencySymbol = computed(() => {
+  return getCurrencySymbol(settingsStore.generalSettings?.currency_symbol);
+});
+
 // Room Options
-const roomOptions: { value: string; name: string }[] = [
-  { value: "1", name: "A210" },
-  { value: "2", name: "A211" },
-  { value: "3", name: "A212" },
-];
+const roomOptions = ref<{ value: string; name: string }[]>([]);
+const loadingRooms = ref(false);
+
+const fetchAvailableRooms = async () => {
+  loadingRooms.value = true;
+  try {
+    const availableRoomsResponse = await guestService.getAvailableRooms();
+    let allRooms = availableRoomsResponse.data || [];
+
+    // If editing, ensure the guest's current room is in the list
+    if (isEditing.value && guestId.value) {
+      const guestResponse = await guestService.getById(guestId.value);
+      const currentRoom = guestResponse.data.room;
+      if (currentRoom && !allRooms.some(room => room.id === currentRoom.id)) {
+        allRooms.push(currentRoom);
+      }
+    }
+
+    roomOptions.value = allRooms.map((room: any) => ({
+      value: room.id.toString(),
+      name: `${room.number}`,
+    }));
+  } catch (err) {
+    showError(t('Failed to load room options'));
+  } finally {
+    loadingRooms.value = false;
+  }
+};
 
 // Identification Options
 const identificationOptions: { value: string; name: string }[] = [
@@ -279,14 +311,15 @@ const submitForm = async (): Promise<void> => {
   try {
     // Construct payload to match backend GuestController validation
     const payload = {
-      name: `${user.value.name} ${user.value.lastName}`.trim(),
+      first_name: `${user.value.first_name}`.trim(),
+      last_name: `${user.value.last_name}`.trim(),
       email: user.value.email,
       phone: phoneNumber.value,
-      room_id: guestProfile.value.room ? parseInt(guestProfile.value.room) : undefined,
+      room_id: user.value.room_id,
       check_in_date: guestProfile.value.visit_start_date,
       check_out_date: guestProfile.value.visit_end_date,
       payment_status: 'pending',
-      total_amount: guestProfile.value.daily_rate || 0,
+      total_amount: guestProfile.value.total_amount || 0,
       notes: guestProfile.value.purpose_of_visit || undefined, // Send purpose as notes
       host_name: guestProfile.value.host_name || undefined,
       host_contact: guestProfile.value.host_contact || undefined,
@@ -324,16 +357,17 @@ const loadGuest = async (id: number) => {
     
     // Populate user fields
     // Split the combined name into first and last names
-    const fullName = guestData.first_name || guestData.name || "";
+    const fullName = guestData.first_name || guestData.last_name || "";
     const nameParts = fullName.split(' ');
     const firstName = nameParts[0] || "";
     const lastName = nameParts.slice(1).join(' ') || "";
     
     user.value = {
-      name: firstName,
-      lastName: lastName,
+      first_name: guestData.first_name,
+      last_name: guestData.last_name,
       email: guestData.email || "",
-      phone_numbers: guestData.phone_numbers?.length ? [...guestData.phone_numbers] : guestData.phone ? [guestData.phone] : [""]
+      phone_numbers: guestData.phone_numbers?.length ? [...guestData.phone_numbers] : guestData.phone ? [guestData.phone] : [""],
+      room_id: guestData.room_id,
     };
     
     // Populate guestProfile fields
@@ -347,7 +381,7 @@ const loadGuest = async (id: number) => {
       identification_number: guestData.guest_profile?.identification_number || "",
       emergency_contact_name: guestData.guest_profile?.emergency_contact_name || "",
       emergency_contact_phone: guestData.guest_profile?.emergency_contact_phone || "",
-      daily_rate: guestData.guest_profile?.daily_rate || 0,
+      total_amount: guestData.total_amount || guestData.guest_profile?.daily_rate || 0,
       reminder: guestData.guest_profile?.reminder || "",
     };
   } catch (error) {
@@ -357,6 +391,9 @@ const loadGuest = async (id: number) => {
 
 onMounted(async () => {
   // If editing, load from API
+  // Fetch rooms first, which now handles including the current guest's room in edit mode
+  await settingsStore.fetchAllSettings();
+  await fetchAvailableRooms();
   if (isEditing.value) {
     await loadGuest(guestId.value!);
   }

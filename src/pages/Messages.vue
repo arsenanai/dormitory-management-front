@@ -20,8 +20,8 @@
           <CButton 
             data-testid="add-message-button" 
             @click="openCreateModal"
-            variant="primary"
           >
+            <PlusIcon class="h-5 w-5" />
             {{ t('Add Message') }}
           </CButton>
         </div>
@@ -86,40 +86,44 @@
                   size="small" 
                   @click="openEditModal(row)" 
                   data-testid="edit-message-button"
+                  class=""
                 >
-                  {{ t('Edit') }}
+                  <PencilSquareIcon class="h-5 w-5" />
                 </CButton>
                 <CButton 
                   size="small" 
                   variant="danger" 
                   @click="confirmDelete(row.id)" 
                   data-testid="delete-message-button"
+                  class=""
                 >
-                  {{ t('Delete') }}
+                  <TrashIcon class="h-5 w-5" />
                 </CButton>
               </div>
             </template>
           </CTable>
           
           <!-- Pagination Controls -->
-          <div v-if="totalPages > 1" class="flex justify-center gap-2 mt-4">
-            <CButton 
-              @click="goToPrevPage"
-              :disabled="currentPage === 1 || loading"
-              size="small"
-            >
-              <ChevronLeftIcon class="h-4 w-4" />
-            </CButton>
-            <span class="px-4 py-2">
-              {{ t('Page') }} {{ currentPage }} {{ t('of') }} {{ totalPages }}
-            </span>
-            <CButton 
-              @click="goToNextPage"
-              :disabled="currentPage === totalPages || loading"
-              size="small"
-            >
-              <ChevronRightIcon class="h-4 w-4" />
-            </CButton>
+          <div v-if="totalPages > 1" class="flex flex-col items-center justify-between gap-4 md:flex-row mt-4" data-testid="pagination">
+            <div class="text-sm text-gray-700">
+              <span v-if="totalMessages > 0">
+                <span class="font-medium">{{ startIndex + 1 }}</span> - <span class="font-medium">{{ endIndex }}</span> / <span class="font-medium">{{ totalMessages }}</span>
+              </span>
+              <span v-else>
+                {{ t('No data available') }}
+              </span>
+            </div>
+            <div class="flex items-center gap-2">
+              <CButton :disabled="currentPage === 1" @click="goToPrevPage" :aria-label="t('Previous page')" class="h-10">
+                <ChevronLeftIcon class="h-5 w-5" />
+              </CButton>
+              <div class="flex items-center gap-1 text-sm">
+                <span>{{ currentPage }} / {{ totalPages }}</span>
+              </div>
+              <CButton :disabled="currentPage === totalPages" @click="goToNextPage" :aria-label="t('Next page')" class="h-10">
+                <ChevronRightIcon class="h-5 w-5" />
+              </CButton>
+            </div>
           </div>
         </div>
       </div>
@@ -194,7 +198,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/vue/24/outline";
+import { ChevronLeftIcon, ChevronRightIcon, PlusIcon, PencilSquareIcon, TrashIcon } from "@heroicons/vue/24/outline";
 import Navigation from "@/components/CNavigation.vue";
 import CSelect from "@/components/CSelect.vue";
 import CButton from "@/components/CButton.vue";
@@ -271,10 +275,18 @@ const loadData = async () => {
       return;
     }
 
+    const params: any = {
+      page: currentPage.value,
+      per_page: itemsPerPage,
+    };
+    if (searchQuery.value) {
+      params.search = searchQuery.value;
+    }
+
     // For students, fetch their messages (messages sent to their dormitory or room)
     const fetchMessages = authStore.user?.role?.name === 'student'
-      ? messageService.getMyMessages({ page: currentPage.value, per_page: itemsPerPage })
-      : messageService.getAll({ page: currentPage.value, per_page: itemsPerPage });
+      ? messageService.getMyMessages(params)
+      : messageService.getAll(params);
 
     // For admin users, fetch rooms from their assigned dormitory
     const fetchRooms = authStore.user?.role?.name === 'admin' && authStore.user?.adminProfile?.dormitory_id
@@ -288,12 +300,13 @@ const loadData = async () => {
     
     // Handle Laravel paginated response structure for messages
     if (messagesResponse && messagesResponse.data) {
-      if (Array.isArray(messagesResponse.data)) {
-        messages.value = messagesResponse.data;
-        totalMessages.value = messagesResponse.data.length;
-      } else if (messagesResponse.data.data && Array.isArray(messagesResponse.data.data)) {
+      // Laravel paginated response: { data: [...], total: X, ... }
+      if (messagesResponse.data.data && Array.isArray(messagesResponse.data.data)) {
         messages.value = messagesResponse.data.data;
         totalMessages.value = messagesResponse.data.total || 0;
+      } else if (Array.isArray(messagesResponse.data)) { // Non-paginated array response
+        messages.value = messagesResponse.data;
+        totalMessages.value = messagesResponse.data.length;
       } else {
         messages.value = [];
         totalMessages.value = 0;

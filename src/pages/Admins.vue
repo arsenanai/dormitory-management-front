@@ -2,17 +2,17 @@
   <Navigation :title="t('Admin Management')">
     <div class="flex justify-end mb-4">
       <CButton data-testid="add-admin-button" @click="goToAddAdmin">
-        {{ t('Add Admin') }}
+        <PlusIcon class="h-5 w-5" />{{ t('Add Admin') }}
       </CButton>
     </div>
     <CTable :columns="columns" :data="admins" :loading="loading">
       <template #cell-actions="{ row }">
         <div class="flex gap-2">
           <CButton @click="goToEditAdmin(row)" size="sm">
-            Edit
+            <PencilSquareIcon class="h-5 w-5" />
           </CButton>
           <CButton variant="danger" @click="deleteAdmin(row)" size="sm">
-            Delete
+            <TrashIcon class="h-5 w-5" />
           </CButton>
         </div>
       </template>
@@ -29,6 +29,7 @@ import CButton from '@/components/CButton.vue';
 import CTable from '@/components/CTable.vue';
 import { adminService } from '@/services/api';
 import { useToast } from '@/composables/useToast';
+import { PlusIcon, PencilSquareIcon, TrashIcon } from "@heroicons/vue/24/outline";
 
 const { t } = useI18n();
 const router = useRouter();

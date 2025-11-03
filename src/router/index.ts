@@ -227,7 +227,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: Cog6ToothIcon,
-      roles: ['sudo', 'admin'],
+      roles: ['sudo'],
     },
   },
   {
@@ -300,7 +300,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: BuildingOfficeIcon,
-      roles: ['admin'],
+      roles: ['sudo'],
     },
   },
   {
@@ -312,7 +312,7 @@ const routes: AppRouteRecordRaw[] = [
       parent: 'Room Types',
       requiresAuth: true,
       sidebar: false,
-      roles: ['admin'],
+      roles: ['sudo'],
     },
   },
   {
@@ -328,11 +328,9 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from, next) => {
-  document.title = 'SDU Dormitory | ' + (to.meta?.title ?? '');
-  
   // Initialize auth store in the context of the navigation guard
   const authStore = useAuthStore();
-  
+
   // If we have a token but no user data, try to load the profile first
   if (authStore.token && !authStore.user) {
     try {
@@ -342,7 +340,6 @@ router.beforeEach(async (to, from, next) => {
       authStore.logout();
     }
   }
-  
   const isAuthenticated = authStore.isAuthenticated;
   // Get user role after ensuring profile is loaded
   const userRole = authStore.user?.role?.name || null;
@@ -399,6 +396,14 @@ router.beforeEach(async (to, from, next) => {
     
     next();
   }
+});
+
+router.afterEach((to) => {
+  // This runs after the navigation is confirmed and `beforeEach` has completed.
+  const authStore = useAuthStore();
+  const dormitoryName = authStore.user?.dormitory?.name;
+  const baseTitle = dormitoryName ? `${dormitoryName} | ` : 'Dormitory | ';
+  document.title = baseTitle + (to.meta?.title ?? '');
 });
 
 export default router;

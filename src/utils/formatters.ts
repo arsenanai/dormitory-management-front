@@ -48,6 +48,24 @@ export const formatDate = (
   return `${month}/${day}/${year}`;
 };
 
+// A map to guarantee specific symbols for common currencies.
+export const currencySymbolMap: { [key: string]: string } = {
+  KZT: '₸',
+  RUB: '₽',
+  USD: '$',
+  EUR: '€',
+  GBP: '£',
+  TRY: '₺',
+  UZS: 'soʻm',
+  KGS: 'сом',
+};
+
+export const getCurrencySymbol = (currency?: string | null): string => {
+  if (!currency) {
+    return '$'; // Default/fallback symbol
+  }
+  return currencySymbolMap[currency.toUpperCase()] || currency;
+};
 /**
  * Format a currency amount with proper locale formatting
  * @param {number} amount - The amount to format
@@ -61,20 +79,27 @@ export const formatDate = (
  */
 export const formatCurrency = (
   amount: number,
-  currency: string = 'USD',
-  locale: string = 'en-US'
+  currency: string,
+  locale?: string
 ): string => {
   // Handle invalid inputs
   if (isNaN(amount) || !isFinite(amount)) {
-    return currency === 'USD' ? '$0.00' : '₸0.00';
+    amount = 0;
   }
   
-  return new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency: currency,
+  const browserLocale = locale || navigator.language;
+
+  // Format the number part according to the browser's locale to respect user's number formatting preferences (e.g., '.' vs ',').
+  const numberFormatter = new Intl.NumberFormat(browserLocale, {
+    style: 'decimal',
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(amount);
+    maximumFractionDigits: 2,
+  });
+  const formattedNumber = numberFormatter.format(amount);
+  const symbol = currencySymbolMap[currency.toUpperCase()] || currency;
+
+  // Combine the formatted number and the symbol.
+  return `${formattedNumber} ${symbol}`;
 };
 
 /**

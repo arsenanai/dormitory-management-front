@@ -2,7 +2,7 @@
   <Navigation :title="t('Dormitory Information')">
     <!-- Search and Filters -->
     <div class="mb-4">
-      <CInput
+      <CInput 
         id="search-dormitory"
         v-model="searchQuery"
         type="text"
@@ -15,11 +15,11 @@
     <div class="mb-4 flex items-center justify-between">
       <div
         class="flex flex-col items-stretch gap-4 lg:flex-row lg:items-center"
-      >
-        <CButton @click="exportToExcel">
+      > 
+        <!-- <CButton @click="exportToExcel">
           <ArrowDownTrayIcon class="h-5 w-5" />
           {{ t("Download") }}
-        </CButton>
+        </CButton> -->
         <CButton @click="navigateToAddDormitory">
           <PlusIcon class="h-5 w-5" />
           {{ t("Add Dormitory") }}
@@ -51,33 +51,48 @@
       <template #cell-actions="{ row }">
         <div class="flex gap-2">
           <CButton @click="navigateToEditDormitory(row.id)" size="sm">
-            {{ t("Edit") }}
+            <PencilSquareIcon class="h-5 w-5" />
           </CButton>
           <CButton variant="danger" @click="deleteDormitory(row)" size="sm">
-            {{ t("Delete") }}
+            <TrashIcon class="h-5 w-5" />
           </CButton>
         </div>
       </template>
     </CTable>
 
-    <!-- Pagination -->
-    <div class="mt-4 mb-4 flex items-center justify-between">
-      <CButton
-        :disabled="currentPage === 1"
-        @click="currentPage--"
-      >
-        {{ t("Previous") }}
-      </CButton>
-      <span>
-        {{ t("Page") }} {{ currentPage }} {{ t("of") }} {{ totalPages }}
-      </span>
-      <CButton
-        :disabled="currentPage === totalPages"
-        @click="currentPage++"
-      >
-        {{ t("Next") }}
-      </CButton>
-    </div>
+    <!-- Pagination
+    <div class="flex flex-col items-center justify-between gap-4 md:flex-row" data-testid="pagination">
+        <div class="text-sm text-gray-700">
+          <span v-if="totalDorms > 0">
+            <span class="font-medium">{{ fromDorm }}</span> - <span class="font-medium">{{ toDorm }}</span> / <span class="font-medium">{{ totalDorms }}</span>
+          </span>
+          <span v-else>
+            {{ t('No data available') }}
+          </span>
+        </div>
+        <div class="flex items-center gap-2">
+          <CButton :disabled="currentPage === 1" @click="currentPage--" :aria-label="t('Previous page')" class="h-10">
+            <ChevronLeftIcon class="h-5 w-5" />
+          </CButton>
+          <div class="flex items-center gap-1 text-sm">
+            <div class="w-20">
+          <CInput
+            id="page-input"
+            v-model.number="pageInput"
+            type="number"
+            :min="1"
+            :max="totalPages"
+            class="text-center h-10"
+            @keyup.enter="goToPage"
+          />
+            </div>
+            <span>/ {{ totalPages }}</span>
+          </div>
+          <CButton :disabled="currentPage === totalPages" @click="currentPage++" :aria-label="t('Next page')" class="h-10">
+            <ChevronRightIcon class="h-5 w-5" />
+          </CButton>
+        </div>
+      </div> -->
 
   </Navigation>
 </template>
@@ -86,8 +101,8 @@
 import Navigation from "@/components/CNavigation.vue";
 import { useI18n } from "vue-i18n";
 import { ref, computed, onMounted, watch, onUnmounted } from "vue";
-import { useRouter, useRoute } from "vue-router";
-import { ArrowDownTrayIcon, PlusIcon } from "@heroicons/vue/24/outline";
+import { useRouter, useRoute } from "vue-router"; 
+import { ArrowDownTrayIcon, PlusIcon, ChevronLeftIcon, ChevronRightIcon, PencilSquareIcon, TrashIcon } from "@heroicons/vue/24/outline";
 import CInput from "@/components/CInput.vue";
 import CSelect from "@/components/CSelect.vue";
 import CCheckbox from "@/components/CCheckbox.vue";
@@ -172,6 +187,7 @@ const loadDormitories = async () => {
 };
 
 onMounted(() => {
+  pageInput.value = currentPage.value;
   loadDormitories();
   dormitoriesStore.clearSelectedDormitory();
   
@@ -222,15 +238,29 @@ const filteredDorms = computed(() => {
 // Pagination
 const currentPage = ref<number>(1);
 const itemsPerPage = 10;
+const pageInput = ref(1);
+
 const totalPages = computed<number>(() =>
   Math.ceil(filteredDorms.value.length / itemsPerPage),
 );
+
+const totalDorms = computed(() => filteredDorms.value.length);
+const fromDorm = computed(() => {
+  if (totalDorms.value === 0) return 0;
+  return (currentPage.value - 1) * itemsPerPage + 1;
+});
+const toDorm = computed(() => {
+  const end = currentPage.value * itemsPerPage;
+  return end > totalDorms.value ? totalDorms.value : end;
+});
+
 const paginatedDorms = computed(() =>
   filteredDorms.value.slice(
     (currentPage.value - 1) * itemsPerPage,
     currentPage.value * itemsPerPage,
   ),
 );
+
 
 // Export function
 const exportToExcel = async () => {
@@ -293,6 +323,21 @@ const columns = [
   { key: 'rooms_count', label: t('ROOM') },
   { key: 'actions', label: t('EDIT') },
 ];
+
+const goToPage = () => {
+  const page = Number(pageInput.value);
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page;
+  } else {
+    // Reset input to current page if value is invalid
+    pageInput.value = currentPage.value;
+  }
+};
+
+watch(currentPage, (newPage) => {
+  pageInput.value = newPage;
+});
+
 </script>
 
 <style scoped>

@@ -2,6 +2,7 @@
   <Navigation :title="t('Guest House')">
     <!-- Search Bar -->
     <div
+      data-testid="guests-page"
       class="mb-4 flex flex-col items-stretch justify-between gap-4 lg:flex-row lg:items-center"
     >
       <div class="w-auto lg:w-128">
@@ -10,7 +11,6 @@
           v-model="searchQuery"
           type="search"
           :placeholder="t('Search')"
-          :label="t('Search')"
         />
       </div>
       <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
@@ -36,74 +36,79 @@
     </div>
 
     <!-- Guests Table -->
-    <div v-if="!loading" class="overflow-x-auto relative border border-gray-300 sm:rounded-lg" data-testid="guests-table">
-      <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-        <thead class="text-xs text-primary-700 uppercase bg-primary-50 dark:bg-primary-700 dark:text-primary-400">
-          <tr>
-            <th class="px-6 py-3">{{ t("Name") }}</th>
-            <th class="px-6 py-3">{{ t("Surname") }}</th>
-            <th class="px-6 py-3">{{ t("Email") }}</th>
-            <th class="px-6 py-3">{{ t("Purpose") }}</th>
-            <th class="px-6 py-3">{{ t("Enter Date") }}</th>
-            <th class="px-6 py-3">{{ t("Exit Date") }}</th>
-            <th class="px-6 py-3">{{ t("Telephone") }}</th>
-            <th class="px-6 py-3">{{ t("Room") }}</th>
-            <th class="px-6 py-3">{{ t("Payment") }}</th>
-            <th class="px-6 py-3 text-right">{{ t("Action") }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-if="filteredGuests.length === 0">
-            <td colspan="10" class="px-6 py-4 text-center text-gray-500">
-              {{ t("No data available") }}
-            </td>
-          </tr>
-          <tr
-            v-for="guest in filteredGuests"
-            :key="guest.id"
-            class="bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700"
-          >
-            <td class="px-6 py-4">{{ guest.first_name || guest.name }}</td>
-            <td class="px-6 py-4">{{ guest.last_name || guest.surname }}</td>
-            <td class="px-6 py-4">{{ guest.email || '-' }}</td>
-            <td class="px-6 py-4">{{ guest.guest_profile?.purpose_of_visit || guest.notes || '-' }}</td>
-            <td class="px-6 py-4">
-              {{ guest.guest_profile?.visit_start_date ? new Date(guest.guest_profile.visit_start_date).toLocaleDateString() : '-' }}
-              <small class="text-xs text-gray-400">({{ guest.guest_profile?.visit_start_date }})</small>
-            </td>
-            <td class="px-6 py-4">
-              {{ guest.guest_profile?.visit_end_date ? new Date(guest.guest_profile.visit_end_date).toLocaleDateString() : '-' }}
-              <small class="text-xs text-gray-400">({{ guest.guest_profile?.visit_end_date }})</small>
-            </td>
-            <td class="px-6 py-4">{{ guest.phone || guest.telephone || '-' }}</td>
-            <td class="px-6 py-4">{{ guest.room?.number || guest.room || '-' }}</td>
-            <td class="px-6 py-4">{{ guest.payment_status === 'paid' ? `$${parseFloat(guest.total_amount || 0).toFixed(2)}` : guest.payment_status || '-' }}</td>
-            <td class="px-6 py-4">
-              <div class="flex items-center justify-end gap-2">
-                <CButton @click="editGuest(guest.id)">
-                  <PencilSquareIcon class="h-5 w-5" /> {{ t("Edit") }}
-                </CButton>
-                <CButton variant="danger" @click="deleteGuest(guest.id)">
-                  <TrashIcon class="h-5 w-5" /> {{ t("Delete") }}
-                </CButton>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <CTable :columns="tableColumns" :data="paginatedGuests" :loading="loading" v-if="!loading && !error" data-testid="guests-table">
+      <template #cell-guest="{ row }">
+        <div class="flex flex-col gap-1">
+          <span class="whitespace-nowrap">
+            {{ row.first_name }} {{ row.last_name }} </br>
+          </span>
+          <span>
+            {{ row.email }}
+          </span>
+          <span>
+            {{ row.phone || row.telephone || '' }}
+          </span>
+        </div>
+      </template>
+      <template #cell-purpose="{ row }">
+        {{ row.guest_profile?.purpose_of_visit || row.notes || '-' }}
+      </template>
+      <template #cell-date_range="{ row }">
+        <span class="whitespace-nowrap">{{ row.guest_profile?.visit_start_date ? new Date(row.guest_profile.visit_start_date).toLocaleDateString() : '-' }} - {{ row.guest_profile?.visit_end_date ? new Date(row.guest_profile.visit_end_date).toLocaleDateString() : '-' }}</span>
+      </template>
+      <template #cell-telephone="{ row }">
+        
+      </template>
+      <template #cell-room="{ row }">
+        {{ row.room?.number || row.room || '-' }}
+      </template>
+      <template #cell-payment="{ row }">
+        {{ row.payment_status === 'paid' ? `$${parseFloat(row.total_amount || 0).toFixed(2)}` : row.payment_status || '-' }}
+      </template>
+      <template #cell-actions="{ row }">
+        <div class="flex items-center justify-end gap-2">
+          <CButton @click="editGuest(row.id)">
+            <PencilSquareIcon class="h-5 w-5" />
+          </CButton>
+          <CButton variant="danger" @click="deleteGuest(row.id)">
+            <TrashIcon class="h-5 w-5" />
+          </CButton>
+        </div>
+      </template>
+    </CTable>
 
     <!-- Pagination -->
-    <div v-if="totalPages > 1" class="flex items-center justify-between mt-4" data-testid="pagination">
-      <CButton :disabled="currentPage === 1" @click="currentPage--" :aria-label="t('Previous page')">
-        {{ t("Previous") }}
-      </CButton>
-      <span>
-        {{ t("Page") }} {{ currentPage }} {{ t("of") }} {{ totalPages }}
-      </span>
-      <CButton :disabled="currentPage === totalPages" @click="currentPage++" :aria-label="t('Next page')">
-        {{ t("Next") }}
-      </CButton>
+    <div v-if="totalPages > 1" class="flex flex-col items-center justify-between gap-4 md:flex-row mt-4" data-testid="pagination">
+      <div class="text-sm text-gray-700">
+        <span v-if="totalGuests > 0">
+          <span class="font-medium">{{ fromGuest }}</span> - <span class="font-medium">{{ toGuest }}</span> / <span class="font-medium">{{ totalGuests }}</span>
+        </span>
+        <span v-else>
+          {{ t('No data available') }}
+        </span>
+      </div>
+      <div class="flex items-center gap-2">
+        <CButton :disabled="currentPage === 1" @click="currentPage--" :aria-label="t('Previous page')" class="h-10">
+          <ChevronLeftIcon class="h-5 w-5" />
+        </CButton>
+        <div class="flex items-center gap-1 text-sm">
+          <div class="w-20">
+            <CInput
+              id="page-input"
+              v-model.number="pageInput"
+              type="number"
+              :min="1"
+              :max="totalPages"
+              class="text-center h-10"
+              @keyup.enter="goToPage"
+            />
+          </div>
+          <span>/ {{ totalPages }}</span>
+        </div>
+        <CButton :disabled="currentPage === totalPages" @click="currentPage++" :aria-label="t('Next page')" class="h-10">
+          <ChevronRightIcon class="h-5 w-5" />
+        </CButton>
+      </div>
     </div>
   </Navigation>
 </template>
@@ -111,16 +116,19 @@
 <script setup lang="ts">
 import Navigation from "@/components/CNavigation.vue";
 import { useI18n } from "vue-i18n";
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import CInput from "@/components/CInput.vue";
 import CButton from "@/components/CButton.vue";
+import CTable from "@/components/CTable.vue";
 
 import {
   UserPlusIcon,
   PencilSquareIcon,
   TrashIcon,
-  ArrowDownTrayIcon
+  ArrowDownTrayIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon
 } from "@heroicons/vue/24/outline";
 import { guestService } from "@/services/api";
 import { useToast } from "@/composables/useToast";
@@ -138,12 +146,36 @@ const error = ref<string | null>(null);
 // Search Query
 const searchQuery = ref<string>("");
 
+const tableColumns = computed(() => [
+  { key: 'guest', label: t("Guest") },
+  { key: 'room', label: t("Room") },
+  { key: 'date_range', label: t("Date Range") },
+  { key: 'purpose', label: t("Purpose") },
+  { key: 'payment', label: t("Payment") },
+  { key: 'actions', label: t("Action"), class: 'text-right' },
+]);
+
 // Pagination
 const currentPage = ref(1);
+const pageInput = ref(1);
 const itemsPerPage = 10;
+
+const totalGuests = computed(() => filteredGuests.value.length);
+
 const totalPages = computed(() =>
-  Math.ceil(filteredGuests.value.length / itemsPerPage),
+  Math.ceil(totalGuests.value / itemsPerPage),
 );
+
+const fromGuest = computed(() => {
+  if (totalGuests.value === 0) return 0;
+  return (currentPage.value - 1) * itemsPerPage + 1;
+});
+
+const toGuest = computed(() => {
+  const end = currentPage.value * itemsPerPage;
+  return end > totalGuests.value ? totalGuests.value : end;
+});
+
 const paginatedGuests = computed(() =>
   filteredGuests.value.slice(
     (currentPage.value - 1) * itemsPerPage,
@@ -151,14 +183,17 @@ const paginatedGuests = computed(() =>
   ),
 );
 
+watch(currentPage, (newPage) => {
+  pageInput.value = newPage;
+});
+
 // Filtered Guests (fix dependency: base on full guests list)
 const filteredGuests = computed(() => {
-  const list = guests.value;
-  if (!searchQuery.value) return list;
+  if (!searchQuery.value) return guests.value;
   const q = searchQuery.value.toLowerCase();
-  return list.filter((guest) =>
+  return guests.value.filter((guest) =>
     `${guest.first_name || guest.name} ${guest.last_name || guest.surname} ${guest.email || ''} ${guest.guest_profile?.purpose_of_visit || guest.notes || ''} ${guest.phone || guest.telephone} ${guest.room?.number || guest.room}`
-      .toLowerCase()
+      ?.toLowerCase()
       .includes(q),
   );
 });
@@ -247,20 +282,29 @@ const exportGuests = async (): Promise<void> => {
   try {
     const params: any = {};
     if (searchQuery.value) params.search = searchQuery.value;
+    params.format = 'csv'; // Request CSV format from backend
     const response = await guestService.export(params);
-    const blob = new Blob([
-      (response && (response as any).data) ? (response as any).data : response
-    ], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', 'guests.xlsx');
+    link.setAttribute('download', 'guests.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
   } catch (err) {
     showError(t('Failed to export guests'));
+  }
+};
+
+const goToPage = () => {
+  const page = Number(pageInput.value);
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page;
+  } else {
+    // Reset input to current page if value is invalid
+    pageInput.value = currentPage.value;
   }
 };
 

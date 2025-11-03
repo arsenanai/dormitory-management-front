@@ -54,60 +54,65 @@
   
         <!-- Rooms Table -->
         <div v-if="!loading && !error" class="overflow-x-auto">
-          <table class="w-full text-sm text-left text-gray-500">
-            <thead class="text-xs text-primary-700 uppercase bg-primary-50">
-              <tr>
-                <th class="px-6 py-3">{{ t("Room Number") }}</th>
-                <th class="px-6 py-3">{{ t("Dormitory") }}</th>
-                <th class="px-6 py-3">{{ t("Room Type") }}</th>
-                <th class="px-6 py-3">{{ t("Floor") }}</th>
-                <th class="px-6 py-3">{{ t("Beds") }}</th>
-                <th class="px-6 py-3">{{ t("Free beds") }}</th>
-                <th class="px-6 py-3">{{ t("Notes") }}</th>
-                <th class="px-6 py-3 text-right">{{ t("Action") }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-if="paginatedRooms.length === 0" class="bg-white border-b">
-                <td colspan="8" class="px-6 py-4 text-center text-gray-500">
-                  No rooms available
-                </td>
-              </tr>
-              <tr v-for="room in paginatedRooms" :key="room.id" class="bg-white border-b hover:bg-gray-50">
-                <td class="px-6 py-4 font-medium">{{ room.number }}</td>
-                <td class="px-6 py-4">{{ getDormitoryName(room) }}</td>
-                <td class="px-6 py-4">{{ getRoomTypeName(room) }}</td>
-                <td class="px-6 py-4">{{ room.floor !== null ? room.floor : '-' }}</td>
-                <td class="px-6 py-4">{{ getBedsCount(room) }}</td>
-                <td class="px-6 py-4">{{ getFreeBeds(room) }}</td>
-                <td class="px-6 py-4">{{ room.notes || '-' }}</td>
-                <td class="px-6 py-4 text-right">
-                  <div class="flex gap-2 justify-end">
-                    <CButton @click="navigateToEditRoom(room.id)" data-testid="edit-room-button">
-                      <PencilSquareIcon class="h-5 w-5" /> {{ t("Edit") }}
-                    </CButton>
-                    <CButton variant="danger" @click="deleteRoom(room.id)" data-testid="delete-room-button">
-                      <TrashIcon class="h5 w-5" /> {{ t("Delete") }}
-                    </CButton>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <CTable :columns="tableColumns" :data="paginatedRooms" :loading="loading">
+            <template #cell-room_type="{ row }">
+              {{ getRoomTypeName(row) }}
+            </template>
+            <template #cell-beds="{ row }">
+              {{ getBedsCount(row) }}
+            </template>
+            <template #cell-free_beds="{ row }">
+              {{ getFreeBeds(row) }}
+            </template>
+            <template #cell-notes="{ row }">
+              {{ row.notes || '-' }}
+            </template>
+            <template #cell-actions="{ row }">
+              <div class="flex gap-2 justify-end">
+                <CButton @click="navigateToEditRoom(row.id)" data-testid="edit-room-button">
+                  <PencilSquareIcon class="h-5 w-5" />
+                </CButton>
+                <CButton variant="danger" @click="deleteRoom(row.id)" data-testid="delete-room-button">
+                  <TrashIcon class="h-5 w-5" />
+                </CButton>
+              </div>
+            </template>
+          </CTable>
         </div>
   
         <!-- Pagination -->
-        <div class="flex items-center justify-between">
-          <CButton :disabled="currentPage === 1" @click="currentPage--" :aria-label="t('Previous page')" data-testid="pagination-button">
-            {{ t("Previous") }}
-          </CButton>
-          <span>
-            {{ t("Page") }} {{ currentPage }} {{ t("of") }} {{ totalPages }}
+        <div class="flex flex-col items-center justify-between gap-4 md:flex-row" data-testid="pagination">
+        <div class="text-sm text-gray-700">
+          <span v-if="totalRooms > 0">
+            <span class="font-medium">{{ fromRoom }}</span> - <span class="font-medium">{{ toRoom }}</span> / <span class="font-medium">{{ totalRooms }}</span>
           </span>
-          <CButton :disabled="currentPage === totalPages" @click="currentPage++" :aria-label="t('Next page')" data-testid="pagination-button">
-            {{ t("Next") }}
+          <span v-else>
+            {{ t('No data available') }}
+          </span>
+        </div>
+        <div class="flex items-center gap-2">
+          <CButton :disabled="currentPage === 1" @click="currentPage--" :aria-label="t('Previous page')" class="h-10">
+            <ChevronLeftIcon class="h-5 w-5" />
+          </CButton>
+          <div class="flex items-center gap-1 text-sm">
+            <div class="w-20">
+              <CInput
+                id="page-input"
+                v-model.number="pageInput"
+                type="number"
+                :min="1"
+                :max="totalPages"
+                class="text-center h-10"
+                @keyup.enter="goToPage"
+              />
+            </div>
+            <span>/ {{ totalPages }}</span>
+          </div>
+          <CButton :disabled="currentPage === totalPages" @click="currentPage++" :aria-label="t('Next page')" class="h-10">
+            <ChevronRightIcon class="h-5 w-5" />
           </CButton>
         </div>
+      </div>
       </div>
     </Navigation>
   </template>
@@ -119,8 +124,8 @@ import { ref, computed, watch, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import CSelect from "@/components/CSelect.vue";
 import CButton from "@/components/CButton.vue";
+import { PlusIcon, PencilSquareIcon, TrashIcon, ChevronLeftIcon, ChevronRightIcon } from "@heroicons/vue/24/outline";
 import CTable from "@/components/CTable.vue";
-import { PlusIcon, PencilSquareIcon, TrashIcon } from "@heroicons/vue/24/outline";
 import { roomService, dormitoryService, roomTypeService } from "@/services/api";
 import { useRoomsStore } from "@/stores/rooms";
 import { useToast } from "@/composables/useToast";
@@ -146,10 +151,24 @@ const error = ref<string | null>(null);
 const currentPage = ref(1);
 const totalPages = ref(1);
 const perPage = ref(15); // Default, will be updated from API
+const pageInput = ref(1);
+const totalRooms = ref(0);
+const fromRoom = ref(0);
+const toRoom = ref(0);
 
 // Search and filter state
 const searchTerm = ref('');
 const statusFilter = ref('');
+
+const tableColumns = [
+  { key: 'number', label: t('Room Number') },
+  { key: 'room_type', label: t('Room Type') },
+  { key: 'floor', label: t('Floor') },
+  { key: 'beds', label: t('Beds') },
+  { key: 'free_beds', label: t('Free beds') },
+  { key: 'notes', label: t('Notes') },
+  { key: 'actions', label: t('Action'), class: 'text-right' },
+];
 const dormitoryFilter = ref<number | ''>('');
 
 // Modal state
@@ -207,6 +226,9 @@ const loadRooms = async () => {
         currentPage.value = roomsResponse.data.current_page;
         totalPages.value = roomsResponse.data.last_page;
         perPage.value = roomsResponse.data.per_page;
+        totalRooms.value = roomsResponse.data.total;
+        fromRoom.value = roomsResponse.data.from;
+        toRoom.value = roomsResponse.data.to;
         rooms.value = roomsResponse.data.data;
       } else if (Array.isArray(roomsResponse.data)) {
         rooms.value = roomsResponse.data;
@@ -257,6 +279,7 @@ const loadRooms = async () => {
 
 onMounted(() => {
   loadRooms();
+  pageInput.value = currentPage.value;
   roomsStore.clearSelectedRoom();
 });
 
@@ -332,12 +355,15 @@ const occupancyStats = computed(() => {
 
 // Keep currentPage in range when rooms change
 watch(currentPage, (newPage, oldPage) => {
-  if (newPage !== oldPage) {
+  if (newPage !== oldPage && newPage > 0) {
+    pageInput.value = newPage;
     loadRooms();
   }
 });
 watch(paginatedRooms, () => {
-  if (currentPage.value > totalPages.value) currentPage.value = totalPages.value;
+  if (totalPages.value > 0 && currentPage.value > totalPages.value) {
+    currentPage.value = totalPages.value;
+  }
 });
 
 // CRUD operations
@@ -402,12 +428,6 @@ function navigateToEditRoom(id: number) {
 }
 
 // Helper functions
-const getDormitoryName = (room: any) => {
-  return room.dormitory?.name || 
-         dormitories.value.find(d => d.id === room.dormitory_id)?.name || 
-         '-';
-};
-
 const getRoomTypeName = (room: any) => {
   return room.room_type?.name || 
          roomTypes.value.find(rt => rt.id === room.room_type_id)?.name || 
@@ -438,6 +458,16 @@ function formatPrice(price: number) {
     currency: 'USD'
   }).format(price);
 }
+
+const goToPage = () => {
+  const page = Number(pageInput.value);
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page;
+  } else {
+    // Reset input to current page if value is invalid
+    pageInput.value = currentPage.value;
+  }
+};
 
 
 </script>

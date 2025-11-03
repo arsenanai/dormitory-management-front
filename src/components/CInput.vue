@@ -55,6 +55,8 @@
         :readonly="readonly"
         :pattern="pattern"
         :autocomplete="autocomplete"
+        :min="type === 'number' ? min : undefined"
+        :max="type === 'number' ? max : undefined"
         :minlength="minLength"
         :maxlength="maxLength"
         :list="datalistId"
@@ -136,6 +138,8 @@ const props = defineProps({
   mask: String,
   error: String,
   help: String,
+  min: [String, Number],
+  max: [String, Number],
   minLength: [String, Number],
   maxLength: [String, Number],
   size: String,

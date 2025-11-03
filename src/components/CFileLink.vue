@@ -1,5 +1,6 @@
 <template>
   <div class="flex w-full flex-col items-start justify-center">
+    <p v-if="downloadError" class="text-sm text-red-500">{{ downloadError }}</p>
     <!-- Label -->
     <label
       v-if="label"
@@ -11,7 +12,7 @@
 
     <!-- File Link Wrapper -->
     <div
-      :id="id + '-wrapper'"
+      :id="id + '-wrapper'" 
       class="flex w-full cursor-pointer flex-row items-center justify-between rounded-lg border border-gray-300 bg-gray-50 hover:bg-gray-200 focus:outline-none focus:ring-4 focus:ring-primary-300 dark:border-gray-600 dark:bg-gray-700 dark:hover:border-gray-500 dark:hover:bg-gray-600 dark:focus:ring-primary-700"
       tabindex="0"
     >
@@ -21,18 +22,16 @@
           class="pointer-events-none absolute top-1/2 left-0 h-8 w-8 -translate-y-1/2 pl-3 text-gray-500 dark:text-gray-400"
         />
 
-        <!-- Show link to file or "not available" text -->
-        <a
+        <!-- Show link to file or "not available" text --> 
+        <button
           v-if="filePath"
           :id="id"
-          :href="fileUrl"
-          :download="fileName"
-          target="_blank"
-          rel="noopener noreferrer"
+          type="button"
+          @click.prevent="downloadFile"
           class="text-base font-medium text-primary-600 hover:underline dark:text-primary-400"
         >
           {{ fileName }}
-        </a>
+        </button>
         <p v-else class="text-base text-gray-500 dark:text-gray-400">
           {{ t('common.notAvailable') }}
         </p>
@@ -43,6 +42,7 @@
 
 <script setup lang="ts">
 import { computed, withDefaults } from 'vue';
+import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { ArrowDownTrayIcon } from '@heroicons/vue/24/outline';
 
@@ -58,7 +58,38 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const { t } = useI18n();
+const downloadError = ref<string | null>(null);
 
 const fileName = computed(() => props.filePath?.split('/').pop() || '');
-const fileUrl = computed(() => `/storage/${props.filePath}`);
+const fileUrl = computed(() => `/api/files/download/${props.filePath}`);
+
+const downloadFile = async () => {
+  downloadError.value = null;
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(fileUrl.value, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Download failed: ${response.statusText}`);
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName.value;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    a.remove();
+  } catch (error: any) {
+    console.error('Download error:', error);
+    downloadError.value = t('Failed to download file. Please try again.');
+  }
+};
 </script>

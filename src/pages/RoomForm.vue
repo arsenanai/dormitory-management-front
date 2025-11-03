@@ -13,6 +13,7 @@
             placeholder="Enter Room Number"
             required
             data-testid="room-number-input"
+            :error="errors.number"
           />
         </div>
         <!-- Floor -->
@@ -37,6 +38,21 @@
             data-testid="room-notes-input"
           />
         </div>
+        <!-- Dormitory -->
+        <div>
+          <CSelect
+            v-if="authStore.user?.role?.name === 'sudo' && !isEditing"
+            id="room-dormitory-select"
+            v-model="room.dormitory_id"
+            :options="dormitoryOptions"
+            :label="t('Dormitory')"
+            :disabled="loadingDormitories"
+            required
+            data-testid="dormitory-select"
+          />
+          <CInput v-else id="room-dormitory" :model-value="room.dormitory?.name" :label="t('Dormitory')" :readonly="true"
+            :placeholder="t('Dormitory preset to your assigned dormitory')" />
+        </div>
         <!-- Room Type -->
         <div>
           <CSelect
@@ -59,7 +75,7 @@
         <div>
           <CInput
             id="room-quota"
-            v-model="room.roomType.capacity"
+            :model-value="room.roomType?.capacity || 0"
             type="number"
             :label="t('Capacity')"
             placeholder="t('Room Capacity')"
@@ -134,6 +150,7 @@ const isEditing = computed(() => !!roomId.value);
 
 // Real dormitories and room types from API
 const roomTypes = ref<RoomType[]>([]);
+const dormitories = ref<any[]>([]);
 const loadingDormitories = ref(false);
 const loadingRoomTypes = ref(false);
 
@@ -145,6 +162,14 @@ const roomTypeOptions = computed(() =>
   }))
 );
 
+const dormitoryOptions = computed(() =>
+  dormitories.value.map(d => ({
+    value: d.id,
+    name: d.name,
+  }))
+);
+
+
 // Room type selection - use direct ref instead of computed property
 const selectedRoomTypeId = ref<number | null>(null);
 
@@ -154,8 +179,8 @@ const room = ref(
     "",   // number
     null, // floor
     "",   // notes
-    null, // dormitory
-    new RoomType('1', 'standard'), // roomType
+    { id: null, name: '' }, // dormitory
+    null, // roomType
     [],   // beds
     2     // quota
   )
@@ -163,6 +188,9 @@ const room = ref(
 
 // Store original bed data from API for updates
 const originalBeds = ref<any[]>([]);
+
+// Error handling
+const errors = ref<Record<string, string>>({});
 
 // Beds preview - use ref instead of computed to maintain reactivity
 const bedsPreview = ref<any[]>([]);
@@ -203,6 +231,8 @@ const updateBedsPreview = () => {
 
 // Submit handler
 async function submitRoom() {
+  errors.value = {}; // Clear previous errors
+
   try {
     // Validate required fields
     if (!room.value.number || !room.value.roomType) {
@@ -216,7 +246,7 @@ async function submitRoom() {
       floor: room.value.floor,
       notes: room.value.notes,
       room_type_id: room.value.roomType?.id || null,
-      dormitory_id: room.value.dormitory?.id || null,
+      dormitory_id: room.value.dormitory_id || room.value.dormitory?.id || null,
     } as any;
     
     // If editing, also update bed reservations
@@ -255,8 +285,18 @@ async function submitRoom() {
   // Navigate back to rooms page
   router.push('/rooms');
 } catch (error) {
-  console.error('Error saving room:', error);
-  showError(t("Failed to save room. Please try again."));
+    const err = error as any;
+    if (err.response?.data?.errors) {
+      // Handle validation errors from API
+      Object.keys(err.response.data.errors).forEach(key => {
+        errors.value[key] = Array.isArray(err.response.data.errors[key])
+          ? err.response.data.errors[key][0]
+          : err.response.data.errors[key];
+      });
+    } else {
+      showError(err.response?.data?.message || t("Failed to save room. Please try again."));
+    }
+    console.error('Error saving room:', error);
 }
 }
 
@@ -295,6 +335,7 @@ const loadRoom = async (id: number) => {
       quota:    roomData.quota || 4,
       beds:     roomData.beds || [], // Load existing beds from API
       dormitory: roomData.dormitory || null,
+      dormitory_id: roomData.dormitory?.id || null,
     } as Room;
     
     // Update beds preview after loading room data
@@ -376,6 +417,7 @@ watch(bedsPreview, (newBedsPreview) => {
     }
     
     // Load dormitories and room types from API first
+    await loadDormitories();
     await loadRoomTypes();
     
     console.log('Dormitories and room types loaded');
@@ -391,17 +433,46 @@ watch(bedsPreview, (newBedsPreview) => {
       console.log('Beds preview should show:', bedsPreview.value);
     } else {
       // Only restore from store for new rooms
-      roomStore.restoreSelectedRoom();
+      if (roomStore.selectedRoom) {
+        room.value.dormitory = roomStore.selectedRoom.dormitory;
+        room.value.dormitory_id = roomStore.selectedRoom.dormitory_id;
+      }
+      // roomStore.restoreSelectedRoom();
     }
     
     console.log('Final room state after mount:', room.value);
   });
 
+const loadDormitories = async () => {
+  if (authStore.user?.role?.name !== 'sudo') return;
+  loadingDormitories.value = true;
+  try {
+    const response = await api.dormitoryService.getAll();
+    if (response.data && Array.isArray(response.data.data)) {
+      dormitories.value = response.data.data;
+    } else if (response.data && Array.isArray(response.data)) {
+      dormitories.value = response.data;
+    }
+  } catch (error) {
+    console.error('Failed to load dormitories:', error);
+  } finally {
+    loadingDormitories.value = false;
+  }
+};
+
 const loadRoomTypes = async () => {
   loadingRoomTypes.value = true;
   
+  const params: { dormitory_id?: number } = {};
+  const user = authStore.user;
+
+  // If the user is an admin and has an assigned dormitory, filter by it.
+  if (user?.role?.name === 'admin' && user.adminDormitory?.id) {
+    params.dormitory_id = user.adminDormitory.id;
+  }
+
   try {
-    const roomTypesResponse = await roomTypeService.getAll();
+    const roomTypesResponse = await roomTypeService.getAll(params);
     if (roomTypesResponse.data && roomTypesResponse.data.data) {
       roomTypes.value = roomTypesResponse.data.data;
     } else if (roomTypesResponse.data && Array.isArray(roomTypesResponse.data)) {

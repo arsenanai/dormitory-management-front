@@ -42,6 +42,12 @@ vi.mock('@/stores/rooms', () => ({
   }),
 }));
 
+vi.mock('@/stores/auth', () => ({
+  useAuthStore: () => ({
+    user: { role: { name: 'sudo' } },
+  }),
+}));
+
 // Helper function to create mock API responses
 const createMockResponse = (data: any) => ({
   data,
@@ -63,7 +69,7 @@ describe('RoomForm', () => {
         floor: 2,
         notes: 'Near the stairs',
         dormitory: { id: 1, name: 'A-BLOCK' },
-        roomType: { id: 1, name: 'Standard' },
+        room_type: { id: 1, name: 'Standard', capacity: 2 },
       })
     );
 
@@ -100,7 +106,7 @@ describe('RoomForm', () => {
       expect(wrapper.find('#room-number').exists()).toBe(true);
       expect(wrapper.find('#room-floor').exists()).toBe(true);
       expect(wrapper.find('#room-notes').exists()).toBe(true);
-      expect(wrapper.find('#room-dormitory').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="dormitory-select"]').exists()).toBe(true);
       expect(wrapper.find('#room-type').exists()).toBe(true);
     });
 
@@ -116,7 +122,7 @@ describe('RoomForm', () => {
       expect(component.room.floor).toBe(null);
       expect(component.room.notes).toBe('');
       expect(component.room.roomType).toBe(null);
-      expect(component.room.dormitory).toBeDefined();
+      expect(component.room.dormitory_id).toBeUndefined();
     });
 
     it('should have room type options available', async () => {
@@ -496,36 +502,6 @@ describe('RoomForm', () => {
     });
   });
 
-  describe('Dormitory Display', () => {
-    it('should display dormitory name as readonly', () => {
-      const wrapper = mount(RoomForm, {
-        global: {
-          plugins: [router, i18n],
-        },
-      });
-
-      const dormitoryInput = wrapper.find('#room-dormitory');
-      expect(dormitoryInput.attributes('readonly')).toBeDefined();
-    });
-
-    it('should show the correct dormitory name', async () => {
-      const wrapper = mount(RoomForm, {
-        global: {
-          plugins: [router, i18n],
-        },
-      });
-
-      const component = wrapper.vm as any;
-      // Wait for async loading
-      await component.$nextTick();
-      await new Promise(r => setTimeout(r, 50));
-      
-      // Dormitory should be populated after load
-      expect(component.room.dormitory).toBeTruthy();
-      expect(component.room.dormitory?.name).toBe('A-BLOCK');
-    });
-  });
-
   describe('Accessibility', () => {
     it('should have proper form labels and IDs', () => {
       const wrapper = mount(RoomForm, {
@@ -538,7 +514,6 @@ describe('RoomForm', () => {
       expect(wrapper.find('label[for="room-number"]').exists()).toBe(true);
       expect(wrapper.find('label[for="room-floor"]').exists()).toBe(true);
       expect(wrapper.find('label[for="room-notes"]').exists()).toBe(true);
-      expect(wrapper.find('label[for="room-dormitory"]').exists()).toBe(true);
       expect(wrapper.find('label[for="room-type"]').exists()).toBe(true);
     });
 

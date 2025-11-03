@@ -5,14 +5,7 @@
         <!-- Filters and Add Button -->
         <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div class="flex flex-col gap-2 lg:flex-row lg:items-end">
-            <CSelect
-              id="dormitory-filter"
-              v-model="filters.dormitory"
-              :options="dormitoryOptions"
-              :label="t('Dormitory')"
-              :placeholder="t('Select Dormitory')"
-              class="lg:w-40"
-            />
+            
           </div>
           <div class="flex-1 flex justify-end">
             <CButton @click="navigateToAddRoomType">
@@ -33,36 +26,32 @@
         </div>
   
         <!-- Room Types Table -->
-        <div v-if="!loading && !error" class="overflow-x-auto relative border border-gray-300 sm:rounded-lg">
-          <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-            <CTableHead>
-              <CTableHeadCell>{{ t("Room Type Name") }}</CTableHeadCell>
-              <CTableHeadCell>{{ t("Capacity") }}</CTableHeadCell>
-              <CTableHeadCell>{{ t("Price") }}</CTableHeadCell>
-              <CTableHeadCell class="text-right">{{ t("Action") }}</CTableHeadCell>
-            </CTableHead>
-            <CTableBody>
-              <CTableRow v-for="roomType in paginatedRoomTypes" :key="roomType.id">
-                <CTableCell>
-                  <span class="font-medium">{{ capitalize(roomType.name) }}</span>
-                </CTableCell>
-                <CTableCell>{{ roomType.capacity || getBedCount(roomType) }}</CTableCell>
-                <CTableCell>{{ formatPrice(roomType.price || 0) }}</CTableCell>
-                <CTableCell class="text-right flex gap-2 justify-end">
-                  <CButton @click="navigateToEditRoomType(roomType.id)">
-                    <PencilSquareIcon class="h-5 w-5" /> {{ t("Edit") }}
-                  </CButton>
-                  <CButton variant="danger" @click="deleteRoomType(roomType.id)">
-                    <TrashIcon class="h-5 w-5" /> {{ t("Delete") }}
-                  </CButton>
-                </CTableCell>
-              </CTableRow>
-            </CTableBody>
-          </table>
+        <div v-if="!loading && !error">
+          <CTable :columns="columns" :data="paginatedRoomTypes" :loading="loading">
+            <template #cell-name="{ row }">
+              <span class="font-medium">{{ capitalize(row.name) }}</span>
+            </template>
+            <template #cell-capacity="{ row }">
+              {{ row.capacity || getBedCount(row) }}
+            </template>
+            <template #cell-price="{ row }">
+              {{ formatPrice(row.price || 0) }}
+            </template>
+            <template #cell-actions="{ row }">
+              <div class="flex gap-2 justify-end">
+                <CButton @click="navigateToEditRoomType(row.id)">
+                  <PencilSquareIcon class="h-5 w-5" />
+                </CButton>
+                <CButton variant="danger" @click="deleteRoomType(row.id)">
+                  <TrashIcon class="h-5 w-5" />
+                </CButton>
+              </div>
+            </template>
+          </CTable>
         </div>
   
         <!-- Pagination -->
-        <div class="flex items-center justify-between">
+        <!-- <div class="flex items-center justify-between">
           <CButton :disabled="currentPage === 1" @click="currentPage--" :aria-label="t('Previous page')">
             {{ t("Previous") }}
           </CButton>
@@ -72,7 +61,7 @@
           <CButton :disabled="currentPage === totalPages" @click="currentPage++" :aria-label="t('Next page')">
             {{ t("Next") }}
           </CButton>
-        </div>
+        </div> -->
       </div>
     </Navigation>
   </template>
@@ -84,13 +73,10 @@
   import { useRouter } from "vue-router";
   import CSelect from "@/components/CSelect.vue";
   import CButton from "@/components/CButton.vue";
-  import CTableHead from "@/components/CTableHead.vue";
-  import CTableHeadCell from "@/components/CTableHeadCell.vue";
-  import CTableBody from "@/components/CTableBody.vue";
-  import CTableRow from "@/components/CTableRow.vue";
-  import CTableCell from "@/components/CTableCell.vue";
+  import CTable from "@/components/CTable.vue";
   import { PlusIcon, PencilSquareIcon, TrashIcon } from "@heroicons/vue/24/outline";
   import { roomTypeService, dormitoryService, configurationService } from "@/services/api";
+  import { formatCurrency } from "@/utils/formatters";
   import { useRoomTypesStore } from "@/stores/roomTypes";
 import { useToast } from "@/composables/useToast";
   
@@ -108,6 +94,13 @@ const { showError, showSuccess, showConfirmation } = useToast();
   const loading = ref(false);
   const error = ref<string | null>(null);
   const currencySymbol = ref('USD');
+
+  const columns = [
+    { key: 'name', label: t('Room Type Name') },
+    { key: 'capacity', label: t('Capacity') },
+    { key: 'price', label: t('Price') },
+    { key: 'actions', label: t('Action'), class: 'text-right' },
+  ];
   
   // Load data on component mount
   const loadData = async () => {
@@ -178,23 +171,14 @@ const { showError, showSuccess, showConfirmation } = useToast();
   const sortBy = ref('');
   const sortOrder = ref('asc');
   
-  // Filtered room types
-  const filteredRoomTypes = computed(() => {
-    if (!filters.value.dormitory) return roomTypes.value;
-    return roomTypes.value.filter(
-      (rt) => rt.dormitory_id === parseInt(filters.value.dormitory) ||
-             rt.dormitory?.id === parseInt(filters.value.dormitory)
-    );
-  });
-  
   // Pagination
   const currentPage = ref(1);
   const itemsPerPage = 10;
   const totalPages = computed(() =>
-    Math.ceil(filteredRoomTypes.value.length / itemsPerPage)
+    Math.ceil(roomTypes.value.length / itemsPerPage)
   );
   const paginatedRoomTypes = computed(() =>
-    filteredRoomTypes.value.slice(
+    roomTypes.value.slice(
       (currentPage.value - 1) * itemsPerPage,
       currentPage.value * itemsPerPage
     )
@@ -294,9 +278,7 @@ const { showError, showSuccess, showConfirmation } = useToast();
   }
   
   // Utility functions
-  const formatPrice = (price: number): string => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: currencySymbol.value }).format(price);
-  };
+  const formatPrice = (price: number): string => formatCurrency(price, currencySymbol.value);
 
   const formatAmenities = (amenities: string[]): string => {
     return amenities.join(', ');
@@ -321,7 +303,7 @@ const { showError, showSuccess, showConfirmation } = useToast();
   });
   
   const sortedRoomTypes = computed(() => {
-    const sorted = [...filteredRoomTypes.value];
+    const sorted = [...roomTypes.value];
     
     if (!sortBy.value) {
       return sorted;

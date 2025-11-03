@@ -13,12 +13,12 @@
           <!-- General Settings -->
           <div class="border border-gray-200 rounded-lg p-4">
             <h3 class="text-md font-medium mb-3 text-primary-600">{{ t('General Settings') }}</h3>
-            <CInput
+            <CSelect
               id="currency-symbol"
               v-model="generalSettingsForm.currency_symbol"
-              :label="t('Currency Symbol')"
-              :placeholder="t('e.g., USD, KZT')"
+              :label="t('Currency')"
               class="mb-4"
+              :options="currencyOptions"
               required
             />
           </div>
@@ -159,6 +159,8 @@ import Navigation from '@/components/CNavigation.vue';
 import CButton from '@/components/CButton.vue';
 import CInput from '@/components/CInput.vue';
 import CCheckbox from '@/components/CCheckbox.vue';
+import CSelect from '@/components/CSelect.vue';
+import { currencySymbolMap } from '@/utils/formatters';
 import { useSettingsStore, type CardReaderSettings, type OneCSettings, type KaspiSettings, type GeneralSettings } from '@/stores/settings';
 
 const { t } = useI18n(); 
@@ -168,6 +170,12 @@ const generalSettingsForm = reactive({
   currency_symbol: 'USD',
 });
 
+const currencyOptions = computed(() =>
+  Object.keys(currencySymbolMap).map(key => ({
+    value: key,
+    name: `${key} (${currencySymbolMap[key]})`
+  }))
+);
 
 // Form data
 const kaspiForm = reactive<KaspiSettings>({
@@ -176,8 +184,6 @@ const kaspiForm = reactive<KaspiSettings>({
   kaspi_merchant_id: null,
   kaspi_webhook_url: null,
 });
-
-
 
 const cardReaderForm = reactive<CardReaderSettings>({
   card_reader_enabled: false,
@@ -195,12 +201,6 @@ const onecForm = reactive<OneCSettings>({
   onec_password: '',
   onec_sync_interval: 3600,
 });
-
-
-
-
-
-
 
 // Computed
 const loading = computed(() => settingsStore.loading); 

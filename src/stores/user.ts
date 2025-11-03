@@ -10,6 +10,7 @@ interface User {
   gender?: string;
   room_id?: number | null;
   created_at?: string;
+  dormitory?: any;
   [key: string]: any;
 }
 

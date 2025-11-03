@@ -1,6 +1,8 @@
 import { Role } from "./Role";
 import { City } from "./City";
 import { Room } from "./Room";
+import { Dormitory } from "./Dormitory";
+
 
 export type UserStatus = "pending" | "active" | "passive";
 
@@ -40,7 +42,8 @@ export interface User {
   // Timestamps
   created_at?: string;
   updated_at?: string;
-  deleted_at?: string;
+  deleted_at?: string;  
+  dormitory?: Dormitory; // Add dormitory to the main User interface
 }
 
 // Import types after the interface to avoid circular imports
@@ -58,7 +61,8 @@ export class UserRegistration {
   gender: string;
   email: string;
   phoneNumbers: string[];
-  room: Room | null;
+  roomId: number | null;
+  dormitoryId: number | null;
   password: string;
   confirmPassword: string;
   dealNumber: string;
@@ -79,7 +83,8 @@ export class UserRegistration {
     gender = "",
     email = "",
     phoneNumbers: string[] = [""],
-    room: Room | null = null,
+    roomId: number | null = null,
+    dormitoryId: number | null = null,
     password = "",
     confirmPassword = "",
     dealNumber = "",
@@ -99,7 +104,8 @@ export class UserRegistration {
     this.gender = gender;
     this.email = email;
     this.phoneNumbers = phoneNumbers;
-    this.room = room;
+    this.roomId = roomId;
+    this.dormitoryId = dormitoryId;
     this.password = password;
     this.confirmPassword = confirmPassword;
     this.dealNumber = dealNumber;

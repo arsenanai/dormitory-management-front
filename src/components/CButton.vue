@@ -101,9 +101,9 @@ const buttonClasses = computed(() => {
   } else if (props.variant === 'danger') {
     classes.push('danger');
     if (props.outline) {
-      classes.push('text-red-500 border border-red-500 bg-transparent hover:bg-red-500 hover:text-white');
+      classes.push('text-red-500 border border-red-500 bg-transparent hover:bg-red-500 hover:text-white focus:ring-4 focus:ring-red-200');
     } else {
-      classes.push('text-white bg-red-500 hover:bg-red-600 border border-red-500');
+      classes.push('text-white bg-red-500 hover:bg-red-600 border border-red-500 focus:ring-4 focus:ring-red-200');
     }
   } else if (props.variant === 'secondary-circle') {
     classes.push('secondary-circle');
