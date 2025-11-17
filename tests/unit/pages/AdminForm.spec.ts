@@ -305,10 +305,6 @@ describe('AdminForm', () => {
 
       const component = wrapper.vm as any;
       
-      // Debug: Check if we're in editing mode
-      console.log('isEditing:', component.isEditing);
-      console.log('userId:', component.userId);
-      
       // Fill form data
       component.user = {
         name: 'John',
@@ -322,40 +318,13 @@ describe('AdminForm', () => {
         office_phone: '+1234567890',
       };
 
-      // Debug: Check phone number validation
-      console.log('Phone number validation check:', {
-        phone_numbers: component.user.phone_numbers,
-        length: component.user.phone_numbers?.length,
-        first: component.user.phone_numbers?.[0],
-        isTruthy: !!component.user.phone_numbers?.[0],
-      });
-
       // Mock the showError function to prevent it from throwing
       const showErrorSpy = vi.spyOn(component, 'showError').mockImplementation(() => {});
 
-      // Debug: Check form data before submission
-      console.log('Form data before submission:', {
-        phone_numbers: component.user.phone_numbers,
-        name: component.user.name,
-        email: component.user.email,
-        password: component.user.password,
-        confirmPassword: component.user.confirmPassword,
-      });
-
-      // Debug: Check if submitForm method exists
-      console.log('submitForm method exists:', typeof component.submitForm);
-      console.log('submitForm method:', component.submitForm);
-
       try {
         await component.submitForm();
-        console.log('submitForm completed successfully');
       } catch (error) {
-        console.log('submitForm threw an error:', error);
       }
-
-      // Debug: Check if showError was called
-      console.log('showError called:', showErrorSpy.mock.calls.length);
-      console.log('showError calls:', showErrorSpy.mock.calls);
 
       // Should handle the error gracefully
       expect(api.adminService.create).toHaveBeenCalled();

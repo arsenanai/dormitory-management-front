@@ -39,23 +39,6 @@
         </form>
       </section>
 
-      <!-- Website Language Section -->
-      <section>
-        <h2 class="text-lg font-semibold mb-4 text-primary-700">{{ t('Website Language') }}</h2>
-        <div class="space-y-4">
-          <CSelect
-            id="website-locale"
-            v-model="currentLocale"
-            :label="t('Display Language')"
-            :options="localeOptions"
-            @update:model-value="changeLocale"
-          />
-          <p class="text-sm text-gray-600">
-            {{ t('Choose the language for displaying the website interface.') }}
-          </p>
-        </div>
-      </section>
-
       <!-- Security Settings Section -->
       <section>
         <h2 class="text-lg font-semibold mb-4 text-primary-700">{{ t('Security Settings') }}</h2>
@@ -160,6 +143,7 @@ import CSelect from '@/components/CSelect.vue';
 import CCheckbox from '@/components/CCheckbox.vue';
 import { useAuthStore } from '@/stores/auth';
 import { useAccessibility } from '@/composables/useAccessibility';
+import { useToast } from '@/composables/useToast';
 
 const { t, locale } = useI18n();
 const authStore = useAuthStore();
@@ -167,6 +151,7 @@ const { settings: accessibilitySettings, loadSettings: loadAccessibilitySettings
 
 // Form data
 const profileForm = reactive({
+  id: null,
   name: '',
   email: '',
   phone: '',
@@ -228,6 +213,7 @@ const loadProfile = async () => {
     // Load user profile data
     const user = authStore.user;
     if (user) {
+      profileForm.id = user.id;
       profileForm.name = user.name || '';
       profileForm.email = user.email || '';
       profileForm.phone = user.phone || '';
@@ -250,9 +236,14 @@ const loadProfile = async () => {
 const saveProfile = async () => {
   loading.value = true;
   try {
-    // Save profile logic here
-    console.log('Saving profile:', profileForm);
+    await authStore.updateProfile(profileForm);
+    // Also update the i18n locale and save it for persistence
+    if (locale.value !== profileForm.language) {
+      changeLocale(profileForm.language);
+    }
+    useToast().showSuccess(t('Profile updated successfully!'));
   } catch (error) {
+    useToast().showError(t('Failed to update profile'));
     console.error('Failed to save profile:', error);
   } finally {
     loading.value = false;

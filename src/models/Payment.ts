@@ -1,21 +1,15 @@
-export class Payment {
-  name: string;
-  surname: string;
-  dogovorDate: string;
-  dogovorNumber: string;
-  payment: string;
+import type { User } from './User';
 
-  constructor(
-    name: string,
-    surname: string,
-    dogovorDate: string,
-    dogovorNumber: string,
-    payment: string
-  ) {
-    this.name = name;
-    this.surname = surname;
-    this.dogovorDate = dogovorDate;
-    this.dogovorNumber = dogovorNumber;
-    this.payment = payment;
-  }
+export class Payment {
+  id: number;
+  user_id: number;
+  amount: number;
+  date_from: string;
+  date_to: string;
+  deal_number?: string;
+  deal_date?: string;
+  payment_check?: string;
+  created_at: string;
+  updated_at: string;
+  user?: User;
 }

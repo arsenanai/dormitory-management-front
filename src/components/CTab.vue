@@ -1,10 +1,5 @@
 <template>
-  <div
-    v-show="isActive"
-    role="tabpanel"
-    :aria-labelledby="`${name}-tab`"
-    class="rounded-lg p-4"
-  >
+  <div v-show="isActive" role="tabpanel" :aria-labelledby="`${name}-tab`" class="rounded-lg p-4 h-full">
     <slot />
   </div>
 </template>

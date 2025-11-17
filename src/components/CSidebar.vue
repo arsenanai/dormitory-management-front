@@ -152,22 +152,15 @@ const mapSubmenus = (menuName: string): Menu[] => {
 
 // Filter top-level menus with role-based access
 const topLevelMenus = computed<Menu[]>(() => {
-  console.log('🔍 CSidebar - Current user role:', authStore.userRole);
-  console.log('🔍 CSidebar - Available routes:', router.options.routes.filter(route => route.meta?.sidebar));
-  
   const filteredRoutes = router.options.routes
     .filter((route) => route.meta?.sidebar && !route.meta?.parent)
     .filter((route) => {
       // Check role-based access
       if (route.meta?.roles && Array.isArray(route.meta.roles) && route.meta.roles.length > 0) {
-        const hasAccess = route.meta.roles.includes(authStore.userRole || '');
-        console.log(`🔍 Route ${route.name} (${route.path}) - roles: ${route.meta.roles}, userRole: ${authStore.userRole}, hasAccess: ${hasAccess}`);
-        return hasAccess;
+        return route.meta.roles.includes(authStore.userRole || '');
       }
       return true;
     });
-    
-  console.log('🔍 CSidebar - Filtered routes:', filteredRoutes);
   
   return filteredRoutes.map((menu) => ({
     ...mapRouteToMenu(menu),

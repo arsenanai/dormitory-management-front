@@ -3,172 +3,93 @@
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <!-- Guest First Name -->
       <div>
-        <CInput
-          id="guest-first-name"
-          v-model="user.first_name"
-          type="text"
-          :label="t('Firstname')"
-          placeholder="Enter Firstname"
-          required
-        />
+        <CInput id="guest-first-name" v-model="user.first_name" type="text" :label="t('Firstname')"
+          placeholder="Enter Firstname" required />
       </div>
 
       <!-- Guest Last Name -->
       <div>
-        <CInput
-          id="guest-last-name"
-          v-model="user.last_name"
-          type="text"
-          :label="t('Surname')"
-          placeholder="Enter Surname"
-          required
-        />
+        <CInput id="guest-last-name" v-model="user.last_name" type="text" :label="t('Surname')"
+          placeholder="Enter Surname" required />
       </div>
 
       <!-- Phone -->
       <div>
-        <CInput
-          id="guest-phone"
-          v-model="phoneNumber"
-          type="tel"
-          :label="t('Tel no')"
-          placeholder="+7(___)_______"
-          required
-        />
+        <CInput id="guest-phone" v-model="phoneNumber" type="tel" :label="t('Tel no')" placeholder="+7(___)_______"
+          required />
       </div>
 
       <!-- Email -->
       <div>
-        <CInput
-          id="guest-email"
-          v-model="user.email"
-          type="email"
-          :label="t('Email')"
-          placeholder="Enter Email"
-          required
-        />
+        <CInput id="guest-email" v-model="user.email" type="email" :label="t('Email')" placeholder="Enter Email"
+          required />
       </div>
 
       <!-- Enter Date -->
       <div>
-        <CInput
-          id="guest-enter-date"
-          v-model="guestProfile.visit_start_date"
-          type="date"
-          :label="t('Enter date')"
-          required
-        />
+        <CInput id="guest-enter-date" v-model="guestProfile.visit_start_date" type="date" :label="t('Enter date')"
+          required />
       </div>
 
       <!-- Exit Date -->
       <div>
-        <CInput
-          id="guest-exit-date"
-          v-model="guestProfile.visit_end_date"
-          type="date"
-          :label="t('Exit date')"
-          required
-        />
+        <CInput id="guest-exit-date" v-model="guestProfile.visit_end_date" type="date" :label="t('Exit date')"
+          required />
       </div>
 
       <!-- Room Selection -->
       <div>
-        <CSelect
-          id="guest-room"
-          v-model="user.room_id"
-          :options="roomOptions"
-          :label="t('Select room')"
-          required
-        />
+        <CSelect id="guest-room" v-model="user.room_id" :options="roomOptions" :label="t('Select room')" required />
       </div>
 
       <!-- Purpose of Visit -->
       <div>
-        <CInput
-          id="guest-purpose"
-          v-model="guestProfile.purpose_of_visit"
-          type="text"
-          :label="t('guest.form.purposeOfVisit')"
-          placeholder="Enter purpose of visit"
-          required
-        />
+        <CInput id="guest-purpose" v-model="guestProfile.purpose_of_visit" type="text"
+          :label="t('guest.form.purposeOfVisit')" placeholder="Enter purpose of visit" required />
       </div>
 
       <!-- Host Name -->
       <div>
-        <CInput
-          id="guest-host-name"
-          v-model="guestProfile.host_name"
-          type="text"
-          :label="t('guest.form.hostName')"
-          placeholder="Enter host name"
-        />
+        <CInput id="guest-host-name" v-model="guestProfile.host_name" type="text" :label="t('guest.form.hostName')"
+          placeholder="Enter host name" />
       </div>
 
       <!-- Host Contact -->
       <div>
-        <CInput
-          id="guest-host-contact"
-          v-model="guestProfile.host_contact"
-          type="text"
-          :label="t('guest.form.hostContact')"
-          placeholder="Enter host contact"
-        />
+        <CInput id="guest-host-contact" v-model="guestProfile.host_contact" type="text"
+          :label="t('guest.form.hostContact')" placeholder="Enter host contact" />
       </div>
 
       <!-- Identification Type -->
       <div>
-        <CSelect
-          id="guest-identification-type"
-          v-model="guestProfile.identification_type"
-          :options="identificationOptions"
-          :label="t('guest.form.identificationType')"
-          placeholder="Select identification type"
-        />
+        <CSelect id="guest-identification-type" v-model="guestProfile.identification_type"
+          :options="identificationOptions" :label="t('guest.form.identificationType')"
+          placeholder="Select identification type" />
       </div>
 
       <!-- Identification Number -->
       <div>
-        <CInput
-          id="guest-identification-number"
-          v-model="guestProfile.identification_number"
-          type="text"
-          :label="t('guest.form.identificationNumber')"
-          placeholder="Enter identification number"
-        />
+        <CInput id="guest-identification-number" v-model="guestProfile.identification_number" type="text"
+          :label="t('guest.form.identificationNumber')" placeholder="Enter identification number" />
       </div>
 
       <!-- Emergency Contact Name -->
       <div>
-        <CInput
-          id="guest-emergency-name"
-          v-model="guestProfile.emergency_contact_name"
-          type="text"
-          :label="t('guest.form.emergencyName')"
-          placeholder="Enter emergency contact name"
-        />
+        <CInput id="guest-emergency-name" v-model="guestProfile.emergency_contact_name" type="text"
+          :label="t('guest.form.emergencyName')" placeholder="Enter emergency contact name" />
       </div>
 
       <!-- Emergency Contact Phone -->
       <div>
-        <CInput
-          id="guest-emergency-phone"
-          v-model="guestProfile.emergency_contact_phone"
-          type="tel"
-          :label="t('guest.form.emergencyPhone')"
-          placeholder="Enter emergency contact phone"
-        />
+        <CInput id="guest-emergency-phone" v-model="guestProfile.emergency_contact_phone" type="tel"
+          :label="t('guest.form.emergencyPhone')" placeholder="Enter emergency contact phone" />
       </div>
 
       <!-- Information / Reminder -->
       <div class="col-span-1 lg:col-span-2">
-        <CTextarea
-          id="guest-reminder"
-          v-model="guestProfile.reminder"
-          :label="t('guest.form.enterInformationOrReminder')"
-          :placeholder="t('guest.form.enterInformationOrReminder')"
-          :rows="3"
-        />
+        <CTextarea id="guest-reminder" v-model="guestProfile.reminder"
+          :label="t('guest.form.enterInformationOrReminder')" :placeholder="t('guest.form.enterInformationOrReminder')"
+          :rows="3" />
       </div>
     </div>
 
@@ -178,15 +99,8 @@
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <!-- Daily Rate -->
       <div data-testid="paid-amount-input-container">
-        <CInput
-          id="guest-daily-rate"
-          v-model="guestProfile.total_amount"
-          type="number"
-          :label="`${t('Paid Amount')} (${currencySymbol})`"
-          placeholder="Enter Paid Amount"
-          step="0.01"
-          min="0"
-        />
+        <CInput id="guest-daily-rate" v-model="guestProfile.total_amount" type="number"
+          :label="`${t('Total Amount')} (${currencySymbol})`" placeholder="Enter Paid Amount" step="0.01" min="0" />
       </div>
 
 
@@ -265,11 +179,12 @@ const guestProfile = ref<Partial<GuestProfile>>({
 });
 
 const currencySymbol = computed(() => {
-  return getCurrencySymbol(settingsStore.generalSettings?.currency_symbol);
+  return getCurrencySymbol(settingsStore.publicSettings?.currency_symbol);
 });
 
 // Room Options
 const roomOptions = ref<{ value: string; name: string }[]>([]);
+const allRoomsData = ref<any[]>([]); // To store full room data for rate lookup
 const loadingRooms = ref(false);
 
 const fetchAvailableRooms = async () => {
@@ -277,13 +192,16 @@ const fetchAvailableRooms = async () => {
   try {
     const availableRoomsResponse = await guestService.getAvailableRooms();
     let allRooms = availableRoomsResponse.data || [];
-
+    allRoomsData.value = allRooms;
     // If editing, ensure the guest's current room is in the list
     if (isEditing.value && guestId.value) {
       const guestResponse = await guestService.getById(guestId.value);
       const currentRoom = guestResponse.data.room;
       if (currentRoom && !allRooms.some(room => room.id === currentRoom.id)) {
         allRooms.push(currentRoom);
+        if (!allRoomsData.value.some(r => r.id === currentRoom.id)) {
+          allRoomsData.value.push(currentRoom);
+        }
       }
     }
 
@@ -328,7 +246,7 @@ const submitForm = async (): Promise<void> => {
       emergency_contact_name: guestProfile.value.emergency_contact_name || undefined,
       emergency_contact_phone: guestProfile.value.emergency_contact_phone || undefined,
     };
-    
+
     if (isEditing.value) {
       await guestService.update(guestId.value, payload);
       showSuccess(t("Guest information updated successfully!"));
@@ -354,14 +272,14 @@ const loadGuest = async (id: number) => {
   try {
     const response = await guestService.getById(id);
     const guestData = response.data;
-    
+
     // Populate user fields
     // Split the combined name into first and last names
     const fullName = guestData.first_name || guestData.last_name || "";
     const nameParts = fullName.split(' ');
     const firstName = nameParts[0] || "";
     const lastName = nameParts.slice(1).join(' ') || "";
-    
+
     user.value = {
       first_name: guestData.first_name,
       last_name: guestData.last_name,
@@ -369,11 +287,11 @@ const loadGuest = async (id: number) => {
       phone_numbers: guestData.phone_numbers?.length ? [...guestData.phone_numbers] : guestData.phone ? [guestData.phone] : [""],
       room_id: guestData.room_id,
     };
-    
+
     // Populate guestProfile fields
     guestProfile.value = {
       purpose_of_visit: guestData.guest_profile?.purpose_of_visit || guestData.notes || "",
-      host_name: guestData.guest_profile?.host_name || "",
+      host_name: guestData.guest_profile?.host_name || guestData.host_name || "",
       host_contact: guestData.guest_profile?.host_contact || "",
       visit_start_date: guestData.guest_profile?.visit_start_date || "",
       visit_end_date: guestData.guest_profile?.visit_end_date || "",
@@ -392,7 +310,6 @@ const loadGuest = async (id: number) => {
 onMounted(async () => {
   // If editing, load from API
   // Fetch rooms first, which now handles including the current guest's room in edit mode
-  await settingsStore.fetchAllSettings();
   await fetchAvailableRooms();
   if (isEditing.value) {
     await loadGuest(guestId.value!);
@@ -409,6 +326,26 @@ watch(
   },
   { immediate: true }
 );
+
+// Watch for changes in room selection, start date, or end date to calculate total amount
+watch([() => user.value.room_id, () => guestProfile.value.visit_start_date, () => guestProfile.value.visit_end_date], () => {
+  if (user.value.room_id && guestProfile.value.visit_start_date && guestProfile.value.visit_end_date) {
+    const selectedRoom = allRoomsData.value.find(room => room.id === user.value.room_id);
+    if (selectedRoom && selectedRoom.room_type?.daily_rate) {
+      const startDate = new Date(guestProfile.value.visit_start_date);
+      const endDate = new Date(guestProfile.value.visit_end_date);
+      if (endDate > startDate) {
+        const timeDiff = endDate.getTime() - startDate.getTime();
+        const days = Math.ceil(timeDiff / (1000 * 3600 * 24));
+        guestProfile.value.total_amount = days * selectedRoom.room_type.daily_rate;
+      } else {
+        guestProfile.value.total_amount = 0;
+      }
+    } else {
+      guestProfile.value.total_amount = 0;
+    }
+  }
+}, { deep: true });
 </script>
 
 <style scoped>

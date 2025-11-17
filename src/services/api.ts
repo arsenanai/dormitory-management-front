@@ -85,6 +85,8 @@ interface AdminProfile {
 
 interface Guest {
   id?: number;
+  first_name?: string;
+  last_name?: string;
   name: string;
   email?: string;
   phone?: string;
@@ -193,6 +195,12 @@ interface Configuration {
   updated_at: string;
 }
 
+export interface PublicSettings {
+  dormitory_rules: string;
+  currency_symbol: string;
+}
+
+
 interface ApiResponse<T> {
   success: boolean;
   data: T;
@@ -215,7 +223,7 @@ interface FilterParams {
 }
 
 // API instance
-const resolvedBaseUrl =
+export const resolvedBaseUrl = // Export resolvedBaseUrl
   (import.meta as any).env?.VITE_API_BASE_URL ||
   (typeof window !== 'undefined' && window.location.host.includes('localhost:3000')
     ? 'http://localhost:8000/api'
@@ -238,77 +246,14 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+
 // Auth service
 export const authService = {
   login: (credentials: { email: string; password: string }): Promise<ApiResponse<{ user: User; token: string }>> =>
     api.post("/login", credentials),
   
   register: (userData: any): Promise<ApiResponse<{ user: User; message?: string }>> => {
-    // If there are files, submit as multipart/form-data
-    const hasFiles = Array.isArray(userData?.files) && userData.files.some((f: any) => f instanceof File);
-
-    if (!hasFiles) {
-      return api.post("/register", userData);
-    }
-
-    const formData = new FormData();
-
-    // Helper to append array values as field[]
-    const appendArray = (key: string, arr: any[]) => {
-      arr.forEach((v) => {
-        if (v !== undefined && v !== null && v !== "") {
-          formData.append(`${key}[]`, v instanceof File ? v : String(v));
-        }
-      });
-    };
-
-    // Known array fields
-    if (Array.isArray(userData.phone_numbers)) appendArray("phone_numbers", userData.phone_numbers);
-    if (Array.isArray(userData.phoneNumbers)) appendArray("phone_numbers", userData.phoneNumbers);
-
-    // Files
-    userData.files
-      .filter((f: any) => f && f instanceof File)
-      .forEach((file: File) => formData.append("files[]", file));
-
-    // Scalar fields
-    const scalarKeys = [
-      "iin",
-      "name",
-      "faculty",
-      "specialist",
-      "enrollment_year",
-      "enrollmentYear",
-      "gender",
-      "email",
-      "room_id",
-      "password",
-      "password_confirmation",
-      "deal_number",
-      "dealNumber",
-      "country",
-      "region",
-      "city",
-      "agree_to_dormitory_rules",
-      "user_type",
-    ];
-
-    scalarKeys.forEach((k) => {
-      const v = userData[k];
-      if (v === undefined || v === null || v === "") return;
-      // Map camelCase to snake_case expected by backend
-      let key = k;
-      if (k === "enrollmentYear") key = "enrollment_year";
-      if (k === "dealNumber") key = "deal_number";
-      if (k === "agreeToDormitoryRules") key = "agree_to_dormitory_rules";
-      formData.append(key, String(v));
-    });
-
-    // Ensure required defaults
-    if (!formData.has("user_type") && userData.user_type) formData.append("user_type", String(userData.user_type));
-    if (!formData.has("password_confirmation") && userData.password_confirmation) formData.append("password_confirmation", String(userData.password_confirmation));
-
-    return api.post("/register", formData, { headers: { "Content-Type": "multipart/form-data" } });
+    return api.post("/register", userData, { headers: { "Content-Type": "multipart/form-data" } });
   },
   
   logout: (): Promise<ApiResponse<{ message: string }>> =>
@@ -363,10 +308,10 @@ export const studentService = {
     api.get(`/students/${id}`),
   
   create: (data: Partial<Student>): Promise<ApiResponse<Student>> =>
-    api.post("/students", data),
+    api.post("/students", data, { headers: { "Content-Type": "multipart/form-data" } }),
   
   update: (id: number, data: Partial<Student>): Promise<ApiResponse<Student>> =>
-    api.put(`/students/${id}`, data),
+    api.post(`/students/${id}`, data, { headers: { "Content-Type": "multipart/form-data" } }),
   
   delete: (id: number): Promise<ApiResponse<{ message: string }>> =>
     api.delete(`/students/${id}`),
@@ -388,6 +333,9 @@ export const studentService = {
   
   approve: (id: number): Promise<ApiResponse<Student>> =>
     api.patch(`/students/${id}/approve`),
+
+  listAll: (): Promise<ApiResponse<Partial<Student>[]>> =>
+    api.get('/students-list'),
 };
 
 // Admin service
@@ -449,11 +397,17 @@ export const paymentService = {
   getById: (id: number): Promise<ApiResponse<Payment>> =>
     api.get(`/payments/${id}`),
   
-  create: (data: Partial<Payment>): Promise<ApiResponse<Payment>> =>
-    api.post("/payments", data),
+  create: (data: FormData): Promise<ApiResponse<Payment>> =>
+    api.post("/payments", data, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }),
   
-  update: (id: number, data: Partial<Payment>): Promise<ApiResponse<Payment>> =>
-    api.put(`/payments/${id}`, data),
+  update: (id: number, data: FormData): Promise<ApiResponse<Payment>> => {
+    // Use POST for updates with FormData to support file uploads via `_method` field.
+    return api.post(`/payments/${id}`, data, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
   
   delete: (id: number): Promise<ApiResponse<{ message: string }>> =>
     api.delete(`/payments/${id}`),
@@ -559,6 +513,9 @@ export const dormitoryService = {
   
   assignAdmin: (dormitoryId: number, adminId: number): Promise<ApiResponse<Dormitory>> =>
     api.post(`/dormitories/${dormitoryId}/assign-admin`, { admin_id: adminId }),
+
+  getRegistrationData: (dormitoryId: number): Promise<ApiResponse<any>> =>
+    api.get(`/dormitories/${dormitoryId}/registration`),
 };
 
 // Guest service
@@ -577,6 +534,9 @@ export const guestService = {
   
   delete: (id: number): Promise<ApiResponse<{ message: string }>> =>
     api.delete(`/guests/${id}`),
+
+  listAll: (): Promise<ApiResponse<Partial<Guest>[]>> =>
+    api.get('/guests-list'),
   
   getPayments: (params?: FilterParams): Promise<ApiResponse<PaginatedResponse<Payment>>> =>
     api.get("/guests/payments", { params }),
@@ -661,6 +621,18 @@ export const configurationService = {
   
   updateCurrency: (currency: string): Promise<ApiResponse<{ message: string }>> =>
     api.put("/configurations/currency", { currency_symbol: currency }),
+
+  getDormitorySettings: (): Promise<ApiResponse<Record<string, unknown>>> =>
+    api.get("/configurations/dormitory"),
+
+  getPublicSettings: (): Promise<ApiResponse<PublicSettings>> =>
+    api.get<ApiResponse<PublicSettings>>("/configurations/public").then(res => res.data),
+
+  updateDormitoryRules: (rules: string): Promise<ApiResponse<Record<string, unknown>>> =>
+    api.put("/configurations/dormitory-rules", { dormitory_rules: rules }),
+
+  updateDormitorySettings: (settings: Record<string, unknown>): Promise<ApiResponse<Record<string, unknown>>> =>
+    api.put("/configurations/dormitory", settings),
 };
 
 // Dashboard service

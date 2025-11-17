@@ -133,15 +133,6 @@ describe('Messages.vue - Admin Room Selection', () => {
     });
 
     it('should filter room options to only show rooms from admin\'s assigned dormitory', async () => {
-      // Debug: Check if rooms data is loaded
-      console.log('Rooms data in component:', wrapper.vm.rooms);
-      console.log('User data in component:', wrapper.vm.authStore?.user);
-      console.log('Admin dormitory ID:', wrapper.vm.authStore?.user?.adminProfile?.dormitory_id);
-      console.log('Token in localStorage:', localStorage.getItem('token'));
-      console.log('User in localStorage:', localStorage.getItem('user'));
-      console.log('Room service calls:', vi.mocked(roomService.getAll).mock.calls.length);
-      console.log('Room service getByDormitory calls:', vi.mocked(roomService.getByDormitory).mock.calls.length);
-      
       // Open create message modal
       const addButton = wrapper.find('[data-testid="add-message-button"]');
       await addButton.trigger('click');

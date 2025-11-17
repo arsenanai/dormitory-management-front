@@ -1,335 +1,317 @@
-<!-- filepath: /Users/rsa/lab/dormitory-management-front/src/pages/PaymentForm.vue -->
 <template>
-  <div>
-    <div v-if="loading" class="loading-text">{{ t('Loading...') }}</div>
-    <div v-if="error" class="error-text">{{ error }}</div>
-    <div v-else>
-      <h1>{{ t('Payment Form') }}</h1>
-    </div>
-  </div>
+  <CModal :model-value="isVisible" @update:model-value="closeModal"
+    :title="selectedPayment ? t('Update Payment') : t('Create Payment')">
+    <form @submit.prevent="handleFormSubmit">
+      <div class="space-y-4">
+        <!-- User Type Selection -->
+        <CSelect id="user-type-select" v-model="formData.user_type" :label="t('Role')" :options="userTypeOptions"
+          required />
+
+        <!-- User Selection (Common for both student and guest) -->
+        <CSelect id="student-select" data-testid="payment-student-select" v-model="formData.user_id" :label="t('User')"
+          :options="userOptions" :disabled="loadingUsers"
+          :placeholder="loadingUsers ? t('Loading users...') : t('Select a user')" required />
+
+
+        <CInput v-model="formData.date_from" type="date" :label="t('From Date')" />
+        <CInput v-model="formData.date_to" type="date" :label="t('To Date')" />
+
+        <!-- Common Fields -->
+        <CInput v-model="formData.deal_number" :label="t('Deal Number')" :placeholder="t('Enter Deal Number')" />
+        <CInput v-model="formData.deal_date" type="date" :label="t('Deal Date')" />
+
+        <!-- Amount with Currency -->
+        <CInput v-model="formData.amount" data-testid="payment-amount-input"
+          :label="`${t('Amount')} (${currencySymbol})`" type="number" step="0.01" min="0" required />
+        <CFileInput id="payment-check-upload" :label="t('Payment Check')" @change="handleFileChange"
+          :file-path="selectedPayment?.payment_check" />
+      </div>
+
+      <div class="flex justify-end gap-2 mt-6">
+        <CButton @click="closeModal">
+          {{ t('Cancel') }}
+        </CButton>
+        <CButton type="submit" variant="primary" data-testid="payment-submit-button" :loading="loading">
+          {{ selectedPayment ? t('Update') : t('Submit') }}
+        </CButton>
+      </div>
+    </form>
+  </CModal>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue";
-import { useI18n } from "vue-i18n";
-import { useRoute, useRouter } from "vue-router";
-import Navigation from "@/components/CNavigation.vue";
-import CInput from "@/components/CInput.vue";
-import CSelect from "@/components/CSelect.vue";
-import CButton from "@/components/CButton.vue";
-import { usePaymentsStore } from "@/stores/payments";
-import { useToast } from "@/composables/useToast";
-import { paymentService, userService } from "@/services/api";
+import { ref, computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { paymentService, studentService } from '@/services/api';
+import { useToast } from '@/composables/useToast';
+import CModal from '@/components/CModal.vue';
+import CInput from '@/components/CInput.vue';
+import CSelect from '@/components/CSelect.vue';
+import CButton from '@/components/CButton.vue';
+import CFileInput from '@/components/CFileInput.vue';
 
-// Helper function to create mock AxiosResponse
-function createMockAxiosResponse<T>(data: T) {
-  return {
-    data,
-    status: 200,
-    statusText: 'OK',
-    headers: {},
-    config: {},
-    request: {}
-  };
-}
+const props = defineProps<{
+  modelValue: boolean;
+  selectedPayment?: any | null;
+  currencySymbol: string;
+}>();
+
+const emit = defineEmits<{
+  'update:modelValue': [value: boolean];
+  'submit': [];
+}>();
 
 const { t } = useI18n();
-const route = useRoute();
-const router = useRouter();
-const paymentStore = usePaymentsStore();
-const { showError, showSuccess } = useToast();
+const { showSuccess, showError } = useToast();
 
-// Reactive state
 const loading = ref(false);
-const error = ref('');
-const users = ref<any[]>([]);
-const errors = ref<Record<string, string>>({});
-const hasUnsavedChanges = ref(false);
+const loadingUsers = ref(false);
+const studentOptions = ref<Array<{ value: string; name: string }>>([]);
+const guestOptions = ref<Array<{ value: string; name: string }>>([]);
 
-// Check if we're editing (ID in route params)
-const paymentId = computed(() => route.params.id ? Number(route.params.id) : null);
-const isEditing = computed(() => !!paymentId.value);
-
-const form = ref({
-  user_id: null as number | null,
-  amount: null as number | null,
-  payment_type: '',
-  payment_date: '',
-  status: '',
-  description: '',
-  // Semester payment fields
-  semester: '',
-  year: null as number | null,
-  semester_type: '',
-  due_date: '',
-  payment_notes: '',
-  dormitory_notes: '',
+const formData = ref({
+  user_type: 'student',
+  user_id: "",
+  amount: "",
+  semester: "",
+  deal_number: "",
+  deal_date: "",
+  date_from: "",
+  date_to: "",
+  payment_check: null as File | null,
 });
 
-// Status options
-const statusOptions = [
-  { value: "pending", name: "Pending" },
-  { value: "completed", name: "Completed" },
-  { value: "failed", name: "Failed" },
+const userOptions = computed(() => {
+  return formData.value.user_type === 'student' ? studentOptions.value : guestOptions.value;
+});
+
+const userTypeOptions = [
+  { value: 'student', name: t('Student') },
+  { value: 'guest', name: t('Guest') },
 ];
 
-// User options computed from users array
-const userOptions = computed(() => 
-  users.value.map(user => ({
-    value: user.id,
-    name: user.name
-  }))
-);
+const handleFileChange = (file: File | null) => { formData.value.payment_check = file; };
 
-// Selected user computed property
-const selectedUser = computed(() => 
-  users.value.find(user => user.id === form.value.user_id)
-);
+const isVisible = computed({
+  get: () => props.modelValue,
+  set: (value) => emit('update:modelValue', value)
+});
 
-// Return payment type options as array of values (for tests)
-const paymentTypeOptions = computed(() => 
-  ['monthly_rent', 'utilities', 'deposit', 'damage_fee']
-);
+const closeModal = () => {
+  isVisible.value = false;
+};
 
-// Payment type options for select component
-const paymentTypeSelectOptions = [
-  { value: "monthly_rent", name: "Monthly Rent" },
-  { value: "utilities", name: "Utilities" },
-  { value: "deposit", name: "Deposit" },
-  { value: "damage_fee", name: "Damage Fee" },
-];
+const semesterOptions = computed(() => {
+  const year = new Date().getFullYear();
+  return [
+    { value: `${year}-spring`, name: `${t('Spring')} ${year}` },
+    { value: `${year}-summer`, name: `${t('Summer')} ${year}` },
+    { value: `${year}-fall`, name: `${t('Fall')} ${year}` },
+    { value: `${year + 1}-spring`, name: `${t('Spring')} ${year + 1}` },
+  ];
+});
 
-// Semester type options
-const semesterTypeOptions = [
-  { value: 'fall', name: 'Fall' },
-  { value: 'spring', name: 'Spring' },
-  { value: 'summer', name: 'Summer' },
-];
-
-// Validation functions
-function validateForm(): boolean {
-  errors.value = {};
-  let isValid = true;
-
-  if (!form.value.user_id) {
-    errors.value.user_id = 'User is required';
-    isValid = false;
+const getSemesterDates = (semester: string): { from: string, to: string } => {
+  const [year, type] = semester.split('-');
+  const yearNum = parseInt(year);
+  if (type === 'fall') {
+    return { from: `${yearNum}-09-01`, to: `${yearNum}-12-31` };
   }
-
-  if (!form.value.amount) {
-    errors.value.amount = 'Amount is required';
-    isValid = false;
+  if (type === 'spring') {
+    return { from: `${yearNum}-01-01`, to: `${yearNum}-05-31` };
   }
-
-  if (!form.value.payment_type) {
-    errors.value.payment_type = 'Payment type is required';
-    isValid = false;
+  if (type === 'summer') {
+    return { from: `${yearNum}-06-01`, to: `${yearNum}-08-31` };
   }
+  return { from: '', to: '' };
+};
 
-  if (!form.value.payment_date) {
-    errors.value.payment_date = 'Payment date is required';
-    isValid = false;
-  }
+const determineSemesterFromDates = (dateFrom: string, dateTo: string): string => {
+  if (!dateFrom || !dateTo) return '';
 
-  return isValid;
-}
+  const fromDate = new Date(dateFrom);
+  const toDate = new Date(dateTo);
 
-function validateAmount(): boolean {
-  errors.value.amount = '';
-  
-  if (typeof form.value.amount === 'string' && isNaN(Number(form.value.amount))) {
-    errors.value.amount = 'Amount must be a valid number';
-    return false;
-  }
+  // Generate semester options for a reasonable range (e.g., current year +/- 1)
+  const currentYear = new Date().getFullYear();
+  const yearsToCheck = [currentYear - 1, currentYear, currentYear + 1];
 
-  if (Number(form.value.amount) <= 0) {
-    errors.value.amount = 'Amount must be greater than 0';
-    return false;
-  }
+  for (const year of yearsToCheck) {
+    const semesters = ['spring', 'summer', 'fall'];
+    for (const type of semesters) {
+      const semesterKey = `${year}-${type}`;
+      const { from, to } = getSemesterDates(semesterKey);
+      const semesterFromDate = new Date(from);
+      const semesterToDate = new Date(to);
 
-  return true;
-}
-
-function validatePaymentDate(): boolean {
-  errors.value.payment_date = '';
-  
-  if (form.value.payment_date) {
-    const paymentDate = new Date(form.value.payment_date);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    if (paymentDate > today) {
-      errors.value.payment_date = 'Payment date cannot be in the future';
-      return false;
+      if (fromDate.getTime() === semesterFromDate.getTime() && toDate.getTime() === semesterToDate.getTime()) {
+        return semesterKey;
+      }
     }
   }
+  return ''; // No exact match found
+};
 
-  return true;
-}
-
-function validateDescription(): boolean {
-  errors.value.description = '';
-  
-  if (form.value.description && form.value.description.length > 500) {
-    errors.value.description = 'Description must be less than 500 characters';
-    return false;
-  }
-
-  return true;
-}
-
-// Utility functions
-function formatAmount(amount: number): string {
-  return Number(amount).toFixed(2);
-}
-
-function clearForm(): void {
-  form.value = {
-    user_id: null,
-    amount: null,
-    payment_type: '',
-    payment_date: '',
-    status: '',
-    description: '',
-    // Semester payment fields
-    semester: '',
-    year: null,
-    semester_type: '',
-    due_date: '',
-    payment_notes: '',
-    dormitory_notes: '',
+const resetForm = () => {
+  formData.value = {
+    user_type: 'student',
+    user_id: "",
+    amount: "",
+    semester: "",
+    deal_number: "",
+    deal_date: "",
+    date_from: "",
+    date_to: "",
+    payment_check: null,
   };
-  errors.value = {};
-  hasUnsavedChanges.value = false;
-}
+};
 
-// Load users function
-async function loadUsers(): Promise<void> {
-  try {
-    const response = await userService.getAll();
-    users.value = response.data;
-  } catch (err) {
-    console.error('Failed to load users:', err);
-    showError(t("Failed to load users"));
+const loadUsers = async (userType: 'student' | 'guest', ensureUserId?: number | string) => {
+  const optionsRef = userType === 'student' ? studentOptions : guestOptions;
+  if (optionsRef.value.length > 0 && !ensureUserId) {
+    return; // Already loaded
   }
-}
 
-// Load payment function
-async function loadPayment(id?: number): Promise<void> {
-  // If no id provided, try to get from route params
-  let targetId = id;
-  if (!targetId) {
-    const routeId = route.params.id;
-    if (typeof routeId === 'string') {
-      targetId = Number(routeId);
-    } else if (typeof routeId === 'number') {
-      targetId = routeId;
-    }
-  }
-  
-  if (!targetId) return;
-
+  loadingUsers.value = true;
   try {
-    const response = await paymentService.getById(targetId);
-    const paymentData = response.data;
-    
-    form.value = {
-      user_id: paymentData.user_id,
-      amount: paymentData.amount,
-      payment_type: paymentData.payment_type,
-      payment_date: paymentData.payment_date,
-      status: paymentData.status,
-      description: paymentData.description || '',
-      // Semester payment fields
-      semester: paymentData.semester || '',
-      year: paymentData.year || null,
-      semester_type: paymentData.semester_type || '',
-      due_date: paymentData.due_date || '',
-      payment_notes: paymentData.payment_notes || '',
-      dormitory_notes: paymentData.dormitory_notes || '',
-    };
-  } catch (err) {
-    console.error('Failed to load payment:', err);
-    showError(t("Failed to load payment data"));
-  }
-}
+    let res: any;
+    let service: any;
+    let users: Array<any>;
 
-// Submit form function
-async function submitForm(): Promise<void> {
-  loading.value = true;
-  error.value = '';
-
-  try {
-    if (!validateForm()) {
-      loading.value = false;
-      return;
-    }
-
-    // If semester fields are filled, treat as semester payment
-    if (form.value.semester && form.value.year && form.value.semester_type && form.value.due_date) {
-      // Call semester payments API
-      await paymentService.createSemesterPayment({
-        user_id: form.value.user_id,
-        semester: form.value.semester,
-        year: form.value.year,
-        semester_type: form.value.semester_type,
-        amount: form.value.amount,
-        due_date: form.value.due_date,
-        payment_notes: form.value.payment_notes,
-        dormitory_notes: form.value.dormitory_notes,
-      });
-      showSuccess(t("Semester payment created successfully!"));
+    if (userType === 'student') {
+      service = studentService;
+      if (studentOptions.value.length === 0) {
+        res = await service.listAll();
+        users = res?.data?.data || (Array.isArray(res.data) ? res.data : []);
+        studentOptions.value = users.filter(u => u && u.id).map(u => ({
+          value: String(u.id),
+          name: `${u.name || 'Unknown'}${u.email ? ` (${u.email})` : ''}`
+        }));
+      }
     } else {
-      // Fallback to regular payment
-      if (isEditing.value && paymentId.value) {
-        await paymentService.update(paymentId.value, form.value);
-        showSuccess(t("Payment updated successfully!"));
-      } else {
-        await paymentService.create(form.value);
-        showSuccess(t("Payment created successfully!"));
+      service = (await import('@/services/api')).guestService;
+      if (guestOptions.value.length === 0) {
+        res = await service.listAll();
+        users = res?.data?.data || (Array.isArray(res.data) ? res.data : []);
+        guestOptions.value = users.filter(u => u && u.id).map(u => ({
+          value: String(u.id),
+          name: `${u.name || u.first_name || 'Unknown'}${u.email ? ` (${u.email})` : ''}`
+        }));
       }
     }
 
-    hasUnsavedChanges.value = false;
-    await router.push('/payments');
+    if (ensureUserId && !optionsRef.value.some(o => o.value === String(ensureUserId))) {
+      try {
+        const one: any = await service.getById(Number(ensureUserId));
+        const u = one?.data;
+        if (u && u.id) {
+          // Construct name from parts if 'name' is not present
+          const userName = u.name || (u.first_name && u.last_name ? `${u.first_name} ${u.last_name}` : u.first_name || 'User');
+          const displayName = `${userName}${u.email ? ` (${u.email})` : ''}`;
+          optionsRef.value.push({ value: String(u.id), name: displayName });
+        }
+      } catch (err) {
+        console.error(`Failed to fetch individual ${userType}:`, err);
+      }
+    }
   } catch (err) {
-    console.error('Form submission error:', err);
-    error.value = isEditing.value ? 'Failed to update payment' : 'Failed to create payment';
-    showError(error.value);
+    console.error(`Failed to load ${userType}s:`, err);
+    if (userType === 'student') studentOptions.value = [];
+    else guestOptions.value = [];
+  } finally {
+    loadingUsers.value = false;
+  }
+};
+
+const handleFormSubmit = async () => {
+  loading.value = true;
+  try {
+    const submissionData = new FormData();
+    submissionData.append('user_id', formData.value.user_id);
+    submissionData.append('amount', formData.value.amount);
+    submissionData.append('date_from', formData.value.date_from);
+    submissionData.append('date_to', formData.value.date_to);
+    if (formData.value.payment_check instanceof File) {
+      console.log('Uploading payment check:', formData.value.payment_check.name);
+      submissionData.append('payment_check', formData.value.payment_check);
+    }
+    submissionData.append('deal_number', formData.value.deal_number);
+    submissionData.append('deal_date', formData.value.deal_date);
+    if (props.selectedPayment) {
+      // When sending FormData with a file for an update, we must use POST
+      // and add a `_method` field to tell Laravel to treat it as a PUT request.
+      // This is because PHP doesn't natively parse multipart/form-data for PUT requests.
+      submissionData.append('_method', 'PUT');
+      // The service needs to know to use POST for the update call
+      // The `update` method in api.ts will need to be adjusted.
+      await paymentService.update(props.selectedPayment.id, submissionData);
+      showSuccess(t('Payment updated successfully'));
+    } else {
+      await paymentService.create(submissionData);
+      showSuccess(t('Payment created successfully'));
+    }
+    emit('submit');
+    closeModal();
+  } catch (err) {
+    showError(props.selectedPayment ? t('Failed to update payment') : t('Failed to create payment'));
   } finally {
     loading.value = false;
   }
-}
+};
 
-// Cancel function
-async function cancel(): Promise<void> {
-  if (hasUnsavedChanges.value) {
-    const confirmed = window.confirm('You have unsaved changes. Are you sure you want to leave?');
-    if (!confirmed) return;
-  }
-  
-  await router.push('/payments');
-}
+watch(() => formData.value.user_type, (newUserType) => {
+  formData.value.user_id = "";
+  loadUsers(newUserType as 'student' | 'guest');
+});
 
-// Before route leave guard
-function beforeRouteLeave(): boolean {
-  if (hasUnsavedChanges.value) {
-    return window.confirm('You have unsaved changes. Are you sure you want to leave?');
-  }
-  return true;
-}
-
-// Watch for form changes to track unsaved changes
-watch(form, () => {
-  hasUnsavedChanges.value = true;
-}, { deep: true });
-
-// Load users and payment data on mount
-onMounted(async () => {
-  await loadUsers();
-  
-  if (isEditing.value) {
-    await loadPayment();
+// Watch for semester changes to update date_from and date_to for students
+watch(() => formData.value.semester, (newSemester) => {
+  if (formData.value.user_type === 'student' && newSemester) {
+    const { from, to } = getSemesterDates(newSemester);
+    formData.value.date_from = from;
+    formData.value.date_to = to;
   }
 });
+
+watch(() => props.modelValue, async (newValue) => {
+  if (newValue) {
+
+    const payment = props.selectedPayment;
+    if (payment) {
+      let userType: 'student' | 'guest' = 'student'; // Default
+      if (payment.user?.role) {
+        if (typeof payment.user.role === 'object' && payment.user.role.name) {
+          userType = payment.user.role.name === 'guest' ? 'guest' : 'student';
+        } else if (typeof payment.user.role === 'string') {
+          userType = payment.user.role === 'guest' ? 'guest' : 'student';
+        }
+      }
+
+      // Set user_type first to prevent the watcher from re-triggering loadUsers
+      formData.value.user_type = userType;
+
+      await loadUsers(userType, payment.user_id || payment.user?.id);
+
+      const paymentDateFrom = payment.date_from ? payment.date_from.split('T')[0] : "";
+      const paymentDateTo = payment.date_to ? payment.date_to.split('T')[0] : "";
+      const detectedSemester = determineSemesterFromDates(paymentDateFrom, paymentDateTo);
+
+      formData.value = {
+        user_type: userType,
+        user_id: payment.user_id || payment.user?.id ? String(payment.user_id || payment.user?.id) : "",
+        amount: payment.amount?.toString() || "",
+        deal_number: payment.deal_number || "",
+        deal_date: payment.deal_date ? payment.deal_date.split('T')[0] : "",
+        date_from: paymentDateFrom,
+        date_to: paymentDateTo,
+        semester: detectedSemester,
+        payment_check: null,
+      };
+    } else {
+      resetForm();
+      await loadUsers(formData.value.user_type as 'student' | 'guest');
+    }
+  }
+});
+
 </script>

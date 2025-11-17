@@ -35,6 +35,9 @@ export const useDashboardStore = defineStore('dashboard', () => {
     error.value = null;
     try {
       const authStore = useAuthStore();
+      // Wait for auth to be ready to prevent race conditions on profile loading
+      if (!authStore.token) return;
+
       let response;
       
       // Call appropriate endpoint based on user role
@@ -44,7 +47,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
         response = await dashboardService.getStats();
       }
       
-      console.log('DEBUG: dashboardService.getStats response:', response);
       const data = response.data || {};
       
       // Map backend response to frontend expected structure
@@ -60,7 +62,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
         quotaStudents: Number(data.quota_students ?? 0),
       };
     } catch (err: any) {
-      console.log('DEBUG: fetchStats error:', err);
       error.value = err.response?.data?.message || 'Failed to load dashboard statistics';
       
       // Set default values based on seeded data if API fails

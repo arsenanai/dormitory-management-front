@@ -7,7 +7,7 @@ export interface StudentProfile {
   specialist?: string;
   course?: number;
   year_of_study?: number;
-  enrollment_year?: string;
+  enrollment_year?: number;
   enrollment_date?: string;
   blood_type?: string;
   violations?: string;

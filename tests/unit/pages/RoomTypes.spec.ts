@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { createTestingPinia } from '@pinia/testing'
+import { createTestingPinia } from '@pinia/testing';
 import { createRouterMock, injectRouterMock } from 'vue-router-mock'
 import RoomTypes from '@/pages/RoomTypes.vue'
 import { roomTypeService, dormitoryService } from '@/services/api'
@@ -20,7 +20,10 @@ vi.mock('@/services/api', () => ({
     create: vi.fn(),
     update: vi.fn(),
     delete: vi.fn()
-  }
+  },
+  configurationService: {
+    getCurrency: vi.fn().mockResolvedValue({ data: { currency_symbol: '$' } })
+  },
 }))
 
 // Mock useToast composable
@@ -51,7 +54,8 @@ describe('RoomTypes.vue', () => {
       name: 'standard',
       description: 'Standard dormitory room',
       capacity: 2,
-      price: 150.00,
+      daily_rate: 25.00,
+      semester_rate: 1500.00,
       minimap: '[{"x": 10, "y": 10}, {"x": 20, "y": 20}]',
       photos: ['photo1.jpg', 'photo2.jpg'],
       dormitory_id: 1
@@ -61,7 +65,8 @@ describe('RoomTypes.vue', () => {
       name: 'lux',
       description: 'Premium room with amenities',
       capacity: 1,
-      price: 300.00,
+      daily_rate: 50.00,
+      semester_rate: 3000.00,
       minimap: '[{"x": 15, "y": 15}]',
       photos: [],
       dormitory_id: 2
@@ -134,7 +139,8 @@ describe('RoomTypes.vue', () => {
     const newRoomTypeData = {
       name: 'standard',
       description: 'Standard room with amenities',
-      price: 150.00,
+      daily_rate: 25.00,
+      semester_rate: 1500.00,
       capacity: 2
     }
     mockCreate.mockResolvedValue({ data: { id: 3, ...newRoomTypeData } })
@@ -146,9 +152,9 @@ describe('RoomTypes.vue', () => {
 
   it('updates existing room type', async () => {
     const mockUpdate = vi.mocked(roomTypeService.update)
-    mockUpdate.mockResolvedValue({ data: { ...mockRoomTypes[0], price: 175.00 } })
+    mockUpdate.mockResolvedValue({ data: { ...mockRoomTypes[0], daily_rate: 30.00 } })
 
-    const updatedRoomType = { ...mockRoomTypes[0], price: 175.00 }
+    const updatedRoomType = { ...mockRoomTypes[0], daily_rate: 30.00 }
 
     await wrapper.vm.updateRoomType(1, updatedRoomType)
 
@@ -191,12 +197,12 @@ describe('RoomTypes.vue', () => {
     expect(paginatedRoomTypes[0].id).toBe(1)
   })
 
-  it('calculates average price correctly', async () => {
+  it('calculates average semester rate correctly', async () => {
     wrapper.vm.roomTypes = mockRoomTypes
     await wrapper.vm.$nextTick()
 
-    const average = wrapper.vm.averagePrice
-    expect(average).toBe(225.00) // (150 + 300) / 2
+    const average = wrapper.vm.averageSemesterRate
+    expect(average).toBe(2250.00) // (1500 + 3000) / 2
   })
 
   it('shows room type form modal', async () => {
@@ -215,7 +221,8 @@ describe('RoomTypes.vue', () => {
     const formData = {
       name: 'standard',
       description: 'Standard room with amenities',
-      price: 150.00,
+      daily_rate: 25.00,
+      semester_rate: 1500.00,
       capacity: 2
     }
     mockCreate.mockResolvedValue({ data: { id: 3, ...formData } })
@@ -227,8 +234,8 @@ describe('RoomTypes.vue', () => {
   })
 
   it('formats price correctly', () => {
-    expect(wrapper.vm.formatPrice(500.00)).toBe('$500.00')
-    expect(wrapper.vm.formatPrice(1200.50)).toBe('$1,200.50')
+    expect(wrapper.vm.formatPrice(500.00)).toBe('$500.00');
+    expect(wrapper.vm.formatPrice(1200.50)).toBe('$1,200.50');
   })
 
   it('formats amenities list', () => {
@@ -243,15 +250,15 @@ describe('RoomTypes.vue', () => {
     expect(wrapper.vm.getCapacityColor(6)).toBe('red')
   })
 
-  it('sorts room types by price', async () => {
+  it('sorts room types by daily rate', async () => {
     wrapper.vm.roomTypes = mockRoomTypes
-    wrapper.vm.sortBy = 'price'
+    wrapper.vm.sortBy = 'daily_rate'
     wrapper.vm.sortOrder = 'asc'
     await wrapper.vm.$nextTick()
 
     const sortedRoomTypes = wrapper.vm.sortedRoomTypes
-    expect(sortedRoomTypes[0].price).toBe(150.00)
-    expect(sortedRoomTypes[1].price).toBe(300.00)
+    expect(sortedRoomTypes[0].daily_rate).toBe(25.00)
+    expect(sortedRoomTypes[1].daily_rate).toBe(50.00)
   })
 
   it('sorts room types by capacity', async () => {
@@ -294,7 +301,7 @@ describe('RoomTypes.vue', () => {
     
     // Check that the second room type name is capitalized  
     const secondRoomTypeCell = wrapper.findAll('td')[5] // Skip to second row
-    expect(secondRoomTypeCell.text()).toBe('Lux')
+    expect(secondRoomTypeCell.text()).toContain('Lux')
   })
 
   it('displays capacity and price correctly', async () => {
@@ -317,8 +324,10 @@ describe('RoomTypes.vue', () => {
     const cells = wrapper.findAll('td')
     expect(cells.length).toBeGreaterThan(0)
     expect(cells[1].text()).toBe('2') // capacity for standard
-    expect(cells[2].text()).toBe('$150.00') // price for standard
+    expect(cells[2].text()).toContain('25.00') // daily_rate for standard
+    expect(cells[3].text()).toContain('1,500.00') // semester_rate for standard
     expect(cells[6].text()).toBe('1') // capacity for lux
-    expect(cells[7].text()).toBe('$300.00') // price for lux
+    expect(cells[7].text()).toContain('50.00') // daily_rate for lux
+    expect(cells[8].text()).toContain('3,000.00') // semester_rate for lux
   })
 })

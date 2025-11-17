@@ -1,17 +1,10 @@
 <template>
   <Navigation :title="t('Guest House')">
     <!-- Search Bar -->
-    <div
-      data-testid="guests-page"
-      class="mb-4 flex flex-col items-stretch justify-between gap-4 lg:flex-row lg:items-center"
-    >
+    <div data-testid="guests-page"
+      class="mb-4 flex flex-col items-stretch justify-between gap-4 lg:flex-row lg:items-center">
       <div class="w-auto lg:w-128">
-        <CInput
-          id="search-guests"
-          v-model="searchQuery"
-          type="search"
-          :placeholder="t('Search')"
-        />
+        <CInput id="search-guests" v-model="searchQuery" type="search" :placeholder="t('Search')" />
       </div>
       <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
         <CButton @click="exportGuests" data-testid="export-guests-button">
@@ -36,7 +29,8 @@
     </div>
 
     <!-- Guests Table -->
-    <CTable :columns="tableColumns" :data="paginatedGuests" :loading="loading" v-if="!loading && !error" data-testid="guests-table">
+    <CTable :columns="tableColumns" :data="paginatedGuests" :loading="loading" v-if="!loading && !error"
+      data-testid="guests-table">
       <template #cell-guest="{ row }">
         <div class="flex flex-col gap-1">
           <span class="whitespace-nowrap">
@@ -54,16 +48,18 @@
         {{ row.guest_profile?.purpose_of_visit || row.notes || '-' }}
       </template>
       <template #cell-date_range="{ row }">
-        <span class="whitespace-nowrap">{{ row.guest_profile?.visit_start_date ? new Date(row.guest_profile.visit_start_date).toLocaleDateString() : '-' }} - {{ row.guest_profile?.visit_end_date ? new Date(row.guest_profile.visit_end_date).toLocaleDateString() : '-' }}</span>
+        <span class="whitespace-nowrap">{{ row.guest_profile?.visit_start_date ? new
+          Date(row.guest_profile.visit_start_date).toLocaleDateString() : '-' }} - {{ row.guest_profile?.visit_end_date
+            ? new Date(row.guest_profile.visit_end_date).toLocaleDateString() : '-' }}</span>
       </template>
       <template #cell-telephone="{ row }">
-        
+
       </template>
       <template #cell-room="{ row }">
         {{ row.room?.number || row.room || '-' }}
       </template>
       <template #cell-payment="{ row }">
-        {{ row.payment_status === 'paid' ? `$${parseFloat(row.total_amount || 0).toFixed(2)}` : row.payment_status || '-' }}
+        {{ formatPayment(row.payment_status, row.total_amount) }}
       </template>
       <template #cell-actions="{ row }">
         <div class="flex items-center justify-end gap-2">
@@ -78,10 +74,12 @@
     </CTable>
 
     <!-- Pagination -->
-    <div v-if="totalPages > 1" class="flex flex-col items-center justify-between gap-4 md:flex-row mt-4" data-testid="pagination">
+    <div v-if="totalPages > 1" class="flex flex-col items-center justify-between gap-4 md:flex-row mt-4"
+      data-testid="pagination">
       <div class="text-sm text-gray-700">
         <span v-if="totalGuests > 0">
-          <span class="font-medium">{{ fromGuest }}</span> - <span class="font-medium">{{ toGuest }}</span> / <span class="font-medium">{{ totalGuests }}</span>
+          <span class="font-medium">{{ fromGuest }}</span> - <span class="font-medium">{{ toGuest }}</span> / <span
+            class="font-medium">{{ totalGuests }}</span>
         </span>
         <span v-else>
           {{ t('No data available') }}
@@ -93,19 +91,13 @@
         </CButton>
         <div class="flex items-center gap-1 text-sm">
           <div class="w-20">
-            <CInput
-              id="page-input"
-              v-model.number="pageInput"
-              type="number"
-              :min="1"
-              :max="totalPages"
-              class="text-center h-10"
-              @keyup.enter="goToPage"
-            />
+            <CInput id="page-input" v-model.number="pageInput" type="number" :min="1" :max="totalPages"
+              class="text-center h-10" @keyup.enter="goToPage" />
           </div>
           <span>/ {{ totalPages }}</span>
         </div>
-        <CButton :disabled="currentPage === totalPages" @click="currentPage++" :aria-label="t('Next page')" class="h-10">
+        <CButton :disabled="currentPage === totalPages" @click="currentPage++" :aria-label="t('Next page')"
+          class="h-10">
           <ChevronRightIcon class="h-5 w-5" />
         </CButton>
       </div>
@@ -131,7 +123,7 @@ import {
   ChevronRightIcon
 } from "@heroicons/vue/24/outline";
 import { guestService } from "@/services/api";
-import { useToast } from "@/composables/useToast";
+import { useToast } from "@/composables/useToast"; import { formatCurrency } from "@/utils/formatters";
 
 // Initialize router
 const router = useRouter();
@@ -143,6 +135,7 @@ const guests = ref<any[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
 
+const currencySymbol = ref('$');
 // Search Query
 const searchQuery = ref<string>("");
 
@@ -202,7 +195,7 @@ const filteredGuests = computed(() => {
 const fetchGuests = async () => {
   loading.value = true;
   error.value = null;
-  
+
   try {
     // Check if user is authenticated
     const token = localStorage.getItem('token');
@@ -218,7 +211,7 @@ const fetchGuests = async () => {
       : Array.isArray(response.data)
         ? response.data[0]
         : null;
-    
+
     // Handle both paginated and non-paginated responses
     if (response.data.data && Array.isArray(response.data.data)) {
       // Paginated response: { data: [...], current_page: 1, ... }
@@ -230,7 +223,7 @@ const fetchGuests = async () => {
       // Fallback
       guests.value = [];
     }
-    
+
   } catch (err: any) {
     console.error('Error fetching guests:', err);
     error.value = err?.message || 'Failed to fetch guests';
@@ -247,10 +240,7 @@ const formatDate = (dateString: string) => {
 };
 
 const formatPayment = (status: string, amount: number) => {
-  if (status === 'paid') {
-    return `$${amount?.toFixed(2) || '0.00'}`;
-  }
-  return status || '-';
+  return status === 'paid' ? formatCurrency(amount, currencySymbol.value) : (status || '-');
 };
 
 // Navigate to Add Guest form
@@ -309,6 +299,13 @@ const goToPage = () => {
 };
 
 onMounted(async () => {
+  try {
+    const { configurationService } = await import('@/services/api');
+    const currencyResponse = await configurationService.getCurrency();
+    currencySymbol.value = currencyResponse.data.currency_symbol || '$';
+  } catch (err) {
+    console.error('Failed to load currency symbol on mount:', err);
+  }
   await fetchGuests();
 });
 </script>

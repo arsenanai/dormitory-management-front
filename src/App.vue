@@ -2,10 +2,8 @@
   <router-view v-slot="{ Component }" class="">
     <component :is="Component" />
   </router-view>
-  <div
-    v-if="appVersion"
-    class="fixed bottom-2 left-2 text-[10px] md:text-xs text-gray-500 bg-white/70 dark:bg-gray-800/70 px-2 py-1 rounded shadow-sm select-none"
-  >
+  <div v-if="appVersion"
+    class="fixed bottom-2 left-2 text-[10px] md:text-xs text-gray-500 bg-white/70 dark:bg-gray-800/70 px-2 py-1 rounded shadow-sm select-none hidden lg:block">
     v{{ appVersion }}
   </div>
 </template>
@@ -15,6 +13,7 @@ import { ref, watch, onMounted } from "vue";
 import { useRouter, RouteLocationNormalized } from "vue-router";
 import { initFlowbite } from "flowbite";
 import { useAuthStore } from '@/stores/auth';
+import { useSettingsStore } from '@/stores/settings';
 
 // Hardcoded version label
 const appVersion = ref("");
@@ -22,6 +21,7 @@ const appVersion = ref("");
 // Initialize the router
 const router = useRouter();
 const authStore = useAuthStore();
+const settingsStore = useSettingsStore();
 
 // Optional: Watch for route changes
 watch(
@@ -42,6 +42,7 @@ onMounted(async () => {
   initFlowbite();
   try {
     await authStore.initializeAuth();
+    await settingsStore.fetchPublicSettings();
   } catch (error) {
     console.warn('Auth initialization failed:', error);
   }

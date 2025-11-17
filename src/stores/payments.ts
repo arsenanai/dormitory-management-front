@@ -1,13 +1,17 @@
 import { defineStore } from "pinia";
 import { LOCAL_STORAGE_SELECTED_PAYMENT_KEY } from "@/Const";
+import type { User } from "@/models/User";
 
 interface Payment {
   id: number;
-  contract_number?: string;
-  dogovorNumber?: string;
+  user_id: number;
   amount?: number;
-  payment?: number;
-  student?: any;
+  date_from: string;
+  date_to: string;
+  deal_number?: string;
+  deal_date?: string;
+  payment_check?: string;
+  user?: User;
   [key: string]: any;
 }
 

@@ -98,8 +98,8 @@ export const formatCurrency = (
   const formattedNumber = numberFormatter.format(amount);
   const symbol = currencySymbolMap[currency.toUpperCase()] || currency;
 
-  // Combine the formatted number and the symbol.
-  return `${formattedNumber} ${symbol}`;
+  // Combine the formatted number and the symbol. For USD and some others, symbol comes first.
+  return `${symbol}${formattedNumber}`;
 };
 
 /**

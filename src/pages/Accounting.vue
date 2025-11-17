@@ -1,37 +1,16 @@
 <template>
   <Navigation :title="t('Accounting Overview')">
     <div class="flex flex-col gap-4">
+      <!-- Debug: {{ settingsStore.publicSettings?.currency_symbol }} -->
       <h1>{{ t('Accounting') }}</h1>
       <!-- Filters -->
       <div class="flex flex-wrap gap-4 mb-4">
-        <CSelect
-          id="student-filter"
-          v-model="studentFilter"
-          :options="studentOptions"
-          :label="t('Student')"
-          class="w-48"
-        />
-        <CInput
-          id="semester-filter"
-          v-model="semesterFilter"
-          :label="t('Semester')"
-          placeholder="e.g. 2024-fall"
-          class="w-32"
-        />
-        <CInput
-          id="start-date"
-          v-model="startDate"
-          type="date"
-          :label="t('Start Date')"
-          class="w-36"
-        />
-        <CInput
-          id="end-date"
-          v-model="endDate"
-          type="date"
-          :label="t('End Date')"
-          class="w-36"
-        />
+        <CSelect id="student-filter" v-model="studentFilter" :options="studentOptions" :label="t('Student')"
+          class="w-48" />
+        <CInput id="semester-filter" v-model="semesterFilter" :label="t('Semester')" placeholder="e.g. 2024-fall"
+          class="w-32" />
+        <CInput id="start-date" v-model="startDate" type="date" :label="t('Start Date')" class="w-36" />
+        <CInput id="end-date" v-model="endDate" type="date" :label="t('End Date')" class="w-36" />
         <CButton @click="exportAccounting" data-testid="export-accounting-button">
           <ArrowDownTrayIcon class="h-5 w-5" />
           {{ t('Download') }}
@@ -46,7 +25,7 @@
       <div v-else-if="error" class="text-center py-8">
         <div class="text-red-500">{{ error }}</div>
       </div>
-      
+
       <CTable v-else>
         <CTableHead>
           <CTableHeadCell>{{ t('Student') }}</CTableHeadCell>
@@ -63,8 +42,8 @@
           <CTableRow v-for="row in filteredRows" :key="row.id">
             <CTableCell>{{ row.student_name }}</CTableCell>
             <CTableCell>{{ row.semester }}</CTableCell>
-            <CTableCell>${{ parseFloat(row.amount).toFixed(2) }}</CTableCell>
-            <CTableCell>${{ row.payment_approved ? '0.00' : parseFloat(row.amount).toFixed(2) }}</CTableCell>
+            <CTableCell>{{ formatCurrency(row.amount) }}</CTableCell>
+            <CTableCell>{{ formatCurrency(row.payment_approved ? 0 : row.amount) }}</CTableCell>
           </CTableRow>
         </CTableBody>
       </CTable>
@@ -86,9 +65,12 @@ import CTableHeadCell from '@/components/CTableHeadCell.vue';
 import CTableBody from '@/components/CTableBody.vue';
 import CTableRow from '@/components/CTableRow.vue';
 import CTableCell from '@/components/CTableCell.vue';
+import { useSettingsStore } from '@/stores/settings';
+import { getCurrencySymbol } from '@/utils/formatters';
 import { ArrowDownTrayIcon } from '@heroicons/vue/24/outline';
 
 const { t } = useI18n();
+const settingsStore = useSettingsStore();
 
 // Reactive data
 const rows = ref<any[]>([]);
@@ -105,12 +87,16 @@ const endDate = ref('');
 // Student options for filter
 const studentOptions = ref<{ value: string; name: string }[]>([]);
 
+const formatCurrency = (amount: number) => {
+  return `${getCurrencySymbol(settingsStore.publicSettings?.currency_symbol)} ${parseFloat(String(amount)).toFixed(2)}`;
+};
+
 // Fetch accounting data
 const fetchAccountingData = async () => {
   try {
     loading.value = true;
     error.value = null;
-    
+
     // Check if user is authenticated
     const token = localStorage.getItem('token');
     if (!token) {
@@ -118,17 +104,17 @@ const fetchAccountingData = async () => {
       rows.value = [];
       return;
     }
-    
+
     const params: any = {};
     if (studentFilter.value) params.student = studentFilter.value;
     if (semesterFilter.value) params.semester = semesterFilter.value;
     if (startDate.value) params.start_date = startDate.value;
     if (endDate.value) params.end_date = endDate.value;
-    
+
     const response = await accountingApi.getAccountingData(params);
     rows.value = response.data.data || [];
     summary.value = response.data.summary || {};
-    
+
     // Extract unique students for filter options
     const students = new Set<string>();
     rows.value.forEach(row => {
@@ -136,16 +122,16 @@ const fetchAccountingData = async () => {
         students.add(row.student_name);
       }
     });
-    
+
     studentOptions.value = Array.from(students).map(name => ({
       value: name,
       name: name
     }));
-    
+
   } catch (err: any) {
     console.error('Failed to fetch accounting data:', err);
     error.value = err.response?.data?.message || t('Failed to load accounting data');
-    
+
     // Fallback to mock data if API fails
     rows.value = [
       { id: 1, student_name: 'Alice Smith', semester: '2024-fall', amount: 120000, payment_approved: true },
@@ -170,13 +156,13 @@ const exportAccounting = async () => {
     if (semesterFilter.value) params.semester = semesterFilter.value;
     if (startDate.value) params.start_date = startDate.value;
     if (endDate.value) params.end_date = endDate.value;
-    
+
     const response = await accountingApi.exportAccounting(params);
-    
+
     // For now, just show a success message
     // In a real implementation, this would download a file
     alert(t('Export completed successfully'));
-    
+
   } catch (err: any) {
     console.error('Failed to export accounting data:', err);
     alert(t('Failed to export accounting data'));
@@ -192,4 +178,4 @@ const applyFilters = () => {
 onMounted(() => {
   fetchAccountingData();
 });
-</script> 
+</script>

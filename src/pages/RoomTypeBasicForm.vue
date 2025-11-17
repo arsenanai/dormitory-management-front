@@ -4,76 +4,43 @@
       <h1 class="text-2xl font-bold text-gray-900 mb-6" data-testid="form-title">
         {{ isEditing ? t('Edit Room Type') : t('Add Room Type') }}
       </h1>
-      
+
       <form name="room-type-form" @submit.prevent="handleSubmit">
         <div v-if="error" class="mb-4 p-4 bg-red-100 text-red-700 rounded border border-red-300">
           {{ error }}
         </div>
 
         <!-- Room Type Name -->
-        <CInput
-          id="room-type-name"
-          v-model="form.name"
-          type="text"
-          :label="t('Room Type Name')"
-          required
-          :placeholder="t('Enter room type name')"
-          :error="errors.name"
-          class="mb-4"
-        />
+        <CInput id="room-type-name" v-model="form.name" type="text" :label="t('Room Type Name')" required
+          :placeholder="t('Enter room type name')" data-testid="room-type-name" :error="errors.name" class="mb-4" />
 
         <!-- Room Type Description -->
-        <CTextarea
-          id="room-type-description"
-          v-model="form.description"
-          :label="t('Room Type Description')"
-          rows="3"
-          :placeholder="t('Enter room type description (optional)')"
-          :error="errors.description"
-          class="mb-4"
-        />
+        <CTextarea id="room-type-description" v-model="form.description" :label="t('Room Type Description')" rows="3"
+          :placeholder="t('Enter room type description (optional)')" :error="errors.description" class="mb-4" />
 
         <!-- Room Type Capacity -->
-        <CInput
-          id="room-type-capacity"
-          v-model="form.capacity"
-          type="number"
-          :label="t('Room Type Capacity')"
-          min="1"
-          required
-          :placeholder="t('Enter room capacity')"
-          :error="errors.capacity"
-          class="mb-4"
-        />
+        <CInput id="room-type-capacity" v-model="form.capacity" type="number" :label="t('Room Type Capacity')" min="1"
+          required :placeholder="t('Enter room capacity')" data-testid="room-type-capacity" :error="errors.capacity"
+          class="mb-4" />
 
-        <!-- Room Type Price -->
-        <CInput
-          id="room-type-price"
-          v-model="form.price"
-          type="number"
-          :label="t('Room Type Price') + ` (${currencySymbol})`"
-          min="0"
-          step="0.01"
-          required
-          :placeholder="t('Enter room price')"
-          :error="errors.price"
-          class="mb-6"
-        />
+        <!-- Daily Rate -->
+        <CInput id="room-type-daily-rate" v-model="form.daily_rate" type="number"
+          :label="t('Daily Rate') + ` (${currencySymbol})`" min="0" step="0.01" required
+          :placeholder="t('Enter daily rate')" :error="errors.daily_rate" data-testid="room-type-daily-rate"
+          name="room-type-daily-rate" class="mb-4" />
+
+        <!-- Semester Rate -->
+        <CInput id="room-type-semester-rate" v-model="form.semester_rate" type="number"
+          :label="t('Semester Rate') + ` (${currencySymbol})`" min="0" step="0.01" required
+          :placeholder="t('Enter semester rate')" :error="errors.semester_rate" data-testid="room-type-semester-rate"
+          name="room-type-semester-rate" class="mb-6" />
 
         <!-- Submit and Cancel Buttons -->
         <div class="flex gap-4">
-          <CButton
-          type="submit"
-          :disabled="loading"
-          variant="primary"
-          :loading="loading"
-          >
+          <CButton type="submit" :disabled="loading" variant="primary" :loading="loading">
             {{ isEditing ? t('Update') : t('Create') }}
           </CButton>
-          <CButton
-            type="button"
-            @click="goBack"
-          >
+          <CButton type="button" @click="goBack">
             {{ t('Cancel') }}
           </CButton>
         </div>
@@ -86,11 +53,12 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import Navigation from '@/components/CNavigation.vue'; 
+import Navigation from '@/components/CNavigation.vue';
 import { roomTypeService, configurationService } from '@/services/api';
 import CInput from '@/components/CInput.vue';
 import CTextarea from '@/components/CTextarea.vue';
 import CButton from '@/components/CButton.vue';
+import { useSettingsStore } from '@/stores/settings';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -102,21 +70,19 @@ const form = ref({
   name: '',
   description: '',
   capacity: 1,
-  price: 0
+  daily_rate: 0,
+  semester_rate: 0
 });
 
 const loading = ref(false);
 const error = ref('');
 const errors = ref<Record<string, string>>({});
-const currencySymbol = ref('USD');
+const settingsStore = useSettingsStore();
+const currencySymbol = computed(() => settingsStore.generalSettings?.currency_symbol || '$');
 
 onMounted(async () => {
-  try {
-    const currencyResponse = await configurationService.getCurrency();
-    currencySymbol.value = currencyResponse.data.currency_symbol || 'USD';
-  } catch (e) {
-    console.error("Failed to load currency symbol", e);
-  }
+  await settingsStore.fetchAllSettings();
+
   if (isEditing.value) {
     await loadRoomType();
   }
@@ -131,19 +97,20 @@ watch(() => route.params.id, async (newId) => {
 
 async function loadRoomType() {
   try {
-    loading.value = true;    
+    loading.value = true;
     const response = await roomTypeService.getById(parseInt(route.params.id as string));
     const roomType = response.data;
-    
+
     form.value = {
       name: roomType.name || '',
       description: roomType.description || '',
       capacity: roomType.capacity || 1,
-      price: roomType.price || 0
+      daily_rate: roomType.daily_rate || 0,
+      semester_rate: roomType.semester_rate || 0
     };
   } catch (err) {
     error.value = t('Failed to load room type');
-    console.error('Error loading room type:', err);
+    // console.error('Error loading room type:', err);
   } finally {
     loading.value = false;
   }
@@ -157,7 +124,7 @@ async function handleSubmit() {
 
     // Basic validation
     let hasErrors = false;
-    
+
     if (!form.value.name.trim()) {
       errors.value.name = t('Name is required');
       hasErrors = true;
@@ -166,11 +133,15 @@ async function handleSubmit() {
       errors.value.capacity = t('Capacity must be at least 1'); // This validation is now client-side only
       hasErrors = true;
     }
-    if (form.value.price < 0) {
-      errors.value.price = t('Price must be non-negative');
+    if (form.value.daily_rate < 0) {
+      errors.value.daily_rate = t('Daily rate must be non-negative');
       hasErrors = true;
     }
-    
+    if (form.value.semester_rate < 0) {
+      errors.value.semester_rate = t('Semester rate must be non-negative');
+      hasErrors = true;
+    }
+
     if (hasErrors) {
       loading.value = false;
       return;
@@ -197,7 +168,7 @@ async function handleSubmit() {
     } else {
       error.value = err.response?.data?.message || t('Failed to save room type');
     }
-    console.error('Error saving room type:', err);
+    // console.error('Error saving room type:', err);
   } finally {
     loading.value = false;
   }

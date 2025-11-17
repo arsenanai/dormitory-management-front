@@ -293,6 +293,15 @@ Edit translation files in `/src/i18n/`:
 - `kk.json` - Kazakh translations  
 - `ru.json` - Russian translations
 
+To check for missing translation keys in your Vue components, run the following command:
+
+```bash
+npm run scan:i18n
+```
+
+This script will scan all `.vue` files and report any keys that are used in templates but are missing from the JSON language files.
+
+
 ### Component Library
 
 All UI components follow the C* naming convention:

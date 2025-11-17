@@ -13,108 +13,45 @@
           <!-- General Settings -->
           <div class="border border-gray-200 rounded-lg p-4">
             <h3 class="text-md font-medium mb-3 text-primary-600">{{ t('General Settings') }}</h3>
-            <CSelect
-              id="currency-symbol"
-              v-model="generalSettingsForm.currency_symbol"
-              :label="t('Currency')"
-              class="mb-4"
-              :options="currencyOptions"
-              required
-            />
+            <CSelect id="currency-symbol" v-model="generalSettingsForm.currency_symbol" :label="t('Currency')"
+              class="mb-4" :options="currencyOptions" required />
           </div>
-          
+
           <!-- 1C Integration Toggle -->
           <div class="border border-gray-200 rounded-lg p-4">
             <h3 class="text-md font-medium mb-3 text-primary-600">{{ t('1C Integration') }}</h3>
-            <CCheckbox
-              id="onec-enabled"
-              v-model="onecForm.onec_enabled"
-              :label="t('Enable 1C Integration')"
-            />
+            <CCheckbox id="onec-enabled" v-model="onecForm.onec_enabled" :label="t('Enable 1C Integration')" />
             <div v-if="onecForm.onec_enabled" class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <CInput
-                v-model="onecForm.onec_host"
-                :label="t('1C Host')"
-                required
-              />
-              <CInput
-                v-model="onecForm.onec_database"
-                :label="t('1C Database')"
-                required
-              />
-              <CInput
-                v-model="onecForm.onec_username"
-                :label="t('1C Username')"
-                required
-              />
-              <CInput
-                v-model="onecForm.onec_password"
-                :label="t('1C Password')"
-                type="password"
-                required
-              />
-              <CInput
-                v-model="onecForm.onec_sync_interval"
-                :label="t('Sync Interval (seconds)')"
-                type="number"
-                required
-              />
+              <CInput v-model="onecForm.onec_host" :label="t('1C Host')" required />
+              <CInput v-model="onecForm.onec_database" :label="t('1C Database')" required />
+              <CInput v-model="onecForm.onec_username" :label="t('1C Username')" required />
+              <CInput v-model="onecForm.onec_password" :label="t('1C Password')" type="password" required />
+              <CInput v-model="onecForm.onec_sync_interval" :label="t('Sync Interval (seconds)')" type="number"
+                required />
             </div>
           </div>
 
           <!-- Kaspi Integration Toggle -->
           <div class="border border-gray-200 rounded-lg p-4">
             <h3 class="text-md font-medium mb-3 text-primary-600">{{ t('Kaspi Integration') }}</h3>
-            <CCheckbox
-              id="kaspi-enabled"
-              v-model="kaspiForm.kaspi_enabled"
-              :label="t('Enable Kaspi Integration')"
-            />
+            <CCheckbox id="kaspi-enabled" v-model="kaspiForm.kaspi_enabled" :label="t('Enable Kaspi Integration')" />
             <div v-if="kaspiForm.kaspi_enabled" class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <CInput
-                v-model="kaspiForm.kaspi_api_key"
-                :label="t('Kaspi API Key')"
-                required
-              />
-              <CInput
-                v-model="kaspiForm.kaspi_merchant_id"
-                :label="t('Merchant ID')"
-                required
-              />
-              <CInput
-                v-model="kaspiForm.kaspi_webhook_url"
-                :label="t('Webhook URL')"
-                required
-              />
+              <CInput v-model="kaspiForm.kaspi_api_key" :label="t('Kaspi API Key')" required />
+              <CInput v-model="kaspiForm.kaspi_merchant_id" :label="t('Merchant ID')" required />
+              <CInput v-model="kaspiForm.kaspi_webhook_url" :label="t('Webhook URL')" required />
             </div>
           </div>
 
           <!-- Card Security Toggle -->
           <div class="border border-gray-200 rounded-lg p-4">
             <h3 class="text-md font-medium mb-3 text-primary-600">{{ t('Card Security') }}</h3>
-            <CCheckbox
-              id="card-reader-enabled"
-              v-model="cardReaderForm.card_reader_enabled"
-              :label="t('Enable Card Reader')"
-            />
+            <CCheckbox id="card-reader-enabled" v-model="cardReaderForm.card_reader_enabled"
+              :label="t('Enable Card Reader')" />
             <div v-if="cardReaderForm.card_reader_enabled" class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <CInput
-                v-model="cardReaderForm.card_reader_host"
-                :label="t('Card Reader Host')"
-                required
-              />
-              <CInput
-                v-model="cardReaderForm.card_reader_port"
-                :label="t('Card Reader Port')"
-                type="number"
-                required
-              />
-              <CInput
-                v-model="cardReaderForm.card_reader_timeout"
-                :label="t('Timeout (seconds)')"
-                type="number"
-                required
-              />
+              <CInput v-model="cardReaderForm.card_reader_host" :label="t('Card Reader Host')" required />
+              <CInput v-model="cardReaderForm.card_reader_port" :label="t('Card Reader Port')" type="number" required />
+              <CInput v-model="cardReaderForm.card_reader_timeout" :label="t('Timeout (seconds)')" type="number"
+                required />
             </div>
             <div v-if="cardReaderForm.card_reader_enabled" class="mt-3">
               <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -122,11 +59,8 @@
               </label>
               <div class="space-y-2">
                 <div v-for="(location, index) in cardReaderForm.card_reader_locations" :key="index" class="flex gap-2">
-                  <CInput
-                    v-model="cardReaderForm.card_reader_locations[index]"
-                    :placeholder="t('Location name')"
-                    class="flex-1"
-                  />
+                  <CInput v-model="cardReaderForm.card_reader_locations[index]" :placeholder="t('Location name')"
+                    class="flex-1" />
                   <CButton @click="removeLocation(index)" variant="danger" size="sm">
                     {{ t('Remove') }}
                   </CButton>
@@ -135,6 +69,15 @@
                   {{ t('Add Location') }}
                 </CButton>
               </div>
+            </div>
+          </div>
+
+          <!-- Dormitory Settings -->
+          <div class="border border-gray-200 rounded-lg p-4">
+            <h3 class="text-md font-medium mb-3 text-primary-600">{{ t('Dormitory Settings') }}</h3>
+            <div v-if="settingsStore.dormitorySettings">
+              <CTextarea id="dormitory-rules" v-model="settingsStore.dormitorySettings.dormitory_rules"
+                :label="t('Dormitory Rules and Regulations')" class="mb-4" rows="10" />
             </div>
           </div>
 
@@ -160,10 +103,11 @@ import CButton from '@/components/CButton.vue';
 import CInput from '@/components/CInput.vue';
 import CCheckbox from '@/components/CCheckbox.vue';
 import CSelect from '@/components/CSelect.vue';
+import CTextarea from '@/components/CTextarea.vue';
 import { currencySymbolMap } from '@/utils/formatters';
 import { useSettingsStore, type CardReaderSettings, type OneCSettings, type KaspiSettings, type GeneralSettings } from '@/stores/settings';
 
-const { t } = useI18n(); 
+const { t } = useI18n();
 const settingsStore = useSettingsStore();
 
 const generalSettingsForm = reactive({
@@ -203,24 +147,27 @@ const onecForm = reactive<OneCSettings>({
 });
 
 // Computed
-const loading = computed(() => settingsStore.loading); 
+const loading = computed(() => settingsStore.loading);
 
 // Methods
 const loadSettings = async () => {
   await settingsStore.fetchAllSettings();
-  
+
   if (settingsStore.generalSettings) {
     Object.assign(generalSettingsForm, settingsStore.generalSettings);
   }
 
+  // Load other settings
   if (settingsStore.cardReaderSettings) {
     Object.assign(cardReaderForm, settingsStore.cardReaderSettings);
   }
   if (settingsStore.onecSettings) {
     Object.assign(onecForm, settingsStore.onecSettings);
   }
-  // Load Kaspi settings if available
-  // Note: This would need to be implemented in the backend
+  // Dormitory settings are reactive from the store, so no need to copy to a local form.
+  if (settingsStore.kaspiSettings) {
+    Object.assign(kaspiForm, settingsStore.kaspiSettings);
+  }
 };
 
 const saveAllSettings = async () => {
@@ -253,12 +200,15 @@ const saveAllSettings = async () => {
       kaspi_webhook_url: kaspiForm.kaspi_enabled ? (kaspiForm.kaspi_webhook_url ?? '') : null,
     };
 
+    const dormitoryRulesPayload = settingsStore.dormitorySettings?.dormitory_rules ?? null;
+
     await Promise.all([
       settingsStore.updateCurrencySettings(generalPayload),
       settingsStore.updateCardReaderSettings(cardPayload),
       settingsStore.updateOnecSettings(onecPayload),
       settingsStore.updateKaspiSettings(kaspiPayload),
-    ]);
+      dormitoryRulesPayload !== null ? settingsStore.updateDormitoryRules(dormitoryRulesPayload) : Promise.resolve(),
+    ]).then(() => showSuccess(t('All settings saved successfully!')));
   } catch (error) {
     console.error('Failed to save settings:', error);
   }
@@ -276,4 +226,4 @@ const removeLocation = (index: number) => {
 onMounted(async () => {
   await loadSettings();
 });
-</script> 
+</script>

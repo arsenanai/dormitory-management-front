@@ -54,7 +54,7 @@ describe('GuestHome', () => {
       floor: 1,
       capacity: 2
     },
-    daily_rate: 5000,
+    daily_rate: 50.00,
     check_in_date: '2024-01-01',
     check_out_date: '2024-01-06',
     total_days: 5,
@@ -155,8 +155,8 @@ describe('GuestHome', () => {
     await wrapper.vm.$nextTick();
     
     // Check that rental information is displayed
-    expect(wrapper.text()).toContain('₸5,000'); // Daily rate
-    expect(wrapper.text()).toContain('₸25,000'); // Total amount (5 days * 5000)
+    expect(wrapper.text()).toContain('₸50.00'); // Daily rate
+    expect(wrapper.text()).toContain('₸250.00'); // Total amount (5 days * 50.00)
   });
 
   it('navigates to messages when messages button is clicked', async () => {
@@ -198,8 +198,8 @@ describe('GuestHome', () => {
 
   it('formats currency correctly', () => {
     const component = wrapper.vm;
-    expect(component.formatCurrency(5000)).toContain('₸');
-    expect(component.formatCurrency(5000)).toContain('5,000');
+    expect(component.formatCurrency(50.00)).toContain('₸');
+    expect(component.formatCurrency(50.00)).toContain('50.00');
   });
 
   it('formats date correctly', () => {

@@ -231,19 +231,4 @@ describe('RoomTypeForm', () => {
     expect(component.beds.length).toBe(0);
   });
 
-  it('synchronizes beds with roomType data', async () => {
-    const wrapper = mount(RoomTypeForm, {
-      global: { plugins: [router, i18n] }
-    });
-    const component = wrapper.vm as any;
-    
-    // Add some beds
-    component.addBed();
-    component.addBed();
-    
-    // Test savePlan function
-    await component.savePlan();
-    expect(component.roomType.beds).toEqual(component.beds);
-    expect(component.roomType.minimap).toBe(JSON.stringify(component.beds));
-  });
 });

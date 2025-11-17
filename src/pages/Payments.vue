@@ -1,93 +1,24 @@
 <template>
   <Navigation :title="t('Payment Management')">
     <div class="flex flex-col gap-4">
-      <h1>{{ t('Payments') }}</h1>
-      
-      <!-- Filter and Add Payment Button Section -->
+
+      <!-- Filter Section -->
       <div class="flex flex-col gap-4 w-full">
         <!-- Filter Section - Organized in rows for better responsive layout -->
-        <div class="flex flex-col gap-4">
-          <!-- Row 1: Search and Status filters -->
-          <div class="flex flex-col gap-2 sm:flex-row sm:gap-4">
-            <div class="flex-1">
-              <CInput
-                id="search"
-                v-model="searchTerm"
-                :label="t('Search')"
-                :placeholder="t('Search payments...')"
-              />
-            </div>
-            <div class="flex-1">
-              <CSelect 
-                id="status-filter" 
-                v-model="statusFilter" 
-                :options="statusFilterOptions" 
-                :label="t('Status')"
-                :placeholder="t('All Statuses')" 
-              />
-            </div>
-            <div class="flex-1">
-              <CSelect 
-                id="type-filter" 
-                v-model="typeFilter" 
-                :options="typeFilterOptions" 
-                :label="t('Type')"
-                :placeholder="t('All Types')" 
-              />
-            </div>
+        <div class="flex flex-col gap-2 sm:flex-row sm:gap-4">
+          <div class="flex-1">
+            <CInput id="search" v-model="searchTerm" :label="t('Search')" :placeholder="t('Search payments...')" />
           </div>
-          
-          <!-- Row 2: Semester and Year filters -->
-          <div class="flex flex-col gap-2 sm:flex-row sm:gap-4">
-            <div class="flex-1">
-              <CInput
-                id="semester-filter"
-                v-model="semesterFilter"
-                :label="t('Semester')"
-                :placeholder="t('e.g. 2024-fall')"
-              />
-            </div>
-            <div class="flex-1">
-              <CInput
-                id="year-filter"
-                v-model="yearFilter"
-                type="number"
-                :label="t('Year')"
-                :placeholder="t('Year')"
-              />
-            </div>
-            <div class="flex-1">
-              <CSelect
-                id="predefined-range"
-                v-model="predefinedRange"
-                :options="predefinedRangeOptions"
-                :label="t('Range')"
-              />
-            </div>
+          <div class="flex-1">
+            <CInput id="start-date" v-model="startDate" type="date" :label="t('Start Date')" />
           </div>
-          
-          <!-- Row 3: Date range filters -->
-          <div class="flex flex-col gap-2 sm:flex-row sm:gap-4">
-            <div class="flex-1">
-              <CInput
-                id="start-date"
-                v-model="startDate"
-                type="date"
-                :label="t('Start Date')"
-              />
-            </div>
-            <div class="flex-1">
-              <CInput
-                id="end-date"
-                v-model="endDate"
-                type="date"
-                :label="t('End Date')"
-              />
-            </div>
-            <div class="flex-1"></div> <!-- Empty div for spacing -->
+          <div class="flex-1">
+            <CInput id="end-date" v-model="endDate" type="date" :label="t('End Date')" />
+          </div>
+          <div class="flex-1">
+            <CSelect id="role-filter" v-model="selectedRole" :options="roleOptions" :label="t('Role')" />
           </div>
         </div>
-        
         <!-- Action Buttons Section -->
         <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
           <CButton @click="showPaymentForm" data-testid="add-payment-button" :disabled="loading">
@@ -101,268 +32,155 @@
         </div>
       </div>
 
-      <!-- Loading State with Skeleton -->
-      <div v-if="loading" class="overflow-x-auto relative border border-gray-300 sm:rounded-lg">
-        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-          <thead class="text-xs text-primary-700 uppercase bg-primary-50 dark:bg-primary-700 dark:text-primary-400">
-            <tr>
-              <th class="px-6 py-3">{{ t("User") }}</th>
-              <th class="px-6 py-3">{{ t("Amount") }}</th>
-              <th class="px-6 py-3">{{ t("Semester") }}</th>
-              <th class="px-6 py-3">{{ t("Actions") }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Skeleton rows -->
-            <tr v-for="i in 3" :key="`skeleton-${i}`" class="bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-              <td class="px-6 py-4">
-                <div class="h-4 bg-gray-200 rounded animate-pulse"></div>
-              </td>
-              <td class="px-6 py-4">
-                <div class="h-4 bg-gray-200 rounded animate-pulse w-20"></div>
-              </td>
-              <td class="px-6 py-4">
-                <div class="h-4 bg-gray-200 rounded animate-pulse w-16"></div>
-              </td>
-              <td class="px-6 py-4">
-                <div class="flex gap-2">
-                  <div class="h-8 bg-gray-200 rounded animate-pulse w-12"></div>
-                  <div class="h-8 bg-gray-200 rounded animate-pulse w-16"></div>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
       <!-- Error State -->
       <div v-if="error" class="error-message text-red-500 text-center py-4">
         {{ error }}
       </div>
 
-
-
       <!-- Payments Table -->
-      <div v-if="!loading && !error" class="overflow-x-auto relative border border-gray-300 sm:rounded-lg" data-testid="payments-table">
-        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-          <thead class="text-xs text-primary-700 uppercase bg-primary-50 dark:bg-primary-700 dark:text-primary-400">
-            <tr>
-              <th class="px-6 py-3">{{ t("User") }}</th>
-              <th class="px-6 py-3">{{ t("Amount") }}</th>
-              <th class="px-6 py-3">{{ t("Semester") }}</th>
-              <th class="px-6 py-3">{{ t("Actions") }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-if="paginatedPayments.length === 0">
-              <td colspan="7" class="px-6 py-4 text-center text-gray-500">
-                {{ t("No data available") }}
-              </td>
-            </tr>
-            <tr
-              v-for="payment in paginatedPayments"
-              :key="payment.id"
-              class="bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700"
-            >
-              <td class="px-6 py-4">{{ payment.user?.name || '-' }}{{ payment.user?.email ? ` (${payment.user.email})` : '' }}</td>
-              <td class="px-6 py-4">{{ parseFloat(payment.amount || 0).toFixed(2) }} KZT</td>
-              <td class="px-6 py-4">{{ payment.semester || '-' }}</td>
-              <td class="px-6 py-4">
-                <div class="flex gap-2">
-                  <CButton @click="editPayment(payment)" size="small" :disabled="loading">
-                    {{ t('Edit') }}
-                  </CButton>
-                  <CButton variant="danger" @click="confirmDeletePayment(payment.id)" size="small" :disabled="loading">
-                    {{ t('Delete') }}
-                  </CButton>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <CTable v-if="!error" :columns="tableColumns" :data="paginatedPayments" :loading="loading"
+        data-testid="payments-table">
+        <template #cell-user="{ row: payment }">
+          <div class="flex flex-col gap-2">
+            <span>
+              {{ payment.user?.name || '-' }}
+            </span>
+            <span>
+              {{ payment.user?.email ? payment.user.email : '' }}
+            </span>
+            <span v-if="payment.user.phone_numbers" class="flex flex-col">
+              <span v-for="phone in payment.user.phone_numbers">
+                {{ phone }}
+              </span>
+            </span>
+          </div>
+        </template>
+        <template #cell-amount="{ row: payment }">
+          {{ formatPrice(parseFloat(payment.amount || '0')) }}
+        </template>
+        <template #cell-role="{ row: payment }">
+          <span class="capitalize">{{ payment.user?.role?.name || '-' }}</span>
+        </template>
+        <template #cell-deal_number="{ row: payment }">
+          {{ payment.deal_number || '-' }}
+        </template>
+        <template #cell-period="{ row: payment }">
+          {{ payment.date_from?.split('T')[0] }} - {{ payment.date_to?.split('T')[0] }}
+        </template>
+        <template #cell-actions="{ row: payment }">
+          <div class="flex gap-2 justify-end">
+            <CButton @click="editPayment(payment)" :disabled="loading">
+              <PencilSquareIcon class="h-5 w-5" />
+            </CButton>
+            <CButton variant="danger" @click="confirmDeletePayment(payment.id)" :disabled="loading">
+              <TrashIcon class="h-5 w-5" />
+            </CButton>
+          </div>
+        </template>
+      </CTable>
 
       <!-- Pagination -->
-      <div v-if="totalPages > 1" class="flex justify-center gap-2 mt-4">
-        <CButton 
-          @click="goToPrevPage"
-          :disabled="currentPage === 1 || loading"
-          size="small"
-        >
-          <ChevronLeftIcon class="h-4 w-4" />
-        </CButton>
-        <span class="px-4 py-2">
-          {{ t('Page') }} {{ currentPage }} {{ t('of') }} {{ totalPages }}
-        </span>
-        <CButton 
-          @click="goToNextPage"
-          :disabled="currentPage === totalPages || loading"
-          size="small"
-        >
-          <ChevronRightIcon class="h-4 w-4" />
-        </CButton>
+      <div v-if="totalPages > 1" class="flex flex-col items-center justify-between gap-4 md:flex-row"
+        data-testid="pagination">
+        <div class="text-sm text-gray-700">
+          <span v-if="total > 0">
+            <span class="font-medium">{{ fromPayment }}</span> - <span class="font-medium">{{ toPayment }}</span> /
+            <span class="font-medium">{{ total }}</span>
+          </span>
+          <span v-else>
+            {{ t('No data available') }}
+          </span>
+        </div>
+        <div class="flex items-center gap-2">
+          <CButton :disabled="currentPage === 1" @click="currentPage--" :aria-label="t('Previous page')" class="h-10">
+            <ChevronLeftIcon class="h-5 w-5" />
+          </CButton>
+          <div class="flex items-center gap-1 text-sm">
+            <div class="w-20">
+              <CInput id="page-input" v-model.number="pageInput" type="number" :min="1" :max="totalPages"
+                class="text-center h-10" @keyup.enter="goToPage" />
+            </div>
+            <span>/ {{ totalPages }}</span>
+          </div>
+          <CButton :disabled="currentPage === totalPages" @click="currentPage++" :aria-label="t('Next page')"
+            class="h-10">
+            <ChevronRightIcon class="h-5 w-5" />
+          </CButton>
+        </div>
       </div>
 
-      <!-- Total Amount Display -->
-      <div v-if="payments.length > 0" class="mt-4 p-4 bg-primary-50 rounded">
-        <h3 class="text-lg font-semibold text-primary-700">{{ t('Total Amount') }}: {{ totalAmount.toFixed(2) }} KZT</h3>
-      </div>
     </div>
 
-    <!-- Payment Form Modal -->
-    <CModal v-if="showForm" v-model="showForm">
-      <template #header>
-        <h2 class="text-xl font-bold text-primary-700">
-          {{ selectedPayment ? t('Edit Payment') : t('Add Payment') }}
-        </h2>
-      </template>
-        
-        <form @submit.prevent="handleFormSubmit(formData)">
-          <div class="space-y-4">
-            <CSelect
-              id="student-select"
-              data-testid="payment-student-select"
-              v-model="formData.user_id"
-              :label="t('Student')"
-              :options="debugStudentOptions"
-              :disabled="loadingStudents"
-              :placeholder="loadingStudents ? t('Loading students...') : t('Select a student')"
-              required
-            />
-            <CInput
-              v-model="formData.amount"
-              data-testid="payment-amount-input"
-              :label="t('Amount')"
-              type="number"
-              step="0.01"
-              required
-            />
-            <CInput
-              v-model="formData.academic_year"
-              data-testid="payment-academic-year-input"
-              :label="t('Academic Year')"
-              type="number"
-              min="2020"
-              max="2030"
-              :placeholder="new Date().getFullYear().toString()"
-              required
-            />
-            <CSelect
-              id="semester-select"
-              data-testid="payment-semester-select"
-              v-model="formData.semester"
-              :label="t('Semester')"
-              :options="semesterOptions"
-              required
-            />
-          </div>
-          
-          <div class="flex justify-end gap-2 mt-6">
-            <CButton @click="closePaymentForm">
-              {{ t('Cancel') }}
-            </CButton>
-            <CButton type="submit" variant="primary" data-testid="payment-submit-button">
-              {{ selectedPayment ? t('Update') : t('Create') }}
-            </CButton>
-          </div>
-        </form>
-      </CModal>
-
     <!-- Delete Confirmation Modal -->
-    <CConfirmationModal
-      v-if="showDeleteConfirmation"
-      :message="t('Are you sure? This change is not recoverable')"
-      :title="t('Delete Payment')"
-      :confirm-text="t('Delete')"
-      :cancel-text="t('Cancel')"
-      @confirm="deletePayment"
-      @cancel="showDeleteConfirmation = false"
-    />
+    <CConfirmationModal v-if="showDeleteConfirmation" :message="t('Are you sure? This change is not recoverable')"
+      :title="t('Delete Payment')" :confirm-text="t('Delete')" :cancel-text="t('Cancel')" @confirm="deletePayment"
+      @cancel="showDeleteConfirmation = false" />
+    <PaymentForm v-model="showForm" :selected-payment="selectedPayment" :currency-symbol="currencySymbol"
+      @submit="handleFormSubmission" />
   </Navigation>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, nextTick } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import Navigation from "@/components/CNavigation.vue";
 import CInput from "@/components/CInput.vue";
-import CSelect from "@/components/CSelect.vue";
 import CTable from "@/components/CTable.vue";
-import CTableHead from "@/components/CTableHead.vue";
-import CTableHeadCell from "@/components/CTableHeadCell.vue";
-import CTableBody from "@/components/CTableBody.vue";
-import CTableRow from "@/components/CTableRow.vue";
-import CTableCell from "@/components/CTableCell.vue";
 import CButton from "@/components/CButton.vue";
-import CModal from "@/components/CModal.vue"; // Added CModal import
 import CConfirmationModal from "@/components/CConfirmationModal.vue";
-import { PencilSquareIcon, ArrowDownTrayIcon, ChevronLeftIcon, ChevronRightIcon } from "@heroicons/vue/24/outline";
-import { paymentService, userService, studentService } from "@/services/api";
+import CSelect from "@/components/CSelect.vue";
+import PaymentForm from "./PaymentForm.vue";
+import { useSettingsStore } from "@/stores/settings";
+import { PencilSquareIcon, ArrowDownTrayIcon, ChevronLeftIcon, ChevronRightIcon, TrashIcon } from "@heroicons/vue/24/outline";
+import { paymentService, configurationService } from "@/services/api";
 import { usePaymentsStore } from "@/stores/payments";
 import { useToast } from "@/composables/useToast";
+import { formatCurrency } from "@/utils/formatters";
 
 const { t } = useI18n();
 const router = useRouter();
 
 // store
 const paymentsStore = usePaymentsStore();
+const settingsStore = useSettingsStore();
 const { showError, showSuccess } = useToast();
 
 // State
 const payments = ref<any[]>([]);
 const loading = ref(false);
-const loadingStudents = ref(false);
 const error = ref<string | null>(null);
 const total = ref<number>(0);
-const searchTerm = ref<string>("");
-const statusFilter = ref<string>("");
-const typeFilter = ref<string>("");
+const startDate = ref<string>('');
+const endDate = ref<string>('');
+const searchTerm = ref<string>('');
+const selectedRole = ref<string>('');
 const currentPage = ref<number>(1);
 const itemsPerPage = ref<number>(10);
+const pageInput = ref(1);
+const fromPayment = ref(0);
+const toPayment = ref(0);
 const showForm = ref<boolean>(false);
 const selectedPayment = ref<any>(null);
 const showDeleteConfirmation = ref<boolean>(false);
 const paymentToDelete = ref<number | null>(null);
-const semesterFilter = ref('');
-const yearFilter = ref('');
-const startDate = ref('');
-const endDate = ref('');
-const predefinedRange = ref('');
-const predefinedRangeOptions = [
-  { value: '', name: t('Custom') },
-  { value: '1_semester', name: t('1 Semester') },
-  { value: '1_year', name: t('1 Year') },
-  { value: '2_years', name: t('2 Years') },
-  { value: '4_years', name: t('4 Years') },
-];
+const currencySymbol = computed(() => settingsStore.publicSettings?.currency_symbol || '$');
 
-// Form data
-const formData = ref({
-  user_id: "",
-  amount: "",
-  semester: "",
-  academic_year: ""
-});
-
-// Filter options
-const statusFilterOptions = [
-  { value: "", name: t("All Statuses") }
-];
-
-const typeFilterOptions = [
-  { value: "", name: t("All Types") }
+// Role filter options
+const roleOptions = [
+  { value: '', name: t('All Roles') },
+  { value: 'student', name: t('Student') },
+  { value: 'guest', name: t('Guest') },
 ];
 
 // Table columns
 const tableColumns = [
-  { key: "user", label: t("User") },
+  { key: "user", label: t("User"), class: "whitespace-nowrap" },
+  { key: "role", label: t("Role") },
   { key: "amount", label: t("Amount") },
-  { key: "payment_type", label: t("Type") },
-  { key: "payment_date", label: t("Date") },
-  { key: "status", label: t("Status") },
-  { key: "description", label: t("Description") },
-  { key: "actions", label: t("Actions") },
+  { key: "deal_number", label: t("Deal Number") },
+  { key: "period", label: t("Period") },
+  { key: "actions", label: t("Actions"), class: "text-right" },
 ];
 
 // Load payments data
@@ -384,25 +202,28 @@ const loadPayments = async () => {
       per_page: itemsPerPage.value,
     };
 
-    // Only add non-empty filter values
     if (searchTerm.value) params.search = searchTerm.value;
-    if (statusFilter.value) params.status = statusFilter.value;
-    if (typeFilter.value) params.type = typeFilter.value;
-    if (semesterFilter.value) params.semester = semesterFilter.value;
-    if (yearFilter.value) params.year = yearFilter.value;
     if (startDate.value) params.date_from = startDate.value;
     if (endDate.value) params.date_to = endDate.value;
+    if (selectedRole.value) params.role = selectedRole.value;
 
     const response = await paymentService.getAll(params);
-    
-    if (response.data && response.data.data) {
+
+    if (response.data && response.data.meta) { // Check for the new paginated structure
       payments.value = response.data.data;
-      total.value = response.data.total || 0;
+      currentPage.value = response.data.meta.current_page;
+      total.value = response.data.meta.total || 0;
+      fromPayment.value = response.data.meta.from || 0;
+      toPayment.value = response.data.meta.to || 0;
+      itemsPerPage.value = response.data.meta.per_page;
     } else {
       payments.value = [];
       total.value = 0;
+      fromPayment.value = 0;
+      toPayment.value = 0;
     }
   } catch (err) {
+    payments.value = [];
     error.value = 'Failed to load payments';
     console.error('Error loading payments:', err);
   } finally {
@@ -410,13 +231,18 @@ const loadPayments = async () => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
   loadPayments();
+  pageInput.value = currentPage.value;
   paymentsStore.clearSelectedPayment();
 });
 
 // Watch filters and reload payments
-watch([searchTerm, statusFilter, typeFilter, semesterFilter, yearFilter, startDate, endDate, predefinedRange], loadPayments);
+watch([searchTerm, startDate, endDate, selectedRole], () => {
+  currentPage.value = 1;
+  pageInput.value = 1;
+  loadPayments();
+});
 
 // Pagination
 const totalPages = computed(() => {
@@ -427,88 +253,14 @@ const paginatedPayments = computed(() => {
   return payments.value; // Backend already returns paginated data
 });
 
-// Total amount calculation
-const totalAmount = computed(() => {
-  return payments.value.reduce((total, payment) => {
-    return total + (parseFloat(payment.amount) || 0);
-  }, 0);
+watch(currentPage, (newPage, oldPage) => {
+  if (newPage !== oldPage && newPage > 0 && newPage <= totalPages.value) {
+    pageInput.value = newPage;
+    loadPayments();
+  }
 });
 
-// Format date helper
-const formatDate = (dateString: string) => {
-  if (!dateString) return '-';
-  return new Date(dateString).toLocaleDateString();
-};
-
-// Status color helper
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'completed':
-      return 'bg-green-100 text-green-800';
-    case 'pending':
-      return 'bg-yellow-100 text-yellow-800';
-    case 'failed':
-      return 'bg-red-100 text-red-800';
-    case 'refunded':
-      return 'bg-gray-100 text-gray-800';
-    default:
-      return 'bg-gray-100 text-gray-800';
-  }
-};
-
-// CRUD operations
-const createPayment = async (paymentData: any) => {
-  try {
-    const now = new Date();
-    const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    const today = `${yyyy}-${mm}-${dd}`;
-    const payload: any = {
-      user_id: Number(paymentData.user_id),
-      amount: Number(paymentData.amount),
-      // Map to backend-required fields with sensible defaults
-      contract_number: `AUTO-${Date.now()}`,
-      contract_date: today,
-      payment_date: today,
-      payment_method: 'bank_transfer',
-      semester: paymentData.semester || 'fall',
-      year: yyyy,
-      semester_type: (paymentData.semester || 'fall'),
-    };
-    const response = await paymentService.create(payload);
-    payments.value.push(response.data);
-    showSuccess(t('Payment created successfully'));
-    return response.data;
-  } catch (err) {
-    showError(t('Failed to create payment'));
-    throw err;
-  }
-};
-
-const updatePayment = async (id: number, paymentData: any) => {
-  try {
-    const payload: any = {
-      amount: paymentData.amount ? Number(paymentData.amount) : undefined,
-      semester: paymentData.semester,
-    };
-    const response = await paymentService.update(id, payload);
-    const index = payments.value.findIndex(p => p.id === id);
-    if (index !== -1) {
-      payments.value[index] = response.data;
-    }
-    showSuccess(t('Payment updated successfully'));
-    try {
-      const updated = response.data;
-      const newStatus = (updated?.status === 'completed') ? 'active' : (updated?.status === 'pending' ? 'pending' : undefined);
-      if (updated?.user_id && newStatus) await studentService.update(updated.user_id, { status: newStatus });
-    } catch {}
-    return response.data;
-  } catch (err) {
-    showError(t('Failed to update payment'));
-    throw err;
-  }
-};
+const formatPrice = (price: number): string => formatCurrency(price, currencySymbol.value, 'USD');
 
 const confirmDeletePayment = (id: number) => {
   paymentToDelete.value = id;
@@ -517,7 +269,7 @@ const confirmDeletePayment = (id: number) => {
 
 const deletePayment = async () => {
   if (!paymentToDelete.value) return;
-  
+
   try {
     await paymentService.delete(paymentToDelete.value);
     payments.value = payments.value.filter(p => p.id !== paymentToDelete.value);
@@ -533,35 +285,25 @@ const deletePayment = async () => {
 
 async function exportPayments() {
   try {
-    const filters: any = {
-      search: searchTerm.value,
-      status: statusFilter.value,
-      type: typeFilter.value,
-      semester: semesterFilter.value,
-      year: yearFilter.value,
-      start_date: startDate.value,
-      end_date: endDate.value,
-      range: predefinedRange.value,
-    };
-    // Remove empty filters
-    Object.keys(filters).forEach(key => {
-      if (!filters[key]) delete filters[key];
-    });
+    const filters: any = {};
+    if (searchTerm.value) filters.search = searchTerm.value;
+    if (startDate.value) filters.date_from = startDate.value;
+    if (endDate.value) filters.date_to = endDate.value;
+
     const response = await paymentService.export(filters);
-    // Create a blob and trigger download
-    const blob = new Blob([// @ts-expect-error handle both Axios and raw Blob
-      (response && (response as any).data) ? (response as any).data : response
-    ], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const blob = new Blob([(response && (response as any).data) ? (response as any).data : response], { type: 'text/csv' }); // Changed to text/csv
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', 'payments.xlsx');
+    link.setAttribute('download', 'payments.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
+
   } catch (err) {
     showError(t('Failed to export payments'));
+    console.error('Error exporting payments:', err);
   }
 }
 
@@ -569,234 +311,30 @@ async function exportPayments() {
 const showPaymentForm = async () => {
   showForm.value = true;
   selectedPayment.value = null;
-  resetForm();
-  await loadStudents(); // Load students when form opens
 };
 
 const closePaymentForm = () => {
   showForm.value = false;
   selectedPayment.value = null;
-  resetForm();
 };
 
 const editPayment = async (payment: any) => {
-  console.log('Edit payment called with:', payment);
   selectedPayment.value = payment;
   showForm.value = true;
-  const currentUserId: number | undefined = (payment.user_id ?? payment.userId ?? payment.user?.id);
-  console.log('Current user ID:', currentUserId);
-  await loadStudents(currentUserId);
-  
-  // Parse the semester field to extract year and semester
-  const { year, semester } = parseSemester(payment.semester);
-  
-  formData.value = {
-    user_id: currentUserId ? String(currentUserId) : "",
-    amount: payment.amount?.toString() || "",
-    semester: semester,
-    academic_year: year
-  };
-  
-  console.log('Form data set:', formData.value);
-  console.log('Student options at edit:', studentOptions.value.length);
 };
 
-const resetForm = () => {
-  const currentYear = new Date().getFullYear();
-  formData.value = {
-    user_id: "",
-    amount: "",
-    semester: currentSemester(),
-    academic_year: currentYear.toString()
-  };
-};
-
-const handleFormSubmit = async (data: any) => {
-  try {
-    // Combine academic year and semester into the semester field
-    const submissionData = {
-      ...data,
-      semester: formatSemester(data.academic_year, data.semester)
-    };
-    
-    if (selectedPayment.value) {
-      await updatePayment(selectedPayment.value.id, submissionData);
-    } else {
-      await createPayment(submissionData);
-    }
-    await loadPayments();
-    closePaymentForm();
-  } catch (err) {
-    // Error handling is done in the CRUD methods
-  }
-};
-
-// Semester options and helpers
-const semesterOptions = [
-  { value: 'spring', name: t('Spring') },
-  { value: 'summer', name: t('Summer') },
-  { value: 'fall', name: t('Fall') }
-];
-
-function currentSemester(): string {
-  const month = new Date().getMonth() + 1;
-  if (month <= 5) return 'spring';
-  if (month <= 8) return 'summer';
-  return 'fall';
-}
-
-// Helper functions for semester parsing
-function parseSemester(semesterString: string): { year: string; semester: string } {
-  if (!semesterString) {
-    const currentYear = new Date().getFullYear();
-    return { year: currentYear.toString(), semester: currentSemester() };
-  }
-  
-  const parts = semesterString.split('-');
-  if (parts.length === 2) {
-    return { year: parts[0], semester: parts[1] };
-  }
-  
-  // Fallback: assume it's just a semester without year
-  const currentYear = new Date().getFullYear();
-  return { year: currentYear.toString(), semester: semesterString };
-}
-
-function formatSemester(year: string, semester: string): string {
-  return `${year}-${semester}`;
-}
-
-// Student options (name surname email)
-const studentOptions = ref<Array<{ value: string; name: string }>>([]);
-
-// Watch studentOptions for debugging
-watch(studentOptions, (newOptions) => {
-  console.log('StudentOptions changed:', newOptions.length, 'options');
-  if (newOptions.length > 0) {
-    console.log('First option:', newOptions[0]);
-  }
-}, { deep: true });
-
-// Debug computed property to see studentOptions in template
-const debugStudentOptions = computed(() => {
-  console.log('Template accessing studentOptions:', studentOptions.value.length);
-  return studentOptions.value;
-});
-
-// Load students function - optimized for payment form
-const loadStudents = async (ensureUserId?: number) => {
-  loadingStudents.value = true;
-  try {
-    console.log('Starting loadStudents with ensureUserId:', ensureUserId);
-    
-    // Check authentication token
-    const token = localStorage.getItem('token');
-    console.log('Using token:', token ? token.substring(0, 20) + '...' : 'No token');
-    
-    // Test direct fetch to see what's happening
-    const directResponse = await fetch('http://localhost:8000/api/students?fields=id,name,email&per_page=1000', {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      }
-    });
-    
-    const directData = await directResponse.json();
-    console.log('Direct fetch response:', directData);
-    console.log('Direct fetch students count:', directData.data?.length || 'No data');
-    
-    // Load all students from admin's dormitory with only essential fields
-    const res: any = await studentService.getAll({ 
-      per_page: 1000,
-      fields: 'id,name,email' // Only fetch essential fields for better performance
-    });
-    
-    console.log('API Response:', res);
-    console.log('Response structure:', {
-      hasData: !!res?.data,
-      hasDataData: !!res?.data?.data,
-      isArray: Array.isArray(res),
-      dataLength: res?.data?.data?.length || res?.data?.length || (Array.isArray(res) ? res.length : 'N/A')
-    });
-    
-    // Backend-тен келетін жауап структурасын дұрыс өңдеу
-    let users: Array<any> = [];
-    if (res?.data?.data) {
-      users = res.data.data; // Paginated response
-      console.log('Using paginated response structure');
-    } else if (res?.data) {
-      users = res.data; // Direct array
-      console.log('Using direct array response structure');
-    } else if (Array.isArray(res)) {
-      users = res; // Direct array
-      console.log('Using direct array response');
-    } else {
-      console.log('Unknown response structure, using empty array');
-    }
-    
-    console.log('Processed users:', users.length);
-    console.log('First user:', users[0]);
-    
-    // Create options with only essential fields (id, name, email)
-    const options = users
-      .filter(u => u && u.id) // Filter out users without id
-      .map(u => ({ 
-        value: String(u.id), 
-        name: `${u.name || 'Unknown'}${u.email ? ` (${u.email})` : ''}` 
-      }));
-    
-    console.log('Student options created:', options.length);
-    console.log('First option:', options[0]);
-    
-    // Ensure current user exists in options for edit mode
-    if (ensureUserId && !options.some(o => o.value === String(ensureUserId))) {
-      console.log('Current user not found in options, fetching individually...');
-      // Try to fetch specific student details via userService
-      try {
-        const one: any = await studentService.getById(ensureUserId);
-        const u = one?.data || {};
-        options.push({ value: String(ensureUserId), name: `${u.name || 'Student'}${u.email ? ` (${u.email})` : ''}` });
-        console.log('Added missing student:', u.name);
-      } catch (err) {
-        console.error('Failed to fetch individual student:', err);
-      }
-    }
-    
-    studentOptions.value = options;
-    console.log('Final student options set:', studentOptions.value.length);
-  } catch (err) {
-    console.error('Failed to load students:', err);
-    studentOptions.value = [];
-  } finally {
-    loadingStudents.value = false;
-  }
-};
-
-// Navigation function
-const navigateToEditPayment = (payment: any) => {
-  paymentsStore.setSelectedPayment(payment);
-  const id = payment.id || payment.contract_number || payment.dogovorNumber;
-  router.push(`/payment-form/${id}`);
+const handleFormSubmission = () => {
+  loadPayments();
+  closePaymentForm();
 };
 
 // Pagination handlers
-const goToPage = (page: number) => {
-  currentPage.value = page;
-  loadPayments();
-};
-
-const goToNextPage = () => {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++;
-    loadPayments();
-  }
-};
-
-const goToPrevPage = () => {
-  if (currentPage.value > 1) {
-    currentPage.value--;
-    loadPayments();
+const goToPage = () => {
+  const page = Number(pageInput.value);
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page;
+  } else {
+    pageInput.value = currentPage.value;
   }
 };
 </script>

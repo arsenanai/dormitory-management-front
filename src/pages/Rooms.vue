@@ -82,37 +82,37 @@
   
         <!-- Pagination -->
         <div class="flex flex-col items-center justify-between gap-4 md:flex-row" data-testid="pagination">
-        <div class="text-sm text-gray-700">
-          <span v-if="totalRooms > 0">
-            <span class="font-medium">{{ fromRoom }}</span> - <span class="font-medium">{{ toRoom }}</span> / <span class="font-medium">{{ totalRooms }}</span>
-          </span>
-          <span v-else>
-            {{ t('No data available') }}
-          </span>
-        </div>
-        <div class="flex items-center gap-2">
-          <CButton :disabled="currentPage === 1" @click="currentPage--" :aria-label="t('Previous page')" class="h-10">
-            <ChevronLeftIcon class="h-5 w-5" />
-          </CButton>
-          <div class="flex items-center gap-1 text-sm">
-            <div class="w-20">
-              <CInput
-                id="page-input"
-                v-model.number="pageInput"
-                type="number"
-                :min="1"
-                :max="totalPages"
-                class="text-center h-10"
-                @keyup.enter="goToPage"
-              />
-            </div>
-            <span>/ {{ totalPages }}</span>
+          <div class="text-sm text-gray-700">
+            <span v-if="totalRooms > 0">
+              <span class="font-medium">{{ fromRoom }}</span> - <span class="font-medium">{{ toRoom }}</span> / <span class="font-medium">{{ totalRooms }}</span>
+            </span>
+            <span v-else>
+              {{ t('No data available') }}
+            </span>
           </div>
-          <CButton :disabled="currentPage === totalPages" @click="currentPage++" :aria-label="t('Next page')" class="h-10">
-            <ChevronRightIcon class="h-5 w-5" />
-          </CButton>
+          <div class="flex items-center gap-2">
+            <CButton :disabled="currentPage === 1" @click="currentPage--" :aria-label="t('Previous page')" class="h-10">
+              <ChevronLeftIcon class="h-5 w-5" />
+            </CButton>
+            <div class="flex items-center gap-1 text-sm">
+              <div class="w-20">
+                <CInput
+                  id="page-input"
+                  v-model.number="pageInput"
+                  type="number"
+                  :min="1"
+                  :max="totalPages"
+                  class="text-center h-10"
+                  @keyup.enter="goToPage"
+                />
+              </div>
+              <span>/ {{ totalPages }}</span>
+            </div>
+            <CButton :disabled="currentPage === totalPages" @click="currentPage++" :aria-label="t('Next page')" class="h-10">
+              <ChevronRightIcon class="h-5 w-5" />
+            </CButton>
+          </div>
         </div>
-      </div>
       </div>
     </Navigation>
   </template>
@@ -441,22 +441,6 @@ const getBedsCount = (room: any) => {
 const getFreeBeds = (room: any) => {
   if (!room.beds || !Array.isArray(room.beds)) return 0;
   return room.beds.filter((bed: any) => !bed.is_occupied && !bed.reserved_for_staff).length;
-}
-
-function getStatusColor(status: string) {
-  switch (status) {
-    case 'available': return 'green';
-    case 'occupied': return 'yellow';
-    case 'maintenance': return 'red';
-    default: return 'gray';
-  }
-}
-
-function formatPrice(price: number) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD'
-  }).format(price);
 }
 
 const goToPage = () => {

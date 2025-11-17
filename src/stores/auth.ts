@@ -50,6 +50,7 @@ export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(null)
   /** Loading state for async operations */
   const loading = ref(false)
+  const loadingProfile = ref(false)
   /** Error message for failed operations */
   const error = ref<string | null>(null)
 
@@ -67,10 +68,8 @@ export const useAuthStore = defineStore('auth', () => {
       if (storedToken && storedUser) {
         token.value = storedToken
         user.value = JSON.parse(storedUser)
-        console.log('🔐 Auth store initialized from localStorage:', { token: !!storedToken, user: !!storedUser })
       }
     } catch (error) {
-      console.error('Failed to initialize auth store from localStorage:', error)
       // Clear corrupted data only if localStorage is available
       if (typeof localStorage !== 'undefined' && localStorage.removeItem) {
         localStorage.removeItem('token')
@@ -103,7 +102,6 @@ export const useAuthStore = defineStore('auth', () => {
       return user.value.role;
     }
     
-    console.log('🔍 AuthStore - role is neither string nor object with name');
     return null;
   })
   
@@ -256,11 +254,14 @@ export const useAuthStore = defineStore('auth', () => {
    * ```
    */
   const loadProfile = async () => {
+    // Prevent concurrent requests or re-fetching if user data already exists from initialization
+    if (loadingProfile.value || user.value) return;
+
     try {
-      loading.value = true
+      loadingProfile.value = true;
       error.value = null
 
-      const response = await authService.getProfile()
+      const response = await authService.getProfile();
       // Convert API User to model User type
       const apiUser = response.data
       user.value = {
@@ -276,7 +277,7 @@ export const useAuthStore = defineStore('auth', () => {
       error.value = err.response?.data?.message || 'Failed to load profile'
       throw err
     } finally {
-      loading.value = false
+      loadingProfile.value = false;
     }
   }
 
@@ -353,7 +354,6 @@ export const useAuthStore = defineStore('auth', () => {
         await loadProfile()
       } catch (err) {
         // If loading profile fails, clear the invalid token
-        console.warn('Invalid token found, clearing authentication state')
         logout()
       }
     }

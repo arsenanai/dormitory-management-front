@@ -8,15 +8,18 @@ export type UserStatus = "pending" | "active" | "passive";
 
 export interface User {
   id: number;
-  name: string;
-  first_name?: string;
-  last_name?: string;
+  name: string; // Full name
+  first_name?: string; // Changed to snake_case
+  last_name?: string; // Changed to snake_case
   email: string;
-  email_verified_at?: string;
-  phone_numbers?: string[];
-  room_id?: number;
+  emailVerifiedAt?: string;
+  phone_numbers?: string[]; // Changed to snake_case
+  dormitory_id?: number | null;
+  room_id?: number | null;
+  bed_id?: number | null;
+  roomId?: number;
   password?: string;
-  password_confirmation?: string;
+  password_confirmation?: string; // Changed to snake_case
   status: UserStatus;
   role_id?: number;
   role?: Role | string;
@@ -24,13 +27,13 @@ export interface User {
   city?: City;
   // Student-specific fields (some may be moved to StudentProfile)
   student_id?: string;
-  birth_date?: string;
-  blood_type?: string;
+  birthDate?: string;
+  bloodType?: string;
   course?: string;
   faculty?: string;
   specialty?: string;
-  enrollment_year?: number;
-  graduation_year?: number;
+  enrollmentYear?: number;
+  graduationYear?: number;
   gender?: 'male' | 'female';
   emergency_contact?: string;
   emergency_phone?: string;
@@ -40,9 +43,9 @@ export interface User {
   admin_profile?: AdminProfile;
   guest_profile?: GuestProfile;
   // Timestamps
-  created_at?: string;
-  updated_at?: string;
-  deleted_at?: string;  
+  createdAt?: string;
+  updatedAt?: string;
+  deletedAt?: string;  
   dormitory?: Dormitory; // Add dormitory to the main User interface
 }
 
@@ -53,67 +56,103 @@ import type { GuestProfile } from './GuestProfile';
 
 // Legacy User class for forms/registration (kept for compatibility)
 export class UserRegistration {
-  iin: string;
-  name: string;
-  faculty: string;
-  specialist: string;
-  enrollmentYear: string;
-  gender: string;
-  email: string;
-  phoneNumbers: string[];
-  roomId: number | null;
-  dormitoryId: number | null;
+  iin: string; // Matches backend
+  first_name: string; // Changed to snake_case
+  last_name: string; // Changed to snake_case
+  faculty: string; // Matches backend
+  specialist: string; // Matches backend
+  enrollment_year: number; // Changed to snake_case
+  gender: string; // Matches backend
+  email: string; // Matches backend
+  phone_numbers: string[]; // Changed to snake_case
   password: string;
-  confirmPassword: string;
-  dealNumber: string;
-  country: string;
-  region: string;
-  city: string;
+  confirm_password: string; // Changed to snake_case
+  deal_number: string; // Changed to snake_case
+  country: string; // Matches backend
+  region: string; // Matches backend
+  city: string; // Matches backend
+  parent_name: string; // Changed to snake_case
+  parent_phone: string; // Changed to snake_case
+  parent_email: string; // Changed to snake_case
+  mentor_name: string; // Changed to snake_case
+  mentor_email: string; // Changed to snake_case
+  emergency_contact_name: string; // Changed to snake_case
+  emergency_contact_phone: string; // Changed to snake_case
+  blood_type: string; // Changed to snake_case
+  allergies: string; // Matches backend
+  violations: string; // Matches backend
+  dormitory_id: number | null; // Changed to snake_case
+  room_id: number | null; // Changed to snake_case
+  bed_id: number | null; // Changed to snake_case
   files: (File | null)[];
-  agreeToDormitoryRules: boolean;
+  agree_to_dormitory_rules: boolean; // Changed to snake_case
   status: UserStatus;
   roles: Role[];
 
   constructor(
     iin = "",
-    name = "",
+    first_name = "", // Changed to snake_case
+    last_name = "", // Changed to snake_case
     faculty = "",
     specialist = "",
-    enrollmentYear = "",
+    enrollment_year = new Date().getFullYear(), // Changed to snake_case
     gender = "",
     email = "",
-    phoneNumbers: string[] = [""],
-    roomId: number | null = null,
-    dormitoryId: number | null = null,
+    phone_numbers: string[] = [""], // Changed to snake_case
     password = "",
-    confirmPassword = "",
-    dealNumber = "",
+    confirm_password = "", // Changed to snake_case
+    deal_number = "", // Changed to snake_case
     country = "",
     region = "",
     city = "",
+    parent_name = "", // Changed to snake_case
+    parent_phone = "", // Changed to snake_case
+    parent_email = "", // Changed to snake_case
+    mentor_name = "", // Changed to snake_case
+    mentor_email = "", // Changed to snake_case
+    emergency_contact_name = "", // Changed to snake_case
+    emergency_contact_phone = "", // Changed to snake_case
+    blood_type = "", // Changed to snake_case
+    allergies = "",
+    violations = "",
+    dormitory_id: number | null = null, // Changed to snake_case
+    room_id: number | null = null, // Changed to snake_case
+    bed_id: number | null = null, // Changed to snake_case
     files: (File | null)[] = [null, null, null, null],
-    agreeToDormitoryRules = false,
+    agree_to_dormitory_rules = false, // Changed to snake_case
     status: UserStatus = "pending",
     roles: Role[] = []
   ) {
     this.iin = iin;
-    this.name = name;
+    this.first_name = first_name; // Changed to snake_case
+    this.last_name = last_name; // Changed to snake_case
     this.faculty = faculty;
     this.specialist = specialist;
-    this.enrollmentYear = enrollmentYear;
+    this.enrollment_year = enrollment_year; // Changed to snake_case
     this.gender = gender;
     this.email = email;
-    this.phoneNumbers = phoneNumbers;
-    this.roomId = roomId;
-    this.dormitoryId = dormitoryId;
+    this.phone_numbers = phone_numbers; // Changed to snake_case
     this.password = password;
-    this.confirmPassword = confirmPassword;
-    this.dealNumber = dealNumber;
+    this.confirm_password = confirm_password; // Changed to snake_case
+    this.deal_number = deal_number; // Changed to snake_case
     this.country = country;
     this.region = region;
     this.city = city;
+    this.parent_name = parent_name; // Changed to snake_case
+    this.parent_phone = parent_phone; // Changed to snake_case
+    this.parent_email = parent_email; // Changed to snake_case
+    this.mentor_name = mentor_name; // Changed to snake_case
+    this.mentor_email = mentor_email; // Changed to snake_case
+    this.emergency_contact_name = emergency_contact_name; // Changed to snake_case
+    this.emergency_contact_phone = emergency_contact_phone; // Changed to snake_case
+    this.blood_type = blood_type; // Changed to snake_case
+    this.allergies = allergies;
+    this.violations = violations;
+    this.dormitory_id = dormitory_id; // Changed to snake_case
+    this.room_id = room_id; // Changed to snake_case
+    this.bed_id = bed_id; // Changed to snake_case
     this.files = files;
-    this.agreeToDormitoryRules = agreeToDormitoryRules;
+    this.agree_to_dormitory_rules = agree_to_dormitory_rules; // Changed to snake_case
     this.status = status;
     this.roles = roles;
   }

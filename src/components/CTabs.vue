@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Tabs Navigation -->
-    <div class="mb-4 border-b border-gray-200 dark:border-gray-700">
+    <div class="border-b border-gray-200 dark:border-gray-700">
       <ul
         v-if="tabs.length > 0"
         class="flex w-full text-center text-sm font-medium"

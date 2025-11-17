@@ -5,65 +5,33 @@
       <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <!-- Room Number -->
         <div>
-          <CInput
-            id="room-number"
-            v-model="room.number"
-            type="text"
-            :label="t('Room Number')"
-            placeholder="Enter Room Number"
-            required
-            data-testid="room-number-input"
-            :error="errors.number"
-          />
+          <CInput id="room-number" v-model="room.number" type="text" :label="t('Room Number')"
+            placeholder="Enter Room Number" required data-testid="room-number-input"
+            :error="errors.number ? t(errors.number) : ''" />
+          <!--  t('The number has already been taken.') -->
         </div>
         <!-- Floor -->
         <div>
-          <CInput
-            id="room-floor"
-            v-model="room.floor"
-            type="number"
-            :label="t('Floor')"
-            placeholder="Enter Floor (Optional)"
-            data-testid="room-floor-input"
-          />
+          <CInput id="room-floor" v-model="room.floor" type="number" :label="t('Floor')"
+            placeholder="Enter Floor (Optional)" data-testid="room-floor-input" />
         </div>
         <!-- Notes -->
         <div class="lg:col-span-2">
-          <CInput
-            id="room-notes"
-            v-model="room.notes"
-            type="text"
-            :label="t('Notes')"
-            placeholder="Enter Notes"
-            data-testid="room-notes-input"
-          />
+          <CInput id="room-notes" v-model="room.notes" type="text" :label="t('Notes')" placeholder="Enter Notes"
+            data-testid="room-notes-input" />
         </div>
         <!-- Dormitory -->
         <div>
-          <CSelect
-            v-if="authStore.user?.role?.name === 'sudo' && !isEditing"
-            id="room-dormitory-select"
-            v-model="room.dormitory_id"
-            :options="dormitoryOptions"
-            :label="t('Dormitory')"
-            :disabled="loadingDormitories"
-            required
-            data-testid="dormitory-select"
-          />
-          <CInput v-else id="room-dormitory" :model-value="room.dormitory?.name" :label="t('Dormitory')" :readonly="true"
-            :placeholder="t('Dormitory preset to your assigned dormitory')" />
+          <CSelect v-if="authStore.user?.role?.name === 'sudo' && !isEditing" id="room-dormitory-select"
+            v-model="room.dormitory_id" :options="dormitoryOptions" :label="t('Dormitory')"
+            :disabled="loadingDormitories" required data-testid="dormitory-select" />
+          <CInput v-else id="room-dormitory" :model-value="room.dormitory?.name" :label="t('Dormitory')"
+            :readonly="true" :placeholder="t('Dormitory preset to your assigned dormitory')" />
         </div>
         <!-- Room Type -->
         <div>
-          <CSelect
-            id="room-type"
-            v-model="selectedRoomTypeId"
-            :options="roomTypeOptions"
-            :label="t('Room Type')"
-            :disabled="loadingRoomTypes"
-            required
-            data-testid="room-type-select"
-          />
+          <CSelect id="room-type" v-model="selectedRoomTypeId" :options="roomTypeOptions" :label="t('Room Type')"
+            :disabled="loadingRoomTypes" required data-testid="room-type-select" />
           <div v-if="loadingRoomTypes" class="text-sm text-gray-500 mt-1">
             {{ t('Loading room types...') }}
           </div>
@@ -73,15 +41,8 @@
         </div>
         <!-- Quota -->
         <div>
-          <CInput
-            id="room-quota"
-            :model-value="room.roomType?.capacity || 0"
-            type="number"
-            :label="t('Capacity')"
-            placeholder="t('Room Capacity')"
-            :readonly="true"
-            data-testid="room-quota-input"
-          />
+          <CInput id="room-quota" :model-value="room.roomType?.capacity || 0" type="number" :label="t('Capacity')"
+            placeholder="t('Room Capacity')" :readonly="true" data-testid="room-quota-input" />
         </div>
         <!-- Reserved Beds -->
         <div>
@@ -89,21 +50,13 @@
             {{ t('Staff reservation') }}
           </label>
           <div id="staff-beds" class="flex flex-col gap-2">
-            <div
-              v-for="(bed, index) in bedsPreview"
-              :key="bed.id"
-              :data-testid="`bed-${bed.number}`"
+            <div v-for="(bed, index) in bedsPreview" :key="bed.id" :data-testid="`bed-${bed.number}`"
               class="inline-flex items-center px-3 py-1 rounded border"
-              :class="bed.reserved_for_staff ? 'bg-yellow-100 border-yellow-400 text-yellow-800' : 'bg-primary-100 border-primary-300 text-primary-700'"
-            >
-              <span>{{ t('Bed') }} {{room.number}}-{{ index + 1 }}</span>
-              <CCheckbox
-                :id="'room-bed-' + bed.id"
-                v-model="bed.reserved_for_staff"
+              :class="bed.reserved_for_staff ? 'bg-yellow-100 border-yellow-400 text-yellow-800' : 'bg-primary-100 border-primary-300 text-primary-700'">
+              <span>{{ t('Bed') }} {{ room.number }}-{{ index + 1 }}</span>
+              <CCheckbox :id="'room-bed-' + bed.id" v-model="bed.reserved_for_staff"
                 :label="bed.is_occupied ? `${t('Occupied by')}: ${bed.user?.first_name} ${bed.user?.last_name}` : t('Reserved for Staff')"
-                class="ml-2"
-                :disabled="bed.is_occupied === true"
-              />
+                class="ml-2" :disabled="bed.is_occupied === true" />
             </div>
           </div>
         </div>
@@ -117,7 +70,7 @@
     </form>
   </Navigation>
 </template>
-  
+
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -155,7 +108,7 @@ const loadingDormitories = ref(false);
 const loadingRoomTypes = ref(false);
 
 // Room type options for select - computed based on available room types
-const roomTypeOptions = computed(() => 
+const roomTypeOptions = computed(() =>
   roomTypes.value.map(rt => ({
     value: rt.id,
     name: rt.name,
@@ -239,7 +192,6 @@ async function submitRoom() {
       showError(t("Please fill in all required fields"));
       return;
     }
-    console.log('Submitting room form: ', room.value);
     // Prepare room data for API
     const roomData = {
       number: room.value.number,
@@ -248,43 +200,41 @@ async function submitRoom() {
       room_type_id: room.value.roomType?.id || null,
       dormitory_id: room.value.dormitory_id || room.value.dormitory?.id || null,
     } as any;
-    
+
     // If editing, also update bed reservations
     //if (isEditing.value) {
-      // Include bed reservation data in the main room update payload
-      roomData.beds = bedsPreview.value
-        .map(bed => ({ id: bed.id, reserved_for_staff: !!bed.reserved_for_staff }));
+    // Include bed reservation data in the main room update payload
+    roomData.beds = bedsPreview.value
+      .map(bed => ({ id: bed.id, reserved_for_staff: !!bed.reserved_for_staff }));
     //}
-  
-  // If editing, update the room, otherwise create new
-  if (isEditing.value) {
-    console.log('Updating room with ID:', roomId.value);
-    console.log('Update data:', roomData);
-    try {
-      await roomService.update(roomId.value!, roomData);
-      console.log('Room updated successfully');
-      showSuccess(t("Room updated successfully!"));
-    } catch (updateError) {
-      console.error('Update error:', updateError);
-      throw updateError;
+
+    // If editing, update the room, otherwise create new
+    if (isEditing.value) {
+      try {
+        await roomService.update(roomId.value!, roomData);
+        console.log('Room updated successfully');
+        showSuccess(t("Room updated successfully!"));
+      } catch (updateError) {
+        console.error('Update error:', updateError);
+        throw updateError;
+      }
+    } else {
+      console.log('Creating new room');
+      console.log('Create data:', roomData);
+      try {
+        await roomService.create(roomData);
+        console.log('Room created successfully');
+        showSuccess(t("Room created successfully!"));
+      } catch (createError) {
+        console.error('Create error:', createError);
+        throw createError;
+      }
     }
-  } else {
-    console.log('Creating new room');
-    console.log('Create data:', roomData);
-    try {
-      await roomService.create(roomData);
-      console.log('Room created successfully');
-      showSuccess(t("Room created successfully!"));
-    } catch (createError) {
-      console.error('Create error:', createError);
-      throw createError;
-    }
-  }
-  
-  console.log('Navigating back to rooms page');
-  // Navigate back to rooms page
-  router.push('/rooms');
-} catch (error) {
+
+    console.log('Navigating back to rooms page');
+    // Navigate back to rooms page
+    router.push('/rooms');
+  } catch (error) {
     const err = error as any;
     if (err.response?.data?.errors) {
       // Handle validation errors from API
@@ -297,7 +247,7 @@ async function submitRoom() {
       showError(err.response?.data?.message || t("Failed to save room. Please try again."));
     }
     console.error('Error saving room:', error);
-}
+  }
 }
 
 // Load room from API if editing
@@ -308,10 +258,10 @@ const loadRoom = async (id: number) => {
       console.log('Room types not loaded yet, loading them first...');
       await loadRoomTypes();
     }
-    
+
     const response = await roomService.getById(id);
     const roomData = response.data;
-    
+
     // Store original bed data from API for updates
     // IMPORTANT: We need to sync the beds with the room type's capacity
     const capacity = roomData.room_type?.capacity || roomData.quota || 0;
@@ -325,30 +275,30 @@ const loadRoom = async (id: number) => {
     }
     originalBeds.value = syncedBeds;
     console.log('Original beds loaded:', originalBeds.value);
-    
+
     // Populate form with API data
     room.value = {
-      number:   roomData.number || "",
-      floor:    roomData.floor || null,
-      notes:    roomData.notes || "",
+      number: roomData.number || "",
+      floor: roomData.floor || null,
+      notes: roomData.notes || "",
       roomType: roomData.room_type || null, // API returns room_type (snake_case)
-      quota:    roomData.quota || 4,
-      beds:     roomData.beds || [], // Load existing beds from API
+      quota: roomData.quota || 4,
+      beds: roomData.beds || [], // Load existing beds from API
       dormitory: roomData.dormitory || null,
       dormitory_id: roomData.dormitory?.id || null,
     } as Room;
-    
+
     // Update beds preview after loading room data
     updateBedsPreview();
-    
+
     console.log('Form populated with:', room.value);
     console.log('Room type object after population:', room.value.roomType);
-    
+
     // Manually set the selected room type ID for the CSelect
     if (room.value.roomType) {
       selectedRoomTypeId.value = room.value.roomType.id;
       console.log('Manually set selectedRoomTypeId to:', selectedRoomTypeId.value);
-      
+
       // Verify the room type exists in our loaded room types
       const matchingRoomType = roomTypes.value.find(rt => rt.id === room.value.roomType?.id);
       if (matchingRoomType) {
@@ -363,10 +313,10 @@ const loadRoom = async (id: number) => {
     } else {
       console.log('No room type found in room data');
     }
-    
+
     console.log('Selected room type ID after manual set:', selectedRoomTypeId.value);
     console.log('Room type object after manual set:', room.value.roomType);
-    
+
   } catch (error) {
     console.error('Error loading room:', error);
     showError(t("Failed to load room data"));
@@ -394,7 +344,7 @@ watch(bedsPreview, (newBedsPreview) => {
     newBedsPreview.forEach((previewBed) => {
       // Find the corresponding bed in the original data by ID or number
       const originalBed = originalBeds.value.find(b => b.id === previewBed.id);
-      
+
       if (originalBed) {
         // Only update if the value has actually changed
         if (originalBed.reserved_for_staff !== previewBed.reserved_for_staff) {
@@ -406,42 +356,42 @@ watch(bedsPreview, (newBedsPreview) => {
   }
 }, { deep: true });
 
-  onMounted(async () => {
-    console.log('RoomForm mounted, isEditing:', isEditing.value);
-    
-    // Check permissions before loading any data
-    if (isEditing.value && authStore.user && authStore.user.role?.name === 'admin') {
-      // For admin users, we need to check if they can access this room
-      // We'll do this check in loadRoom, but we can add an early check here
-      console.log('Admin user accessing edit form, will check permissions in loadRoom');
+onMounted(async () => {
+  console.log('RoomForm mounted, isEditing:', isEditing.value);
+
+  // Check permissions before loading any data
+  if (isEditing.value && authStore.user && authStore.user.role?.name === 'admin') {
+    // For admin users, we need to check if they can access this room
+    // We'll do this check in loadRoom, but we can add an early check here
+    console.log('Admin user accessing edit form, will check permissions in loadRoom');
+  }
+
+  // Load dormitories and room types from API first
+  await loadDormitories();
+  await loadRoomTypes();
+
+  console.log('Dormitories and room types loaded');
+  console.log('Current room state:', room.value);
+
+  // If editing, always load fresh room data from API to ensure we have full relationships
+  if (isEditing.value) {
+    console.log('Loading room from API, ID:', roomId.value);
+    await loadRoom(roomId.value!);
+    console.log('Final room state after loading:', room.value);
+    console.log('Final roomType:', room.value.roomType);
+    console.log('Final selectedRoomTypeId:', selectedRoomTypeId.value);
+    console.log('Beds preview should show:', bedsPreview.value);
+  } else {
+    // Only restore from store for new rooms
+    if (roomStore.selectedRoom) {
+      room.value.dormitory = roomStore.selectedRoom.dormitory;
+      room.value.dormitory_id = roomStore.selectedRoom.dormitory_id;
     }
-    
-    // Load dormitories and room types from API first
-    await loadDormitories();
-    await loadRoomTypes();
-    
-    console.log('Dormitories and room types loaded');
-    console.log('Current room state:', room.value);
-    
-    // If editing, always load fresh room data from API to ensure we have full relationships
-    if (isEditing.value) {
-      console.log('Loading room from API, ID:', roomId.value);
-      await loadRoom(roomId.value!);
-      console.log('Final room state after loading:', room.value);
-      console.log('Final roomType:', room.value.roomType);
-      console.log('Final selectedRoomTypeId:', selectedRoomTypeId.value);
-      console.log('Beds preview should show:', bedsPreview.value);
-    } else {
-      // Only restore from store for new rooms
-      if (roomStore.selectedRoom) {
-        room.value.dormitory = roomStore.selectedRoom.dormitory;
-        room.value.dormitory_id = roomStore.selectedRoom.dormitory_id;
-      }
-      // roomStore.restoreSelectedRoom();
-    }
-    
-    console.log('Final room state after mount:', room.value);
-  });
+    // roomStore.restoreSelectedRoom();
+  }
+
+  console.log('Final room state after mount:', room.value);
+});
 
 const loadDormitories = async () => {
   if (authStore.user?.role?.name !== 'sudo') return;
@@ -462,7 +412,7 @@ const loadDormitories = async () => {
 
 const loadRoomTypes = async () => {
   loadingRoomTypes.value = true;
-  
+
   const params: { dormitory_id?: number } = {};
   const user = authStore.user;
 
@@ -480,7 +430,7 @@ const loadRoomTypes = async () => {
     } else {
       roomTypes.value = [];
     }
-    
+
     // Only set default room type for new rooms, not when editing
     if (!isEditing.value && roomTypes.value.length > 0) {
       selectedRoomTypeId.value = roomTypes.value[0].id;

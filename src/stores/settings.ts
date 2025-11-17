@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import api from '@/services/api';
 import { useToast } from '@/composables/useToast';
+import { configurationService, type PublicSettings } from '@/services/api';
 
 export interface SmtpSettings {
   smtp_host: string;
@@ -43,6 +44,7 @@ export interface DormitorySettings {
   backup_list_enabled: boolean;
   payment_deadline_days: number;
   default_room_price: number;
+  dormitory_rules: string;
 }
 
 export interface SystemLog {
@@ -60,6 +62,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const onecSettings = ref<OneCSettings | null>(null);
   const kaspiSettings = ref<KaspiSettings | null>(null);
   const dormitorySettings = ref<DormitorySettings | null>(null);
+  const publicSettings = ref<PublicSettings | null>(null);
   const generalSettings = ref<GeneralSettings | null>(null);
   const installedLanguages = ref<string[]>([]);
   const systemLogs = ref<SystemLog[]>([]);
@@ -72,6 +75,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const hasOnecSettings = computed(() => onecSettings.value !== null);
   const hasDormitorySettings = computed(() => dormitorySettings.value !== null);
   const hasGeneralSettings = computed(() => generalSettings.value !== null);
+  const hasPublicSettings = computed(() => publicSettings.value !== null);
 
   // Actions
   const fetchSmtpSettings = async () => {
@@ -210,8 +214,15 @@ export const useSettingsStore = defineStore('settings', () => {
     try {
       loading.value = true;
       error.value = null;
-      const response = await api.get('/configurations/currency');
-      generalSettings.value = response.data;
+      // If public settings are already loaded from the initial app load, use them.
+      if (publicSettings.value?.currency_symbol) {
+        generalSettings.value = { currency_symbol: publicSettings.value.currency_symbol };
+      } else {
+        // Otherwise, fetch directly. This is a good fallback for admin pages
+        // that might be loaded directly without the main App.vue wrapper.
+        const response = await api.get('/configurations/currency');
+        generalSettings.value = response.data;
+      }
       error.value = null;
     } catch (err: any) {
       error.value = err;
@@ -243,8 +254,15 @@ export const useSettingsStore = defineStore('settings', () => {
     try {
       loading.value = true;
       error.value = null;
-      const response = await api.get('/configurations/dormitory');
-      dormitorySettings.value = response.data;
+      // If public settings are loaded, use them to populate the dormitory rules.
+      if (publicSettings.value?.dormitory_rules) {
+        dormitorySettings.value = { ...dormitorySettings.value, dormitory_rules: publicSettings.value.dormitory_rules };
+      } else {
+        // Fallback to the specific endpoint if public settings aren't available.
+        // This ensures admin pages can still fetch settings independently.
+        const response = await api.configurationService.getDormitorySettings();
+        dormitorySettings.value = response.data;
+      }
       error.value = null;
     } catch (err: any) {
       error.value = err;
@@ -254,19 +272,19 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   };
 
-  const updateDormitorySettings = async (settings: DormitorySettings) => {
+  const updateDormitoryRules = async (rules: string) => {
     try {
       loading.value = true;
       error.value = null;
-      const response = await api.put('/configurations/dormitory', settings);
-      dormitorySettings.value = response.data;
-      error.value = null;
-      const { showSuccess } = useToast();
-      showSuccess('Dormitory settings updated successfully');
+      const response = await api.put('/configurations/dormitory-rules', { dormitory_rules: rules });
+      if (dormitorySettings.value) {
+        dormitorySettings.value.dormitory_rules = rules;
+      }
+      // This success message is part of the larger "Save All" toast.
       return response.data;
     } catch (err: any) {
       error.value = err;
-      showError(err.response?.data?.message || 'Failed to update dormitory settings');
+      showError(err.response?.data?.message || 'Failed to update dormitory rules');
       throw err;
     } finally {
       loading.value = false;
@@ -375,6 +393,21 @@ export const useSettingsStore = defineStore('settings', () => {
     ]);
   };
 
+  const fetchPublicSettings = async () => {
+    // Prevent re-fetching if already loaded
+    if (publicSettings.value) return;
+
+    try {
+      loading.value = true;
+      const response = await configurationService.getPublicSettings();
+      publicSettings.value = response;
+    } catch (err: any) {
+      showError(err.response?.data?.message || 'Failed to fetch public settings');
+    } finally {
+      loading.value = false;
+    }
+  };
+
   return {
     // State
     smtpSettings,
@@ -382,6 +415,7 @@ export const useSettingsStore = defineStore('settings', () => {
     onecSettings,
     kaspiSettings,
     dormitorySettings,
+    publicSettings,
     generalSettings,
     installedLanguages,
     systemLogs,
@@ -394,6 +428,7 @@ export const useSettingsStore = defineStore('settings', () => {
     hasOnecSettings,
     hasDormitorySettings,
     hasGeneralSettings,
+    hasPublicSettings,
     
     // Actions
     fetchSmtpSettings,
@@ -403,9 +438,9 @@ export const useSettingsStore = defineStore('settings', () => {
     fetchOnecSettings,
     updateOnecSettings,
     fetchKaspiSettings,
-    updateKaspiSettings,
-    fetchDormitorySettings,
-    updateDormitorySettings,
+    updateKaspiSettings,    
+    fetchDormitorySettings,    
+    updateDormitoryRules,
     fetchCurrencySettings,
     updateCurrencySettings,
     fetchInstalledLanguages,
@@ -414,5 +449,6 @@ export const useSettingsStore = defineStore('settings', () => {
     clearSystemLogs,
     initializeDefaults,
     fetchAllSettings,
+    fetchPublicSettings,
   };
 }); 
