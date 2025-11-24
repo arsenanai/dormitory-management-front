@@ -1,57 +1,64 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import api from '@/services/api';
-import { useToast } from '@/composables/useToast';
-import { configurationService, type PublicSettings } from '@/services/api';
+import { useToast } from '@/composables/useToast'; 
+import { configurationService } from '@/services/api';
+import type { PublicSettings } from '@/models/PublicSettings';
+import type { SmtpSettings } from '@/models/SmtpSettings';
+import type { CardReaderSettings } from '@/models/CardReaderSettings';
+import type { OneCSettings } from '@/models/OneCSettings';
+import type { KaspiSettings } from '@/models/KaspiSettings';
+import type { SystemLog } from '@/models/SystemLog';
 
-export interface SmtpSettings {
-  smtp_host: string;
-  smtp_port: number;
-  smtp_username: string;
-  smtp_password: string;
-  smtp_encryption: 'tls' | 'ssl' | 'none';
-  mail_from_address: string;
-  mail_from_name: string;
-}
+// export interface SmtpSettings {
+//   smtp_host: string;
+//   smtp_port: number;
+//   smtp_username: string;
+//   smtp_password: string;
+//   smtp_encryption: 'tls' | 'ssl' | 'none';
+//   mail_from_address: string;
+//   mail_from_name: string;
+// }
 
-export interface CardReaderSettings {
-  card_reader_enabled: boolean;
-  card_reader_host: string;
-  card_reader_port: number;
-  card_reader_timeout: number;
-  card_reader_locations: string[];
-}
+// export interface CardReaderSettings {
+//   card_reader_enabled: boolean;
+//   card_reader_host: string;
+//   card_reader_port: number;
+//   card_reader_timeout: number;
+//   card_reader_locations: string[];
+// }
 
-export interface OneCSettings {
-  onec_enabled: boolean;
-  onec_host: string;
-  onec_database: string;
-  onec_username: string;
-  onec_password: string;
-  onec_sync_interval: number;
-}
+// export interface OneCSettings {
+//   onec_enabled: boolean;
+//   onec_host: string;
+//   onec_database: string;
+//   onec_username: string;
+//   onec_password: string;
+//   onec_sync_interval: number;
+// }
 
-export interface KaspiSettings {
-  kaspi_enabled: boolean;
-  kaspi_api_key: string | null;
-  kaspi_merchant_id: string | null;
-  kaspi_webhook_url: string | null;
-}
+// export interface KaspiSettings {
+//   kaspi_enabled: boolean;
+//   kaspi_api_key: string | null;
+//   kaspi_merchant_id: string | null;
+//   kaspi_webhook_url: string | null;
+// }
 
-export interface DormitorySettings {
-  max_students_per_dormitory: number;
-  registration_enabled: boolean;
-  backup_list_enabled: boolean;
-  payment_deadline_days: number;
-  default_room_price: number;
-  dormitory_rules: string;
-}
+// export interface PublicSettings {
+//   max_students_per_dormitory: number;
+//   registration_enabled: boolean;
+//   backup_list_enabled: boolean;
+//   payment_deadline_days: number;
+//   dormitory_rules: string;
+//   currency_symbol: string;
+//   bank_requisites: string;
+// }
 
-export interface SystemLog {
-  file: string;
-  content: string;
-  timestamp: string;
-}
+// export interface SystemLog {
+//   file: string;
+//   content: string;
+//   timestamp: string;
+// }
 
 export const useSettingsStore = defineStore('settings', () => {
   const { showError, showSuccess } = useToast();
@@ -61,9 +68,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const cardReaderSettings = ref<CardReaderSettings | null>(null);
   const onecSettings = ref<OneCSettings | null>(null);
   const kaspiSettings = ref<KaspiSettings | null>(null);
-  const dormitorySettings = ref<DormitorySettings | null>(null);
   const publicSettings = ref<PublicSettings | null>(null);
-  const generalSettings = ref<GeneralSettings | null>(null);
   const installedLanguages = ref<string[]>([]);
   const systemLogs = ref<SystemLog[]>([]);
   const loading = ref(false);
@@ -73,8 +78,6 @@ export const useSettingsStore = defineStore('settings', () => {
   const hasSmtpSettings = computed(() => smtpSettings.value !== null);
   const hasCardReaderSettings = computed(() => cardReaderSettings.value !== null);
   const hasOnecSettings = computed(() => onecSettings.value !== null);
-  const hasDormitorySettings = computed(() => dormitorySettings.value !== null);
-  const hasGeneralSettings = computed(() => generalSettings.value !== null);
   const hasPublicSettings = computed(() => publicSettings.value !== null);
 
   // Actions
@@ -100,7 +103,7 @@ export const useSettingsStore = defineStore('settings', () => {
       const response = await api.put('/configurations/smtp', settings);
       smtpSettings.value = response.data;
       error.value = null;
-      showSuccess('SMTP settings updated successfully');
+      // showSuccess('SMTP settings updated successfully');
       return response.data;
     } catch (err: any) {
       error.value = err;
@@ -133,7 +136,7 @@ export const useSettingsStore = defineStore('settings', () => {
       const response = await api.put('/configurations/card-reader', settings);
       cardReaderSettings.value = response.data;
       error.value = null;
-      showSuccess('Card reader settings updated successfully');
+      // showSuccess('Card reader settings updated successfully');
       return response.data;
     } catch (err: any) {
       error.value = err;
@@ -166,7 +169,7 @@ export const useSettingsStore = defineStore('settings', () => {
       const response = await api.put('/configurations/onec', settings);
       onecSettings.value = response.data;
       error.value = null;
-      showSuccess('1C settings updated successfully');
+      // showSuccess('1C settings updated successfully');
       return response.data;
     } catch (err: any) {
       error.value = err;
@@ -199,7 +202,7 @@ export const useSettingsStore = defineStore('settings', () => {
       const response = await api.put('/configurations/kaspi', settings);
       kaspiSettings.value = response.data;
       error.value = null;
-      showSuccess('Kaspi settings updated successfully');
+      // showSuccess('Kaspi settings updated successfully');
       return response.data;
     } catch (err: any) {
       error.value = err;
@@ -210,36 +213,13 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   };
 
-  const fetchCurrencySettings = async () => {
+  const updateCurrencySettings = async (currencySymbol: string) => {
     try {
       loading.value = true;
       error.value = null;
-      // If public settings are already loaded from the initial app load, use them.
-      if (publicSettings.value?.currency_symbol) {
-        generalSettings.value = { currency_symbol: publicSettings.value.currency_symbol };
-      } else {
-        // Otherwise, fetch directly. This is a good fallback for admin pages
-        // that might be loaded directly without the main App.vue wrapper.
-        const response = await api.get('/configurations/currency');
-        generalSettings.value = response.data;
-      }
+      const response = await api.put('/configurations/currency', { currency_symbol: currencySymbol });
       error.value = null;
-    } catch (err: any) {
-      error.value = err;
-      showError(err.response?.data?.message || 'Failed to fetch currency settings');
-    } finally {
-      loading.value = false;
-    }
-  };
-
-  const updateCurrencySettings = async (settings: GeneralSettings) => {
-    try {
-      loading.value = true;
-      error.value = null;
-      const response = await api.put('/configurations/currency', settings);
-      generalSettings.value = settings; // Optimistic update
-      error.value = null;
-      showSuccess('Currency settings updated successfully');
+      // showSuccess('Currency settings updated successfully');
       return response.data;
     } catch (err: any) {
       error.value = err;
@@ -250,37 +230,15 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   };
 
-  const fetchDormitorySettings = async () => {
-    try {
-      loading.value = true;
-      error.value = null;
-      // If public settings are loaded, use them to populate the dormitory rules.
-      if (publicSettings.value?.dormitory_rules) {
-        dormitorySettings.value = { ...dormitorySettings.value, dormitory_rules: publicSettings.value.dormitory_rules };
-      } else {
-        // Fallback to the specific endpoint if public settings aren't available.
-        // This ensures admin pages can still fetch settings independently.
-        const response = await api.configurationService.getDormitorySettings();
-        dormitorySettings.value = response.data;
-      }
-      error.value = null;
-    } catch (err: any) {
-      error.value = err;
-      showError(err.response?.data?.message || 'Failed to fetch dormitory settings');
-    } finally {
-      loading.value = false;
-    }
-  };
-
   const updateDormitoryRules = async (rules: string) => {
     try {
       loading.value = true;
       error.value = null;
       const response = await api.put('/configurations/dormitory-rules', { dormitory_rules: rules });
-      if (dormitorySettings.value) {
-        dormitorySettings.value.dormitory_rules = rules;
+      if (publicSettings.value) {
+        publicSettings.value.dormitory_rules = rules;
       }
-      // This success message is part of the larger "Save All" toast.
+      // showSuccess('Dormitory rules updated successfully');
       return response.data;
     } catch (err: any) {
       error.value = err;
@@ -290,6 +248,23 @@ export const useSettingsStore = defineStore('settings', () => {
       loading.value = false;
     }
   };
+
+  const updateBankRequisites = async (value: string) => {
+    try {
+      loading.value = true;
+      error.value = null;
+      const response = await api.put('/configurations/bank-requisites', { bank_requisites: value });
+      error.value = null;
+      // showSuccess('Bank requisites updated successfully');
+      return response.data;
+    } catch (err: any) {
+      error.value = err;
+      showError(err.response?.data?.message || 'Failed to update bank requisites');
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
 
   const fetchInstalledLanguages = async () => {
     try {
@@ -322,7 +297,7 @@ export const useSettingsStore = defineStore('settings', () => {
       
       await fetchInstalledLanguages();
       error.value = null;
-      showSuccess('Language file uploaded successfully');
+      // showSuccess('Language file uploaded successfully');
       return response.data;
     } catch (err: any) {
       error.value = err;
@@ -357,7 +332,7 @@ export const useSettingsStore = defineStore('settings', () => {
       await api.delete('/configurations/logs');
       systemLogs.value = [];
       error.value = null;
-      showSuccess('System logs cleared successfully');
+      // showSuccess('System logs cleared successfully');
     } catch (err: any) {
       error.value = err;
       showError(err.response?.data?.message || 'Failed to clear system logs');
@@ -373,7 +348,7 @@ export const useSettingsStore = defineStore('settings', () => {
       error.value = null;
       await api.post('/configurations/initialize');
       error.value = null;
-      showSuccess('Default configurations initialized successfully');
+      // showSuccess('Default configurations initialized successfully');
     } catch (err: any) {
       error.value = err;
       showError(err.response?.data?.message || 'Failed to initialize defaults');
@@ -388,24 +363,32 @@ export const useSettingsStore = defineStore('settings', () => {
       fetchCardReaderSettings(),
       fetchOnecSettings(),
       fetchKaspiSettings(),
-      fetchDormitorySettings(),
-      fetchCurrencySettings(),
+      fetchPublicSettings(),
     ]);
   };
 
+  let publicSettingsPromise: Promise<void> | null = null;
+
   const fetchPublicSettings = async () => {
     // Prevent re-fetching if already loaded
-    if (publicSettings.value) return;
+    if (publicSettings.value) return Promise.resolve();
+    // If a fetch is already in progress, return the existing promise
+    if (publicSettingsPromise) return publicSettingsPromise;
 
-    try {
-      loading.value = true;
-      const response = await configurationService.getPublicSettings();
-      publicSettings.value = response;
-    } catch (err: any) {
-      showError(err.response?.data?.message || 'Failed to fetch public settings');
-    } finally {
-      loading.value = false;
-    }
+    publicSettingsPromise = (async () => {
+      try {
+        loading.value = true;
+        const response = await configurationService.getPublicSettings();
+        publicSettings.value = response;
+      } catch (err: any) {
+        showError(err.response?.data?.message || 'Failed to fetch public settings');
+      } finally {
+        loading.value = false;
+        // Reset promise after completion to allow re-fetching if needed later
+        publicSettingsPromise = null;
+      }
+    })();
+    return publicSettingsPromise;
   };
 
   return {
@@ -414,9 +397,7 @@ export const useSettingsStore = defineStore('settings', () => {
     cardReaderSettings,
     onecSettings,
     kaspiSettings,
-    dormitorySettings,
     publicSettings,
-    generalSettings,
     installedLanguages,
     systemLogs,
     loading,
@@ -426,8 +407,6 @@ export const useSettingsStore = defineStore('settings', () => {
     hasSmtpSettings,
     hasCardReaderSettings,
     hasOnecSettings,
-    hasDormitorySettings,
-    hasGeneralSettings,
     hasPublicSettings,
     
     // Actions
@@ -438,10 +417,9 @@ export const useSettingsStore = defineStore('settings', () => {
     fetchOnecSettings,
     updateOnecSettings,
     fetchKaspiSettings,
-    updateKaspiSettings,    
-    fetchDormitorySettings,    
+    updateKaspiSettings,       
     updateDormitoryRules,
-    fetchCurrencySettings,
+    updateBankRequisites,
     updateCurrencySettings,
     fetchInstalledLanguages,
     uploadLanguageFile,

@@ -174,7 +174,19 @@
         </div>
       </CStep>
 
-      <!-- Step 10: Registration Status -->
+      <!-- Step 10: Payment -->
+      <CStep :title="t('Payment')" :validator="() => isPaymentStepValid">
+        <div class="grid grid-cols-1 gap-4">
+          
+          <CFileInput :id="`payment-file`" :name="t('Bank Check')" :label="t('Bank Check')"
+            :allowedExtensions="['jpg', 'jpeg', 'png', 'pdf']" :maxFileSize="2 * 1024 * 1024"
+            :validation-message="registrationValidationMessage.payment_check" data-testid="file-input"
+            @validation="({ valid }) => registrationValidationState.payment_check = valid"
+            @change="(file) => updateRegistrationFileInput(index, file)" />
+        </div>
+      </CStep>
+
+      <!-- Step 11: Registration Status -->
       <CStep :title="t('Registration & Status')" :validator="() => isRegistrationStatusStepValid">
         <div v-if="user.student_profile" class="flex-1 flex flex-col gap-4 h-full">
           <CTextarea id="dormitory-rules" :label="t('Dormitory Rules and Regulations')"
@@ -256,13 +268,16 @@ const user = ref<Partial<User>>({
     violations: "",
     mentor_name: "",
     mentor_email: "",
-    files: [null, null, null, null], // Files belong to the profile
+    files: [null, null, null], // Files belong to the profile
   },
+  payment: {
+    payment_check: null,
+  }
 });
 
 type ValidationState = 'success' | 'error' | '';
 
-const registrationFileLabels = [t("063 Form"), t("075 Form"), t("ID Check"), t("Bank Check")];
+const registrationFileLabels = [t("063 Form"), t("075 Form"), t("ID Check")];
 const registrationValidationState = ref<{
   iin: ValidationState;
   first_name: ValidationState;
@@ -278,11 +293,12 @@ const registrationValidationState = ref<{
   room: ValidationState;
   bed: ValidationState;
   files: ValidationState[];
+  payment_check: ValidationState;
   [key: string]: ValidationState | ValidationState[];
-}>({ iin: '', first_name: '', last_name: '', faculty: '', specialist: '', enrollment_year: '', gender: '', email: '', password: '', confirm_password: '', dormitory: '', room: '', bed: '', files: [] });
+}>({ iin: '', first_name: '', last_name: '', faculty: '', specialist: '', enrollment_year: '', gender: '', email: '', password: '', confirm_password: '', dormitory: '', room: '', bed: '', files: [], payment_check: '' });
 
 
-const registrationValidationMessage = ref({ iin: '', first_name: '', last_name: '', faculty: '', specialist: '', enrollment_year: '', gender: '', email: '', password: '', confirm_password: '', dormitory: '', room: '', bed: '', files: [] });
+const registrationValidationMessage = ref({ iin: '', first_name: '', last_name: '', faculty: '', specialist: '', enrollment_year: '', gender: '', email: '', password: '', confirm_password: '', dormitory: '', room: '', bed: '', files: [], payment_check: '' });
 const isSubmitting = ref(false);
 const fileValidationStatus = ref<boolean[]>([true, true, true, true]);
 const currentStep = ref(0);
@@ -292,6 +308,7 @@ const handleRegistration = async () => {
   Object.keys(registrationValidationState.value).forEach(key => registrationValidationState.value[key] = '');
   Object.keys(registrationValidationMessage.value).forEach(key => registrationValidationMessage.value[key] = '');
   registrationValidationMessage.value.files = [];
+  registrationValidationMessage.value.payment_check = '';
 
   let hasError = !isRegistrationStatusStepValid.value;
   const setErr = (field: keyof typeof registrationValidationState.value, msg: string) => {
@@ -405,6 +422,7 @@ const handleRegistration = async () => {
         'bed_id': 7,
         'student_profile.files': 8,
         'student_profile.agree_to_dormitory_rules': 9,
+        'payment.payment_check': 10
       };
 
       let firstErrorStep = -1;
@@ -419,6 +437,15 @@ const handleRegistration = async () => {
             registrationValidationMessage.value.files[index] = message;
           }
           const step = fieldToStepMap['student_profile.files'];
+          if (step !== undefined && (firstErrorStep === -1 || step < firstErrorStep)) {
+            firstErrorStep = step;
+          }
+        // Handle single file input error: "payment.payment_check"
+        } else if (serverKey === 'payment.payment_check') {
+          if (registrationValidationMessage.value.payment) {
+            registrationValidationMessage.value.payment.payment_check = message;
+          }
+          const step = fieldToStepMap['payment.payment_check'] ?? fieldToStepMap['payment'];
           if (step !== undefined && (firstErrorStep === -1 || step < firstErrorStep)) {
             firstErrorStep = step;
           }
@@ -462,6 +489,13 @@ const updateRegistrationFileInput = (index: number, fileOrEvent: File | Event | 
     user.value.student_profile.files[index] = file;
   }
 };
+
+const updatePaymentCheckInput = (fileOrEvent: File | Event | null) => {
+  const file = fileOrEvent instanceof File ? fileOrEvent : ((fileOrEvent as Event)?.target as HTMLInputElement)?.files?.[0] || null;
+  if (user.value.payment.payment_check) {
+    user.value.payment.payment_check = file;
+  }
+}
 
 const genderOptions = [{ value: 'male', name: 'Male' }, { value: 'female', name: 'Female' }];
 const bloodTypeOptions = [
@@ -568,7 +602,12 @@ const isDocumentsStepValid = computed(() => {
   return fileValidationStatus.value.every(isValid => isValid);
 });
 
-// Step 10: Registration & Status
+// Step 10: Payment Chek
+const isPaymentStepValid = computed(() => {
+  const file = user.value?.payment?.payment_check;
+  return file instanceof File || (typeof file === 'string' && file.trim() !== '');
+});
+// Step 11: Registration & Status
 const isRegistrationStatusStepValid = computed(() => {
   return !!user.value.student_profile?.agree_to_dormitory_rules;
 });

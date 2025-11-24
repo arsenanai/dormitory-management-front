@@ -8,7 +8,6 @@ export interface StudentProfile {
   course?: number;
   year_of_study?: number;
   enrollment_year?: number;
-  enrollment_date?: string;
   blood_type?: string;
   violations?: string;
   parent_name?: string;
@@ -34,7 +33,6 @@ export interface StudentProfile {
   date_of_birth?: string;
   gender?: 'male' | 'female' | 'other';
   files?: any;
-  city_id?: number; // Keep for backward compatibility
   country?: string;
   region?: string;
   city?: string;

@@ -1,5 +1,18 @@
 import axios from "axios";
+import type { User, UserProfile } from "@/models/User";
+import type { AdminProfile } from "@/models/AdminProfile";
+import type { GuestProfile } from "@/models/GuestProfile";
+import type { Message } from "@/models/Message";
+import type { Payment } from "@/models/Payment";
+import type { Room } from "@/models/Room";
+import type { RoomType } from "@/models/RoomType";
+import type { Dormitory } from "@/models/Dormitory";
+import type { Bed } from "@/models/Bed";
+import type { StudentProfile } from "@/models/StudentProfile";
+import type { Configuration } from "@/models/Configuration";
+import type { PublicSettings } from "@/models/PublicSettings";
 
+/*
 // Define proper interfaces for all API types
 interface User {
   id: number;
@@ -144,14 +157,18 @@ interface Payment {
 interface Room {
   id: number;
   number: string;
-  floor?: string;
+  floor: number | null;
   dormitory_id: number;
+  dormitory?: Dormitory;
   room_type_id?: number;
+  roomType?: RoomType;
   is_occupied: boolean;
   notes?: string;
   quota?: number;
   created_at: string;
   updated_at: string;
+  beds?: Bed[];
+  occupant_type?: 'student' | 'guest';
 }
 
 interface RoomType {
@@ -185,21 +202,7 @@ interface Bed {
   created_at: string;
   updated_at: string;
 }
-
-interface Configuration {
-  id: number;
-  key: string;
-  value: string;
-  type: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface PublicSettings {
-  dormitory_rules: string;
-  currency_symbol: string;
-}
-
+*/
 
 interface ApiResponse<T> {
   success: boolean;
@@ -301,16 +304,16 @@ export const userService = {
 
 // Student service
 export const studentService = {
-  getAll: (params?: FilterParams): Promise<ApiResponse<PaginatedResponse<Student>>> =>
+  getAll: (params?: FilterParams): Promise<ApiResponse<PaginatedResponse<User>>> =>
     api.get("/students", { params }),
   
-  getById: (id: number): Promise<ApiResponse<Student>> =>
+  getById: (id: number): Promise<ApiResponse<User>> =>
     api.get(`/students/${id}`),
   
-  create: (data: Partial<Student>): Promise<ApiResponse<Student>> =>
+  create: (data: Partial<User>): Promise<ApiResponse<User>> =>
     api.post("/students", data, { headers: { "Content-Type": "multipart/form-data" } }),
   
-  update: (id: number, data: Partial<Student>): Promise<ApiResponse<Student>> =>
+  update: (id: number, data: Partial<User>): Promise<ApiResponse<User>> =>
     api.post(`/students/${id}`, data, { headers: { "Content-Type": "multipart/form-data" } }),
   
   delete: (id: number): Promise<ApiResponse<{ message: string }>> =>
@@ -319,37 +322,37 @@ export const studentService = {
   export: (params?: FilterParams): Promise<Blob> =>
     api.get("/students/export", { params, responseType: "blob" }),
   
-  getByDormitory: (dormitoryId: number, params?: FilterParams): Promise<ApiResponse<PaginatedResponse<Student>>> =>
+  getByDormitory: (dormitoryId: number, params?: FilterParams): Promise<ApiResponse<PaginatedResponse<User>>> =>
     api.get(`/dormitories/${dormitoryId}/students`, { params }),
   
-  getUnassigned: (params?: FilterParams): Promise<ApiResponse<PaginatedResponse<Student>>> =>
+  getUnassigned: (params?: FilterParams): Promise<ApiResponse<PaginatedResponse<User>>> =>
     api.get("/students/unassigned", { params }),
   
-  updateAccess: (id: number, data: { can_access: boolean }): Promise<ApiResponse<Student>> =>
+  updateAccess: (id: number, data: { can_access: boolean }): Promise<ApiResponse<User>> =>
     api.put(`/students/${id}/access`, data),
   
   getStatistics: (params?: FilterParams): Promise<ApiResponse<Record<string, unknown>>> =>
     api.get("/students/statistics", { params }),
   
-  approve: (id: number): Promise<ApiResponse<Student>> =>
+  approve: (id: number): Promise<ApiResponse<User>> =>
     api.patch(`/students/${id}/approve`),
 
-  listAll: (): Promise<ApiResponse<Partial<Student>[]>> =>
+  listAll: (): Promise<ApiResponse<Partial<User>[]>> =>
     api.get('/students-list'),
 };
 
 // Admin service
 export const adminService = {
-  getAll: (params?: FilterParams): Promise<ApiResponse<PaginatedResponse<Admin>>> =>
+  getAll: (params?: FilterParams): Promise<ApiResponse<PaginatedResponse<User>>> =>
     api.get("/admins", { params }),
   
-  getById: (id: number): Promise<ApiResponse<Admin>> =>
+  getById: (id: number): Promise<ApiResponse<User>> =>
     api.get(`/admins/${id}`),
   
-  create: (data: Partial<Admin>): Promise<ApiResponse<Admin>> =>
+  create: (data: Partial<User>): Promise<ApiResponse<User>> =>
     api.post("/admins", data),
   
-  update: (id: number, data: Partial<Admin>): Promise<ApiResponse<Admin>> =>
+  update: (id: number, data: Partial<User>): Promise<ApiResponse<User>> =>
     api.put(`/admins/${id}`, data),
   
   delete: (id: number): Promise<ApiResponse<{ message: string }>> =>
@@ -520,22 +523,22 @@ export const dormitoryService = {
 
 // Guest service
 export const guestService = {
-  getAll: (params?: FilterParams): Promise<ApiResponse<PaginatedResponse<Guest>>> =>
+  getAll: (params?: FilterParams): Promise<ApiResponse<PaginatedResponse<User>>> =>
     api.get("/guests", { params }),
   
-  getById: (id: number): Promise<ApiResponse<Guest>> =>
+  getById: (id: number): Promise<ApiResponse<User>> =>
     api.get(`/guests/${id}`),
   
-  create: (data: Partial<Guest>): Promise<ApiResponse<Guest>> =>
+  create: (data: Partial<User>): Promise<ApiResponse<User>> =>
     api.post("/guests", data),
   
-  update: (id: number, data: Partial<Guest>): Promise<ApiResponse<Guest>> =>
+  update: (id: number, data: Partial<User>): Promise<ApiResponse<User>> =>
     api.put(`/guests/${id}`, data),
   
   delete: (id: number): Promise<ApiResponse<{ message: string }>> =>
     api.delete(`/guests/${id}`),
 
-  listAll: (): Promise<ApiResponse<Partial<Guest>[]>> =>
+  listAll: (): Promise<ApiResponse<Partial<User>[]>> =>
     api.get('/guests-list'),
   
   getPayments: (params?: FilterParams): Promise<ApiResponse<PaginatedResponse<Payment>>> =>
@@ -550,8 +553,8 @@ export const guestService = {
   export: (params?: FilterParams): Promise<Blob> =>
     api.get("/guests/export", { params, responseType: "blob" }),
   
-  getAvailableRooms: (): Promise<ApiResponse<Room[]>> =>
-    api.get("/guests/available-rooms"),
+  getAvailableRooms: (params?: FilterParams): Promise<ApiResponse<Room[]>> =>
+    api.get("/rooms/available", { params: { ...params, occupant_type: 'guest' } }),
 };
 
 // Bed service
@@ -616,20 +619,18 @@ export const configurationService = {
     });
   },
 
-  getCurrency: (): Promise<ApiResponse<{ currency_symbol: string }>> =>
-    api.get("/configurations/currency"),
-  
-  updateCurrency: (currency: string): Promise<ApiResponse<{ message: string }>> =>
-    api.put("/configurations/currency", { currency_symbol: currency }),
-
   getDormitorySettings: (): Promise<ApiResponse<Record<string, unknown>>> =>
     api.get("/configurations/dormitory"),
 
-  getPublicSettings: (): Promise<ApiResponse<PublicSettings>> =>
-    api.get<ApiResponse<PublicSettings>>("/configurations/public").then(res => res.data),
+  getPublicSettings: (): Promise<PublicSettings> =>
+    api.get<PublicSettings>("/configurations/public").then(res => res.data),
 
   updateDormitoryRules: (rules: string): Promise<ApiResponse<Record<string, unknown>>> =>
     api.put("/configurations/dormitory-rules", { dormitory_rules: rules }),
+
+  updateBankRequisites: (value: string): Promise<ApiResponse<Record<string, unknown>>> =>
+    api.put("/configurations/bank-requisites", { bank_requisites: value }),
+
 
   updateDormitorySettings: (settings: Record<string, unknown>): Promise<ApiResponse<Record<string, unknown>>> =>
     api.put("/configurations/dormitory", settings),
@@ -683,23 +684,22 @@ export const cardReaderService = {
     api.get("/card-reader/export", { params, responseType: "blob" }),
 };
 
-// Accounting service - Commented out
-// export const accountingApi = {
-//   getAccountingData: (params?: FilterParams): Promise<ApiResponse<PaginatedResponse<Record<string, unknown>>>> =>
-//     api.get("/accounting", { params }),
-//   
-//   getStudentAccounting: (studentId: number, params?: FilterParams): Promise<ApiResponse<Record<string, unknown>>> =>
-//     api.get(`/accounting/student/${studentId}`, { params }),
-//   
-//   getSemesterAccounting: (semester: string, params?: FilterParams): Promise<ApiResponse<PaginatedResponse<Record<string, unknown>>>> =>
-//     api.get(`/accounting/semester/${semester}`, { params }),
-//   
-//   exportAccounting: (params?: FilterParams): Promise<Blob> =>
-//     api.get("/accounting/export", { params, responseType: "blob" }),
-//   
-//   getAccountingStats: (params?: FilterParams): Promise<ApiResponse<Record<string, unknown>>> =>
-//     api.get("/accounting/stats", { params }),
-// };
+export const accountingApi = {
+  getAccountingData: (params?: FilterParams): Promise<ApiResponse<PaginatedResponse<Record<string, unknown>>>> =>
+    api.get("/accounting", { params }),
+  
+  getStudentAccounting: (studentId: number, params?: FilterParams): Promise<ApiResponse<Record<string, unknown>>> =>
+    api.get(`/accounting/student/${studentId}`, { params }),
+  
+  getSemesterAccounting: (semester: string, params?: FilterParams): Promise<ApiResponse<PaginatedResponse<Record<string, unknown>>>> =>
+    api.get(`/accounting/semester/${semester}`, { params }),
+  
+  exportAccounting: (params?: FilterParams): Promise<Blob> =>
+    api.get("/accounting/export", { params, responseType: "blob" }),
+  
+  getAccountingStats: (params?: FilterParams): Promise<ApiResponse<Record<string, unknown>>> =>
+    api.get("/accounting/stats", { params }),
+};
 
 // Dormitory access service
 export const dormitoryAccessService = {

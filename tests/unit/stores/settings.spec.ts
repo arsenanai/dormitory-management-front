@@ -239,7 +239,6 @@ describe('Settings Store', () => {
     it('should fetch dormitory settings successfully', async () => {
       const mockDormitorySettings: DormitorySettings = {
         max_students_per_dormitory: 100,
-        default_room_price: 50000,
         payment_deadline_days: 30,
         registration_enabled: true,
         backup_list_enabled: true,
@@ -260,7 +259,6 @@ describe('Settings Store', () => {
     it('should update dormitory settings successfully', async () => {
       const mockDormitorySettings: DormitorySettings = {
         max_students_per_dormitory: 100,
-        default_room_price: 50000,
         payment_deadline_days: 30,
         registration_enabled: true,
         backup_list_enabled: true,
@@ -402,7 +400,6 @@ describe('Settings Store', () => {
 
       const mockDormitorySettings: DormitorySettings = {
         max_students_per_dormitory: 100,
-        default_room_price: 50000,
         payment_deadline_days: 30,
         registration_enabled: true,
         backup_list_enabled: true,

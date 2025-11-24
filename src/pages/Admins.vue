@@ -39,7 +39,6 @@ const loading = ref(false);
 
 const columns = [
   { key: 'name', label: t('Name') },
-  { key: 'last_name', label: t('Surname') },
   { key: 'email', label: t('E-mail') },
   { key: 'admin_dormitory.name', label: t('Dormitory') },
   { key: 'actions', label: t('Actions') },

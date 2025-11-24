@@ -42,6 +42,12 @@
         <CSelect id="guest-room" v-model="user.room_id" :options="roomOptions" :label="t('Select room')" required />
       </div>
 
+      <!-- Bed Selection -->
+      <div>
+        <CSelect id="guest-bed" v-model="guestProfile.bed_id" :options="bedOptions" :label="t('Select bed')"
+          :disabled="!user.room_id" required />
+      </div>
+
       <!-- Purpose of Visit -->
       <div>
         <CInput id="guest-purpose" v-model="guestProfile.purpose_of_visit" type="text"
@@ -172,6 +178,7 @@ const guestProfile = ref<Partial<GuestProfile>>({
   emergency_contact_name: "",
   emergency_contact_phone: "",
   total_amount: 0,
+  bed_id: null,
   payment_received: 0,
   wifiUsername: "",
   wifiPassword: "",
@@ -185,31 +192,44 @@ const currencySymbol = computed(() => {
 // Room Options
 const roomOptions = ref<{ value: string; name: string }[]>([]);
 const allRoomsData = ref<any[]>([]); // To store full room data for rate lookup
+const bedOptions = ref<{ value: string; name: string }[]>([]);
 const loadingRooms = ref(false);
 
 const fetchAvailableRooms = async () => {
+  if (!guestProfile.value.visit_start_date || !guestProfile.value.visit_end_date) {
+    roomOptions.value = [];
+    allRoomsData.value = [];
+    return;
+  }
   loadingRooms.value = true;
   try {
-    const availableRoomsResponse = await guestService.getAvailableRooms();
+    const params: { occupant_type: string; start_date: string; end_date: string; guest_id?: number } = {
+      occupant_type: 'guest',
+      start_date: guestProfile.value.visit_start_date,
+      end_date: guestProfile.value.visit_end_date,
+    };
+    if (isEditing.value && guestId.value) {
+      params.guest_id = guestId.value;
+    }
+    const availableRoomsResponse = await roomService.getAvailable(params);
     let allRooms = availableRoomsResponse.data || [];
     allRoomsData.value = allRooms;
+
     // If editing, ensure the guest's current room is in the list
-    if (isEditing.value && guestId.value) {
+    if (isEditing.value && guestId.value && user.value.room_id) {
       const guestResponse = await guestService.getById(guestId.value);
       const currentRoom = guestResponse.data.room;
       if (currentRoom && !allRooms.some(room => room.id === currentRoom.id)) {
         allRooms.push(currentRoom);
-        if (!allRoomsData.value.some(r => r.id === currentRoom.id)) {
-          allRoomsData.value.push(currentRoom);
-        }
       }
     }
 
     roomOptions.value = allRooms.map((room: any) => ({
       value: room.id.toString(),
-      name: `${room.number}`,
+      name: `${room.number} (${room.dormitory?.name})`,
     }));
   } catch (err) {
+    console.error('Error fetching available rooms:', err);
     showError(t('Failed to load room options'));
   } finally {
     loadingRooms.value = false;
@@ -234,6 +254,7 @@ const submitForm = async (): Promise<void> => {
       email: user.value.email,
       phone: phoneNumber.value,
       room_id: user.value.room_id,
+      bed_id: guestProfile.value.bed_id,
       check_in_date: guestProfile.value.visit_start_date,
       check_out_date: guestProfile.value.visit_end_date,
       payment_status: 'pending',
@@ -268,7 +289,7 @@ const submitForm = async (): Promise<void> => {
 
 
 // Load guest from API if editing
-const loadGuest = async (id: number) => {
+const loadGuest = async (id: number): Promise<void> => {
   try {
     const response = await guestService.getById(id);
     const guestData = response.data;
@@ -293,44 +314,41 @@ const loadGuest = async (id: number) => {
       purpose_of_visit: guestData.guest_profile?.purpose_of_visit || guestData.notes || "",
       host_name: guestData.guest_profile?.host_name || guestData.host_name || "",
       host_contact: guestData.guest_profile?.host_contact || "",
-      visit_start_date: guestData.guest_profile?.visit_start_date || "",
-      visit_end_date: guestData.guest_profile?.visit_end_date || "",
+      visit_start_date: guestData.guest_profile?.visit_start_date?.substring(0, 10) || "",
+      visit_end_date: guestData.guest_profile?.visit_end_date?.substring(0, 10) || "",
       identification_type: guestData.guest_profile?.identification_type || "",
       identification_number: guestData.guest_profile?.identification_number || "",
       emergency_contact_name: guestData.guest_profile?.emergency_contact_name || "",
       emergency_contact_phone: guestData.guest_profile?.emergency_contact_phone || "",
-      total_amount: guestData.total_amount || guestData.guest_profile?.daily_rate || 0,
+      total_amount: guestData.total_amount || calculateTotalAmount(guestData.room_id) || 0,
+      bed_id: guestData.guest_profile?.bed_id.toString() || null,
       reminder: guestData.guest_profile?.reminder || "",
     };
+
+    // IMPORTANT: Wait for rooms to be fetched before this function returns.
+    await fetchAvailableRooms();
+
+    // Now that rooms and beds are loaded, populate the bed options for the current room.
+    updateBedOptions(user.value.room_id);
   } catch (error) {
     showError(t("Failed to load guest data"));
   }
 };
 
-onMounted(async () => {
-  // If editing, load from API
-  // Fetch rooms first, which now handles including the current guest's room in edit mode
-  await fetchAvailableRooms();
-  if (isEditing.value) {
-    await loadGuest(guestId.value!);
+const updateBedOptions = (roomId: number | string | null) => {
+  bedOptions.value = [];
+  const selectedRoom = allRoomsData.value.find(room => room.id == roomId); // Use '==' for loose comparison
+  if (selectedRoom && selectedRoom.beds) {
+    bedOptions.value = selectedRoom.beds.map((bed: any) => ({
+      value: bed.id.toString(), // Ensure value is a string for consistency
+      name: `${selectedRoom.number}-${bed.bed_number}`,
+    }));
   }
-});
+};
 
-// Populate the form if editing an existing guest
-watch(
-  () => guestId.value,
-  async (id) => {
-    if (id) {
-      await loadGuest(id);
-    }
-  },
-  { immediate: true }
-);
-
-// Watch for changes in room selection, start date, or end date to calculate total amount
-watch([() => user.value.room_id, () => guestProfile.value.visit_start_date, () => guestProfile.value.visit_end_date], () => {
+const calculateTotalAmount = (newRoomId: number | string | null) => {
+  const selectedRoom = allRoomsData.value.find(room => room.id == newRoomId);
   if (user.value.room_id && guestProfile.value.visit_start_date && guestProfile.value.visit_end_date) {
-    const selectedRoom = allRoomsData.value.find(room => room.id === user.value.room_id);
     if (selectedRoom && selectedRoom.room_type?.daily_rate) {
       const startDate = new Date(guestProfile.value.visit_start_date);
       const endDate = new Date(guestProfile.value.visit_end_date);
@@ -345,7 +363,31 @@ watch([() => user.value.room_id, () => guestProfile.value.visit_start_date, () =
       guestProfile.value.total_amount = 0;
     }
   }
+}
+
+// Watch for changes in room selection, start date, or end date to calculate total amount
+watch([() => guestProfile.value.visit_start_date, () => guestProfile.value.visit_end_date], () => {
+  // When dates change, we must re-fetch rooms.
+  // Only reset the room/bed selection if we are NOT in the middle of loading an existing guest.
+  if (!isEditing.value) {
+    user.value.room_id = null;
+  }
+  fetchAvailableRooms();
+});
+
+watch(() => user.value.room_id, (newRoomId, oldRoomId) => {
+  // if (oldRoomId !== undefined && newRoomId !== oldRoomId) {
+  //   guestProfile.value.bed_id = null;
+  // }
+  updateBedOptions(newRoomId ?? null);
+  calculateTotalAmount(newRoomId ?? null);
 }, { deep: true });
+
+onMounted(() => {
+  if (isEditing.value) {
+    loadGuest(guestId.value!);
+  }
+});
 </script>
 
 <style scoped>

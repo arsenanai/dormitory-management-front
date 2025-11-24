@@ -1,123 +1,107 @@
 <template>
-    <Navigation :title="t('Rooms Management')">
-      <div class="flex flex-col gap-4">
-        <h1>{{ t('Rooms') }}</h1>
-        
-        <!-- Search and Filters -->
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div class="flex flex-col gap-2 lg:flex-row lg:items-end">
-            <!-- Search -->
-            <CInput
-              id="search-rooms"
-              v-model="searchTerm" 
-              :placeholder="t('Search rooms...')"
-              :label="t('Search')"
-              type="search"
-            />
-            
-            <!-- Status Filter -->
-            <CSelect
-              id="status-filter"
-              v-model="statusFilter"
-              :options="statusOptions"
-              :label="t('Status')"
-              :placeholder="t('Select Status')"
-              class="lg:w-40"
-            />
-            
-            <CSelect
-              id="room-type-filter"
-              v-model="filters.roomType"
-              :options="roomTypeOptions"
-              :label="t('Room Type')"
-              :placeholder="t('Select Room Type')"
-              class="lg:w-40"
-            />
-          </div>
-          <div class="flex-1 flex justify-end">
-            <CButton @click="navigateToAddRoom" data-testid="add-room-button">
-              <PlusIcon class="h-5 w-5" />
-              {{ t("Add Room") }}
-            </CButton>
-          </div>
-        </div>
+  <Navigation :title="t('Rooms Management')">
+    <div class="flex flex-col gap-4">
+      <h1>{{ t('Rooms') }}</h1>
 
-        <!-- Loading State -->
-        <div v-if="loading" class="loading-text text-center py-4">
-          {{ t("Loading...") }}
-        </div>
+      <!-- Search and Filters -->
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div class="flex flex-col gap-2 lg:flex-row lg:items-end">
+          <!-- Search -->
+          <CInput id="search-rooms" v-model="searchTerm" :placeholder="t('Search rooms...')" :label="t('Search')"
+            type="search" />
 
-        <!-- Error State -->
-        <div v-if="error" class="error-message text-red-500 text-center py-4">
-          {{ error }}
+          <!-- Status Filter -->
+          <CSelect id="status-filter" v-model="statusFilter" :options="statusOptions" :label="t('Status')"
+            :placeholder="t('Select Status')" class="lg:w-40" />
+
+          <CSelect id="room-type-filter" v-model="filters.roomType" :options="roomTypeOptions" :label="t('Room Type')"
+            :placeholder="t('Select Room Type')" class="lg:w-40" />
+
+          <CSelect id="occupant-type-filter" v-model="filters.occupantType" :options="occupantTypeOptions"
+            :label="t('Occupant Type')" :placeholder="t('Select Occupant Type')" class="lg:w-40" />
         </div>
-  
-        <!-- Rooms Table -->
-        <div v-if="!loading && !error" class="overflow-x-auto">
-          <CTable :columns="tableColumns" :data="paginatedRooms" :loading="loading">
-            <template #cell-room_type="{ row }">
-              {{ getRoomTypeName(row) }}
-            </template>
-            <template #cell-beds="{ row }">
-              {{ getBedsCount(row) }}
-            </template>
-            <template #cell-free_beds="{ row }">
-              {{ getFreeBeds(row) }}
-            </template>
-            <template #cell-notes="{ row }">
-              {{ row.notes || '-' }}
-            </template>
-            <template #cell-actions="{ row }">
-              <div class="flex gap-2 justify-end">
-                <CButton @click="navigateToEditRoom(row.id)" data-testid="edit-room-button">
-                  <PencilSquareIcon class="h-5 w-5" />
-                </CButton>
-                <CButton variant="danger" @click="deleteRoom(row.id)" data-testid="delete-room-button">
-                  <TrashIcon class="h-5 w-5" />
-                </CButton>
-              </div>
-            </template>
-          </CTable>
-        </div>
-  
-        <!-- Pagination -->
-        <div class="flex flex-col items-center justify-between gap-4 md:flex-row" data-testid="pagination">
-          <div class="text-sm text-gray-700">
-            <span v-if="totalRooms > 0">
-              <span class="font-medium">{{ fromRoom }}</span> - <span class="font-medium">{{ toRoom }}</span> / <span class="font-medium">{{ totalRooms }}</span>
-            </span>
-            <span v-else>
-              {{ t('No data available') }}
-            </span>
-          </div>
-          <div class="flex items-center gap-2">
-            <CButton :disabled="currentPage === 1" @click="currentPage--" :aria-label="t('Previous page')" class="h-10">
-              <ChevronLeftIcon class="h-5 w-5" />
-            </CButton>
-            <div class="flex items-center gap-1 text-sm">
-              <div class="w-20">
-                <CInput
-                  id="page-input"
-                  v-model.number="pageInput"
-                  type="number"
-                  :min="1"
-                  :max="totalPages"
-                  class="text-center h-10"
-                  @keyup.enter="goToPage"
-                />
-              </div>
-              <span>/ {{ totalPages }}</span>
-            </div>
-            <CButton :disabled="currentPage === totalPages" @click="currentPage++" :aria-label="t('Next page')" class="h-10">
-              <ChevronRightIcon class="h-5 w-5" />
-            </CButton>
-          </div>
+        <div class="flex-1 flex justify-end">
+          <CButton @click="navigateToAddRoom" data-testid="add-room-button">
+            <PlusIcon class="h-5 w-5" />
+            {{ t("Add Room") }}
+          </CButton>
         </div>
       </div>
-    </Navigation>
-  </template>
-  
-  <script setup lang="ts">
+
+      <!-- Loading State -->
+      <div v-if="loading" class="loading-text text-center py-4">
+        {{ t("Loading...") }}
+      </div>
+
+      <!-- Error State -->
+      <div v-if="error" class="error-message text-red-500 text-center py-4">
+        {{ error }}
+      </div>
+
+      <!-- Rooms Table -->
+      <div v-if="!loading && !error" class="overflow-x-auto">
+        <CTable :columns="tableColumns" :data="paginatedRooms" :loading="loading">
+          <template #cell-room_type="{ row }">
+            {{ getRoomTypeName(row) }}
+          </template>
+          <template #cell-occupant_type="{ row }">
+            {{ t(row.occupant_type) }}
+          </template>
+          <template #cell-beds="{ row }">
+            {{ getBedsCount(row) }}
+          </template>
+          <template #cell-free_beds="{ row }">
+            {{ getFreeBeds(row) }}
+          </template>
+          <template #cell-notes="{ row }">
+            {{ row.notes || '-' }}
+          </template>
+          <template #cell-actions="{ row }">
+            <div class="flex gap-2 justify-end">
+              <CButton @click="navigateToEditRoom(row.id)" data-testid="edit-room-button">
+                <PencilSquareIcon class="h-5 w-5" />
+              </CButton>
+              <CButton variant="danger" @click="deleteRoom(row.id)" data-testid="delete-room-button">
+                <TrashIcon class="h-5 w-5" />
+              </CButton>
+            </div>
+          </template>
+        </CTable>
+      </div>
+
+      <!-- Pagination -->
+      <div class="flex flex-col items-center justify-between gap-4 md:flex-row" data-testid="pagination">
+        <div class="text-sm text-gray-700">
+          <span v-if="totalRooms > 0">
+            <span class="font-medium">{{ fromRoom }}</span> - <span class="font-medium">{{ toRoom }}</span> / <span
+              class="font-medium">{{ totalRooms }}</span>
+          </span>
+          <span v-else>
+            {{ t('No data available') }}
+          </span>
+        </div>
+        <div class="flex items-center gap-2">
+          <CButton :disabled="currentPage === 1" @click="currentPage--" :aria-label="t('Previous page')" class="h-10">
+            <ChevronLeftIcon class="h-5 w-5" />
+          </CButton>
+          <div class="flex items-center gap-1 text-sm">
+            <div class="w-20">
+              <CInput id="page-input" v-model.number="pageInput" type="number" :min="1" :max="totalPages"
+                class="text-center h-10" @keyup.enter="goToPage" />
+            </div>
+            <span>/ {{ totalPages }}</span>
+          </div>
+          <CButton :disabled="currentPage === totalPages" @click="currentPage++" :aria-label="t('Next page')"
+            class="h-10">
+            <ChevronRightIcon class="h-5 w-5" />
+          </CButton>
+        </div>
+      </div>
+    </div>
+  </Navigation>
+</template>
+
+<script setup lang="ts">
 import Navigation from "@/components/CNavigation.vue";
 import { useI18n } from "vue-i18n";
 import { ref, computed, watch, onMounted } from "vue";
@@ -163,6 +147,7 @@ const statusFilter = ref('');
 const tableColumns = [
   { key: 'number', label: t('Room Number') },
   { key: 'room_type', label: t('Room Type') },
+  { key: 'occupant_type', label: t('Occupant Type') },
   { key: 'floor', label: t('Floor') },
   { key: 'beds', label: t('Beds') },
   { key: 'free_beds', label: t('Free beds') },
@@ -192,23 +177,27 @@ const loadRooms = async () => {
     // Prepare filters for backend API
     const apiFilters: any = {};
     apiFilters.page = currentPage.value;
-    
+
     // Add search term as number filter (backend searches room numbers)
     if (searchTerm.value.trim()) {
       apiFilters.number = searchTerm.value.trim();
     }
-    
+
     // Add other filters
     if (statusFilter.value) {
       apiFilters.status = statusFilter.value;
     }
-    
+
     if (dormitoryFilter.value) {
       apiFilters.dormitory_id = dormitoryFilter.value;
     }
-    
+
     if (filters.value.roomType) {
       apiFilters.room_type_id = filters.value.roomType;
+    }
+
+    if (filters.value.occupantType) {
+      apiFilters.occupant_type = filters.value.occupantType;
     }
 
     console.log('Sending filters to API:', apiFilters);
@@ -218,7 +207,7 @@ const loadRooms = async () => {
       dormitoryService.getAll(),
       roomTypeService.getAll()
     ]);
-    
+
     // Handle Laravel paginated response structure for rooms
     if (roomsResponse && roomsResponse.data) {
       if (roomsResponse.data.data && Array.isArray(roomsResponse.data.data)) {
@@ -238,7 +227,7 @@ const loadRooms = async () => {
     } else {
       rooms.value = [];
     }
-    
+
     // Handle Laravel paginated response structure for dormitories
     if (dormitoriesResponse && dormitoriesResponse.data) {
       if (dormitoriesResponse.data.data && Array.isArray(dormitoriesResponse.data.data)) {
@@ -251,7 +240,7 @@ const loadRooms = async () => {
     } else {
       dormitories.value = [];
     }
-    
+
     // Handle Laravel paginated response structure for room types
     if (roomTypesResponse && roomTypesResponse.data) {
       if (roomTypesResponse.data.data && Array.isArray(roomTypesResponse.data.data)) {
@@ -264,7 +253,7 @@ const loadRooms = async () => {
     } else {
       roomTypes.value = [];
     }
-    
+
     console.log('Fetched rooms:', rooms.value);
     console.log('Fetched dormitories:', dormitories.value);
     console.log('Fetched room types:', roomTypes.value);
@@ -325,10 +314,17 @@ const roomTypeOptions = computed(() => [
 const filters = ref({
   dormitory: "",
   roomType: "",
+  occupantType: "",
 });
 
+const occupantTypeOptions = computed(() => [
+  { value: "", name: t("All Occupant Types") },
+  { value: "student", name: t("Student") },
+  { value: "guest", name: t("Guest") },
+]);
+
 // Watch for search term and filter changes to reload rooms
-watch([searchTerm, statusFilter, dormitoryFilter, () => filters.value.roomType], () => {
+watch([searchTerm, statusFilter, dormitoryFilter, () => filters.value.roomType, () => filters.value.occupantType], () => {
   currentPage.value = 1; // Reset to first page on filter change
   console.log('Filters changed, reloading rooms...');
   loadRooms();
@@ -344,10 +340,10 @@ const occupancyStats = computed(() => {
   const availableRooms = rooms.value.filter(r => r.status === 'available').length;
   const occupiedRooms = rooms.value.filter(r => r.status === 'occupied').length;
   const occupancyRate = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
-  
+
   return {
     totalRooms,
-    availableRooms, 
+    availableRooms,
     occupiedRooms,
     occupancyRate
   };
@@ -392,7 +388,7 @@ async function deleteRoom(id: number) {
     t('Are you sure? This change is not recoverable'),
     t('Delete Room')
   );
-  
+
   if (confirmed) {
     try {
       await roomService.delete(id);
@@ -429,9 +425,9 @@ function navigateToEditRoom(id: number) {
 
 // Helper functions
 const getRoomTypeName = (room: any) => {
-  return room.room_type?.name || 
-         roomTypes.value.find(rt => rt.id === room.room_type_id)?.name || 
-         '-';
+  return room.room_type?.name ||
+    roomTypes.value.find(rt => rt.id === room.room_type_id)?.name ||
+    '-';
 };
 
 const getBedsCount = (room: any) => {

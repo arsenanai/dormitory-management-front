@@ -221,7 +221,7 @@ const routes: AppRouteRecordRaw[] = [
   {
     path: '/settings',
     name: 'Settings',
-    component: () => import('@/pages/Settings.vue'),
+    component: () => import('@/pages/WebsiteSettings.vue'),
     meta: {
       title: 'Settings',
       requiresAuth: true,

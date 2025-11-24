@@ -343,7 +343,6 @@ describe('Settings.vue', () => {
       registration_enabled: true,
       backup_list_enabled: true,
       payment_deadline_days: 30,
-      default_room_price: 50000,
     };
 
     const wrapper = mount(Settings);

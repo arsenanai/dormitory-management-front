@@ -43,11 +43,11 @@
 
       <!-- Checkbox and Actions -->
       <div class="flex flex-col items-stretch justify-between gap-4 lg:flex-row">
-        <CCheckbox
+        <!-- <CCheckbox
           id="show-dormitory-students"
           v-model="filters.showDormitoryStudents"
           :label="t('Show only students in dormitory')"
-        />
+        /> -->
         <div class="flex flex-col items-stretch justify-between gap-4 lg:flex-row">
           <CButton @click="exportStudents" :disabled="loading">
             <ArrowDownTrayIcon class="h-5 w-5" />

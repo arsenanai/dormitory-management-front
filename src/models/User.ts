@@ -17,7 +17,6 @@ export interface User {
   dormitory_id?: number | null;
   room_id?: number | null;
   bed_id?: number | null;
-  roomId?: number;
   password?: string;
   password_confirmation?: string; // Changed to snake_case
   status: UserStatus;

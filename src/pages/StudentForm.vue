@@ -369,9 +369,8 @@ const fetchRooms = async () => {
   loadingRooms.value = true;
   try {
     // Try public rooms endpoint first to avoid 403 with role-protected endpoints
-    const roomsResponse = await roomService.getAvailable();
-    console.log('roomsResponse', roomsResponse);
-    rooms.value = roomsResponse.data?.data || roomsResponse.data || [];
+    const roomsResponse = await roomService.getAvailable({ occupant_type: 'student' });
+    rooms.value = Array.isArray(roomsResponse.data) ? roomsResponse.data : [];
     allBeds.value = rooms.value.flatMap(room => (room.beds || []).map(bed => ({ ...bed, room })));
   } catch (e) {
     console.error('Failed to fetch rooms:', e);
@@ -386,7 +385,8 @@ fetchRooms();
 
 const roomOptions = computed(() =>
   rooms.value
-    .map((r) => ({ value: r.id, name: r.number }))
+    .filter(r => r.occupant_type === 'student')
+    .map((r) => ({ value: r.id, name: r.number })),
 );
 
 // Bed options for selected room
@@ -653,19 +653,38 @@ const loadStudent = async (id: number) => {
       data.student_profile = {};
     }
 
-    // Ensure student_profile.files is always an array of 4 elements
+    // Ensure student_profile.files is always an array of 3 elements
     const existingFiles = data.student_profile.files;
-    const filesArray = Array(4).fill(null);
+    const filesArray = Array(3).fill(null);
     if (existingFiles && typeof existingFiles === 'object') {
       // This handles both arrays and objects with numeric keys from PHP
       for (const index in existingFiles) {
         const numericIndex = parseInt(index, 10);
-        if (!isNaN(numericIndex) && numericIndex >= 0 && numericIndex < 4) {
+        if (!isNaN(numericIndex) && numericIndex >= 0 && numericIndex < 3) {
           filesArray[numericIndex] = existingFiles[index];
         }
       }
     }
     data.student_profile.files = filesArray;
+
+    // Ensure the student's room and bed are present in local options so selects can display them
+    if (data.room) {
+      // narrow types for TS: treat API objects as `any` here
+      const studentRoom = data.room as any;
+      const roomExists = (rooms.value as any).some((r: any) => r?.id === studentRoom?.id);
+      if (!roomExists) {
+        // add the room so the room select can show the current value even if API didn't return it
+        rooms.value = [...rooms.value, studentRoom];
+      }
+
+      // ensure beds from the room are present in allBeds (attach room object for mapping)
+      const existingBedIds = (allBeds.value as any).map((b: any) => b.id);
+      (studentRoom.beds || []).forEach((b: any) => {
+        if (!existingBedIds.includes(b.id)) {
+          allBeds.value.push({ ...b, room: studentRoom });
+        }
+      });
+    }
 
 
     // Populate the user ref with data from the API

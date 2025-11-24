@@ -4,86 +4,47 @@
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Dormitory Name -->
         <div>
-          <CInput
-            id="dormitory-name"
-            v-model="dormitory.name"
-            type="text"
-            :label="t('Dormitory Name')"
-            placeholder="Enter Dormitory Name"
-            required
-          />
+          <CInput id="dormitory-name" v-model="dormitory.name" type="text" :label="t('Dormitory Name')"
+            placeholder="Enter Dormitory Name" required />
         </div>
 
         <!-- Capacity -->
         <div>
-          <CInput
-            id="dormitory-capacity"
-            v-model="dormitory.capacity"
-            type="number"
-            :label="t('Capacity')"
-            placeholder="Enter Capacity"
-            required
-          />
+          <CInput id="dormitory-capacity" v-model="dormitory.capacity" type="number" :label="t('Capacity')"
+            placeholder="Enter Capacity" required />
         </div>
 
         <!-- Gender -->
         <div>
-          <CSelect
-            id="dormitory-gender"
-            v-model="dormitory.gender"
-            :options="genderOptions"
-            :label="t('Gender')"
-            placeholder="Select Gender"
-            required
-          />
+          <CSelect id="dormitory-gender" v-model="dormitory.gender" :options="genderOptions" :label="t('Gender')"
+            placeholder="Select Gender" required />
         </div>
 
         <!-- Admin -->
         <div>
-          <CSelect
-            id="dormitory-admin"
-            v-model="dormitory.admin_id"
-            :options="adminOptions"
-            :label="t('Admin')"
-            placeholder="Select an Admin"
-            required
-          />
+          <CSelect id="dormitory-admin" v-model="dormitory.admin_id" :options="adminOptions" :label="t('Admin')"
+            placeholder="Select an Admin" required />
         </div>
 
         <!-- Address -->
         <div>
-          <CInput
-            id="dormitory-address"
-            v-model="dormitory.address"
-            type="text"
-            :label="t('Address')"
-            placeholder="Enter Address"
-          />
+          <CInput id="dormitory-address" v-model="dormitory.address" type="text" :label="t('Address')"
+            placeholder="Enter Address" />
         </div>
 
         <!-- Description -->
         <div>
-          <CInput
-            id="dormitory-description"
-            v-model="dormitory.description"
-            type="text"
-            :label="t('Description')"
-            placeholder="Enter Description"
-          />
+          <CInput id="dormitory-description" v-model="dormitory.description" type="text" :label="t('Description')"
+            placeholder="Enter Description" />
         </div>
 
 
 
         <!-- Phone -->
         <div>
-          <CInput
-            id="dormitory-phone"
-            v-model="dormitory.phone"
-            type="text"
-            :label="t('Phone')"
-            placeholder="Enter Phone Number"
-          />
-        </div>  
+          <CInput id="dormitory-phone" v-model="dormitory.phone" type="text" :label="t('Phone')"
+            placeholder="Enter Phone Number" />
+        </div>
 
         <!-- Computed Fields (Display-Only) -->
         <div>
@@ -131,12 +92,7 @@
 
       <!-- Submit Button -->
       <div class="mt-6 flex justify-end">
-        <CButton
-          type="submit"
-          variant="primary"
-          :disabled="loading"
-          class="w-full lg:w-auto"
-        >
+        <CButton type="submit" variant="primary" :disabled="loading" class="w-full lg:w-auto">
           {{ loading ? t("Submitting...") : t("Submit") }}
         </CButton>
       </div>
@@ -194,9 +150,9 @@ const adminOptions = ref<{ value: number; name: string }[]>([]);
 const loadAdmins = async () => {
   try {
     const response = await adminService.getAll();
-    
+
     let admins = [];
-    
+
     // Handle different response structures
     if (response.data && response.data.data) {
       // Paginated response
@@ -208,7 +164,7 @@ const loadAdmins = async () => {
       // Direct response
       admins = response;
     }
-    
+
     // Map admins to options format
     adminOptions.value = admins.map((admin: any) => ({
       value: admin.id,
@@ -217,7 +173,7 @@ const loadAdmins = async () => {
   } catch (error) {
     console.error('Failed to load admins:', error);
     showError(t("Failed to load admin options"));
-    
+
     // Fallback to mock data if API fails
     adminOptions.value = [
       { value: 1, name: "System Administrator" },
@@ -240,7 +196,7 @@ const submitDormitory = async (): Promise<void> => {
   try {
     // Use the Dormitory class method to get only updatable fields
     const dormitoryData = dormitory.value.toSubmissionData();
-    
+
     if (isEditing.value) {
       const response = await dormitoryService.update(dormitoryId.value!, dormitoryData);
       showSuccess(t("Dormitory updated successfully"));
@@ -248,7 +204,7 @@ const submitDormitory = async (): Promise<void> => {
       const response = await dormitoryService.create(dormitoryData);
       showSuccess(t("Dormitory created successfully"));
     }
-    
+
     // Redirect to dormitories list
     router.push('/dormitories');
   } catch (error) {
@@ -264,17 +220,17 @@ const submitDormitory = async (): Promise<void> => {
 const loadDormitory = async (id: number) => {
   try {
     const response = await dormitoryService.getById(id);
-    
+
     if (response.data) {
       const dormitoryData = response.data;
-      
+
       // Extract admin_id from the admin object if it exists
       let adminId = dormitoryData.admin_id;
       if (dormitoryData.admin && dormitoryData.admin.id) {
         adminId = dormitoryData.admin.id;
-  
+
       }
-      
+
       // Create new Dormitory instance with the loaded data
       dormitory.value = new Dormitory(
         dormitoryData.name || "",
@@ -291,7 +247,7 @@ const loadDormitory = async (id: number) => {
         dormitoryData.rooms_count || 0,
         dormitoryData.rooms || []
       );
-      
+
 
     }
   } catch (error) {
@@ -328,10 +284,10 @@ watch(
 onMounted(async () => {
   // Load admin options first
   await loadAdmins();
-  
+
   // Load room options
   await loadRoomOptions();
-  
+
   // If editing, always load fresh data from API (don't rely on store)
   if (isEditing.value && dormitoryId.value) {
     await loadDormitory(dormitoryId.value);
@@ -388,7 +344,7 @@ const loadRoomOptionsForDormitory = async (dormitoryId: number) => {
   } catch (error) {
     console.error('Failed to load room options:', error);
     showError(t("Failed to load room options"));
-    
+
     // Fallback to mock data if API fails
     roomOptions.value = [
       { value: 1, name: "Room 101" },
@@ -406,7 +362,7 @@ const addRoom = async () => {
   if (dormitory.value.id) {
     await loadRoomOptionsForDormitory(dormitory.value.id);
   }
-  
+
   // Create a new room object with the correct structure
   const newRoom = {
     id: null,

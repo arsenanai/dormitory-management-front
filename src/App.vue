@@ -23,6 +23,8 @@ const router = useRouter();
 const authStore = useAuthStore();
 const settingsStore = useSettingsStore();
 
+settingsStore.fetchPublicSettings();
+
 // Optional: Watch for route changes
 watch(
   () => router.currentRoute.value,
@@ -39,14 +41,13 @@ const fetchAppVersion = async () => {
 
 // Initialize Flowbite and auth on component mount
 onMounted(async () => {
+  fetchAppVersion();
   initFlowbite();
   try {
     await authStore.initializeAuth();
-    await settingsStore.fetchPublicSettings();
   } catch (error) {
     console.warn('Auth initialization failed:', error);
   }
-  await fetchAppVersion();
 });
 </script>
 

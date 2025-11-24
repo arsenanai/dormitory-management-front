@@ -3,62 +3,26 @@
     <!-- Form Fields -->
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <!-- Name Field -->
-      <CInput
-        id="admin-name"
-        v-model="user.name"
-        :label="t('Name')"
-        placeholder="Enter Name"
-        required
-      />
+      <CInput id="admin-name" v-model="user.first_name" :label="t('Firstname')" placeholder="Enter Firstname" required />
 
       <!-- Surname Field -->
-      <CInput
-        id="admin-surname"
-        v-model="user.surname"
-        type="text"
-        :label="t('Surname')"
-        placeholder="Enter Surname"
-        required
-      />
+      <CInput id="admin-surname" v-model="user.last_name" type="text" :label="t('Lastname')" placeholder="Enter Lastname"
+        required />
 
       <!-- Dormitory Field - Show when editing -->
-      <CSelect
-        id="admin-dormitory"
-        v-model="user.dormitory"
-        :options="dormitoryOptions"
-        :label="t('Dormitory')"
-        placeholder="Select a dormitory"
-        required
-      />
+      <CSelect id="admin-dormitory" v-model="user.dormitory_id" :options="dormitoryOptions" :label="t('Dormitory')"
+        placeholder="Select a dormitory" required />
 
       <!-- Email Field -->
-      <CInput
-        id="admin-email"
-        v-model="user.email"
-        type="email"
-        :label="t('E-mail')"
-        placeholder="Enter E-mail"
-        required
-      />
+      <CInput id="admin-email" v-model="user.email" type="email" :label="t('E-mail')" placeholder="Enter E-mail"
+        required />
 
       <!-- Password Fields (only when adding) -->
       <template v-if="!isEditing">
-        <CInput
-          id="admin-password"
-          v-model="user.password"
-          type="password"
-          :label="t('Password')"
-          placeholder="Enter Password"
-          required
-        />
-        <CInput
-          id="admin-confirm-password"
-          v-model="user.confirmPassword"
-          type="password"
-          :label="t('Confirm Password')"
-          placeholder="Confirm Password"
-          required
-        />
+        <CInput id="admin-password" v-model="user.password" type="password" :label="t('Password')"
+          placeholder="Enter Password" required />
+        <CInput id="admin-confirm-password" v-model="user.confirmPassword" type="password"
+          :label="t('Confirm Password')" placeholder="Confirm Password" required />
       </template>
 
       <!-- Phone Number Field -->
@@ -67,23 +31,9 @@
           {{ t("Phone Number") }}
         </label>
         <div class="flex items-center gap-2">
-          <CInput
-            id="admin-phone"
-            v-model="phoneNumber"
-            type="tel"
-            placeholder="Enter Phone Number"
-            required
-          />
+          <CInput id="admin-phone" v-model="phoneNumber" type="tel" placeholder="Enter Phone Number" required />
         </div>
       </div>
-
-      <!-- Office Phone Field -->
-      <CInput
-        id="admin-office-phone"
-        v-model="adminProfile.office_phone"
-        :label="t('Office Phone')"
-        placeholder="Enter Office Phone"
-      />
     </div>
 
     <!-- Submit Button -->
@@ -100,31 +50,13 @@
     <div v-if="showPasswordForm" class="mt-6 border-t border-primary-200 pt-6">
       <h3 class="text-lg font-semibold mb-4 text-primary-700">{{ t("Change Password") }}</h3>
       <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <CInput
-          id="current-password"
-          v-model="passwordData.current_password"
-          type="password"
-          :label="t('Current Password')"
-          placeholder="Enter current password"
-          required
-        />
+        <CInput id="current-password" v-model="passwordData.current_password" type="password"
+          :label="t('Current Password')" placeholder="Enter current password" required />
         <div></div>
-        <CInput
-          id="new-password"
-          v-model="passwordData.password"
-          type="password"
-          :label="t('New Password')"
-          placeholder="Enter new password"
-          required
-        />
-        <CInput
-          id="confirm-password"
-          v-model="passwordData.password_confirmation"
-          type="password"
-          :label="t('Confirm New Password')"
-          placeholder="Confirm new password"
-          required
-        />
+        <CInput id="new-password" v-model="passwordData.password" type="password" :label="t('New Password')"
+          placeholder="Enter new password" required />
+        <CInput id="confirm-password" v-model="passwordData.password_confirmation" type="password"
+          :label="t('Confirm New Password')" placeholder="Confirm new password" required />
       </div>
       <div class="mt-4 flex gap-2">
         <CButton type="button" @click="changePassword">
@@ -170,7 +102,7 @@ const isEditingOwnProfile = computed(() => isEditing.value && userId.value === a
 
 // Dormitories loaded from API
 const dormitories = ref([]);
-const dormitoryOptions = computed(() => 
+const dormitoryOptions = computed(() =>
   dormitories.value.map((d: any) => ({
     value: d.id,
     name: d.name,
@@ -179,17 +111,16 @@ const dormitoryOptions = computed(() =>
 
 // Admin Form Data (split into user and adminProfile)
 const user = ref<Partial<User>>({
-  name: "",
-  surname: "",
+  first_name: "",
+  last_name: "",
   email: "",
   phone_numbers: [""],
   password: "",
   confirmPassword: "",
-  dormitory: null,
+  dormitory_id: null,
 });
 const adminProfile = ref<Partial<AdminProfile>>({
-  office_phone: "",
-  dormitory: null,
+  dormitory_id: null,
 });
 
 // Password change form
@@ -240,34 +171,35 @@ const splitPhoneNumber = (phoneNumber: string): string[] => {
 const submitForm = async (): Promise<void> => {
   // Ensure we have a clean array of phone numbers (filter out empty strings)
   const cleanPhoneNumbers = user.value.phone_numbers?.filter(phone => phone && phone.trim()) || [];
-  
+
   if (cleanPhoneNumbers.length === 0) {
     showError(t("At least one phone number is required."));
     return;
   }
-  
+
   try {
     if (isEditing.value) {
       // If editing own profile, use profile endpoint
       if (userId.value === authStore.user?.id) {
         const updatePayload = {
-          first_name: user.value.name,
-          last_name: user.value.surname,
+          first_name: user.value.first_name,
+          last_name: user.value.last_name,
+          name: user.value.first_name + " " + user.value.last_name,
           email: user.value.email,
           phone_numbers: cleanPhoneNumbers,
-          dormitory_id: user.value.dormitory,
+          dormitory_id: user.value.dormitory_id,
         };
         await authService.updateProfile(updatePayload);
         showSuccess(t("Profile updated successfully!"));
       } else {
         // If editing other admin, use admin service
         const updatePayload = {
-          name: user.value.name,
-          surname: user.value.surname,
+          first_name: user.value.first_name,
+          last_name: user.value.last_name,
+          name: user.value.first_name + " " + user.value.last_name,
           email: user.value.email,
           phone_numbers: cleanPhoneNumbers,
-          dormitory: user.value.dormitory,
-          office_phone: adminProfile.value.office_phone,
+          dormitory_id: user.value.dormitory_id,
         };
         await adminService.update(userId.value, updatePayload);
         showSuccess(t("Admin profile updated successfully!"));
@@ -276,22 +208,22 @@ const submitForm = async (): Promise<void> => {
     } else {
       // For new admin creation, include password fields
       const createPayload = {
-        name: user.value.name,
-        surname: user.value.surname,
+        first_name: user.value.first_name,
+        last_name: user.value.last_name,
+        name: user.value.first_name + " " + user.value.last_name,
         email: user.value.email,
         phone_numbers: cleanPhoneNumbers,
         password: user.value.password,
         password_confirmation: user.value.confirmPassword,
-        office_phone: adminProfile.value.office_phone,
-        dormitory: user.value.dormitory,
+        dormitory_id: user.value.dormitory_id,
       };
       await adminService.create(createPayload);
       showSuccess(t("Admin created successfully!"));
       router.push('/admins');
     }
-      } catch (error: any) {
-      showError(error.response?.data?.message || t("Failed to save admin data"));
-    }
+  } catch (error: any) {
+    showError(error.response?.data?.message || t("Failed to save admin data"));
+  }
 };
 
 // Profile update method for tests (calls authService.updateProfile)
@@ -299,20 +231,21 @@ const updateProfile = async (): Promise<void> => {
   try {
     // Ensure we have a clean array of phone numbers
     const cleanPhoneNumbers = user.value.phone_numbers?.filter(phone => phone && phone.trim()) || [];
-    
+
     const payload = {
-      first_name: user.value.name,
-      last_name: user.value.surname,
+      first_name: user.value.first_name,
+      last_name: user.value.last_name,
+      name: user.value.first_name + " " + user.value.last_name,
       email: user.value.email,
       phone_numbers: cleanPhoneNumbers,
-      dormitory_id: user.value.admin_dormitory.id,
+      dormitory_id: user.value.admin_dormitory?.id,
     };
-    
+
     await authService.updateProfile(payload);
     showSuccess(t("Profile updated successfully!"));
-      } catch (error: any) {
-      showError(error.response?.data?.message || t("Failed to update profile"));
-    }
+  } catch (error: any) {
+    showError(error.response?.data?.message || t("Failed to update profile"));
+  }
 };
 
 // Password change functions
@@ -326,19 +259,19 @@ const changePassword = async (): Promise<void> => {
     showError(t("New passwords do not match."));
     return;
   }
-  
+
   if (passwordData.value.password.length < 6) {
     showError(t("Password must be at least 6 characters long."));
     return;
   }
-  
+
   try {
     await authService.changePassword(passwordData.value);
     showSuccess(t("Password updated successfully!"));
     cancelPasswordChange();
-      } catch (error: any) {
-      showError(error.response?.data?.message || t("Failed to change password"));
-    }
+  } catch (error: any) {
+    showError(error.response?.data?.message || t("Failed to change password"));
+  }
 };
 
 const cancelPasswordChange = (): void => {
@@ -358,19 +291,18 @@ watch(
   (selectedUser) => {
     if (selectedUser) {
       // Update each field individually to ensure reactivity
-      user.value.name = selectedUser.first_name || selectedUser.name || "";
-      user.value.surname = selectedUser.last_name || selectedUser.surname || "";
+      user.value.first_name = selectedUser.first_name || "";
+      user.value.last_name = selectedUser.last_name || "";
       user.value.email = selectedUser.email || "";
       user.value.phone_numbers = selectedUser.phone_numbers?.length ? selectedUser.phone_numbers : selectedUser.phone ? [selectedUser.phone] : [""];
       user.value.password = ""; // Clear password when editing
       user.value.confirmPassword = ""; // Clear confirm password when editing
-      user.value.dormitory = selectedUser.admin_dormitory.id || null;
-      
+      user.value.dormitory_id = selectedUser.admin_dormitory.id || null;
+
       // Populate adminProfile fields
-      adminProfile.value = {
-        office_phone: selectedUser.admin_profile?.office_phone || "",
-        dormitory: selectedUser.admin_dormitory.id || null,
-      };
+      // adminProfile.value = {
+      //   dormitory_id: selectedUser.admin_dormitory.id || null,
+      // };
     }
   },
   { immediate: true }
@@ -378,22 +310,22 @@ watch(
 
 // Load user from API if editing
 const loadUser = async (id: number) => {
-      try {
-      let userData;
-      
-      // If editing own profile, use profile endpoint
-      if (id === authStore.user?.id) {
-        const response = await authService.getProfile();
-        userData = response.data;
-      } else {
-        const response = await adminService.getById(id);
-        userData = response.data;
-      }
-    
+  try {
+    let userData;
+
+    // If editing own profile, use profile endpoint
+    if (id === authStore.user?.id) {
+      const response = await authService.getProfile();
+      userData = response.data;
+    } else {
+      const response = await adminService.getById(id);
+      userData = response.data;
+    }
+
     // Populate form with API data, properly mapping fields
     const updatedUser = {
-      name: userData.first_name || userData.name || "",
-      surname: userData.last_name || userData.surname || "",
+      first_name: userData.first_name || "",
+      last_name: userData.last_name || "",
       email: userData.email || "",
       phone_numbers: (() => {
         // Always ensure we have an array of phone numbers
@@ -405,27 +337,23 @@ const loadUser = async (id: number) => {
           return [""]; // Default to empty string in array
         }
       })(),
-      dormitory: userData.admin_dormitory?.id || null,
+      dormitory_id: userData.admin_dormitory?.id || null,
     };
-    
-          // Update each field individually to ensure reactivity
-      user.value.name = updatedUser.name;
-      user.value.surname = updatedUser.surname;
-      user.value.email = updatedUser.email;
-      user.value.phone_numbers = updatedUser.phone_numbers;
-      user.value.dormitory = updatedUser.dormitory;
-    
-    adminProfile.value = {
-      office_phone: userData.admin_profile?.office_phone || "",
-    };
-    
-          // Force a re-render to ensure components update
-      await nextTick();
-      
-      showSuccess(t("Admin data loaded successfully"));
-    } catch (error) {
-      showError(t("Failed to load admin data"));
-    }
+
+    // Update each field individually to ensure reactivity
+    user.value.first_name = updatedUser.first_name;
+    user.value.last_name = updatedUser.last_name;
+    user.value.email = updatedUser.email;
+    user.value.phone_numbers = updatedUser.phone_numbers;
+    user.value.dormitory_id = updatedUser.dormitory_id;
+
+    // Force a re-render to ensure components update
+    await nextTick();
+
+    showSuccess(t("Admin data loaded successfully"));
+  } catch (error) {
+    showError(t("Failed to load admin data"));
+  }
 };
 
 // For test compatibility: expose admin property
@@ -435,7 +363,7 @@ onMounted(async () => {
   // Load dormitories first
   try {
     const response = await dormitoryService.getAll();
-    
+
     // Handle different response formats
     if (response && response.data) {
       if (Array.isArray(response.data)) {
@@ -451,7 +379,7 @@ onMounted(async () => {
     } else {
       dormitories.value = [];
     }
-    
+
   } catch (error) {
     showError(t("Failed to load dormitories"));
     dormitories.value = [];

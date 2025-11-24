@@ -44,6 +44,12 @@
           <CInput id="room-quota" :model-value="room.roomType?.capacity || 0" type="number" :label="t('Capacity')"
             placeholder="t('Room Capacity')" :readonly="true" data-testid="room-quota-input" />
         </div>
+        <!-- Occupant Type -->
+        <div>
+          <CSelect id="room-occupant-type" v-model="room.occupant_type" :options="occupantTypeOptions"
+            :label="t('Occupant Type')" required data-testid="occupant-type-select" />
+        </div>
+
         <!-- Reserved Beds -->
         <div>
           <label for="staff-beds" class="block text-sm font-medium text-gray-900 dark:text-white">
@@ -122,6 +128,11 @@ const dormitoryOptions = computed(() =>
   }))
 );
 
+const occupantTypeOptions = computed(() => [
+  { value: "student", name: t("student") },
+  { value: "guest", name: t("guest") },
+]);
+
 
 // Room type selection - use direct ref instead of computed property
 const selectedRoomTypeId = ref<number | null>(null);
@@ -135,7 +146,8 @@ const room = ref(
     { id: null, name: '' }, // dormitory
     null, // roomType
     [],   // beds
-    2     // quota
+    2,    // quota
+    'student' // occupant_type
   )
 );
 
@@ -199,6 +211,7 @@ async function submitRoom() {
       notes: room.value.notes,
       room_type_id: room.value.roomType?.id || null,
       dormitory_id: room.value.dormitory_id || room.value.dormitory?.id || null,
+      occupant_type: room.value.occupant_type,
     } as any;
 
     // If editing, also update bed reservations
@@ -286,6 +299,7 @@ const loadRoom = async (id: number) => {
       beds: roomData.beds || [], // Load existing beds from API
       dormitory: roomData.dormitory || null,
       dormitory_id: roomData.dormitory?.id || null,
+      occupant_type: roomData.occupant_type || 'student',
     } as Room;
 
     // Update beds preview after loading room data
