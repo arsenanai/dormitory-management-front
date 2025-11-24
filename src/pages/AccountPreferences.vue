@@ -6,32 +6,28 @@
         <h2 class="text-lg font-semibold mb-4 text-primary-700">{{ t('Profile Information') }}</h2>
         <form @submit.prevent="saveProfile" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <CInput
-              id="profile-name"
-              v-model="profileForm.name"
-              :label="t('Full Name')"
-              required
-            />
-            <CInput
-              id="profile-email"
-              v-model="profileForm.email"
-              :label="t('Email')"
-              type="email"
-              required
-            />
-            <CInput
-              id="profile-phone"
-              v-model="profileForm.phone"
-              :label="t('Phone Number')"
-              required
-            />
-            <CSelect
-              id="profile-language"
-              v-model="profileForm.language"
-              :label="t('Preferred Language')"
-              :options="languageOptions"
-              required
-            />
+            <CInput id="profile-name" v-model="profileForm.first_name" :label="t('Firstname')" required />
+            <CInput id="profile-lastname" v-model="profileForm.last_name" :label="t('Lastname')" required />
+            <CInput id="profile-email" v-model="profileForm.email" :label="t('Email')" type="email" required />
+            <CSelect id="profile-language" v-model="profileForm.language" :label="t('Preferred Language')"
+              :options="languageOptions" required />
+            <div class="w-full flex flex-col items-stretch gap-2">
+              <div v-for="(phone, index) in profileForm.phone_numbers" :key="index" class="flex items-center gap-2">
+                <CInput :id="`profile-phone-${index}`" v-model="profileForm.phone_numbers[index]"
+                  :label="t('Phone Number')" required class="flex-1" />
+                <div class="flex items-center gap-2">
+                  <CButton v-if="profileForm.phone_numbers.length > 1" type="button" @click="removePhone(index)"
+                    class="mt-5 py-2.5">
+                    <TrashIcon class="text-red-600 h-5 w-5" />
+                  </CButton>
+                  <CButton v-if="index === profileForm.phone_numbers.length - 1" type="button" @click="addPhone"
+                    class="mt-5 py-2.5">
+                    <PlusIcon class="h-5 w-5" />
+                  </CButton>
+                </div>
+              </div>
+            </div>
+
           </div>
           <CButton type="submit" :loading="loading">
             {{ t('Save Profile') }}
@@ -44,27 +40,12 @@
         <h2 class="text-lg font-semibold mb-4 text-primary-700">{{ t('Security Settings') }}</h2>
         <form @submit.prevent="changePassword" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <CInput
-              id="current-password"
-              v-model="passwordForm.currentPassword"
-              :label="t('Current Password')"
-              type="password"
-              required
-            />
-            <CInput
-              id="new-password"
-              v-model="passwordForm.newPassword"
-              :label="t('New Password')"
-              type="password"
-              required
-            />
-            <CInput
-              id="confirm-password"
-              v-model="passwordForm.confirmPassword"
-              :label="t('Confirm New Password')"
-              type="password"
-              required
-            />
+            <CInput id="current-password" v-model="passwordForm.currentPassword" :label="t('Current Password')"
+              type="password" required />
+            <CInput id="new-password" v-model="passwordForm.newPassword" :label="t('New Password')" type="password"
+              required />
+            <CInput id="confirm-password" v-model="passwordForm.confirmPassword" :label="t('Confirm New Password')"
+              type="password" required />
           </div>
           <CButton type="submit" :loading="loading">
             {{ t('Change Password') }}
@@ -144,6 +125,7 @@ import CCheckbox from '@/components/CCheckbox.vue';
 import { useAuthStore } from '@/stores/auth';
 import { useAccessibility } from '@/composables/useAccessibility';
 import { useToast } from '@/composables/useToast';
+import { PlusIcon, TrashIcon } from '@heroicons/vue/24/outline';
 
 const { t, locale } = useI18n();
 const authStore = useAuthStore();
@@ -151,10 +133,12 @@ const { settings: accessibilitySettings, loadSettings: loadAccessibilitySettings
 
 // Form data
 const profileForm = reactive({
-  id: null,
+  id: null as number | null,
   name: '',
+  first_name: '',
+  last_name: '',
   email: '',
-  phone: '',
+  phone_numbers: [''],
   language: 'en',
 });
 
@@ -210,19 +194,55 @@ const changeLocale = (newLocale: string) => {
 
 const loadProfile = async () => {
   try {
-    // Load user profile data
+    // Ensure authStore has the latest profile (will fetch from server if missing)
+    try {
+      // Always attempt to load latest profile from server
+      await authStore.loadProfile();
+    } catch (err) {
+      // ignore - we'll still try to read whatever is present
+    }
+
+    // Load user profile data from the store
     const user = authStore.user;
     if (user) {
-      profileForm.id = user.id;
-      profileForm.name = user.name || '';
-      profileForm.email = user.email || '';
-      profileForm.phone = user.phone || '';
-      profileForm.language = user.language || 'en';
+      const u = user as any;
+      profileForm.id = u.id;
+      // prefer explicit first_name/last_name, fall back to splitting `name`
+      if (u.first_name || u.last_name) {
+        profileForm.first_name = u.first_name || '';
+        profileForm.last_name = u.last_name || '';
+        profileForm.name = `${u.first_name || ''} ${u.last_name || ''}`.trim();
+      } else if (u.name) {
+        const parts = (u.name as string).split(' ');
+        profileForm.first_name = parts.shift() || '';
+        profileForm.last_name = parts.join(' ') || '';
+      }
+      profileForm.email = u.email || '';
+
+      // Normalize phone_numbers: prefer `phone_numbers` array, then `phone` string, then try JSON parse
+      if (Array.isArray(u.phone_numbers) && u.phone_numbers.length) {
+        profileForm.phone_numbers = [...u.phone_numbers.map((p: any) => (p ?? '').toString())];
+      } else if (u.phone) {
+        profileForm.phone_numbers = [u.phone.toString()];
+      } else if (typeof u.phone_numbers === 'string') {
+        const raw = (u.phone_numbers as string).trim();
+        if (raw.startsWith('[') && raw.endsWith(']')) {
+          try {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed) && parsed.length) profileForm.phone_numbers = parsed.map((p: any) => (p ?? '').toString());
+          } catch (_) {
+            profileForm.phone_numbers = [raw];
+          }
+        } else if (raw) {
+          profileForm.phone_numbers = [raw];
+        }
+      }
+      profileForm.language = u.language || 'en';
     }
-    
+
     // Load accessibility settings
     loadAccessibilitySettings();
-    
+
     // Initialize accessibility form with loaded settings
     accessibilityForm.accessibilityMode = accessibilitySettings.accessibilityMode;
     accessibilityForm.highContrast = accessibilitySettings.highContrast;
@@ -252,16 +272,26 @@ const saveProfile = async () => {
 
 const changePassword = async () => {
   if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-    console.error('Passwords do not match');
+    useToast().showError(t('Passwords do not match'));
     return;
   }
 
   loading.value = true;
   try {
-    // Change password logic here
-    console.log('Changing password');
-  } catch (error) {
-    console.error('Failed to change password:', error);
+    await authStore.changePassword({
+      current_password: passwordForm.currentPassword,
+      password: passwordForm.newPassword,
+      password_confirmation: passwordForm.confirmPassword,
+    });
+
+    useToast().showSuccess(t('Password changed successfully'));
+    // Clear password fields
+    passwordForm.currentPassword = '';
+    passwordForm.newPassword = '';
+    passwordForm.confirmPassword = '';
+  } catch (err: any) {
+    useToast().showError(err.response?.data?.message || t('Failed to change password'));
+    console.error('Failed to change password:', err);
   } finally {
     loading.value = false;
   }
@@ -287,7 +317,7 @@ const saveAccessibilitySettings = async () => {
     accessibilitySettings.highContrast = accessibilityForm.highContrast;
     accessibilitySettings.reducedMotion = accessibilityForm.reducedMotion;
     accessibilitySettings.largeText = accessibilityForm.largeText;
-    
+
     // Save accessibility settings
     saveAccessibilitySettingsFromComposable();
   } catch (error) {
@@ -297,8 +327,19 @@ const saveAccessibilitySettings = async () => {
   }
 };
 
+// Phone helpers
+const addPhone = () => {
+  profileForm.phone_numbers.push('');
+};
+
+const removePhone = (index: number) => {
+  if (profileForm.phone_numbers.length > 1) {
+    profileForm.phone_numbers.splice(index, 1);
+  }
+};
+
 // Lifecycle
 onMounted(() => {
   loadProfile();
 });
-</script> 
+</script>

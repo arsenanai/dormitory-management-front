@@ -255,7 +255,7 @@ export const useAuthStore = defineStore('auth', () => {
    */
   const loadProfile = async () => {
     // Prevent concurrent requests or re-fetching if user data already exists from initialization
-    if (loadingProfile.value || user.value) return;
+    if (profileDataFilled.value) return;
 
     try {
       loadingProfile.value = true;
@@ -267,6 +267,8 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = {
         id: apiUser.id,
         name: apiUser.name,
+        first_name: apiUser.first_name,
+        last_name: apiUser.last_name,
         email: apiUser.email,
         phone_numbers: apiUser.phone_numbers,
         status: 'active' as UserStatus, // Default to active for logged in users
@@ -280,6 +282,19 @@ export const useAuthStore = defineStore('auth', () => {
       loadingProfile.value = false;
     }
   }
+
+  const profileDataFilled = computed(() => {
+    return !!(user.value 
+      && user.value.first_name 
+      && user.value.last_name 
+      && user.value.email
+      && user.value.phone_numbers
+      && user.value.phone_numbers.length > 0
+      && user.value.phone_numbers[0]
+      && user.value.phone_numbers[0].trim() !== ''
+      && user.value.phone_numbers[0].trim().length >= 5
+    );
+  });
 
   /**
    * Update current user's profile information
