@@ -3,40 +3,22 @@
     <div v-if="dashboardStore.loading" class="text-center py-8 text-lg">{{ t('Loading...') }}</div>
     <div v-else-if="dashboardStore.error" class="text-center py-8 text-red-600">{{ dashboardStore.error }}</div>
     <div v-else class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-      <div
-        v-for="(card, index) in cards"
-        :key="index"
-        :class="
-          card.bgClass +
-          ' flex flex-row justify-between gap-2 rounded-lg p-2 text-center shadow lg:flex-col lg:justify-center lg:gap-4 lg:p-6'
-        "
-      >
+      <div v-for="(card, index) in visibleCards" :key="index" :class="card.bgClass +
+        ' flex flex-row justify-between gap-2 rounded-lg p-2 text-center shadow lg:flex-col lg:justify-center lg:gap-4 lg:p-6'
+        ">
         <div class="flex flex-col items-center justify-center">
-          <div
-            :class="
-              card.iconBgClass +
-              ' flex items-center justify-center rounded-full p-2 lg:p-4'
-            "
-          >
-            <component
-              :is="card.icon"
-              class="h-4 w-4 lg:h-8 lg:w-8 xl:h-12 xl:w-12"
-              :class="card.iconTextClass"
-            />
+          <div :class="card.iconBgClass +
+            ' flex items-center justify-center rounded-full p-2 lg:p-4'
+            ">
+            <component :is="card.icon" class="h-4 w-4 lg:h-8 lg:w-8 xl:h-12 xl:w-12" :class="card.iconTextClass" />
           </div>
         </div>
-        <div
-          class="flex flex-1 flex-row items-center justify-between gap-2 lg:flex-none lg:flex-col lg:gap-4"
-        >
-          <h3
-            :class="card.textClass"
-            class="order-2 text-base font-semibold lg:order-1 lg:text-xl lg:font-extrabold xl:text-xxl"
-          >
+        <div class="flex flex-1 flex-row items-center justify-between gap-2 lg:flex-none lg:flex-col lg:gap-4">
+          <h3 :class="card.textClass"
+            class="order-2 text-base font-semibold lg:order-1 lg:text-xl lg:font-extrabold xl:text-xxl">
             {{ card.value }}
           </h3>
-          <p
-            class="order-1 truncate text-sm font-medium text-blue-950 lg:order-2 lg:text-md xl:text-lg"
-          >
+          <p class="order-1 truncate text-sm font-medium text-blue-950 lg:order-2 lg:text-md xl:text-lg">
             {{ card.description }}
           </p>
         </div>
@@ -67,6 +49,8 @@ const { t } = useI18n();
 const dashboardStore = useDashboardStore();
 const authStore = useAuthStore();
 
+const isSudo = computed(() => authStore.userRole === 'sudo');
+
 onMounted(async () => {
   try {
     await dashboardStore.fetchStats();
@@ -84,6 +68,7 @@ const cards = computed(() => [
     icon: HomeIcon,
     iconBgClass: "bg-yellow-100",
     iconTextClass: "text-yellow-600",
+    sudoOnly: true,
   },
   {
     value: dashboardStore.stats.rooms || 0,
@@ -158,6 +143,11 @@ const cards = computed(() => [
     iconTextClass: "text-green-800",
   },
 ]);
+
+// Filter cards for display based on role (hide sudo-only cards for non-sudo users)
+const visibleCards = computed(() => {
+  return cards.value.filter((c: any) => !c.sudoOnly || isSudo.value);
+});
 </script>
 
 <style scoped>

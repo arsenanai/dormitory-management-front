@@ -41,7 +41,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
       let response;
       
       // Call appropriate endpoint based on user role
-      if (authStore.user?.role?.name === 'student') {
+      const roleName = authStore.userRole;
+      if (roleName === 'student') {
         response = await dashboardService.getStudentStats();
       } else {
         response = await dashboardService.getStats();

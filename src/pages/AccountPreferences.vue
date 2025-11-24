@@ -73,7 +73,7 @@
       </section>
 
       <!-- Notification Settings Section -->
-      <section>
+      <!-- <section>
         <h2 class="text-lg font-semibold mb-4 text-primary-700">{{ t('Notification Settings') }}</h2>
         <div class="space-y-4">
           <CCheckbox
@@ -95,10 +95,10 @@
             {{ t('Save Notification Settings') }}
           </CButton>
         </div>
-      </section>
+      </section> -->
 
       <!-- Accessibility Settings Section -->
-      <section>
+      <!-- <section>
         <h2 class="text-lg font-semibold mb-4 text-primary-700">{{ t('Accessibility Settings') }}</h2>
         <div class="space-y-4">
           <CCheckbox
@@ -128,7 +128,7 @@
             {{ t('Save Accessibility Settings') }}
           </CButton>
         </div>
-      </section>
+      </section> -->
     </div>
   </Navigation>
 </template>
