@@ -48,8 +48,8 @@
             <span>
               {{ payment.user?.email ? payment.user.email : '' }}
             </span>
-            <span v-if="payment.user.phone_numbers" class="flex flex-col">
-              <span v-for="phone in payment.user.phone_numbers">
+            <span v-if="payment.user.phoneNumbers" class="flex flex-col">
+              <span v-for="phone in payment.user.phoneNumbers">
                 {{ phone }}
               </span>
             </span>
@@ -62,10 +62,10 @@
           <span class="capitalize">{{ payment.user?.role?.name || '-' }}</span>
         </template>
         <template #cell-deal_number="{ row: payment }">
-          {{ payment.deal_number || '-' }}
+          {{ payment.dealNumber || '-' }}
         </template>
         <template #cell-period="{ row: payment }">
-          {{ payment.date_from?.split('T')[0] }} - {{ payment.date_to?.split('T')[0] }}
+          <span class="whitespace-nowrap">{{ payment.dateFrom?.split('T')[0] }}</span> - <span class="whitespace-nowrap">{{ payment.dateTo?.split('T')[0] }}</span>
         </template>
         <template #cell-actions="{ row: payment }">
           <div class="flex gap-2 justify-end">
@@ -121,7 +121,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted, watch, nextTick, defineAsyncComponent } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import Navigation from "@/components/CNavigation.vue";
@@ -130,13 +130,16 @@ import CTable from "@/components/CTable.vue";
 import CButton from "@/components/CButton.vue";
 import CConfirmationModal from "@/components/CConfirmationModal.vue";
 import CSelect from "@/components/CSelect.vue";
-import PaymentForm from "./PaymentForm.vue";
 import { useSettingsStore } from "@/stores/settings";
 import { PencilSquareIcon, ArrowDownTrayIcon, ChevronLeftIcon, ChevronRightIcon, TrashIcon } from "@heroicons/vue/24/outline";
 import { paymentService, configurationService } from "@/services/api";
 import { usePaymentsStore } from "@/stores/payments";
 import { useToast } from "@/composables/useToast";
 import { formatCurrency } from "@/utils/formatters";
+
+const PaymentForm = defineAsyncComponent(() =>
+  import("./PaymentForm.vue")
+);
 
 const { t } = useI18n();
 const router = useRouter();
@@ -210,7 +213,14 @@ const loadPayments = async () => {
     const response = await paymentService.getAll(params);
 
     if (response.data && response.data.meta) { // Check for the new paginated structure
-      payments.value = response.data.data;
+      payments.value = response.data.data.map((payment: any) => {
+        if (payment.user && typeof payment.user.phoneNumbers === 'string') {
+          try {
+            payment.user.phoneNumbers = JSON.parse(payment.user.phoneNumbers);
+          } catch (e) { console.error('Failed to parse phoneNumbers', e); }
+        }
+        return payment;
+      });
       currentPage.value = response.data.meta.current_page;
       total.value = response.data.meta.total || 0;
       fromPayment.value = response.data.meta.from || 0;
@@ -309,8 +319,10 @@ async function exportPayments() {
 
 // Modal and form handling
 const showPaymentForm = async () => {
-  showForm.value = true;
+  // Ensure no payment is selected before opening the form
   selectedPayment.value = null;
+  await nextTick();
+  showForm.value = true;
 };
 
 const closePaymentForm = () => {
@@ -319,7 +331,11 @@ const closePaymentForm = () => {
 };
 
 const editPayment = async (payment: any) => {
+  // Clear selection first to ensure prop change is detected by the form
+  selectedPayment.value = null;
+  await nextTick();
   selectedPayment.value = payment;
+  await nextTick();
   showForm.value = true;
 };
 

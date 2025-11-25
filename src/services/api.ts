@@ -453,6 +453,9 @@ export const roomService = {
   
   getAvailable: (params?: FilterParams): Promise<ApiResponse<Room[]>> =>
     api.get("/rooms/available", { params }),
+
+  listAll: (): Promise<ApiResponse<Partial<Room>[]>> =>
+    api.get('/rooms-list'),
 };
 
 // RoomType service

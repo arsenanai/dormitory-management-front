@@ -34,7 +34,7 @@
         </div>
         <p v-else class="flex flex-col text-sm text-gray-500 dark:text-gray-400 sm:flex-row sm:text-base">
           <span class="hidden sm:inline text-primary-600 dark:text-primary-500">{{ t('Drag and drop your file here, or')
-          }}&nbsp;</span>
+            }}&nbsp;</span>
           <span class="sm:hidden text-primary-600 dark:text-primary-500">{{ t('Tap to select a file') }}</span>
           <span class="font-medium text-primary-600 hover:underline dark:text-primary-500">
             <label :for="id" class="cursor-pointer hidden sm:inline">
@@ -45,7 +45,7 @@
       </div>
       <!-- Hidden File Input -->
       <input :id="id" type="file" class="hidden" :name="formatName(name)"
-        :accept="allowedExtensions.map((ext) => `.${ext}`).join(',')" :multiple="multiple" @change="handleFileChange"
+        :accept="allowedExtensions?.map((ext) => `.${ext}`).join(',')" :multiple="multiple" @change="handleFileChange"
         ref="fileInput" />
     </div>
 
@@ -68,7 +68,7 @@ interface Props {
   label?: string; // Optional label prop
   maxFileSize?: number;
   name?: string;
-  allowedExtensions: string[];
+  allowedExtensions?: string[];
   multiple?: boolean; // Support multiple files
   filePath?: string | null; // Prop to show an existing file path
   validationMessage?: string | null; // External validation message
@@ -77,6 +77,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   multiple: false, // Keep default for multiple
   maxFileSize: 2 * 1024 * 1024, // Keep default for maxFileSize
+  allowedExtensions: () => [],
 });
 
 
@@ -221,7 +222,7 @@ const clearFile = () => {
     fileInput.value.value = ''; // Clear the file input
   }
   selectedFile.value = null;
-  emit('change', ''); // Emit an empty string to signify removal
+  emit('change', null); // Emit null to signify removal
 };
 
 const handleDragOver = (): void => {
@@ -274,7 +275,7 @@ const validateFile = (file: File | null) => {
   }
 
   // Check file extension
-  if (!props.allowedExtensions.includes(fileExtension)) {
+  if (props.allowedExtensions.length > 0 && !props.allowedExtensions.includes(fileExtension)) {
     internalValidationMessage.value = t("fileInput.invalidExtension", {
       extensions: props.allowedExtensions.join(", "),
     });
@@ -316,7 +317,7 @@ const validateMultipleFiles = (files: FileList | null) => {
     }
 
     // Check file extension
-    if (!props.allowedExtensions.includes(fileExtension)) {
+    if (props.allowedExtensions.length > 0 && !props.allowedExtensions.includes(fileExtension)) {
       internalValidationMessage.value = t("fileInput.invalidExtension", {
         extensions: props.allowedExtensions.join(", "),
       });

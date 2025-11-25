@@ -182,7 +182,7 @@
             :allowedExtensions="['jpg', 'jpeg', 'png', 'pdf']" :maxFileSize="2 * 1024 * 1024"
             :validation-message="registrationValidationMessage.payment_check" data-testid="file-input"
             @validation="({ valid }) => registrationValidationState.payment_check = valid"
-            @change="(file) => updateRegistrationFileInput(index, file)" />
+            @change="(file) => updatePaymentCheckInput(file)" />
         </div>
       </CStep>
 

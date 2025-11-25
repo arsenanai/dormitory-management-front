@@ -23,6 +23,7 @@ export interface User {
   role_id?: number;
   role?: Role | string;
   room?: Room;
+  room_type?: RoomType;
   city?: City;
   // Student-specific fields (some may be moved to StudentProfile)
   student_id?: string;
@@ -52,6 +53,7 @@ export interface User {
 import type { StudentProfile } from './StudentProfile';
 import type { AdminProfile } from './AdminProfile';
 import type { GuestProfile } from './GuestProfile';
+import { RoomType } from "./RoomType";
 
 // Legacy User class for forms/registration (kept for compatibility)
 export class UserRegistration {

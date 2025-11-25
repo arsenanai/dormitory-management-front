@@ -247,6 +247,7 @@
               :validation-message="validationErrors[`student_profile.files.${index}`]?.[0]"
               @change="(newFile) => handleFileChange(index, newFile)" />
           </div>
+          <!-- payment_check removed from the form -->
         </div>
       </fieldset>
       <div class="mt-6 flex flex-row items-end justify-end gap-2">
@@ -283,7 +284,7 @@ import { useToast } from "@/composables/useToast";
 const registrationFileLabels = [
   "063 Form",
   "075 Form",
-  "ID Check",
+  "Identification document",
   "Bank Check",
 ];
 
@@ -348,7 +349,7 @@ const user = ref<Partial<User>>({
     emergency_contact_phone: "",
     enrollment_year: new Date().getFullYear(),
     faculty: "",
-    files: [null, null, null, null],
+    files: [null, null, null],
     gender: "",
     has_meal_plan: false,
     iin: "",
@@ -491,8 +492,14 @@ const normalizePhones = (phones: unknown, fallback?: unknown): string[] => {
 
 // Handle file input change
 const handleFileChange = (index: number, newFile: File | null | string) => {
+  // Protect against undefined profile
+  if (!user.value.student_profile) user.value.student_profile = {} as any;
+  // Ensure files array exists and has at least 3 slots
+  if (!Array.isArray(user.value.student_profile.files)) user.value.student_profile.files = [null, null, null];
   user.value.student_profile.files[index] = newFile;
 };
+
+// payment_check removed — no handler required
 
 // Submit Form
 const submitForm = async (): Promise<void> => {
@@ -610,6 +617,12 @@ const buildFormData = (formData: FormData, data: any, parentKey?: string) => {
     const value = data[key];
     const formKey = parentKey ? `${parentKey}[${key}]` : key;
 
+    // If the value is a File, append directly (covers payment.payment_check and similar)
+    if (value instanceof File) {
+      formData.append(formKey, value, (value as File).name);
+      return;
+    }
+
     if (formKey === 'student_profile[files]' && Array.isArray(value)) {
       // Special handling for the files array inside student_profile
       value.forEach((file, index) => {
@@ -646,7 +659,7 @@ const loadStudent = async (id: number) => {
   try {
     // Use studentService.getById to load specific student data
     const response = await studentService.getById(id);
-    const data = response.data;
+    const data: any = response.data;
 
     // Create a default student_profile if it's null
     if (!data.student_profile) {
@@ -666,6 +679,8 @@ const loadStudent = async (id: number) => {
       }
     }
     data.student_profile.files = filesArray;
+
+    // payment_check removed from the form; no migration required
 
     // Ensure the student's room and bed are present in local options so selects can display them
     if (data.room) {
@@ -703,7 +718,7 @@ const loadStudent = async (id: number) => {
       password: '', // Clear password fields
       password_confirmation: '',
       created_at: formattedDate(data.created_at),
-    };
+    } as any;
 
     showSuccess(t("Student data loaded successfully"));
   } catch (error) {

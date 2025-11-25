@@ -23,8 +23,9 @@
         <!-- Amount with Currency -->
         <CInput v-model="formData.amount" data-testid="payment-amount-input"
           :label="`${t('Amount')} (${currencySymbol})`" type="number" step="0.01" min="0" required />
-        <CFileInput id="payment-check-upload" :label="t('Payment Check')" @change="handleFileChange"
-          :file-path="selectedPayment?.payment_check" />
+        <CFileInput id="payment-check-upload" :label="t('Payment Check')"
+          :allowed-extensions="['jpg', 'jpeg', 'png', 'pdf']" @change="handleFileChange"
+          :file-path="formData.payment_check" />
       </div>
 
       <div class="flex justify-end gap-2 mt-6">
@@ -49,6 +50,7 @@ import CInput from '@/components/CInput.vue';
 import CSelect from '@/components/CSelect.vue';
 import CButton from '@/components/CButton.vue';
 import CFileInput from '@/components/CFileInput.vue';
+import { User } from '@/models/User';
 
 const props = defineProps<{
   modelValue: boolean;
@@ -66,6 +68,7 @@ const { showSuccess, showError } = useToast();
 
 const loading = ref(false);
 const loadingUsers = ref(false);
+const targetUser = ref(ref<User | null>(null));
 const studentOptions = ref<Array<{ value: string; name: string }>>([]);
 const guestOptions = ref<Array<{ value: string; name: string }>>([]);
 
@@ -78,8 +81,8 @@ const formData = ref({
   deal_date: "",
   date_from: "",
   date_to: "",
-  payment_check: null as File | null,
-});
+  payment_check: "",
+} as { payment_check: string | File | null;[key: string]: any });
 
 const userOptions = computed(() => {
   return formData.value.user_type === 'student' ? studentOptions.value : guestOptions.value;
@@ -90,7 +93,7 @@ const userTypeOptions = [
   { value: 'guest', name: t('Guest') },
 ];
 
-const handleFileChange = (file: File | null) => { formData.value.payment_check = file; };
+const handleFileChange = (file: File | null | string) => { formData.value.payment_check = file; };
 
 const isVisible = computed({
   get: () => props.modelValue,
@@ -101,29 +104,21 @@ const closeModal = () => {
   isVisible.value = false;
 };
 
-const semesterOptions = computed(() => {
-  const year = new Date().getFullYear();
-  return [
-    { value: `${year}-spring`, name: `${t('Spring')} ${year}` },
-    { value: `${year}-summer`, name: `${t('Summer')} ${year}` },
-    { value: `${year}-fall`, name: `${t('Fall')} ${year}` },
-    { value: `${year + 1}-spring`, name: `${t('Spring')} ${year + 1}` },
-  ];
-});
-
-const getSemesterDates = (semester: string): { from: string, to: string } => {
-  const [year, type] = semester.split('-');
+const getSemesterDates = (semester: string): { from: string; to: string } => {
+  const [year, type] = semester.split("-");
   const yearNum = parseInt(year);
-  if (type === 'fall') {
+
+  if (type === "fall") {
     return { from: `${yearNum}-09-01`, to: `${yearNum}-12-31` };
   }
-  if (type === 'spring') {
+  if (type === "spring") {
     return { from: `${yearNum}-01-01`, to: `${yearNum}-05-31` };
   }
-  if (type === 'summer') {
+  if (type === "summer") {
     return { from: `${yearNum}-06-01`, to: `${yearNum}-08-31` };
   }
-  return { from: '', to: '' };
+
+  return { from: "", to: "" }; // fallback
 };
 
 const determineSemesterFromDates = (dateFrom: string, dateTo: string): string => {
@@ -141,10 +136,8 @@ const determineSemesterFromDates = (dateFrom: string, dateTo: string): string =>
     for (const type of semesters) {
       const semesterKey = `${year}-${type}`;
       const { from, to } = getSemesterDates(semesterKey);
-      const semesterFromDate = new Date(from);
-      const semesterToDate = new Date(to);
-
-      if (fromDate.getTime() === semesterFromDate.getTime() && toDate.getTime() === semesterToDate.getTime()) {
+      if (fromDate.toISOString().split('T')[0] === from
+        && toDate.toISOString().split('T')[0] === to) {
         return semesterKey;
       }
     }
@@ -201,17 +194,12 @@ const loadUsers = async (userType: 'student' | 'guest', ensureUserId?: number | 
     }
 
     if (ensureUserId && !optionsRef.value.some(o => o.value === String(ensureUserId))) {
-      try {
-        const one: any = await service.getById(Number(ensureUserId));
-        const u = one?.data;
-        if (u && u.id) {
-          // Construct name from parts if 'name' is not present
-          const userName = u.name || (u.first_name && u.last_name ? `${u.first_name} ${u.last_name}` : u.first_name || 'User');
-          const displayName = `${userName}${u.email ? ` (${u.email})` : ''}`;
-          optionsRef.value.push({ value: String(u.id), name: displayName });
-        }
-      } catch (err) {
-        console.error(`Failed to fetch individual ${userType}:`, err);
+      const u = await loadIndividual(ensureUserId, service);
+      if (u && u.id) {
+        // Construct name from parts if 'name' is not present
+        const userName = u.name || (u.first_name && u.last_name ? `${u.first_name} ${u.last_name}` : u.first_name || 'User');
+        const displayName = `${userName}${u.email ? ` (${u.email})` : ''}`;
+        optionsRef.value.push({ value: String(u.id), name: displayName });
       }
     }
   } catch (err) {
@@ -223,6 +211,16 @@ const loadUsers = async (userType: 'student' | 'guest', ensureUserId?: number | 
   }
 };
 
+const loadIndividual = async (id: string | number, service: any) => {
+  try {
+    const one: any = await service.getById(Number(id));
+    return one?.data;
+  } catch (err) {
+    console.error(`Failed to fetch individual ${id}:`, err);
+    return null;
+  }
+}
+
 const handleFormSubmit = async () => {
   loading.value = true;
   try {
@@ -231,9 +229,14 @@ const handleFormSubmit = async () => {
     submissionData.append('amount', formData.value.amount);
     submissionData.append('date_from', formData.value.date_from);
     submissionData.append('date_to', formData.value.date_to);
+
     if (formData.value.payment_check instanceof File) {
-      console.log('Uploading payment check:', formData.value.payment_check.name);
-      submissionData.append('payment_check', formData.value.payment_check);
+      // 1. New file is uploaded
+      submissionData.append('payment_check', formData.value.payment_check, formData.value.payment_check.name);
+    } else if (formData.value.payment_check === null) {
+      // 2. File is marked for deletion, send an empty string.
+      submissionData.append('payment_check', '');
+      console.log('payment check as empty string');
     }
     submissionData.append('deal_number', formData.value.deal_number);
     submissionData.append('deal_date', formData.value.deal_date);
@@ -242,26 +245,61 @@ const handleFormSubmit = async () => {
       // and add a `_method` field to tell Laravel to treat it as a PUT request.
       // This is because PHP doesn't natively parse multipart/form-data for PUT requests.
       submissionData.append('_method', 'PUT');
-      // The service needs to know to use POST for the update call
-      // The `update` method in api.ts will need to be adjusted.
-      await paymentService.update(props.selectedPayment.id, submissionData);
+      const response = await paymentService.update(props.selectedPayment.id, submissionData);
       showSuccess(t('Payment updated successfully'));
+      // After a successful update, if the same payment is being edited,
+      // update its `payment_check` with the path returned from the server.
+      // This prevents passing a stale `File` object on subsequent edits.
+      if (response.data?.data?.paymentCheck) {
+        formData.value.payment_check = response.data.data.paymentCheck;
+      }
     } else {
-      await paymentService.create(submissionData);
+      const response = await paymentService.create(submissionData);
       showSuccess(t('Payment created successfully'));
+      // After creating, update payment_check with the path from response to prevent File object issues
+      if (response.data?.data?.paymentCheck) {
+        formData.value.payment_check = response.data.data.paymentCheck;
+      } else if (formData.value.payment_check instanceof File) {
+        // If no path returned but we had a file, reset it to null to prevent issues
+        formData.value.payment_check = null;
+      }
     }
     emit('submit');
     closeModal();
   } catch (err) {
+    console.log('submitting error', err);
     showError(props.selectedPayment ? t('Failed to update payment') : t('Failed to create payment'));
   } finally {
     loading.value = false;
   }
 };
 
+const numberOfNightsBetween = (date1: string | Date, date2: string | Date): number => {
+  // Ensure both are Date objects
+  const start = typeof date1 === "string" ? new Date(date1) : date1;
+  const end = typeof date2 === "string" ? new Date(date2) : date2;
+
+  // Normalize to midnight
+  start.setHours(0, 0, 0, 0);
+  end.setHours(0, 0, 0, 0);
+
+  const diffDays = (end.getTime() - start.getTime()) / 86400000;
+  return diffDays > 0 ? diffDays : 0;
+};
+
 watch(() => formData.value.user_type, (newUserType) => {
   formData.value.user_id = "";
   loadUsers(newUserType as 'student' | 'guest');
+});
+
+watch(() => formData.value.user_id, async (newUserId) => {
+  if (!newUserId || newUserId === '') {
+    targetUser.value = null;
+    return;
+  }
+  // formData.value.amount = '0';
+  const service = formData.value.user_type === 'guest' ? (await import('@/services/api')).guestService : studentService;
+  targetUser.value = await loadIndividual(newUserId, service);
 });
 
 // Watch for semester changes to update date_from and date_to for students
@@ -270,6 +308,22 @@ watch(() => formData.value.semester, (newSemester) => {
     const { from, to } = getSemesterDates(newSemester);
     formData.value.date_from = from;
     formData.value.date_to = to;
+  }
+});
+
+watch(() => formData.value.date_to, (newDateTo) => {
+  if (formData.value.date_from && newDateTo) {
+    if (formData.value.user_type === 'guest' && targetUser.value) {
+      const nights = numberOfNightsBetween(
+        new Date(formData.value.date_from),
+        new Date(formData.value.date_to)
+      );
+      const rate = Number(targetUser.value?.room?.room_type?.daily_rate);
+      formData.value.amount = nights * rate + '';
+    } else if (targetUser.value) {
+      formData.value.amount = Number(targetUser.value?.room?.room_type?.semester_rate) + '';
+      console.log('amount', formData.value.amount);
+    }
   }
 });
 
@@ -282,30 +336,37 @@ watch(() => props.modelValue, async (newValue) => {
       if (payment.user?.role) {
         if (typeof payment.user.role === 'object' && payment.user.role.name) {
           userType = payment.user.role.name === 'guest' ? 'guest' : 'student';
-        } else if (typeof payment.user.role === 'string') {
-          userType = payment.user.role === 'guest' ? 'guest' : 'student';
-        }
+        } // else if (typeof payment.user.role === 'string') {
+        //   userType = payment.user.role === 'guest' ? 'guest' : 'student';
+        // }
       }
 
       // Set user_type first to prevent the watcher from re-triggering loadUsers
       formData.value.user_type = userType;
 
-      await loadUsers(userType, payment.user_id || payment.user?.id);
+      await loadUsers(userType, payment.userId);
 
-      const paymentDateFrom = payment.date_from ? payment.date_from.split('T')[0] : "";
-      const paymentDateTo = payment.date_to ? payment.date_to.split('T')[0] : "";
+      const paymentDateFrom = payment.dateFrom ? payment.dateFrom.split('T')[0] : "";
+      const paymentDateTo = payment.dateTo ? payment.dateTo.split('T')[0] : "";
       const detectedSemester = determineSemesterFromDates(paymentDateFrom, paymentDateTo);
+
+      // Ensure payment_check is always a string or null, never a File object
+      let paymentCheckValue: string | null = null;
+      if (payment.paymentCheck) {
+        // Only use if it's a string; ignore File objects
+        paymentCheckValue = typeof payment.paymentCheck === 'string' ? payment.paymentCheck : null;
+      }
 
       formData.value = {
         user_type: userType,
-        user_id: payment.user_id || payment.user?.id ? String(payment.user_id || payment.user?.id) : "",
-        amount: payment.amount?.toString() || "",
-        deal_number: payment.deal_number || "",
-        deal_date: payment.deal_date ? payment.deal_date.split('T')[0] : "",
+        user_id: payment.userId || "",
+        amount: payment.amount || "",
+        deal_number: payment.dealNumber || "",
+        deal_date: payment.dealDate ? payment.dealDate.split('T')[0] : "",
         date_from: paymentDateFrom,
         date_to: paymentDateTo,
         semester: detectedSemester,
-        payment_check: null,
+        payment_check: paymentCheckValue,
       };
     } else {
       resetForm();

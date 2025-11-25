@@ -40,7 +40,7 @@
             {{ row.email }}
           </span>
           <span>
-            {{ row.phone || row.telephone || '' }}
+            {{ row.phone_numbers?.join(', ') || '' }}
           </span>
         </div>
       </template>
@@ -144,7 +144,7 @@ const tableColumns = computed(() => [
   { key: 'room', label: t("Room") },
   { key: 'date_range', label: t("Date Range") },
   { key: 'purpose', label: t("Purpose") },
-  { key: 'payment', label: t("Payment") },
+  // { key: 'payment', label: t("Payment") },
   { key: 'actions', label: t("Action"), class: 'text-right' },
 ]);
 

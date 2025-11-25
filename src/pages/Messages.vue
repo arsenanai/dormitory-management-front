@@ -291,7 +291,7 @@ const loadData = async () => {
     // For admin users, fetch rooms from their assigned dormitory
     const fetchRooms = authStore.user?.role?.name === 'admin' && authStore.user?.adminProfile?.dormitory_id
       ? roomService.getByDormitory(authStore.user.adminProfile.dormitory_id)
-      : roomService.getAll();
+      : roomService.listAll();
 
     const [messagesResponse, roomsResponse] = await Promise.all([
       fetchMessages,
