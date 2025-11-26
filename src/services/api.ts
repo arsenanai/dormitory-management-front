@@ -274,11 +274,21 @@ export const authService = {
   resetPassword: (email: string): Promise<ApiResponse<{ message: string }>> =>
     api.post("/password/reset-link", { email }),
   
-  resetPasswordConfirm: (data: { token: string; password: string; password_confirmation: string }): Promise<ApiResponse<{ message: string }>> =>
+  resetPasswordConfirm: (data: { email: string; token: string; password: string; password_confirmation: string }): Promise<ApiResponse<{ message: string }>> =>
     api.post("/password/reset", data),
   
   changePassword: (data: { current_password: string; password: string; password_confirmation: string }): Promise<ApiResponse<{ message: string }>> =>
     api.put("/users/change-password", data),
+};
+
+export const personalDataService = {
+  get: (): Promise<ApiResponse<User>> =>
+    api.get("/users/personal-data"),
+
+  update: (data: FormData | Record<string, unknown>): Promise<ApiResponse<User>> => {
+    const config = data instanceof FormData ? { headers: { "Content-Type": "multipart/form-data" } } : undefined;
+    return api.post("/users/personal-data", data, config);
+  },
 };
 
 // User service
@@ -397,11 +407,19 @@ export const paymentService = {
   getAll: (params?: FilterParams): Promise<ApiResponse<PaginatedResponse<Payment>>> =>
     api.get("/payments", { params }),
   
+  getMyPayments: (params?: FilterParams): Promise<ApiResponse<PaginatedResponse<Payment>>> =>
+    api.get("/my-payments", { params }),
+  
   getById: (id: number): Promise<ApiResponse<Payment>> =>
     api.get(`/payments/${id}`),
   
   create: (data: FormData): Promise<ApiResponse<Payment>> =>
     api.post("/payments", data, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }),
+  
+  createForSelf: (data: FormData): Promise<ApiResponse<Payment>> =>
+    api.post("/my-payments", data, {
       headers: { 'Content-Type': 'multipart/form-data' }
     }),
   

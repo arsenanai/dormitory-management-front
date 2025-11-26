@@ -34,6 +34,10 @@
         <div v-if="loadingRooms || loadingBeds" class="flex justify-center mt-4">
           <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-500"></div>
         </div>
+        <div v-if="!loadingRooms && guest.dormitory_id && availableRooms.length === 0"
+          class="text-center text-red-500 p-4 mt-2">
+          {{ t('No rooms are available for the selected dormitory and dates.') }}
+        </div>
         <div v-if="!loadingBeds && guest.room_id && bedOptions.length === 0" class="text-center text-red-500 p-4 mt-2">
           {{ t('No beds are available for the selected room and dates.') }}
         </div>
@@ -46,10 +50,11 @@
             :validationState="validationState.phone" :validationMessage="validationMessage.phone" />
           <CInput id="guest-email" v-model="guest.email" type="email" :label="t('Email')" required
             :validationState="validationState.email" :validationMessage="validationMessage.email" />
-          <CInput v-model="guest.password" type=password :label="t('Password')" required 
+          <CInput v-model="guest.password" type=password :label="t('Password')" required
             :validationState="validationState.password" :validationMessage="validationMessage.pasword" />
-          <CInput v-model="guest.password_confirmation" type=password :label="t('Confirm Password')" 
-            :validationState="validationState.password_confirmation" :validationMessage="validationMessage.pasword_confirmation" />
+          <CInput v-model="guest.password_confirmation" type=password :label="t('Confirm Password')"
+            :validationState="validationState.password_confirmation"
+            :validationMessage="validationMessage.pasword_confirmation" />
         </div>
       </CStep>
 
@@ -102,8 +107,8 @@
           </div>
           <CTextarea id="dormitory-rules" :label="t('Bank requisites')"
             :model-value="settingsStore.publicSettings?.bank_requisites" readonly additionalClass="h-full flex-1"
-            wrapperClass="flex flex-col flex-1"/>
-          <CFileInput id="guest-bank-paycheck" :label="t('Bank Paycheck')" required
+            wrapperClass="flex flex-col flex-1" />
+          <CFileInput id="guest-bank-paycheck" :label="t('Bank Paycheck') " required
             :allowedExtensions="['jpg', 'jpeg', 'png', 'pdf']" :maxFileSize="2 * 1024 * 1024"
             :validation-message="validationMessage.bank_paycheck" @change="(file) => guest.bank_paycheck = file" />
         </div>
@@ -153,31 +158,31 @@ const currentStep = ref(0);
 const guest = ref({
   user_type: "guest",
   // Step 1
-  gender: 'male', //undefined as 'male' | 'female' | undefined,
-  check_in_date: '2025-11-17',
-  check_out_date: '2025-11-23',
-  dormitory_id: 1, //undefined as number | undefined,
-  room_type_id: 1, //undefined as number | undefined,
-  room_id: 1, //undefined as number | undefined,
-  bed_id: 1, //undefined as number | undefined,
+  gender: undefined as 'male' | 'female' | undefined,
+  check_in_date: '',
+  check_out_date: '',
+  dormitory_id: undefined as number | undefined,
+  room_type_id: undefined as number | undefined,
+  room_id: undefined as number | undefined,
+  bed_id: undefined as number | undefined,
   // Step 2
-  phone: '87081592648',
-  email: 'arsenanai@gmail.com',
-  password: 'qwe123',
-  password_confirmation: 'qwe123',
+  phone: '',
+  email: '',
+  password: '',
+  password_confirmation: '',
   // Step 3
-  first_name: 'Arsen',
-  last_name: 'Anay',
-  notes: 'tourism', // Purpose of visit
+  first_name: '',
+  last_name: '',
+  notes: '', // Purpose of visit
   // Step 4
-  host_name: 'host',
-  host_contact: '87771234567',
-  reminder: 'some reminder', // Information or reminder
+  host_name: '',
+  host_contact: '',
+  reminder: '', // Information or reminder
   // Step 5
   identification_type: 'national_id',
-  identification_number: '123123',
-  emergency_contact_name: 'emergent',
-  emergency_contact_phone: '87771234567',
+  identification_number: '',
+  emergency_contact_name: '',
+  emergency_contact_phone: '',
   // Step 6
   total_amount: 0,
   bank_paycheck: null as File | null,

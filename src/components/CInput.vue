@@ -1,77 +1,77 @@
 <template>
   <!-- Global Wrapper -->
-  <div :id="`${id}-input-wrapper`">
-    <!-- Label -->
-    <label v-if="label" :for="id" class="block text-sm font-medium" :class="labelClass">
-      {{ label }}{{ required ? '*' : '' }}
-    </label>
-    <div class="relative">
-      <!-- Prefix Icon -->
-      <div v-if="prefix || type === 'search' || type === 'email' || type === 'tel'"
-        class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-        <component v-if="type === 'search'" :is="MagnifyingGlassIcon"
-          class="h-5 w-5 text-gray-500 dark:text-gray-400 prefix-icon" :class="iconClass" />
-        <component v-else-if="type === 'email'" :is="EnvelopeIcon"
-          class="h-5 w-5 text-gray-500 dark:text-gray-400 prefix-icon" :class="iconClass" />
-        <component v-else-if="type === 'tel'" :is="DevicePhoneMobileIcon"
-          class="h-5 w-5 text-gray-500 dark:text-gray-400 prefix-icon" :class="iconClass" />
-      </div>
-
-      <span v-if="prependText"
-        class="absolute inset-y-0 left-0 flex items-center rounded-l-md border border-gray-300 bg-gray-200 px-3 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-400">
-        {{ prependText }}
-      </span>
-
-      <!-- Input -->
-      <input v-bind="$attrs" data-test="visible" :data-testid="dataTestId" :id="idProp" :type="type"
-        :placeholder="placeholder" :value="modelValue" @input="onInput" @focus="onFocus" @blur="onBlur"
-        @keydown.enter="onEnter" @keydown.escape="onEscape" :class="inputClass" :required="required"
-        :disabled="disabled || loading" :readonly="readonly" :pattern="pattern" :autocomplete="autocomplete"
-        :min="(type === 'number' || type === 'date') ? min : undefined" :max="type === 'number' ? max : undefined"
-        :minlength="minLength" :maxlength="maxLength" :list="datalistId" :tabindex="readonly ? -1 : undefined" />
-
-      <!-- Datalist for autocomplete options (countries/regions/cities) -->
-      <datalist v-if="list && datalistId" :id="datalistId">
-        <option v-for="(opt, idx) in list" :key="idx" :value="typeof opt === 'string' ? opt : opt.id">
-          <template v-if="typeof opt === 'object' && opt.value">{{ opt.value }}</template>
-        </option>
-      </datalist>
-      <!-- Suffix elements -->
-      <div v-if="suffix || clearable || loading" class="absolute inset-y-0 right-0 flex items-center pr-3">
-        <!-- Loading spinner -->
-        <div v-if="loading" class="loading-spinner animate-spin rounded-full h-4 w-4 border-b-2 border-gray-500 mr-2">
+    <div :id="`${id}-input-wrapper`" :class="wrapperClass">
+      <!-- Label -->
+      <label v-if="label" :for="id" class="block text-sm font-medium" :class="labelClass">
+        {{ label }}{{ required ? '*' : '' }}
+      </label>
+      <div class="relative">
+        <!-- Prefix Icon -->
+        <div v-if="prefix || type === 'search' || type === 'email' || type === 'tel'"
+          class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <component v-if="type === 'search'" :is="MagnifyingGlassIcon"
+            class="h-5 w-5 text-gray-500 dark:text-gray-400 prefix-icon" :class="iconClass" />
+          <component v-else-if="type === 'email'" :is="EnvelopeIcon"
+            class="h-5 w-5 text-gray-500 dark:text-gray-400 prefix-icon" :class="iconClass" />
+          <component v-else-if="type === 'tel'" :is="DevicePhoneMobileIcon"
+            class="h-5 w-5 text-gray-500 dark:text-gray-400 prefix-icon" :class="iconClass" />
         </div>
 
-        <!-- Clear button -->
-        <button v-if="clearable && modelValue && !loading" @click="onClear" type="button"
-          class="clear-button text-gray-400 hover:text-gray-600 focus:outline-none">
-          ×
-        </button>
+        <span v-if="prependText"
+          class="absolute inset-y-0 left-0 flex items-center rounded-l-md border border-gray-300 bg-gray-200 px-3 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-400">
+          {{ prependText }}
+        </span>
 
-        <!-- Suffix icon -->
-        <span v-if="suffix" class="suffix-icon text-gray-500">{{ suffix }}</span>
+        <!-- Input -->
+        <input v-bind="$attrs" data-test="visible" :data-testid="dataTestId" :id="idProp" :type="type"
+          :placeholder="placeholder" :value="modelValue" @input="onInput" @focus="onFocus" @blur="onBlur"
+          @keydown.enter="onEnter" @keydown.escape="onEscape" :class="inputClass" :required="required"
+          :disabled="disabled || loading" :readonly="readonly" :pattern="pattern" :autocomplete="autocomplete"
+          :min="(type === 'number' || type === 'date') ? min : undefined" :max="type === 'number' ? max : undefined"
+          :minlength="minLength" :maxlength="maxLength" :list="datalistId" :tabindex="readonly ? -1 : undefined" />
+
+        <!-- Datalist for autocomplete options (countries/regions/cities) -->
+        <datalist v-if="list && datalistId" :id="datalistId">
+          <option v-for="(opt, idx) in list" :key="idx" :value="typeof opt === 'string' ? opt : opt.id">
+            <template v-if="typeof opt === 'object' && opt.value">{{ opt.value }}</template>
+          </option>
+        </datalist>
+        <!-- Suffix elements -->
+        <div v-if="suffix || clearable || loading" class="absolute inset-y-0 right-0 flex items-center pr-3">
+          <!-- Loading spinner -->
+          <div v-if="loading" class="loading-spinner animate-spin rounded-full h-4 w-4 border-b-2 border-gray-500 mr-2">
+          </div>
+
+          <!-- Clear button -->
+          <button v-if="clearable && modelValue && !loading" @click="onClear" type="button"
+            class="clear-button text-gray-400 hover:text-gray-600 focus:outline-none">
+            ×
+          </button>
+
+          <!-- Suffix icon -->
+          <span v-if="suffix" class="suffix-icon text-gray-500">{{ suffix }}</span>
+        </div>
       </div>
+
+      <!-- Error Message -->
+      <p v-if="error" class="error-message text-sm text-red-600 dark:text-red-500 mt-1">
+        {{ error }}
+      </p>
+
+      <!-- Help Text -->
+      <p v-if="help" class="help-text text-sm text-gray-500 dark:text-gray-400 mt-1">
+        {{ help }}
+      </p>
+
+      <!-- Validation Message -->
+      <p v-if="validationMessage" :id="`${id}-validation`" :class="validationMessageClass">
+        <span class="font-medium">{{ validationMessagePrefix }}</span>
+        {{ validationMessage }}
+      </p>
     </div>
+  </template>
 
-    <!-- Error Message -->
-    <p v-if="error" class="error-message text-sm text-red-600 dark:text-red-500 mt-1">
-      {{ error }}
-    </p>
-
-    <!-- Help Text -->
-    <p v-if="help" class="help-text text-sm text-gray-500 dark:text-gray-400 mt-1">
-      {{ help }}
-    </p>
-
-    <!-- Validation Message -->
-    <p v-if="validationMessage" :id="`${id}-validation`" :class="validationMessageClass">
-      <span class="font-medium">{{ validationMessagePrefix }}</span>
-      {{ validationMessage }}
-    </p>
-  </div>
-</template>
-
-<script setup lang="ts">
+  <script setup lang="ts">
 import { computed, defineProps, defineEmits, useAttrs, type PropType } from "vue";
 import {
   MagnifyingGlassIcon,
@@ -108,7 +108,8 @@ const props = defineProps({
   clearable: Boolean,
   loading: Boolean,
   class: String,
-  list: { type: Array as PropType<Array<string | { id: string; value: string }>>, default: undefined }
+  list: { type: Array as PropType<Array<string | { id: string; value: string }>>, default: undefined },
+  wrapperClass: String,
 });
 
 const emit = defineEmits([

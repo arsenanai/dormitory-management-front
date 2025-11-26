@@ -4,7 +4,7 @@ import path from 'path'
 import chalk from 'chalk'
 
 // Collect all .vue files
-const vueFiles = fg.sync(['src/**/*.vue'])
+const vueFiles = fg.sync(['src/**/*.vue', 'src/**/*.ts'])
 const foundKeys = new Set<string>()
 
 // Regex patterns to find different usages of t() or $t()

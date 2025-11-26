@@ -18,7 +18,7 @@
         <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 inline-block">{{ title }}</h3>
       </div>
 
-      <div class="h-100 px-3 pb-3 overflow-y-auto">
+      <div class="px-3 pb-3 overflow-y-auto">
         <slot />
       </div>
     </div>

@@ -52,11 +52,11 @@ export const useDashboardStore = defineStore('dashboard', () => {
       
       // Map backend response to frontend expected structure
       stats.value = {
-        dormitories: Number(data.total_dormitories ?? data.dormitories ?? 4), // Default to 4 based on seeded data
-        rooms: Number(data.total_rooms ?? data.rooms ?? 52), // Default to 52 based on seeded data
-        beds: Number(data.total_beds ?? data.beds ?? 92), // Default to 92 based on seeded data
-        vacantBeds: Number(data.available_rooms ?? data.available_beds ?? data.vacant_beds ?? 0),
-        registeredStudents: Number(data.total_students ?? data.students ?? 22), // Default to 22 based on seeded data
+        dormitories: Number(data.total_dormitories ?? 0), // Default to 4 based on seeded data
+        rooms: Number(data.total_rooms ?? data.rooms ?? 0), // Default to 52 based on seeded data
+        beds: Number(data.total_beds ?? data.beds ?? 0), // Default to 92 based on seeded data
+        vacantBeds: Number(data.available_beds ?? 0),
+        registeredStudents: Number(data.total_students ?? data.students ?? 0), // Default to 22 based on seeded data
         currentPresence: Number(data.occupied_rooms ?? data.current_presence ?? 0),
         mealPaying: Number(data.meal_paying ?? data.students_with_meals ?? 0),
         withoutMeal: Number(data.without_meal ?? data.students_without_meals ?? 0),
@@ -66,17 +66,17 @@ export const useDashboardStore = defineStore('dashboard', () => {
       error.value = err.response?.data?.message || 'Failed to load dashboard statistics';
       
       // Set default values based on seeded data if API fails
-      stats.value = {
-        dormitories: 4,
-        rooms: 52,
-        beds: 92,
-        vacantBeds: 70,
-        registeredStudents: 22,
-        currentPresence: 22,
-        mealPaying: 15,
-        withoutMeal: 7,
-        quotaStudents: 5,
-      };
+      // stats.value = {
+      //   dormitories: 4,
+      //   rooms: 52,
+      //   beds: 92,
+      //   vacantBeds: 70,
+      //   registeredStudents: 22,
+      //   currentPresence: 22,
+      //   mealPaying: 15,
+      //   withoutMeal: 7,
+      //   quotaStudents: 5,
+      // };
     } finally {
       loading.value = false;
     }

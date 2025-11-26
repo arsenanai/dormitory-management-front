@@ -177,7 +177,11 @@
       <!-- Step 10: Payment -->
       <CStep :title="t('Payment')" :validator="() => isPaymentStepValid">
         <div class="grid grid-cols-1 gap-4">
-          
+          <label class=" font-semibold">{{ t("Total") }}: {{ selectedRoomPrice }} {{
+            settingsStore.publicSettings?.currency_symbol }}</label>
+          <CTextarea id="bank-requisites" :label="t('Bank requisites')"
+            :model-value="settingsStore.publicSettings?.bank_requisites" readonly additionalClass="h-full flex-1"
+            wrapperClass="flex flex-col flex-1" />
           <CFileInput :id="`payment-file`" :name="t('Bank Check')" :label="t('Bank Check')"
             :allowedExtensions="['jpg', 'jpeg', 'png', 'pdf']" :maxFileSize="2 * 1024 * 1024"
             :validation-message="registrationValidationMessage.payment_check" data-testid="file-input"
@@ -440,7 +444,7 @@ const handleRegistration = async () => {
           if (step !== undefined && (firstErrorStep === -1 || step < firstErrorStep)) {
             firstErrorStep = step;
           }
-        // Handle single file input error: "payment.payment_check"
+          // Handle single file input error: "payment.payment_check"
         } else if (serverKey === 'payment.payment_check') {
           if (registrationValidationMessage.value.payment) {
             registrationValidationMessage.value.payment.payment_check = message;
@@ -492,7 +496,7 @@ const updateRegistrationFileInput = (index: number, fileOrEvent: File | Event | 
 
 const updatePaymentCheckInput = (fileOrEvent: File | Event | null) => {
   const file = fileOrEvent instanceof File ? fileOrEvent : ((fileOrEvent as Event)?.target as HTMLInputElement)?.files?.[0] || null;
-  if (user.value.payment.payment_check) {
+  if (user.value.payment) {
     user.value.payment.payment_check = file;
   }
 }
@@ -604,8 +608,17 @@ const isDocumentsStepValid = computed(() => {
 
 // Step 10: Payment Chek
 const isPaymentStepValid = computed(() => {
-  const file = user.value?.payment?.payment_check;
-  return file instanceof File || (typeof file === 'string' && file.trim() !== '');
+  // validate file input here
+  if (!user.value.payment) return false;
+  if (!user.value.payment.payment_check) return false;
+  if (!(user.value.payment.payment_check instanceof File)) return false;
+  if (user.value.payment.payment_check.size === 0) return false;
+  if (user.value.payment.payment_check.size > 2 * 1024 * 1024) return false;
+  const allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf'];
+  const fileExtension = user.value.payment.payment_check.name.split('.').pop()?.toLowerCase();
+
+  if (!allowedExtensions.includes(fileExtension)) return false;
+  return true;
 });
 // Step 11: Registration & Status
 const isRegistrationStatusStepValid = computed(() => {

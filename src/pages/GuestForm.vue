@@ -1,5 +1,5 @@
 <template>
-  <Navigation :title="t('Guest page')">
+  <component :is="guestWrapper" v-bind="guestWrapperProps">
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <!-- Guest First Name -->
       <div>
@@ -119,10 +119,10 @@
     <!-- Submit Button -->
     <div class="mt-6 flex justify-end">
       <CButton variant="primary" @click="submitForm" class="w-full lg:w-auto">
-        {{ t("Submit") }}
+        {{ submitButtonLabel }}
       </CButton>
     </div>
-  </Navigation>
+  </component>
 </template>
 
 <script setup lang="ts">
@@ -134,11 +134,18 @@ import CInput from "@/components/CInput.vue";
 import CSelect from "@/components/CSelect.vue";
 import CButton from "@/components/CButton.vue";
 import { useToast } from "@/composables/useToast";
-import { guestService, roomService } from '@/services/api';
+import { guestService, roomService, personalDataService } from '@/services/api';
 import { useSettingsStore } from '@/stores/settings';
 import type { User } from "@/models/User";
 import type { GuestProfile } from "@/models/GuestProfile";
 import CTextarea from "@/components/CTextarea.vue";
+
+const props = defineProps<{
+  embedded?: boolean;
+  initialGuestId?: number | null;
+  redirectOnSubmit?: boolean;
+  submitLabel?: string;
+}>();
 
 const { t } = useI18n();
 const route = useRoute();
@@ -149,7 +156,17 @@ const fieldErrors = ref<Record<string, string>>({});
 const settingsStore = useSettingsStore();
 
 // Check if we're editing (ID in route params)
-const guestId = computed(() => route.params.id ? Number(route.params.id) : null);
+const guestWrapper = computed(() => (props.embedded ? "div" : Navigation));
+const guestWrapperProps = computed(() => (props.embedded ? {} : { title: t("Guest page") }));
+const submitButtonLabel = computed(() => props.submitLabel || t("Submit"));
+const shouldRedirect = computed(() => !props.embedded && props.redirectOnSubmit !== false);
+
+const guestId = computed(() => {
+  if (props.initialGuestId !== undefined && props.initialGuestId !== null) {
+    return props.initialGuestId;
+  }
+  return route.params.id ? Number(route.params.id) : null;
+});
 const isEditing = computed(() => !!guestId.value);
 
 // Guest Form Data
@@ -270,18 +287,27 @@ const submitForm = async (): Promise<void> => {
       emergency_contact_phone: guestProfile.value.emergency_contact_phone || undefined,
     };
 
+    if (props.embedded) {
+      await personalDataService.update(payload);
+      showSuccess(t("Guest information updated successfully!"));
+      if (shouldRedirect.value) {
+        await loadSelfGuest();
+      }
+      return;
+    }
+
     if (isEditing.value) {
       await guestService.update(guestId.value!, payload);
       showSuccess(t("Guest information updated successfully!"));
-      // Redirect to guest index page after successful update
-      router.push('/guest-house');
+      if (shouldRedirect.value) {
+        router.push('/guest-house');
+      }
     } else {
       await guestService.create(payload);
       showSuccess(t("Guest information created successfully!"));
-      // Redirect to guest index page after successful creation
-      console.log('Redirecting to /guest-house...');
-      await router.push('/guest-house');
-      console.log('Redirect completed');
+      if (shouldRedirect.value) {
+        await router.push('/guest-house');
+      }
     }
   } catch (error: any) {
     // If backend returned validation errors, map them to fields
@@ -309,46 +335,46 @@ const submitForm = async (): Promise<void> => {
 
 
 // Load guest from API if editing
+const hydrateGuestFromApi = async (guestData: User): Promise<void> => {
+  user.value = {
+    first_name: guestData.first_name,
+    last_name: guestData.last_name,
+    email: guestData.email || "",
+    phone_numbers: guestData.phone_numbers?.length ? [...guestData.phone_numbers] : guestData.phone ? [guestData.phone] : [""],
+    room_id: guestData.room_id,
+  };
+
+  guestProfile.value = {
+    purpose_of_visit: guestData.guest_profile?.purpose_of_visit || guestData.notes || "",
+    host_name: guestData.guest_profile?.host_name || guestData.host_name || "",
+    host_contact: guestData.guest_profile?.host_contact || "",
+    visit_start_date: guestData.guest_profile?.visit_start_date?.substring(0, 10) || "",
+    visit_end_date: guestData.guest_profile?.visit_end_date?.substring(0, 10) || "",
+    identification_type: guestData.guest_profile?.identification_type || "",
+    identification_number: guestData.guest_profile?.identification_number || "",
+    emergency_contact_name: guestData.guest_profile?.emergency_contact_name || "",
+    emergency_contact_phone: guestData.guest_profile?.emergency_contact_phone || "",
+    bed_id: guestData.guest_profile?.bed_id ? guestData.guest_profile?.bed_id.toString() : null,
+    reminder: guestData.guest_profile?.reminder || "",
+  };
+
+  await fetchAvailableRooms();
+  updateBedOptions(user.value.room_id);
+};
+
 const loadGuest = async (id: number): Promise<void> => {
   try {
     const response = await guestService.getById(id);
-    const guestData = response.data;
+    await hydrateGuestFromApi(response.data);
+  } catch (error) {
+    showError(t("Failed to load guest data"));
+  }
+};
 
-    // Populate user fields
-    // Split the combined name into first and last names
-    const fullName = guestData.first_name || guestData.last_name || "";
-    const nameParts = fullName.split(' ');
-    const firstName = nameParts[0] || "";
-    const lastName = nameParts.slice(1).join(' ') || "";
-
-    user.value = {
-      first_name: guestData.first_name,
-      last_name: guestData.last_name,
-      email: guestData.email || "",
-      phone_numbers: guestData.phone_numbers?.length ? [...guestData.phone_numbers] : guestData.phone ? [guestData.phone] : [""],
-      room_id: guestData.room_id,
-    };
-
-    // Populate guestProfile fields
-    guestProfile.value = {
-      purpose_of_visit: guestData.guest_profile?.purpose_of_visit || guestData.notes || "",
-      host_name: guestData.guest_profile?.host_name || guestData.host_name || "",
-      host_contact: guestData.guest_profile?.host_contact || "",
-      visit_start_date: guestData.guest_profile?.visit_start_date?.substring(0, 10) || "",
-      visit_end_date: guestData.guest_profile?.visit_end_date?.substring(0, 10) || "",
-      identification_type: guestData.guest_profile?.identification_type || "",
-      identification_number: guestData.guest_profile?.identification_number || "",
-      emergency_contact_name: guestData.guest_profile?.emergency_contact_name || "",
-      emergency_contact_phone: guestData.guest_profile?.emergency_contact_phone || "",
-      bed_id: guestData.guest_profile?.bed_id.toString() || null,
-      reminder: guestData.guest_profile?.reminder || "",
-    };
-
-    // IMPORTANT: Wait for rooms to be fetched before this function returns.
-    await fetchAvailableRooms();
-
-    // Now that rooms and beds are loaded, populate the bed options for the current room.
-    updateBedOptions(user.value.room_id);
+const loadSelfGuest = async (): Promise<void> => {
+  try {
+    const response = await personalDataService.get();
+    await hydrateGuestFromApi(response.data);
   } catch (error) {
     showError(t("Failed to load guest data"));
   }
@@ -385,6 +411,11 @@ watch(() => user.value.room_id, (newRoomId, oldRoomId) => {
 }, { deep: true });
 
 onMounted(() => {
+  if (props.embedded) {
+    loadSelfGuest();
+    return;
+  }
+
   if (isEditing.value) {
     loadGuest(guestId.value!);
   }

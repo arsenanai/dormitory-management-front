@@ -3,11 +3,16 @@
     :title="selectedPayment ? t('Update Payment') : t('Create Payment')">
     <form @submit.prevent="handleFormSubmit">
       <div class="space-y-4">
-        <!-- User Type Selection -->
+        <!-- User Type Selection (admin-only) -->
+        <!-- <CSelect v-if="!props.selfService" id="user-type-select" v-model="formData.user_type" :label="t('Role')"
+          :options="userTypeOptions" required /> -->
         <CSelect id="user-type-select" v-model="formData.user_type" :label="t('Role')" :options="userTypeOptions"
           required />
 
-        <!-- User Selection (Common for both student and guest) -->
+        <!-- User Selection (admin-only, for both student and guest) -->
+        <!-- <CSelect v-if="!props.selfService" id="student-select" data-testid="payment-student-select"
+          v-model="formData.user_id" :label="t('User')" :options="userOptions" :disabled="loadingUsers"
+          :placeholder="loadingUsers ? t('Loading users...') : t('Select a user')" required /> -->
         <CSelect id="student-select" data-testid="payment-student-select" v-model="formData.user_id" :label="t('User')"
           :options="userOptions" :disabled="loadingUsers"
           :placeholder="loadingUsers ? t('Loading users...') : t('Select a user')" required />
@@ -23,6 +28,12 @@
         <!-- Amount with Currency -->
         <CInput v-model="formData.amount" data-testid="payment-amount-input"
           :label="`${t('Amount')} (${currencySymbol})`" type="number" step="0.01" min="0" required />
+        <CTextarea id="dormitory-rules" :label="t('Bank requisites')"
+          :model-value="settingsStore.publicSettings?.bank_requisites" readonly additionalClass="h-full flex-1"
+          wrapperClass="flex flex-col flex-1" />
+        <!-- <CFileInput id="payment-check-upload" :label="t('Payment Check')" :required="props.selfService"
+          :allowed-extensions="['jpg', 'jpeg', 'png', 'pdf']" @change="handleFileChange"
+          :file-path="formData.payment_check" /> -->
         <CFileInput id="payment-check-upload" :label="t('Payment Check')"
           :allowed-extensions="['jpg', 'jpeg', 'png', 'pdf']" @change="handleFileChange"
           :file-path="formData.payment_check" />
@@ -43,11 +54,14 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useSettingsStore } from '@/stores/settings';
 import { paymentService, studentService } from '@/services/api';
+import { useAuthStore } from '@/stores/auth';
 import { useToast } from '@/composables/useToast';
 import CModal from '@/components/CModal.vue';
 import CInput from '@/components/CInput.vue';
 import CSelect from '@/components/CSelect.vue';
+import CTextarea from '@/components/CTextarea.vue';
 import CButton from '@/components/CButton.vue';
 import CFileInput from '@/components/CFileInput.vue';
 import { User } from '@/models/User';
@@ -56,6 +70,11 @@ const props = defineProps<{
   modelValue: boolean;
   selectedPayment?: any | null;
   currencySymbol: string;
+  // When true, the form behaves in "self-service" mode for students/guests:
+  // - hides role/user selection
+  // - sends requests to /my-payments
+  // - restricts creation to the authenticated user
+  // selfService?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -65,6 +84,8 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const { showSuccess, showError } = useToast();
+const settingsStore = useSettingsStore();
+const authStore = useAuthStore();
 
 const loading = ref(false);
 const loadingUsers = ref(false);
@@ -222,10 +243,19 @@ const loadIndividual = async (id: string | number, service: any) => {
 }
 
 const handleFormSubmit = async () => {
+  // In self-service mode, enforce that a payment check is attached before submitting
+  if (/*props.selfService &&*/ !formData.value.payment_check) {
+    showError(t('Payment check is required'));
+    return;
+  }
+
   loading.value = true;
   try {
     const submissionData = new FormData();
-    submissionData.append('user_id', formData.value.user_id);
+    // For self-service submissions, backend determines user_id from auth token.
+    // if (!props.selfService) {
+      submissionData.append('user_id', formData.value.user_id);
+    //}
     submissionData.append('amount', formData.value.amount);
     submissionData.append('date_from', formData.value.date_from);
     submissionData.append('date_to', formData.value.date_to);
@@ -254,7 +284,9 @@ const handleFormSubmit = async () => {
         formData.value.payment_check = response.data.data.paymentCheck;
       }
     } else {
-      const response = await paymentService.create(submissionData);
+      const response = // props.selfService
+        /*? await paymentService.createForSelf(submissionData)
+        :*/ await paymentService.create(submissionData);
       showSuccess(t('Payment created successfully'));
       // After creating, update payment_check with the path from response to prevent File object issues
       if (response.data?.data?.paymentCheck) {

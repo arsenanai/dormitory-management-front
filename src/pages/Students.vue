@@ -180,7 +180,7 @@ const { showSuccess, showError, showConfirmation } = useToast();
 const filters = ref({
   faculty: "",
   room: "",
-  status: "",
+  status: "pending",
   showDormitoryStudents: false,
 });
 const students = ref([]);

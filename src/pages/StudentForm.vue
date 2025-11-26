@@ -1,5 +1,5 @@
 <template>
-  <Navigation :title="t('Student page')">
+  <component :is="studentWrapper" v-bind="studentWrapperProps">
     <form class="grid grid-cols-1 gap-8" novalidate @submit.prevent="submitForm">
       <!-- Personal Information -->
       <fieldset class="border border-primary-200 rounded p-4">
@@ -45,12 +45,12 @@
             <CInput id="student-city" v-model="user.student_profile.city" type="text" :label="t('City')"
               placeholder="Enter City" :disabled="!user.student_profile.region" />
           </div>
-          <div>
+          <div v-if="props.embedded !== true">
             <CInput id="student-password" v-model="user.password" type="password" :label="t('Password')"
               :error="validationErrors.password?.[0]" :placeholder="t('Password')"
               :required="isEditing ? false : true" />
           </div>
-          <div>
+          <div v-if="props.embedded !== true">
             <CInput id="student-password-repeat" v-model="user.password_confirmation" type="password"
               :error="validationErrors.password_confirmation?.[0]" :label="t('Password Confirmation')"
               :placeholder="t('Password Confirmation')" :required="isEditing ? false : true" />
@@ -64,15 +64,18 @@
               <div class="flex flex-col items-stretch gap-2">
                 <div v-for="(phone, index) in user.phone_numbers" :key="index" class="flex items-center gap-2">
                   <CInput :id="'phone-number-' + index" v-model="user.phone_numbers[index]" type="tel"
-                    :error="validationErrors[`phone_numbers.${index}`]?.[0]" placeholder="Enter Phone Number" />
+                    :error="validationErrors[`phone_numbers.${index}`]?.[0]" placeholder="Enter Phone Number"
+                    wrapperClass="flex-grow" />
                   <CButton v-if="user.phone_numbers.length > 1" @click="removePhoneField(index)" class="py-2.5">
                     <TrashIcon class="text-red-600 h-5 w-5" />
                   </CButton>
+                  <CButton type="button" @click="addPhoneField" class="py-2.5"
+                    v-if="index === user.phone_numbers.length - 1 && user.phone_numbers.length < 3">
+                    <PlusIcon class="h-5 w-5" />
+                  </CButton>
+                  <div v-else class="w-[54px] h-[42px]"> </div>
                 </div>
               </div>
-              <CButton @click="addPhoneField" class="py-2.5">
-                <PlusIcon class="h-5 w-5" />
-              </CButton>
             </div>
           </div>
         </div>
@@ -251,16 +254,16 @@
         </div>
       </fieldset>
       <div class="mt-6 flex flex-row items-end justify-end gap-2">
-        <CButton onclick="window.print()">
+        <CButton v-if="showPrintButton" onclick="window.print()">
           <PrinterIcon class="h-5 w-5" />
           {{ t("Print") }}
         </CButton>
         <CButton variant="primary" type="submit">
-          {{ t("Submit") }}
+          {{ submitButtonLabel }}
         </CButton>
       </div>
     </form>
-  </Navigation>
+  </component>
 </template>
 
 <script setup lang="ts">
@@ -276,10 +279,18 @@ import CFileInput from "@/components/CFileInput.vue";
 import { PlusIcon, PrinterIcon, TrashIcon } from "@heroicons/vue/24/outline";
 import type { User } from "@/models/User";
 import { Room } from "@/models/Room";
+import type { Bed } from "@/models/Bed";
 import { useStudentStore } from "@/stores/student";
 import { useAuthStore } from "@/stores/auth";
-import { studentService, roomService } from "@/services/api";
+import { studentService, roomService, personalDataService } from "@/services/api";
 import { useToast } from "@/composables/useToast";
+
+const props = defineProps<{
+  embedded?: boolean;
+  initialStudentId?: number | null;
+  showPrint?: boolean;
+  submitLabel?: string;
+}>();
 
 const registrationFileLabels = [
   "063 Form",
@@ -292,7 +303,7 @@ const registrationFileLabels = [
 const rooms = ref<Room[]>([]);
 const allBeds = ref<any[]>([]);
 const loadingRooms = ref(false);
-const { locale } = useI18n();
+const { t, locale } = useI18n();
 
 const validationErrors = ref<Record<string, string[]>>({});
 
@@ -303,21 +314,36 @@ onMounted(async () => {
     studentStore.restoreSelectedStudent();
   }
 
+  if (props.embedded) {
+    await loadSelfStudent();
+    return;
+  }
+
   // If editing by id, load the specific student
   if (isEditing.value) {
     await loadStudent(studentId.value!);
   }
 });
 
+// Wrapper component handling (Navigation vs div when embedded)
+const studentWrapper = computed(() => (props.embedded ? "div" : Navigation));
+const studentWrapperProps = computed(() => (props.embedded ? {} : { title: t("Student page") }));
+const showPrintButton = computed(() => (props.showPrint === undefined ? !props.embedded : props.showPrint));
+const submitButtonLabel = computed(() => props.submitLabel || t("Submit"));
+
 // i18n and store
-const { t } = useI18n();
 const route = useRoute();
 const studentStore = useStudentStore();
 const authStore = useAuthStore();
 const { showError, showSuccess } = useToast();
 
 // Check if we're editing (ID in route params)
-const studentId = computed(() => route.params.id ? Number(route.params.id) : null);
+const studentId = computed(() => {
+  if (props.initialStudentId !== undefined && props.initialStudentId !== null) {
+    return props.initialStudentId;
+  }
+  return route.params.id ? Number(route.params.id) : null;
+});
 const isEditing = computed(() => !!studentId.value);
 
 // Check if current user is an admin
@@ -501,6 +527,66 @@ const handleFileChange = (index: number, newFile: File | null | string) => {
 
 // payment_check removed — no handler required
 
+type StudentUserResponse = User & { student_bed?: Bed | null };
+
+const hydrateStudentFromApi = (data: StudentUserResponse, shouldNotify = true) => {
+  if (!data.student_profile) {
+    data.student_profile = {};
+  }
+
+  const existingFiles = data.student_profile.files;
+  const filesArray = Array(3).fill(null);
+  if (existingFiles && typeof existingFiles === 'object') {
+    for (const index in existingFiles) {
+      const numericIndex = parseInt(index, 10);
+      if (!isNaN(numericIndex) && numericIndex >= 0 && numericIndex < 3) {
+        filesArray[numericIndex] = existingFiles[index];
+      }
+    }
+  }
+  data.student_profile.files = filesArray;
+
+  if (data.room) {
+    const studentRoom = data.room as any;
+    const roomExists = (rooms.value as any).some((r: any) => r?.id === studentRoom?.id);
+    if (!roomExists) {
+      rooms.value = [...rooms.value, studentRoom];
+    }
+
+    const existingBedIds = (allBeds.value as any).map((b: any) => b.id);
+    (studentRoom.beds || []).forEach((b: any) => {
+      if (!existingBedIds.includes(b.id)) {
+        allBeds.value.push({ ...b, room: studentRoom });
+      }
+    });
+
+    if (data.student_bed && !existingBedIds.includes(data.student_bed.id)) {
+      allBeds.value.push({ ...data.student_bed, room: studentRoom });
+    }
+  }
+
+  user.value = {
+    ...user.value,
+    id: data.id,
+    first_name: data.first_name,
+    last_name: data.last_name,
+    email: data.email,
+    phone_numbers: normalizePhones(data.phone_numbers, data.phone),
+    room_id: data.room_id,
+    bed_id: data.student_bed?.id,
+    student_bed: data.student_bed,
+    status: data.status,
+    student_profile: { ...user.value.student_profile, ...data.student_profile },
+    password: '',
+    password_confirmation: '',
+    created_at: formattedDate(data.created_at),
+  } as any;
+
+  if (shouldNotify) {
+    showSuccess(t("Student data loaded successfully"));
+  }
+};
+
 // Submit Form
 const submitForm = async (): Promise<void> => {
   validationErrors.value = {}; // Clear previous errors
@@ -543,16 +629,19 @@ const submitForm = async (): Promise<void> => {
     showError(t("At least one phone number is required."));
     return;
   }
-  // On creation, password is required
-  if (!isEditing.value && (!user.value.password || user.value.password.length < 6)) {
-    showError(t("Password is required and must be at least 6 characters long."));
-    return;
-  }
-  // If password is provided, confirmation must match
-  if (user.value.password) {
-    if (user.value.password !== user.value.password_confirmation) {
-      showError(t("Password and confirmation do not match."));
+
+  if (props.embedded !== true) {
+    // On creation, password is required
+    if (!isEditing.value && (!user.value.password || user.value.password.length < 6)) {
+      showError(t("Password is required and must be at least 6 characters long."));
       return;
+    }
+    // If password is provided, confirmation must match
+    if (user.value.password) {
+      if (user.value.password !== user.value.password_confirmation) {
+        showError(t("Password and confirmation do not match."));
+        return;
+      }
     }
   }
 
@@ -586,6 +675,12 @@ const submitForm = async (): Promise<void> => {
   try {
     const formData = new FormData();
     buildFormData(formData, user.value);
+    if (props.embedded) {
+      await personalDataService.update(formData);
+      showSuccess(t("Student profile updated successfully!"));
+      await loadSelfStudent();
+      return;
+    }
     if (isEditing.value) {
       formData.append('_method', 'PUT');
       await studentService.update(studentId.value, formData);
@@ -657,70 +752,18 @@ const buildFormData = (formData: FormData, data: any, parentKey?: string) => {
 // Load student from API if editing
 const loadStudent = async (id: number) => {
   try {
-    // Use studentService.getById to load specific student data
     const response = await studentService.getById(id);
-    const data: any = response.data;
+    hydrateStudentFromApi(response.data as StudentUserResponse);
+  } catch (error) {
+    console.error('Failed to load student data:', error);
+    showError(t("Failed to load student data"));
+  }
+};
 
-    // Create a default student_profile if it's null
-    if (!data.student_profile) {
-      data.student_profile = {};
-    }
-
-    // Ensure student_profile.files is always an array of 3 elements
-    const existingFiles = data.student_profile.files;
-    const filesArray = Array(3).fill(null);
-    if (existingFiles && typeof existingFiles === 'object') {
-      // This handles both arrays and objects with numeric keys from PHP
-      for (const index in existingFiles) {
-        const numericIndex = parseInt(index, 10);
-        if (!isNaN(numericIndex) && numericIndex >= 0 && numericIndex < 3) {
-          filesArray[numericIndex] = existingFiles[index];
-        }
-      }
-    }
-    data.student_profile.files = filesArray;
-
-    // payment_check removed from the form; no migration required
-
-    // Ensure the student's room and bed are present in local options so selects can display them
-    if (data.room) {
-      // narrow types for TS: treat API objects as `any` here
-      const studentRoom = data.room as any;
-      const roomExists = (rooms.value as any).some((r: any) => r?.id === studentRoom?.id);
-      if (!roomExists) {
-        // add the room so the room select can show the current value even if API didn't return it
-        rooms.value = [...rooms.value, studentRoom];
-      }
-
-      // ensure beds from the room are present in allBeds (attach room object for mapping)
-      const existingBedIds = (allBeds.value as any).map((b: any) => b.id);
-      (studentRoom.beds || []).forEach((b: any) => {
-        if (!existingBedIds.includes(b.id)) {
-          allBeds.value.push({ ...b, room: studentRoom });
-        }
-      });
-    }
-
-
-    // Populate the user ref with data from the API
-    user.value = {
-      ...user.value, // Keep default structure for fields not in API response
-      id: data.id,
-      first_name: data.first_name,
-      last_name: data.last_name,
-      email: data.email,
-      phone_numbers: normalizePhones(data.phone_numbers, data.phone),
-      room_id: data.room_id, // Already snake_case
-      bed_id: data.student_bed?.id,
-      student_bed: data.student_bed,
-      status: data.status,
-      student_profile: { ...user.value.student_profile, ...data.student_profile }, // Correctly merge profile data
-      password: '', // Clear password fields
-      password_confirmation: '',
-      created_at: formattedDate(data.created_at),
-    } as any;
-
-    showSuccess(t("Student data loaded successfully"));
+const loadSelfStudent = async () => {
+  try {
+    const response = await personalDataService.get();
+    hydrateStudentFromApi(response.data as StudentUserResponse, false);
   } catch (error) {
     console.error('Failed to load student data:', error);
     showError(t("Failed to load student data"));

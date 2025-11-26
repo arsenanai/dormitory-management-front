@@ -1,17 +1,11 @@
 <template>
-  <CModal v-model="isVisible" :title="t('Password Reset')" class="max-w-md">
+  <CModal v-model="isVisible" :title="t('Password Reset')">
     <div class="space-y-4">
       <p class="text-gray-600">{{ t('Enter your email address to receive a password reset link.') }}</p>
-      
-      <CInput
-        id="reset-email"
-        v-model="resetEmail"
-        type="email"
-        :label="t('Email Address')"
-        :placeholder="t('Enter your email')"
-        required
-      />
-      
+
+      <CInput id="reset-email" v-model="resetEmail" type="email" :label="t('Email Address')"
+        :placeholder="t('Enter your email')" required />
+
       <div class="flex justify-end gap-2">
         <CButton @click="closeModal">
           {{ t('Close') }}
@@ -28,8 +22,8 @@
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useToast } from '@/composables/useToast';
-import { authService } from '@/services/api';
 import CModal from './CModal.vue';
+import { useAuthStore } from '@/stores/auth';
 import CInput from './CInput.vue';
 import CButton from './CButton.vue';
 
@@ -43,6 +37,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const { showSuccess, showError } = useToast();
+const authStore = useAuthStore();
 
 const resetEmail = ref('');
 const loading = ref(false);
@@ -72,7 +67,7 @@ const sendResetLink = async () => {
 
   loading.value = true;
   try {
-    await authService.sendPasswordResetLink(resetEmail.value);
+    await authStore.resetPassword(resetEmail.value);
     showSuccess(t('Password reset link sent to your email'));
     closeModal();
   } catch (error: any) {

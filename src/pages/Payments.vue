@@ -15,6 +15,7 @@
           <div class="flex-1">
             <CInput id="end-date" v-model="endDate" type="date" :label="t('End Date')" />
           </div>
+          <!-- <div v-if="!isMyPayments" class="flex-1"> -->
           <div class="flex-1">
             <CSelect id="role-filter" v-model="selectedRole" :options="roleOptions" :label="t('Role')" />
           </div>
@@ -25,6 +26,8 @@
             <PencilSquareIcon class="h-5 w-5" />
             {{ t("Add Payment") }}
           </CButton>
+          <!-- <CButton v-if="!isMyPayments" @click="exportPayments" data-testid="export-payments-button"
+            :disabled="loading"> -->
           <CButton @click="exportPayments" data-testid="export-payments-button" :disabled="loading">
             <ArrowDownTrayIcon class="h-5 w-5" />
             {{ t("Download") }}
@@ -65,7 +68,8 @@
           {{ payment.dealNumber || '-' }}
         </template>
         <template #cell-period="{ row: payment }">
-          <span class="whitespace-nowrap">{{ payment.dateFrom?.split('T')[0] }}</span> - <span class="whitespace-nowrap">{{ payment.dateTo?.split('T')[0] }}</span>
+          <span class="whitespace-nowrap">{{ payment.dateFrom?.split('T')[0] }}</span> - <span
+            class="whitespace-nowrap">{{ payment.dateTo?.split('T')[0] }}</span>
         </template>
         <template #cell-actions="{ row: payment }">
           <div class="flex gap-2 justify-end">
@@ -112,16 +116,23 @@
     </div>
 
     <!-- Delete Confirmation Modal -->
+    <!-- <CConfirmationModal v-if="!isMyPayments && showDeleteConfirmation"
+      :message="t('Are you sure? This change is not recoverable')" :title="t('Delete Payment')"
+      :confirm-text="t('Delete')" :cancel-text="t('Cancel')" @confirm="deletePayment"
+      @cancel="showDeleteConfirmation = false" /> -->
     <CConfirmationModal v-if="showDeleteConfirmation" :message="t('Are you sure? This change is not recoverable')"
       :title="t('Delete Payment')" :confirm-text="t('Delete')" :cancel-text="t('Cancel')" @confirm="deletePayment"
       @cancel="showDeleteConfirmation = false" />
-    <PaymentForm v-model="showForm" :selected-payment="selectedPayment" :currency-symbol="currencySymbol"
-      @submit="handleFormSubmission" />
+    <!-- <PaymentForm v-model="showForm" :selected-payment="isMyPayments ? null : selectedPayment"
+      :currency-symbol="currencySymbol" :self-service="isMyPayments" @submit="handleFormSubmission" /> -->
+    <PaymentForm v-model="showForm" :selected-payment="selectedPayment"
+      :currency-symbol="currencySymbol" @submit="handleFormSubmission" />
   </Navigation>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, nextTick, defineAsyncComponent } from "vue";
+import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import Navigation from "@/components/CNavigation.vue";
@@ -143,6 +154,7 @@ const PaymentForm = defineAsyncComponent(() =>
 
 const { t } = useI18n();
 const router = useRouter();
+const route = useRoute();
 
 // store
 const paymentsStore = usePaymentsStore();
@@ -169,6 +181,9 @@ const showDeleteConfirmation = ref<boolean>(false);
 const paymentToDelete = ref<number | null>(null);
 const currencySymbol = computed(() => settingsStore.publicSettings?.currency_symbol || '$');
 
+// Determine if this page is used as "My Payments" for students/guests
+const isMyPayments = computed(() => route.meta && (route.meta as any).myPayments === true);
+
 // Role filter options
 const roleOptions = [
   { value: '', name: t('All Roles') },
@@ -177,14 +192,21 @@ const roleOptions = [
 ];
 
 // Table columns
-const tableColumns = [
-  { key: "user", label: t("User"), class: "whitespace-nowrap" },
-  { key: "role", label: t("Role") },
-  { key: "amount", label: t("Amount") },
-  { key: "deal_number", label: t("Deal Number") },
-  { key: "period", label: t("Period") },
-  { key: "actions", label: t("Actions"), class: "text-right" },
-];
+const tableColumns = computed(() => {
+  const base = [
+    { key: "user", label: t("User"), class: "whitespace-nowrap" },
+    { key: "amount", label: t("Amount") },
+    { key: "deal_number", label: t("Deal Number") },
+    { key: "period", label: t("Period") },
+  ];
+
+  if (!isMyPayments.value) {
+    base.splice(1, 0, { key: "role", label: t("Role") } as any);
+    base.push({ key: "actions", label: t("Actions"), class: "text-right" } as any);
+  }
+
+  return base;
+});
 
 // Load payments data
 const loadPayments = async () => {
@@ -208,9 +230,11 @@ const loadPayments = async () => {
     if (searchTerm.value) params.search = searchTerm.value;
     if (startDate.value) params.date_from = startDate.value;
     if (endDate.value) params.date_to = endDate.value;
-    if (selectedRole.value) params.role = selectedRole.value;
+    if (selectedRole.value && !isMyPayments.value) params.role = selectedRole.value;
 
-    const response = await paymentService.getAll(params);
+    const response = isMyPayments.value
+      ? await paymentService.getMyPayments(params)
+      : await paymentService.getAll(params);
 
     if (response.data && response.data.meta) { // Check for the new paginated structure
       payments.value = response.data.data.map((payment: any) => {

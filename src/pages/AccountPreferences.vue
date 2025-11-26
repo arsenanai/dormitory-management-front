@@ -2,8 +2,11 @@
   <Navigation :title="t('Account Preferences')">
     <div class="flex flex-col gap-8">
       <!-- Profile Information Section -->
-      <section>
-        <h2 class="text-lg font-semibold mb-4 text-primary-700">{{ t('Profile Information') }}</h2>
+      <section v-if="!isStudent && !isGuest">
+        <h2 class="text-lg font-semibold mb-2 text-primary-700">{{ t('Profile Information') }}</h2>
+        <p class="text-sm text-gray-600 mb-4">
+          {{ t('Manage your contact info here. Use the section below to adjust other registration data tied to your role.') }}
+        </p>
         <form @submit.prevent="saveProfile" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <CInput id="profile-name" v-model="profileForm.first_name" :label="t('Firstname')" required />
@@ -29,9 +32,11 @@
             </div>
 
           </div>
-          <CButton type="submit" :loading="loading">
-            {{ t('Save Profile') }}
-          </CButton>
+          <div class="mt-6 flex flex-row items-end justify-end gap-2">
+            <CButton type="submit" variant="primary" :loading="loading">
+              {{ t('Save Profile') }}
+            </CButton>
+          </div>
         </form>
       </section>
 
@@ -47,9 +52,11 @@
             <CInput id="confirm-password" v-model="passwordForm.confirmPassword" :label="t('Confirm New Password')"
               type="password" required />
           </div>
-          <CButton type="submit" :loading="loading">
-            {{ t('Change Password') }}
-          </CButton>
+          <div class="mt-6 flex flex-row items-end justify-end gap-2">
+            <CButton type="submit" variant="primary" :loading="loading">
+              {{ t('Change Password') }}
+            </CButton>
+          </div>
         </form>
       </section>
 
@@ -110,6 +117,18 @@
           </CButton>
         </div>
       </section> -->
+
+      <section v-if="isStudent" class="space-y-4">
+        <!-- <h2 class="text-lg font-semibold text-primary-700">{{ t('Other registration data') }}</h2> -->
+        <StudentForm v-if="selfProfileId" :embedded="true" :initial-student-id="selfProfileId" :show-print="false"
+          :submit-label="t('Save Personal Data')" />
+      </section>
+
+      <section v-else-if="isGuest" class="space-y-4">
+        <!-- <h2 class="text-lg font-semibold text-primary-700">{{ t('Other registration data') }}</h2> -->
+        <GuestForm v-if="selfProfileId" :embedded="true" :initial-guest-id="selfProfileId" :redirect-on-submit="false"
+          :submit-label="t('Save Personal Data')" />
+      </section>
     </div>
   </Navigation>
 </template>
@@ -126,6 +145,8 @@ import { useAuthStore } from '@/stores/auth';
 import { useAccessibility } from '@/composables/useAccessibility';
 import { useToast } from '@/composables/useToast';
 import { PlusIcon, TrashIcon } from '@heroicons/vue/24/outline';
+import StudentForm from '@/pages/StudentForm.vue';
+import GuestForm from '@/pages/GuestForm.vue';
 
 const { t, locale } = useI18n();
 const authStore = useAuthStore();
@@ -176,6 +197,13 @@ const localeOptions = [
 
 // State
 const loading = ref(false);
+const userRole = computed(() => authStore.userRole);
+const isStudent = computed(() => userRole.value === 'student');
+const isGuest = computed(() => userRole.value === 'guest');
+const selfProfileId = computed<number | null>(() => {
+  if (profileForm.id) return profileForm.id;
+  return authStore.user?.id ?? null;
+});
 
 // Computed
 const currentLocale = computed({

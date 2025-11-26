@@ -1,39 +1,17 @@
 <template>
-  <form
-    class="flex flex-col gap-2"
-    @submit.prevent="handleLogin"
-    novalidate
-  >
+  <form class="flex flex-col gap-2" @submit.prevent="handleLogin" novalidate>
     <div>
-      <CInput
-        id="login-email"
-        v-model="credentials.email"
-        type="email"
-        :label="t('Email')"
-        :placeholder="emailPlaceholder"
-        required
-        autocomplete="email"
-        :validationState="credentialsValidationState.email"
-        validationstate-attr="validationstate"
-        :validationMessage="credentialsValidationMessage.email"
-        data-testid="email-input"
-      />
+      <CInput id="login-email" v-model="credentials.email" type="email" :label="t('Email')"
+        :placeholder="emailPlaceholder" required autocomplete="email"
+        :validationState="credentialsValidationState.email" validationstate-attr="validationstate"
+        :validationMessage="credentialsValidationMessage.email" data-testid="email-input" />
     </div>
 
     <div>
-      <CInput
-        id="login-password"
-        v-model="credentials.password"
-        type="password"
-        :label="t('Password')"
-        required
-        autocomplete="password"
-        :validationState="credentialsValidationState.password"
-        validationstate-attr="validationstate"
-        :validationMessage="credentialsValidationMessage.password"
-        pattern=".{6,}"
-        data-testid="password-input"
-      />
+      <CInput id="login-password" v-model="credentials.password" type="password" :label="t('Password')" required
+        autocomplete="password" :validationState="credentialsValidationState.password"
+        validationstate-attr="validationstate" :validationMessage="credentialsValidationMessage.password"
+        pattern=".{6,}" data-testid="password-input" />
     </div>
 
     <CButton type="submit" class="mt-4 w-full" variant="primary" data-testid="login-button">
@@ -41,20 +19,14 @@
     </CButton>
   </form>
   <div class="mt-2 flex justify-end">
-    <a
-      class="text-xs text-primary-600 hover:text-primary-800 hover:underline cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary-300 rounded"
-      data-testid="forgot-password"
-      @click="showPasswordReset = true"
-      tabindex="0"
-      role="button"
-      @keydown.enter="showPasswordReset = true"
-      @keydown.space.prevent="showPasswordReset = true"
-    >
+    <a class="text-xs text-primary-600 hover:text-primary-800 hover:underline cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary-300 rounded"
+      data-testid="forgot-password" @click="showPasswordReset = true" tabindex="0" role="button"
+      @keydown.enter="showPasswordReset = true" @keydown.space.prevent="showPasswordReset = true">
       {{ t('Forgot password') }}
     </a>
   </div>
   <Teleport to="body">
-    <PasswordReset v-model="showPasswordReset" />
+    <PasswordReset v-if="showPasswordReset" v-model="showPasswordReset" />
   </Teleport>
 </template>
 

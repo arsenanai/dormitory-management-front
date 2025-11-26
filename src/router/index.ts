@@ -28,15 +28,15 @@ type AppRouteRecordRaw = RouteRecordRaw & {
 };
 
 const routes: AppRouteRecordRaw[] = [
-  {
-    path: '/reset-password/:token',
-    name: 'ResetPassword',
-    component: () => import('@/pages/ResetPassword.vue'),
-    meta: {
-      title: 'Reset Password',
-      requiresAuth: false,
-    },
-  },
+  // {
+  //   path: '/reset-password/:token',
+  //   name: 'ResetPassword',
+  //   component: () => import('@/pages/ResetPassword.vue'),
+  //   meta: {
+  //     title: 'Reset Password',
+  //     requiresAuth: false,
+  //   },
+  // },
   {
     path: '/',
     name: 'login',
@@ -55,7 +55,7 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: HomeIcon,
-      roles: ['sudo', 'admin', 'guest'],
+      roles: ['sudo', 'admin'],
     },
   },
   {
@@ -105,7 +105,7 @@ const routes: AppRouteRecordRaw[] = [
       sidebar: true,
       icon: PencilSquareIcon,
       parent: 'Students',
-      roles: ['sudo', 'admin', 'student'],
+      roles: ['admin'],
     },
   },
   {
@@ -120,6 +120,20 @@ const routes: AppRouteRecordRaw[] = [
       roles: ['student'],
     },
   },
+  // {
+  //   path: '/student-my-payments',
+  //   name: 'Student Payments',
+  //   component: () => import('@/pages/Payments.vue'),
+  //   meta: {
+  //     title: 'My Payments',
+  //     requiresAuth: true,
+  //     sidebar: true,
+  //     icon: ClipboardDocumentListIcon,
+  //     roles: ['student'],
+  //     // Flag used inside Payments.vue to switch to "self-service" mode
+  //     myPayments: true,
+  //   } as any,
+  // },
   {
     path: '/student-messages',
     name: 'Student Messages',
@@ -169,6 +183,19 @@ const routes: AppRouteRecordRaw[] = [
       roles: ['guest'],
     },
   },
+  // {
+  //   path: '/guest-my-payments',
+  //   name: 'Guest Payments',
+  //   component: () => import('@/pages/Payments.vue'),
+  //   meta: {
+  //     title: 'My Payments',
+  //     requiresAuth: true,
+  //     sidebar: true,
+  //     icon: ClipboardDocumentListIcon,
+  //     roles: ['guest'],
+  //     myPayments: true,
+  //   } as any,
+  // },
   {
     path: '/messages',
     name: 'Messages',
@@ -316,9 +343,24 @@ const routes: AppRouteRecordRaw[] = [
     },
   },
   {
-    path: '/modal-test',
-    name: 'ModalTest',
-    component: () => import('@/pages/ModalTest.vue'),
+    path: '/reset-password-form',
+    name: 'Password Reset Form',
+    component: () => import('@/pages/PasswordResetForm.vue'),
+    meta: {
+      title: 'Password Reset Form',
+      requiresAuth: false,
+      sidebar: false,
+    },
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('@/pages/NotFound.vue'),
+    meta: {
+      title: 'Not Found',
+      requiresAuth: false,
+      sidebar: false,
+    },
   },
 ];
 
