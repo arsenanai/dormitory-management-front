@@ -2,22 +2,23 @@
   <div v-if="modelValue"
     class="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(30,30,30,0.35)] backdrop-blur-md backdrop-saturate-125"
     role="dialog">
-    <div class="bg-white rounded-lg shadow-lg pt-10 w-full max-w-md relative border border-primary-200"
-      @click.stop ref="modalContent" tabindex="-1" @keydown.tab="onTab">
-      <div class="absolute top-3 left-3 group">
-        <button @click="$emit('update:modelValue', false)"
-          class="w-5 h-5 rounded-full bg-[#FF5F57] flex items-center justify-center border border-[#E33E41] shadow cursor-pointer transition-all duration-150 focus:outline-none focus-visible:ring-3 focus-visible:ring-[#FFB3B3] group"
-          :aria-label="$t ? $t('Close') : 'Close'" type="button">
-          <XMarkIcon
-            class="h-4 w-4 text-primary-900 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-150" />
-          <span class="sr-only">{{ $t ? $t('Close') : 'Close' }}</span>
-        </button>
+    <div class="bg-white rounded-lg shadow-lg pt-10 w-full max-w-md relative border border-primary-200" @click.stop
+      ref="modalContent" tabindex="-1" @keydown.tab="onTab">
+      <!-- Modal Header -->
+      <div class="absolute top-0 left-0 right-0 h-10 flex items-center px-3">
+        <div class="group">
+          <button @click="$emit('update:modelValue', false)"
+            class="w-5 h-5 rounded-full bg-[#FF5F57] flex items-center justify-center border border-[#E33E41] shadow cursor-pointer transition-all duration-150 focus:outline-none focus-visible:ring-3 focus-visible:ring-[#FFB3B3] group"
+            :aria-label="$t ? $t('Close') : 'Close'" type="button">
+            <XMarkIcon
+              class="h-4 w-4 text-primary-900 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-150" />
+            <span class="sr-only">{{ $t ? $t('Close') : 'Close' }}</span>
+          </button>
+        </div>
+        <h3 v-if="title"
+          class="flex-1 text-center text-sm font-semibold text-gray-500 dark:text-gray-400 -ml-5 pointer-events-none">{{
+          title }}</h3>
       </div>
-      <!-- Modal Title -->
-      <div v-if="title" class="absolute top-3 left-0 right-0 text-center pointer-events-none">
-        <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 inline-block">{{ title }}</h3>
-      </div>
-
       <div class="px-3 pb-3 overflow-y-auto">
         <slot />
       </div>

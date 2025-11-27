@@ -81,6 +81,10 @@ const handleLogin = async () => {
     await authStore.login(credentials.value);
     showSuccess(t('Login successful'));
   } catch (error: any) {
+    // possible messages
+    // t('auth.invalid_credentials')
+    // t('auth.not_approved')
+    // t('auth.not_assigned_admin')
     showError(t('Login failed') + ': ' + t(error.response?.data?.message || 'auth.invalid_credentials'));
   }
 };

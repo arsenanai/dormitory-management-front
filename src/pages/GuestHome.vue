@@ -1,16 +1,17 @@
 <template>
-  <Navigation :title="t('Guest page')">
+  <Navigation :title="t('Guest Home')">
+    <!-- Note: This component uses `personalDataService.get()` which fetches from `/users/profile` -->
     <div class="container mx-auto px-4 py-8">
       <div class="max-w-4xl mx-auto">
         <!-- Page Header -->
-        <div class="mb-8">
+        <!-- <div class="mb-8">
           <h1 class="text-3xl font-bold text-gray-900 mb-2">
             {{ $t('guest.home.title') }}
           </h1>
           <p class="text-gray-600">
             {{ $t('guest.home.subtitle') }}
           </p>
-        </div>
+        </div> -->
 
         <!-- Loading State -->
         <div v-if="loading" class="text-center py-8">
@@ -26,32 +27,28 @@
         <!-- Content -->
         <div v-else>
           <!-- Guest Information Cards -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div class="grid grid-cols-1 gap-6 mb-8">
             <!-- Living Room Information -->
             <div>
-              <div class="flex items-center mb-4">
+              <div class="flex items-center mb-4" data-testid="living-room-info">
                 <BuildingOfficeIcon class="h-6 w-6 text-secondary-600 mr-3" />
                 <h2 class="text-xl font-semibold text-gray-900">
                   {{ $t('guest.home.livingRoom.title') }}
                 </h2>
               </div>
 
-              <div v-if="guestInfo.room_info" class="space-y-3">
+              <div v-if="guestInfo.room" class="space-y-3">
                 <div class="flex justify-between">
                   <span class="text-gray-600">{{ $t('guest.home.livingRoom.roomNumber') }}:</span>
-                  <span class="font-medium">{{ guestInfo.room_info.room_number }}</span>
+                  <span class="font-medium">{{ guestInfo.room.number }}</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-gray-600">{{ $t('guest.home.livingRoom.dormitory') }}:</span>
-                  <span class="font-medium">{{ guestInfo.room_info.dormitory_name || $t('common.notAvailable') }}</span>
+                  <span class="font-medium">{{ guestInfo.room.dormitory?.name || $t('common.notAvailable') }}</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-gray-600">{{ $t('guest.home.livingRoom.floor') }}:</span>
-                  <span class="font-medium">{{ guestInfo.room_info.floor || $t('common.notAvailable') }}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-gray-600">{{ $t('guest.home.livingRoom.capacity') }}:</span>
-                  <span class="font-medium">{{ guestInfo.room_info.capacity || $t('common.notAvailable') }}</span>
+                  <span class="font-medium">{{ guestInfo.room.floor || $t('common.notAvailable') }}</span>
                 </div>
               </div>
               <div v-else class="text-gray-500 italic">
@@ -61,7 +58,7 @@
 
             <!-- Rental Information -->
             <div>
-              <div class="flex items-center mb-4">
+              <div class="flex items-center mb-4" data-testid="rental-info">
                 <CurrencyDollarIcon class="h-6 w-6 text-secondary-600 mr-3" />
                 <h2 class="text-xl font-semibold text-gray-900">
                   {{ $t('guest.home.rental.title') }}
@@ -69,26 +66,31 @@
               </div>
 
               <div class="space-y-3">
-                <div class="flex justify-between">
+                <div v-if="guestInfo.guest_profile?.daily_rate" class="flex justify-between">
                   <span class="text-gray-600">{{ $t('guest.home.rental.dailyRate') }}:</span>
-                  <span class="font-medium">{{ formatCurrency(guestInfo.daily_rate || 0) }}</span>
+                  <span class="font-medium">{{ formatCurrency(parseFloat(guestInfo.guest_profile.daily_rate || 0))
+                  }}</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-gray-600">{{ $t('guest.home.rental.checkInDate') }}:</span>
-                  <span class="font-medium">{{ formatDate(guestInfo.check_in_date) }}</span>
+                  <span class="font-medium">{{ formatDate(guestInfo.guest_profile?.visit_start_date) }}</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-gray-600">{{ $t('guest.home.rental.checkOutDate') }}:</span>
-                  <span class="font-medium">{{ formatDate(guestInfo.check_out_date) }}</span>
+                  <span class="font-medium">{{ formatDate(guestInfo.guest_profile?.visit_end_date) }}</span>
                 </div>
-                <div class="flex justify-between">
+                <div v-if="totalDays" class="flex justify-between">
                   <span class="text-gray-600">{{ $t('guest.home.rental.totalDays') }}:</span>
-                  <span class="font-medium">{{ guestInfo.total_days || 0 }}</span>
+                  <span class="font-medium">{{ totalDays }}</span>
                 </div>
-                <div class="flex justify-between border-t pt-2">
+                <div v-if="totalDays" class="flex justify-between">
+                  <span class="text-gray-600">{{ $t('guest.home.rental.totalDays') }}:</span>
+                  <span class="font-medium">{{ totalDays }}</span>
+                </div>
+                <div v-if="totalAmount" class="flex justify-between border-t pt-2">
                   <span class="text-gray-900 font-semibold">{{ $t('guest.home.rental.totalAmount') }}:</span>
                   <span class="text-lg font-bold text-secondary-600">
-                    {{ formatCurrency(guestInfo.total_amount || 0) }}
+                    {{ formatCurrency(totalAmount) }}
                   </span>
                 </div>
               </div>
@@ -97,75 +99,31 @@
 
           <!-- Reception Contacts -->
           <div>
-            <div class="flex items-center mb-4">
+            <div class="flex items-center mb-4" data-testid="reception-contacts">
               <PhoneIcon class="h-6 w-6 text-secondary-600 mr-3" />
               <h2 class="text-xl font-semibold text-gray-900">
                 {{ $t('guest.home.reception.title') }}
               </h2>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" v-if="receptionContacts">
               <div class="space-y-3">
                 <h3 class="font-medium text-gray-900">{{ $t('guest.home.reception.mainContact') }}</h3>
                 <div class="space-y-2">
-                  <div class="flex items-center">
+                  <a :href="receptionContacts.whatsappLink" target="_blank"
+                    class="flex items-center text-gray-600 hover:text-blue-600">
                     <PhoneIcon class="h-4 w-4 text-gray-500 mr-2" />
-                    <span class="text-gray-600">{{ receptionContacts.mainPhone }}</span>
-                  </div>
-                  <div class="flex items-center">
+                    <span>{{ receptionContacts.phone }}</span>
+                  </a>
+                  <a :href="receptionContacts.emailLink" class="flex items-center text-gray-600 hover:text-blue-600">
                     <EnvelopeIcon class="h-4 w-4 text-gray-500 mr-2" />
-                    <span class="text-gray-600">{{ receptionContacts.mainEmail }}</span>
-                  </div>
-                  <div class="flex items-center">
-                    <ClockIcon class="h-4 w-4 text-gray-500 mr-2" />
-                    <span class="text-gray-600">{{ receptionContacts.mainHours }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="space-y-3">
-                <h3 class="font-medium text-gray-900">{{ $t('guest.home.reception.emergencyContact') }}</h3>
-                <div class="space-y-2">
-                  <div class="flex items-center">
-                    <PhoneIcon class="h-4 w-4 text-gray-500 mr-2" />
-                    <span class="text-gray-600">{{ receptionContacts.emergencyPhone }}</span>
-                  </div>
-                  <div class="flex items-center">
-                    <ExclamationTriangleIcon class="h-4 w-4 text-gray-500 mr-2" />
-                    <span class="text-gray-600">{{ receptionContacts.emergencyAvailability }}</span>
-                  </div>
+                    <span>{{ receptionContacts.email }}</span>
+                  </a>
                 </div>
               </div>
             </div>
-          </div>
-
-          <!-- Quick Actions -->
-          <div class="mt-6">
-            <div class="flex items-center mb-4">
-              <BoltIcon class="h-6 w-6 text-secondary-600 mr-3" />
-              <h2 class="text-xl font-semibold text-gray-900">
-                {{ $t('guest.home.quickActions.title') }}
-              </h2>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <button @click="navigateToMessages"
-                class="flex items-center justify-center p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                <ChatBubbleLeftRightIcon class="h-5 w-5 text-blue-600 mr-2" />
-                <span class="text-gray-700">{{ $t('guest.home.quickActions.messages') }}</span>
-              </button>
-
-              <button @click="navigateToProfile"
-                class="flex items-center justify-center p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                <UserIcon class="h-5 w-5 text-green-600 mr-2" />
-                <span class="text-gray-700">{{ $t('guest.home.quickActions.profile') }}</span>
-              </button>
-
-              <button @click="contactReception"
-                class="flex items-center justify-center p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                <PhoneIcon class="h-5 w-5 text-red-600 mr-2" />
-                <span class="text-gray-700">{{ $t('guest.home.quickActions.contact') }}</span>
-              </button>
+            <div v-else class="text-gray-500 italic">
+              {{ $t('guest.home.reception.noContact') }}
             </div>
           </div>
         </div>
@@ -175,7 +133,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import Navigation from "@/components/CNavigation.vue";
@@ -190,23 +148,55 @@ import {
   ChatBubbleLeftRightIcon,
   UserIcon,
 } from '@heroicons/vue/24/outline';
-import { dashboardService } from '@/services/api';
+import { authService } from '@/services/api';
+import { useSettingsStore } from '@/stores/settings';
+import { formatCurrency as formatCurrencyUtil } from '@/utils/formatters';
 
 const { t } = useI18n();
 const router = useRouter();
+const settingsStore = useSettingsStore();
 
 // Reactive data
 const loading = ref(true);
 const error = ref<string | null>(null);
 const guestInfo = ref<any>({});
 
-// Reception contacts (hardcoded for now, could be moved to API later)
-const receptionContacts = ref({
-  mainPhone: '+7 (777) 123-45-67',
-  mainEmail: 'reception@sdu.edu.kz',
-  mainHours: '24/7',
-  emergencyPhone: '+7 (777) 999-99-99',
-  emergencyAvailability: 'Available 24/7',
+const appName = import.meta.env.VITE_APP_NAME || 'Dormitory CRM';
+
+// Reception contacts derived from admin info
+const receptionContacts = computed(() => {
+  const admin = guestInfo.value.room?.dormitory?.admin;
+  if (!admin) return null;
+
+  const phone = admin.phone_numbers?.[0] || admin.phone;
+  const email = admin.email;
+
+  const messageBody = encodeURIComponent(t('guest.home.reception.prefilledMessage', { appName }));
+
+  return {
+    phone,
+    email,
+    whatsappLink: phone ? `https://wa.me/${phone.replace(/\D/g, '')}?text=${messageBody}` : '#',
+    emailLink: email ? `mailto:${email}?subject=${encodeURIComponent(t('guest.home.reception.prefilledSubject'))}&body=${messageBody}` : '#',
+  };
+});
+
+const totalDays = computed(() => {
+  if (!guestInfo.value.guest_profile?.visit_start_date || !guestInfo.value.guest_profile?.visit_end_date) return 0;
+  const start = new Date(guestInfo.value.guest_profile.visit_start_date);
+  const end = new Date(guestInfo.value.guest_profile.visit_end_date);
+  const diffTime = Math.abs(end.getTime() - start.getTime());
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+});
+
+const totalAmount = computed(() => {
+  const guestProfile = guestInfo.value.guest_profile;
+  const roomType = guestInfo.value.room?.room_type;
+
+  if (guestProfile?.daily_rate) {
+    return parseFloat(guestProfile.daily_rate) * totalDays.value;
+  }
+  return roomType?.semester_rate ? parseFloat(roomType.semester_rate) : 0;
 });
 
 // Methods
@@ -214,8 +204,8 @@ const fetchGuestData = async () => {
   try {
     loading.value = true;
     error.value = null;
-    
-    const response = await dashboardService.getGuestStats();
+
+    const response = await authService.getProfile(); // Fetches from /users/profile
     guestInfo.value = response.data;
   } catch (err: any) {
     console.error('Failed to fetch guest data:', err);
@@ -226,25 +216,14 @@ const fetchGuestData = async () => {
 };
 
 const formatCurrency = (amount: number) => {
-  return `₸${amount.toLocaleString()}`;
+  const currencyCode = settingsStore.publicSettings?.currency || 'KZT';
+  const locale = navigator.language;
+  return formatCurrencyUtil(amount, currencyCode, locale);
 };
 
 const formatDate = (dateString: string) => {
   if (!dateString) return t('common.notAvailable');
   return new Date(dateString).toLocaleDateString();
-};
-
-const navigateToMessages = () => {
-  router.push('/messages');
-};
-
-const navigateToProfile = () => {
-  router.push('/guest-form');
-};
-
-const contactReception = () => {
-  // Could open a modal or navigate to contact page
-  window.open(`tel:${receptionContacts.value.mainPhone}`, '_blank');
 };
 
 // Lifecycle
@@ -255,4 +234,4 @@ onMounted(() => {
 
 <style scoped>
 /* Add custom styles if needed */
-</style> 
+</style>

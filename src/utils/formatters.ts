@@ -48,6 +48,11 @@ export const formatDate = (
   return `${month}/${day}/${year}`;
 };
 
+export const formatDateToLocalString = (dateString: string) => {
+  if (!dateString) return '-';
+  return new Date(dateString).toLocaleString();
+};
+
 // A map to guarantee specific symbols for common currencies.
 export const currencySymbolMap: { [key: string]: string } = {
   KZT: '₸',

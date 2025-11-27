@@ -420,7 +420,7 @@ const roomOptions = computed(() =>
 const bedOptions = computed(() => {
   const rid = (user.value as any).room_id || user.value.room?.id;
   if (!rid) return [];
-  return allBeds.value
+  const options = allBeds.value
     .filter(b => (b.room?.id || b.room_id) === rid) // Beds in selected room
     .filter(bed => !bed.reserved_for_staff) // Exclude staff reserved beds
     .filter(bed => !bed.is_occupied || bed.user_id === user.value.id) // Exclude occupied beds, unless it's the current student's
@@ -428,6 +428,13 @@ const bedOptions = computed(() => {
       value: bed.id,
       name: `${bed.room.number}-${bed.bed_number}`,
     }));
+
+  // Allow admins to un-assign a bed when editing
+  if (isEditing.value && isAdmin.value) {
+    options.unshift({ value: '', name: t("Remove Bed") });
+  }
+
+  return options;
 });
 
 // Watch for changes to room and reset bed if needed
@@ -662,9 +669,13 @@ const submitForm = async (): Promise<void> => {
 
   // If no beds are available, set status to 'reserved' and don't require room/bed
   const availableBeds = bedOptions.value.length > 0;
-  if (availableBeds && (!user.value.room_id || !user.value.bed_id)) {
-    showError(t("Please select a room and bed."));
-    return;
+  // For non-admins, or when creating a new student, room and bed are required if available.
+  // Admins are allowed to un-assign a bed while editing.
+  if (availableBeds && (!isAdmin.value || !isEditing.value)) {
+    if (!user.value.room_id || user.value.bed_id === null || user.value.bed_id === undefined) {
+      showError(t("Please select a room and bed."));
+      return;
+    }
   } else if (!availableBeds && !isEditing.value) {
     // If no beds are available on creation, set room/bed to null.
     // The status will remain 'pending' or as selected by the admin.
