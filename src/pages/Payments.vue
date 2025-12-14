@@ -16,7 +16,7 @@
             <CInput id="end-date" v-model="endDate" type="date" :label="t('End Date')" />
           </div>
           <!-- <div v-if="!isMyPayments" class="flex-1"> -->
-          <div class="flex-1">
+          <div class="flex-1" v-if="isAdmin">
             <CSelect id="role-filter" v-model="selectedRole" :options="roleOptions" :label="t('Role')" />
           </div>
         </div>
@@ -28,7 +28,7 @@
           </CButton>
           <!-- <CButton v-if="!isMyPayments" @click="exportPayments" data-testid="export-payments-button"
             :disabled="loading"> -->
-          <CButton @click="exportPayments" data-testid="export-payments-button" :disabled="loading">
+          <CButton @click="exportPayments" data-testid="export-payments-button" :disabled="loading" v-if="isAdmin">
             <ArrowDownTrayIcon class="h-5 w-5" />
             {{ t("Download") }}
           </CButton>
@@ -141,12 +141,16 @@ import CTable from "@/components/CTable.vue";
 import CButton from "@/components/CButton.vue";
 import CConfirmationModal from "@/components/CConfirmationModal.vue";
 import CSelect from "@/components/CSelect.vue";
+import { useAuthStore } from "@/stores/auth";
 import { useSettingsStore } from "@/stores/settings";
 import { PencilSquareIcon, ArrowDownTrayIcon, ChevronLeftIcon, ChevronRightIcon, TrashIcon } from "@heroicons/vue/24/outline";
 import { paymentService, configurationService } from "@/services/api";
 import { usePaymentsStore } from "@/stores/payments";
 import { useToast } from "@/composables/useToast";
 import { formatCurrency } from "@/utils/formatters";
+
+const authStore = useAuthStore();
+const isAdmin = computed(() => authStore.user?.role?.name === 'admin' || authStore.user?.role === 'admin');
 
 const PaymentForm = defineAsyncComponent(() =>
   import("./PaymentForm.vue")

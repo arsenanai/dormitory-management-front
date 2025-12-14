@@ -19,7 +19,7 @@
           class="flex-1 text-center text-sm font-semibold text-gray-500 dark:text-gray-400 -ml-5 pointer-events-none">{{
           title }}</h3>
       </div>
-      <div class="px-3 pb-3 overflow-y-auto">
+      <div class="px-3 pb-3 max-w-[80vw] overflow-x-auto max-h-[80vh] overflow-y-auto">
         <slot />
       </div>
     </div>

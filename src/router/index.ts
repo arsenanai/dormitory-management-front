@@ -120,20 +120,20 @@ const routes: AppRouteRecordRaw[] = [
       roles: ['student'],
     },
   },
-  // {
-  //   path: '/student-my-payments',
-  //   name: 'Student Payments',
-  //   component: () => import('@/pages/Payments.vue'),
-  //   meta: {
-  //     title: 'My Payments',
-  //     requiresAuth: true,
-  //     sidebar: true,
-  //     icon: ClipboardDocumentListIcon,
-  //     roles: ['student'],
-  //     // Flag used inside Payments.vue to switch to "self-service" mode
-  //     myPayments: true,
-  //   } as any,
-  // },
+  {
+    path: '/student-my-payments',
+    name: 'Student Payments',
+    component: () => import('@/pages/Payments.vue'),
+    meta: {
+      title: 'My Payments',
+      requiresAuth: true,
+      sidebar: true,
+      icon: ClipboardDocumentListIcon,
+      roles: ['student'],
+      // Flag used inside Payments.vue to switch to "self-service" mode
+      myPayments: true,
+    } as any,
+  },
   {
     path: '/student-messages',
     name: 'Student Messages',
