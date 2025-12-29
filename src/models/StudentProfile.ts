@@ -10,15 +10,10 @@ export interface StudentProfile {
   enrollment_year?: number;
   blood_type?: string;
   violations?: string;
-  parent_name?: string;
-  parent_phone?: string;
-  parent_email?: string;
-  guardian_name?: string;
-  guardian_phone?: string;
-  mentor_name?: string;
-  mentor_email?: string;
   emergency_contact_name?: string;
   emergency_contact_phone?: string;
+  emergency_contact_type?: "parent" | "guardian" | "other";
+  emergency_contact_email?: string;
   emergency_contact_relationship?: string;
   medical_conditions?: string;
   dietary_restrictions?: string;
@@ -31,12 +26,12 @@ export interface StudentProfile {
   registration_limit_reached?: boolean;
   is_backup_list?: boolean;
   date_of_birth?: string;
-  gender?: 'male' | 'female' | 'other';
-  files?: any;
+  gender?: "male" | "female" | "other";
+  files?: (File | null)[];
   country?: string;
   region?: string;
   city?: string;
   created_at?: string;
   updated_at?: string;
-  [key: string]: any;
-} 
+  [key: string]: unknown;
+}

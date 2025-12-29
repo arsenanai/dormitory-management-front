@@ -2,58 +2,123 @@
   <component :is="studentWrapper" v-bind="studentWrapperProps">
     <form class="grid grid-cols-1 gap-8" novalidate @submit.prevent="submitForm">
       <!-- Personal Information -->
-      <fieldset class="border border-primary-200 rounded p-4">
-        <legend class="text-lg font-semibold px-2 text-primary-700">{{ t("Personal Information") }}</legend>
+      <fieldset class="border-primary-200 rounded border p-4">
+        <legend class="text-primary-700 px-2 text-lg font-semibold">
+          {{ t("Personal Information") }}
+        </legend>
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <!-- IIN Field -->
           <div>
-            <CInput id="student-profile-iin" v-model="user.student_profile.iin" type="search" :label="t('IIN')"
-              :error="validationErrors['student_profile.iin']?.[0]" placeholder="Enter IIN" required />
+            <CInput
+              id="student-profile-iin"
+              v-model="user.student_profile.iin"
+              type="search"
+              :label="t('IIN')"
+              :error="validationErrors['student_profile.iin']?.[0]"
+              placeholder="Enter IIN"
+              required
+            />
           </div>
           <!-- Name Field -->
           <div>
-            <CInput id="student-name" v-model="user.first_name" type="text" :label="t('Name')"
-              :error="validationErrors.first_name?.[0]" placeholder="Enter Name" required />
+            <CInput
+              id="student-name"
+              v-model="user.first_name"
+              type="text"
+              :label="t('Name')"
+              :error="validationErrors.first_name?.[0]"
+              placeholder="Enter Name"
+              required
+            />
           </div>
           <!-- Surname Field -->
           <div>
-            <CInput id="student-surname" v-model="user.last_name" type="text" :label="t('Surname')"
-              :error="validationErrors.last_name?.[0]" placeholder="Enter Surname" required />
+            <CInput
+              id="student-surname"
+              v-model="user.last_name"
+              type="text"
+              :label="t('Surname')"
+              :error="validationErrors.last_name?.[0]"
+              placeholder="Enter Surname"
+              required
+            />
           </div>
           <!-- Gender Field -->
           <div>
-            <CSelect id="student-gender" v-model="user.student_profile.gender" :options="filteredGenderOptions"
-              :label="t('Gender')" required />
+            <CSelect
+              id="student-gender"
+              v-model="user.student_profile.gender"
+              :options="filteredGenderOptions"
+              :label="t('Gender')"
+              required
+            />
           </div>
           <!-- Email Field -->
           <div>
-            <CInput id="student-email" v-model="user.email" type="email" :label="t('E-mail')"
-              :error="validationErrors.email?.[0]" placeholder="Enter E-mail" required />
+            <CInput
+              id="student-email"
+              v-model="user.email"
+              type="email"
+              :label="t('E-mail')"
+              :error="validationErrors.email?.[0]"
+              placeholder="Enter E-mail"
+              required
+            />
           </div>
           <!-- Country Field -->
           <div>
-            <CInput id="student-country" v-model="user.student_profile.country" type="text" :label="t('Country')"
-              placeholder="Enter Country" :list="countryList" />
+            <CInput
+              id="student-country"
+              v-model="user.student_profile.country"
+              type="text"
+              :label="t('Country')"
+              placeholder="Enter Country"
+              :list="countryList"
+            />
           </div>
           <!-- Region Field -->
           <div>
-            <CInput id="student-region" v-model="user.student_profile.region" type="text" :label="t('Region')"
-              placeholder="Enter Region" :disabled="!user.student_profile.country" />
+            <CInput
+              id="student-region"
+              v-model="user.student_profile.region"
+              type="text"
+              :label="t('Region')"
+              placeholder="Enter Region"
+              :disabled="!user.student_profile.country"
+            />
           </div>
           <!-- City Field -->
           <div>
-            <CInput id="student-city" v-model="user.student_profile.city" type="text" :label="t('City')"
-              placeholder="Enter City" :disabled="!user.student_profile.region" />
+            <CInput
+              id="student-city"
+              v-model="user.student_profile.city"
+              type="text"
+              :label="t('City')"
+              placeholder="Enter City"
+              :disabled="!user.student_profile.region"
+            />
           </div>
           <div v-if="props.embedded !== true">
-            <CInput id="student-password" v-model="user.password" type="password" :label="t('Password')"
-              :error="validationErrors.password?.[0]" :placeholder="t('Password')"
-              :required="isEditing ? false : true" />
+            <CInput
+              id="student-password"
+              v-model="user.password"
+              type="password"
+              :label="t('Password')"
+              :error="validationErrors.password?.[0]"
+              :placeholder="t('Password')"
+              :required="isEditing ? false : true"
+            />
           </div>
           <div v-if="props.embedded !== true">
-            <CInput id="student-password-repeat" v-model="user.password_confirmation" type="password"
-              :error="validationErrors.password_confirmation?.[0]" :label="t('Password Confirmation')"
-              :placeholder="t('Password Confirmation')" :required="isEditing ? false : true" />
+            <CInput
+              id="student-password-repeat"
+              v-model="user.password_confirmation"
+              type="password"
+              :error="validationErrors.password_confirmation?.[0]"
+              :label="t('Password Confirmation')"
+              :placeholder="t('Password Confirmation')"
+              :required="isEditing ? false : true"
+            />
           </div>
           <!-- Phone Numbers (moved to the end) -->
           <div class="lg:col-span-2">
@@ -62,18 +127,35 @@
             </label>
             <div class="flex flex-col items-stretch gap-2 lg:flex-row lg:items-end">
               <div class="flex flex-col items-stretch gap-2">
-                <div v-for="(phone, index) in user.phone_numbers" :key="index" class="flex items-center gap-2">
-                  <CInput :id="'phone-number-' + index" v-model="user.phone_numbers[index]" type="tel"
-                    :error="validationErrors[`phone_numbers.${index}`]?.[0]" placeholder="Enter Phone Number"
-                    wrapperClass="flex-grow" />
-                  <CButton v-if="user.phone_numbers.length > 1" @click="removePhoneField(index)" class="py-2.5">
-                    <TrashIcon class="text-red-600 h-5 w-5" />
+                <div
+                  v-for="(phone, index) in user.phone_numbers"
+                  :key="index"
+                  class="flex items-center gap-2"
+                >
+                  <CInput
+                    :id="'phone-number-' + index"
+                    v-model="user.phone_numbers[index]"
+                    type="tel"
+                    :error="validationErrors[`phone_numbers.${index}`]?.[0]"
+                    placeholder="Enter Phone Number"
+                    wrapperClass="flex-grow"
+                  />
+                  <CButton
+                    v-if="user.phone_numbers.length > 1"
+                    @click="removePhoneField(index)"
+                    class="py-2.5"
+                  >
+                    <TrashIcon class="h-5 w-5 text-red-600" />
                   </CButton>
-                  <CButton type="button" @click="addPhoneField" class="py-2.5"
-                    v-if="index === user.phone_numbers.length - 1 && user.phone_numbers.length < 3">
+                  <CButton
+                    type="button"
+                    @click="addPhoneField"
+                    class="py-2.5"
+                    v-if="index === user.phone_numbers.length - 1 && user.phone_numbers.length < 3"
+                  >
                     <PlusIcon class="h-5 w-5" />
                   </CButton>
-                  <div v-else class="w-[54px] h-[42px]"> </div>
+                  <div v-else class="h-[42px] w-[54px]"></div>
                 </div>
               </div>
             </div>
@@ -81,174 +163,254 @@
         </div>
       </fieldset>
 
-      <!-- Family Information -->
-      <fieldset class="border border-primary-200 rounded p-4">
-        <legend class="text-lg font-semibold px-2 text-primary-700">{{ t("Family Information") }}</legend>
-        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-
-          <!-- Parent Name Field -->
-          <div>
-            <CInput id="student-parent-name" v-model="user.student_profile.parent_name" type="text"
-              :error="validationErrors['student_profile.parent_name']?.[0]" :label="t('Parent Name')"
-              placeholder="Enter Parent Name" />
-          </div>
-          <!-- Parent Phone Field -->
-          <div>
-            <CInput id="student-parent-phone" v-model="user.student_profile.parent_phone" type="tel"
-              :error="validationErrors['student_profile.parent_phone']?.[0]" :label="t('Parent Phone')"
-              placeholder="Enter Parent Phone" />
-          </div>
-          <!-- Parent Email Field -->
-          <div>
-            <CInput id="student-parent-email" v-model="user.student_profile.parent_email" type="email"
-              :error="validationErrors['student_profile.parent_email']?.[0]" :label="t('Parent Email')"
-              placeholder="Enter Parent Email" />
-          </div>
-          <!-- Mentor Name Field -->
-          <div>
-            <CInput id="student-mentor-name" v-model="user.student_profile.mentor_name" type="text"
-              :error="validationErrors['student_profile.mentor_name']?.[0]" :label="t('Mentor Name')"
-              placeholder="Enter Mentor Name" />
-          </div>
-          <!-- Mentor Email Field -->
-          <div>
-            <CInput id="student-mentor-email" v-model="user.student_profile.mentor_email" type="email"
-              :label="t('Mentor Email')" placeholder="Enter Mentor Email" />
-          </div>
-        </div>
-      </fieldset>
-
       <!-- Health Information -->
-      <fieldset class="border border-primary-200 rounded p-4">
-        <legend class="text-lg font-semibold px-2 text-primary-700">{{ t("Health Information") }}</legend>
+      <fieldset class="border-primary-200 rounded border p-4">
+        <legend class="text-primary-700 px-2 text-lg font-semibold">
+          {{ t("Health Information") }}
+        </legend>
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <!-- Blood Type Field -->
           <div>
-            <CSelect id="student-blood-type" v-model="user.student_profile.blood_type" :options="bloodTypeOptions"
-              :label="t('Blood Type')" />
+            <CSelect
+              id="student-blood-type"
+              v-model="user.student_profile.blood_type"
+              :options="bloodTypeOptions"
+              :label="t('Blood Type')"
+            />
           </div>
           <!-- Allergies Field -->
           <div>
-            <CInput id="student-allergies" v-model="user.student_profile.allergies" type="text" :label="t('Allergies')"
-              :error="validationErrors['student_profile.allergies']?.[0]" placeholder="Enter Allergies (if any)" />
+            <CInput
+              id="student-allergies"
+              v-model="user.student_profile.allergies"
+              type="text"
+              :label="t('Allergies')"
+              :error="validationErrors['student_profile.allergies']?.[0]"
+              placeholder="Enter Allergies (if any)"
+            />
           </div>
           <!-- Violations Field -->
           <div>
-            <CInput id="student-violations" v-model="user.student_profile.violations" type="text"
-              :error="validationErrors['student_profile.violations']?.[0]" :label="t('Violations')"
-              placeholder="Enter Violations (if any)" />
+            <CInput
+              id="student-violations"
+              v-model="user.student_profile.violations"
+              type="text"
+              :error="validationErrors['student_profile.violations']?.[0]"
+              :label="t('Violations')"
+              placeholder="Enter Violations (if any)"
+            />
           </div>
         </div>
       </fieldset>
 
       <!-- Emergency Contact -->
-      <fieldset class="border border-primary-200 rounded p-4">
-        <legend class="text-lg font-semibold px-2 text-primary-700">{{ t("Emergency Contact") }}</legend>
+      <fieldset class="border-primary-200 rounded border p-4">
+        <legend class="text-primary-700 px-2 text-lg font-semibold">
+          {{ t("Emergency Contact") }}
+        </legend>
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <!-- Emergency Contact Name Field -->
           <div>
-            <CInput id="student-emergency-name" v-model="user.student_profile.emergency_contact_name" type="text"
+            <CInput
+              id="student-emergency-name"
+              v-model="user.student_profile.emergency_contact_name"
+              type="text"
               :error="validationErrors['student_profile.emergency_contact_name']?.[0]"
-              :label="t('Emergency Contact Name')" placeholder="Enter Emergency Contact Name" />
+              :label="t('Emergency Contact Name')"
+              placeholder="Enter Emergency Contact Name"
+            />
+          </div>
+          <!-- Emergency Contact Type Field -->
+          <div>
+            <CSelect
+              id="student-emergency-type"
+              v-model="user.student_profile.emergency_contact_type"
+              :options="emergencyContactTypeOptions"
+              :label="t('Emergency Contact Type')"
+              :error="validationErrors['student_profile.emergency_contact_type']?.[0]"
+            />
           </div>
           <!-- Emergency Contact Phone Field -->
           <div>
-            <CInput id="student-emergency-phone" v-model="user.student_profile.emergency_contact_phone" type="tel"
+            <CInput
+              id="student-emergency-phone"
+              v-model="user.student_profile.emergency_contact_phone"
+              type="tel"
               :error="validationErrors['student_profile.emergency_contact_phone']?.[0]"
-              :label="t('Emergency Contact Phone')" placeholder="Enter Emergency Contact Phone" />
+              :label="t('Emergency Contact Phone')"
+              placeholder="Enter Emergency Contact Phone"
+            />
+          </div>
+          <!-- Emergency Contact Email Field -->
+          <div>
+            <CInput
+              id="student-emergency-email"
+              v-model="user.student_profile.emergency_contact_email"
+              type="email"
+              :error="validationErrors['student_profile.emergency_contact_email']?.[0]"
+              :label="t('Emergency Contact Email')"
+              placeholder="Enter Emergency Contact Email"
+            />
           </div>
         </div>
       </fieldset>
 
       <!-- Registration & Status -->
-      <fieldset class="border border-primary-200 rounded p-4">
-        <legend class="text-lg font-semibold px-2 text-primary-700">{{ t("Registration & Status") }}</legend>
+      <fieldset class="border-primary-200 rounded border p-4">
+        <legend class="text-primary-700 px-2 text-lg font-semibold">
+          {{ t("Registration & Status") }}
+        </legend>
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <!-- Status Field -->
           <div>
-            <CSelect id="student-status" v-model="user.status" :options="statusOptions" :label="t('Status')" required />
+            <CSelect
+              id="student-status"
+              v-model="user.status"
+              :options="statusOptions"
+              :label="t('Status')"
+              required
+            />
           </div>
           <!-- Registration Date Field -->
           <div>
-            <CInput id="student-registration-date" v-model="user.created_at" type="date" :label="t('Registration Date')"
-              v-if="isEditing" :disabled="isEditing" />
+            <CInput
+              id="student-registration-date"
+              v-model="user.created_at"
+              type="date"
+              :label="t('Registration Date')"
+              v-if="isEditing"
+              :disabled="isEditing"
+            />
           </div>
           <!-- Agree to Dormitory Rules Field -->
           <div>
-            <CCheckbox id="student-agree-rules" v-model="user.student_profile.agree_to_dormitory_rules"
-              :label="t('Agree to Dormitory Rules')" :disabled="isEditing"
-              :aria-disabled="isEditing ? 'true' : 'false'" />
+            <CCheckbox
+              id="student-agree-rules"
+              v-model="user.student_profile.agree_to_dormitory_rules"
+              :label="t('Agree to Dormitory Rules')"
+              :disabled="isEditing"
+              :aria-disabled="isEditing ? 'true' : 'false'"
+            />
           </div>
           <!-- Has Meal Plan Field -->
           <div>
-            <CCheckbox id="student-meal-plan" v-model="user.student_profile.has_meal_plan"
-              :label="t('Has Meal Plan')" />
+            <CCheckbox
+              id="student-meal-plan"
+              v-model="user.student_profile.has_meal_plan"
+              :label="t('Has Meal Plan')"
+            />
           </div>
         </div>
       </fieldset>
 
       <!-- Educational Information -->
-      <fieldset class="border border-primary-200 rounded p-4">
-        <legend class="text-lg font-semibold px-2 text-primary-700">{{ t("Educational Information") }}</legend>
+      <fieldset class="border-primary-200 rounded border p-4">
+        <legend class="text-primary-700 px-2 text-lg font-semibold">
+          {{ t("Educational Information") }}
+        </legend>
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <!-- Faculty Field -->
           <div>
-            <CInput id="student-faculty" v-model="user.student_profile.faculty" type="text" :label="t('Faculty')"
-              :error="validationErrors['student_profile.faculty']?.[0]" :placeholder="t('Enter Faculty Name')"
-              required />
+            <CInput
+              id="student-faculty"
+              v-model="user.student_profile.faculty"
+              type="text"
+              :label="t('Faculty')"
+              :error="validationErrors['student_profile.faculty']?.[0]"
+              :placeholder="t('Enter Faculty Name')"
+              required
+            />
           </div>
           <!-- Specialist Field -->
           <div>
-            <CInput id="student-specialist" v-model="user.student_profile.specialist" type="text"
-              :error="validationErrors['student_profile.specialist']?.[0]" :label="t('Specialist')"
-              :placeholder="t('Enter Specialty/Program Name')" required />
+            <CInput
+              id="student-specialist"
+              v-model="user.student_profile.specialist"
+              type="text"
+              :error="validationErrors['student_profile.specialist']?.[0]"
+              :label="t('Specialist')"
+              :placeholder="t('Enter Specialty/Program Name')"
+              required
+            />
           </div>
           <!-- Enrollment Year Field -->
           <div>
-            <CInput id="student-enrollment-year" v-model="user.student_profile.enrollment_year" type="number"
-              :error="validationErrors['student_profile.enrollment_year']?.[0]" :label="t('Enrollment Year')"
-              placeholder="Enter Enrollment Year" required />
+            <CInput
+              id="student-enrollment-year"
+              v-model="user.student_profile.enrollment_year"
+              type="number"
+              :error="validationErrors['student_profile.enrollment_year']?.[0]"
+              :label="t('Enrollment Year')"
+              placeholder="Enter Enrollment Year"
+              required
+            />
           </div>
           <!-- Deal Number Field -->
           <div>
-            <CInput id="student-deal-number" v-model="user.student_profile.deal_number" type="text"
-              :error="validationErrors['student_profile.deal_number']?.[0]" :label="t('Deal Number')"
-              placeholder="Enter Deal Number" required />
+            <CInput
+              id="student-deal-number"
+              v-model="user.student_profile.deal_number"
+              type="text"
+              :error="validationErrors['student_profile.deal_number']?.[0]"
+              :label="t('Deal Number')"
+              placeholder="Enter Deal Number"
+              required
+            />
           </div>
           <!-- Room Field - Only visible after dormitory selection -->
           <div>
-            <CSelect id="student-room" v-model="user.room_id" :options="roomOptions" :label="t('Room')"
+            <CSelect
+              id="student-room"
+              v-model="user.room_id"
+              :options="roomOptions"
+              :label="t('Room')"
               :validation-message="validationErrors.room_id?.[0]"
               :validation-state="validationErrors.room_id ? 'error' : ''"
-              :disabled="loadingRooms || roomOptions.length === 0" required />
-            <div v-if="loadingRooms" class="text-sm text-gray-500 mt-1">
-              {{ t('Loading rooms...') }}
+              :disabled="loadingRooms || roomOptions.length === 0"
+              required
+            />
+            <div v-if="loadingRooms" class="mt-1 text-sm text-gray-500">
+              {{ t("Loading rooms...") }}
             </div>
-            <div v-else-if="!loadingRooms && roomOptions.length === 0" class="text-sm text-red-500 mt-1">
-              {{ t('No rooms available in this dormitory') }}
+            <div
+              v-else-if="!loadingRooms && roomOptions.length === 0"
+              class="mt-1 text-sm text-red-500"
+            >
+              {{ t("No rooms available in this dormitory") }}
             </div>
           </div>
           <!-- Bed Field - Only visible after room selection -->
           <div v-if="user.room_id">
-            <CSelect id="student-bed" v-model="user.bed_id" :options="bedOptions" :label="t('Bed')"
+            <CSelect
+              id="student-bed"
+              v-model="user.bed_id"
+              :options="bedOptions"
+              :label="t('Bed')"
               :validation-message="validationErrors.bed_id?.[0]"
-              :validation-state="validationErrors.bed_id ? 'error' : ''" :disabled="bedOptions.length === 0" required />
-            <div v-if="bedOptions.length === 0" class="text-sm text-red-500 mt-1">
-              {{ t('No beds available in this room') }}
+              :validation-state="validationErrors.bed_id ? 'error' : ''"
+              :disabled="bedOptions.length === 0"
+              required
+            />
+            <div v-if="bedOptions.length === 0" class="mt-1 text-sm text-red-500">
+              {{ t("No beds available in this room") }}
             </div>
           </div>
         </div>
       </fieldset>
 
       <!-- Documents -->
-      <fieldset class="border border-primary-200 rounded p-4">
-        <legend class="text-lg font-semibold px-2 text-primary-700">{{ t("Documents") }}</legend>
+      <fieldset class="border-primary-200 rounded border p-4">
+        <legend class="text-primary-700 px-2 text-lg font-semibold">{{ t("Documents") }}</legend>
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2" data-testid="document-uploads">
-          <div v-for="(file, index) in (user.student_profile.files || [])" :key="`file-${index}`">
-            <CFileInput :id="`student-file-${index}`" :label="registrationFileLabels[index]"
-              :file-path="typeof file === 'string' ? file : null" :allowed-extensions="['jpg', 'jpeg', 'png', 'pdf']"
+          <div v-for="(file, index) in user.student_profile.files || []" :key="`file-${index}`">
+            <CFileInput
+              :id="`student-file-${index}`"
+              :label="registrationFileLabels[index]"
+              :file-path="typeof file === 'string' ? file : null"
+              :allowed-extensions="['jpg', 'jpeg', 'png', 'pdf']"
               :validation-message="validationErrors[`student_profile.files.${index}`]?.[0]"
-              @change="(newFile) => handleFileChange(index, newFile)" />
+              @change="(newFile) => handleFileChange(index, newFile)"
+            />
           </div>
           <!-- payment_check removed from the form -->
         </div>
@@ -292,23 +454,17 @@ const props = defineProps<{
   submitLabel?: string;
 }>();
 
-const registrationFileLabels = [
-  "063 Form",
-  "075 Form",
-  "Identification document",
-  "Bank Check",
-];
+const registrationFileLabels = ["063 Form", "075 Form", "Identification document", "Bank Check"];
 
 // Real dormitories and rooms from API
 const rooms = ref<Room[]>([]);
-const allBeds = ref<any[]>([]);
+const allBeds = ref<Bed[]>([]);
 const loadingRooms = ref(false);
-const { t, locale } = useI18n();
+const { t } = useI18n();
 
 const validationErrors = ref<Record<string, string[]>>({});
 
 onMounted(async () => {
-
   // Only restore from store for self-profile flows (not when editing a student by id)
   if (!isEditing.value) {
     studentStore.restoreSelectedStudent();
@@ -328,7 +484,9 @@ onMounted(async () => {
 // Wrapper component handling (Navigation vs div when embedded)
 const studentWrapper = computed(() => (props.embedded ? "div" : Navigation));
 const studentWrapperProps = computed(() => (props.embedded ? {} : { title: t("Student page") }));
-const showPrintButton = computed(() => (props.showPrint === undefined ? !props.embedded : props.showPrint));
+const showPrintButton = computed(() =>
+  props.showPrint === undefined ? !props.embedded : props.showPrint
+);
 const submitButtonLabel = computed(() => props.submitLabel || t("Submit"));
 
 // i18n and store
@@ -347,7 +505,7 @@ const studentId = computed(() => {
 const isEditing = computed(() => !!studentId.value);
 
 // Check if current user is an admin
-const isAdmin = computed(() => authStore.user?.role?.name === 'admin');
+const isAdmin = computed(() => authStore.user?.role?.name === "admin");
 
 // Note: Country, region, and city are now text input fields instead of select dropdowns
 
@@ -379,11 +537,8 @@ const user = ref<Partial<User>>({
     gender: "",
     has_meal_plan: false,
     iin: "",
-    mentor_email: "",
-    mentor_name: "",
-    parent_email: "",
-    parent_name: "",
-    parent_phone: "",
+    emergency_contact_type: null,
+    emergency_contact_email: "",
     region: "",
     registration_date: "",
     specialist: "",
@@ -396,11 +551,13 @@ const fetchRooms = async () => {
   loadingRooms.value = true;
   try {
     // Try public rooms endpoint first to avoid 403 with role-protected endpoints
-    const roomsResponse = await roomService.getAvailable({ occupant_type: 'student' });
+    const roomsResponse = await roomService.getAvailable({ occupant_type: "student" });
     rooms.value = Array.isArray(roomsResponse.data) ? roomsResponse.data : [];
-    allBeds.value = rooms.value.flatMap(room => (room.beds || []).map(bed => ({ ...bed, room })));
+    allBeds.value = rooms.value.flatMap((room) =>
+      (room.beds || []).map((bed) => ({ ...bed, room }))
+    );
   } catch (e) {
-    console.error('Failed to fetch rooms:', e);
+    console.error("Failed to fetch rooms:", e);
     rooms.value = [];
     allBeds.value = [];
   } finally {
@@ -412,49 +569,53 @@ fetchRooms();
 
 const roomOptions = computed(() =>
   rooms.value
-    .filter(r => r.occupant_type === 'student')
-    .map((r) => ({ value: r.id, name: r.number })),
+    .filter((r) => r.occupant_type === "student")
+    .map((r) => ({ value: r.id, name: r.number }))
 );
 
 // Bed options for selected room
 const bedOptions = computed(() => {
-  const rid = (user.value as any).room_id || user.value.room?.id;
+  const rid = user.value.room_id || user.value.room?.id;
   if (!rid) return [];
   const options = allBeds.value
-    .filter(b => (b.room?.id || b.room_id) === rid) // Beds in selected room
-    .filter(bed => !bed.reserved_for_staff) // Exclude staff reserved beds
-    .filter(bed => !bed.is_occupied || bed.user_id === user.value.id) // Exclude occupied beds, unless it's the current student's
-    .map(bed => ({ // Correctly map bed properties
+    .filter((b) => (b.room?.id || b.room_id) === rid) // Beds in selected room
+    .filter((bed) => !bed.reserved_for_staff) // Exclude staff reserved beds
+    .filter((bed) => !bed.is_occupied || bed.user_id === user.value.id) // Exclude occupied beds, unless it's the current student's
+    .map((bed) => ({
+      // Correctly map bed properties
       value: bed.id,
       name: `${bed.room.number}-${bed.bed_number}`,
     }));
 
   // Allow admins to un-assign a bed when editing
   if (isEditing.value && isAdmin.value) {
-    options.unshift({ value: '', name: t("Remove Bed") });
+    options.unshift({ value: "", name: t("Remove Bed") });
   }
 
   return options;
 });
 
 // Watch for changes to room and reset bed if needed
-watch(() => (user.value as any).room_id, (newRoomId, oldRoomId) => {
-  if (newRoomId && oldRoomId && newRoomId !== oldRoomId) {
-    // Reset bed when room changes to a different room
-    user.value.bed = null;
-    user.value.student_bed = null;
-  } else if (newRoomId && oldRoomId === undefined) {
-    // Initial room selection - don't reset bed yet
-  } else if (!newRoomId) {
-    // Reset bed when room is cleared
-    user.value.bed = null;
-    user.value.student_bed = null;
-  } else if (oldRoomId && newRoomId !== oldRoomId) {
-    // Room changed from one value to another (including from undefined)
-    user.value.bed = null;
-    user.value.student_bed = null;
+watch(
+  () => user.value.room_id,
+  (newRoomId, oldRoomId) => {
+    if (newRoomId && oldRoomId && newRoomId !== oldRoomId) {
+      // Reset bed when room changes to a different room
+      user.value.bed = null;
+      user.value.student_bed = null;
+    } else if (newRoomId && oldRoomId === undefined) {
+      // Initial room selection - don't reset bed yet
+    } else if (!newRoomId) {
+      // Reset bed when room is cleared
+      user.value.bed = null;
+      user.value.student_bed = null;
+    } else if (oldRoomId && newRoomId !== oldRoomId) {
+      // Room changed from one value to another (including from undefined)
+      user.value.bed = null;
+      user.value.student_bed = null;
+    }
   }
-});
+);
 
 // Options for Select Fields
 const genderOptions = [
@@ -469,7 +630,9 @@ const filteredGenderOptions = computed(() => {
     if (dormGenderPolicy && dormGenderPolicy !== "mixed") {
       return genderOptions.filter((opt) => opt.value === dormGenderPolicy);
     }
-  } catch (e) { }
+  } catch {
+    // Silently ignore errors in gender filtering
+  }
   return genderOptions;
 });
 
@@ -482,6 +645,11 @@ const bloodTypeOptions = [
   { value: "AB-", name: "AB-" },
   { value: "O+", name: "O+" },
   { value: "O-", name: "O-" },
+];
+const emergencyContactTypeOptions = [
+  { value: "parent", name: t("Parent") },
+  { value: "guardian", name: t("Guardian") },
+  { value: "other", name: t("Other") },
 ];
 
 const statusOptions = [
@@ -507,28 +675,32 @@ const removePhoneField = (index: number): void => {
 // Normalize incoming phone numbers into a string array
 const normalizePhones = (phones: unknown, fallback?: unknown): string[] => {
   if (Array.isArray(phones)) {
-    return (phones as unknown[]).map(p => (p ?? "").toString());
+    return (phones as unknown[]).map((p) => (p ?? "").toString());
   }
   if (typeof phones === "string") {
     const trimmed = phones.trim();
     if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
       try {
         const parsed = JSON.parse(trimmed);
-        if (Array.isArray(parsed)) return parsed.map((p: any) => (p ?? "").toString());
-      } catch (_) { }
+        if (Array.isArray(parsed)) return parsed.map((p: unknown) => (p ?? "").toString());
+      } catch {
+        // Ignore JSON parsing errors
+      }
     }
     return trimmed ? [trimmed] : [];
   }
-  if (typeof fallback === "string" && (fallback as string).trim() !== "") return [(fallback as string).trim()];
+  if (typeof fallback === "string" && (fallback as string).trim() !== "")
+    return [(fallback as string).trim()];
   return [];
 };
 
 // Handle file input change
 const handleFileChange = (index: number, newFile: File | null | string) => {
   // Protect against undefined profile
-  if (!user.value.student_profile) user.value.student_profile = {} as any;
+  if (!user.value.student_profile) user.value.student_profile = {} as StudentProfile;
   // Ensure files array exists and has at least 3 slots
-  if (!Array.isArray(user.value.student_profile.files)) user.value.student_profile.files = [null, null, null];
+  if (!Array.isArray(user.value.student_profile.files))
+    user.value.student_profile.files = [null, null, null];
   user.value.student_profile.files[index] = newFile;
 };
 
@@ -543,7 +715,7 @@ const hydrateStudentFromApi = (data: StudentUserResponse, shouldNotify = true) =
 
   const existingFiles = data.student_profile.files;
   const filesArray = Array(3).fill(null);
-  if (existingFiles && typeof existingFiles === 'object') {
+  if (existingFiles && typeof existingFiles === "object") {
     for (const index in existingFiles) {
       const numericIndex = parseInt(index, 10);
       if (!isNaN(numericIndex) && numericIndex >= 0 && numericIndex < 3) {
@@ -554,14 +726,14 @@ const hydrateStudentFromApi = (data: StudentUserResponse, shouldNotify = true) =
   data.student_profile.files = filesArray;
 
   if (data.room) {
-    const studentRoom = data.room as any;
-    const roomExists = (rooms.value as any).some((r: any) => r?.id === studentRoom?.id);
+    const studentRoom = data.room as Room;
+    const roomExists = rooms.value.some((r: Room) => r?.id === studentRoom?.id);
     if (!roomExists) {
       rooms.value = [...rooms.value, studentRoom];
     }
 
-    const existingBedIds = (allBeds.value as any).map((b: any) => b.id);
-    (studentRoom.beds || []).forEach((b: any) => {
+    const existingBedIds = allBeds.value.map((b: Bed) => b.id);
+    (studentRoom.beds || []).forEach((b: Bed) => {
       if (!existingBedIds.includes(b.id)) {
         allBeds.value.push({ ...b, room: studentRoom });
       }
@@ -584,10 +756,10 @@ const hydrateStudentFromApi = (data: StudentUserResponse, shouldNotify = true) =
     student_bed: data.student_bed,
     status: data.status,
     student_profile: { ...user.value.student_profile, ...data.student_profile },
-    password: '',
-    password_confirmation: '',
+    password: "",
+    password_confirmation: "",
     created_at: formattedDate(data.created_at),
-  } as any;
+  } as User;
 
   if (shouldNotify) {
     showSuccess(t("Student data loaded successfully"));
@@ -619,7 +791,10 @@ const submitForm = async (): Promise<void> => {
     showError(t("Specialty is required."));
     return;
   }
-  if (!user.value.student_profile.enrollment_year || user.value.student_profile.enrollment_year.toString().length !== 4) {
+  if (
+    !user.value.student_profile.enrollment_year ||
+    user.value.student_profile.enrollment_year.toString().length !== 4
+  ) {
     showError(t("Enrollment year must be a 4-digit year."));
     return;
   }
@@ -653,15 +828,15 @@ const submitForm = async (): Promise<void> => {
   }
 
   const cleanedPhones = (user.value.phone_numbers || [])
-    .map(p => (p ?? "").toString().trim())
-    .filter(p => p.length > 0);
+    .map((p) => (p ?? "").toString().trim())
+    .filter((p) => p.length > 0);
   if (!cleanedPhones.length) {
     showError(t("At least one phone number is required."));
     return;
   }
 
   // Check if selected bed is staff reserved
-  const selectedBed = allBeds.value.find(b => b.id === user.value.bed_id);
+  const selectedBed = allBeds.value.find((b) => b.id === user.value.bed_id);
   if (selectedBed && selectedBed.reserved_for_staff) {
     showError(t("Staff reserved beds cannot be selected for students."));
     return;
@@ -693,33 +868,36 @@ const submitForm = async (): Promise<void> => {
       return;
     }
     if (isEditing.value) {
-      formData.append('_method', 'PUT');
+      formData.append("_method", "PUT");
       await studentService.update(studentId.value, formData);
       showSuccess(t("Student profile updated successfully!"));
     } else {
       await studentService.create(formData);
       showSuccess(t("Student created successfully!"));
     }
-  } catch (error: any) {
-    if (error.response?.status === 422 && error.response?.data?.errors) {
-      validationErrors.value = error.response.data.errors;
-      showError(error.response.data.message || t("Please check the form for errors."));
+  } catch (error: unknown) {
+    const axiosError = error as { response?: { status?: number; data?: { message?: string; errors?: Record<string, string[]> } } };
+    if (axiosError.response?.status === 422 && axiosError.response?.data?.errors) {
+      validationErrors.value = axiosError.response.data.errors;
+      showError(axiosError.response.data.message || t("Please check the form for errors."));
       // Find the first element with an error and scroll to it
-      const firstErrorKey = Object.keys(error.response.data.errors)[0];
-      document.querySelector(`[id*="${firstErrorKey.replace('.', '-')}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const firstErrorKey = Object.keys(axiosError.response.data.errors)[0];
+      document
+        .querySelector(`[id*="${firstErrorKey.replace(".", "-")}"]`)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
     } else {
-      console.error("Submission Error:", error.response?.data);
-      showError(error.response?.data?.message || t("Failed to save student data"));
+      console.error("Submission Error:", axiosError.response?.data);
+      showError(axiosError.response?.data?.message || t("Failed to save student data"));
     }
   }
 };
 
-const buildFormData = (formData: FormData, data: any, parentKey?: string) => {
+const buildFormData = (formData: FormData, data: Record<string, unknown>, parentKey?: string) => {
   if (data === null || data === undefined) {
     return;
   }
 
-  Object.keys(data).forEach(key => {
+  Object.keys(data).forEach((key) => {
     const value = data[key];
     const formKey = parentKey ? `${parentKey}[${key}]` : key;
 
@@ -729,12 +907,12 @@ const buildFormData = (formData: FormData, data: any, parentKey?: string) => {
       return;
     }
 
-    if (formKey === 'student_profile[files]' && Array.isArray(value)) {
+    if (formKey === "student_profile[files]" && Array.isArray(value)) {
       // Special handling for the files array inside student_profile
       value.forEach((file, index) => {
         if (file instanceof File) {
           formData.append(`${formKey}[${index}]`, file, file.name);
-        } else if (file === '' || typeof file === 'string') {
+        } else if (file === "" || typeof file === "string") {
           // Send empty string for deletion or string path for existing/unchanged files.
           formData.append(`${formKey}[${index}]`, file);
         }
@@ -743,17 +921,17 @@ const buildFormData = (formData: FormData, data: any, parentKey?: string) => {
     } else if (Array.isArray(value)) {
       value.forEach((item, index) => {
         const arrayKey = `${formKey}[${index}]`;
-        if (typeof item === 'object' && item !== null && !(item instanceof File)) {
+        if (typeof item === "object" && item !== null && !(item instanceof File)) {
           buildFormData(formData, item, arrayKey);
-        } else if (item !== null && item !== undefined && item !== '') {
-          formData.append(arrayKey, item as any);
+        } else if (item !== null && item !== undefined && item !== "") {
+          formData.append(arrayKey, item as string);
         }
       });
-    } else if (typeof value === 'object' && value !== null) {
+    } else if (typeof value === "object" && value !== null) {
       // This will handle student_profile and other nested objects
       buildFormData(formData, value, formKey);
-    } else if (typeof value === 'boolean') {
-      formData.append(formKey, value ? '1' : '0');
+    } else if (typeof value === "boolean") {
+      formData.append(formKey, value ? "1" : "0");
     } else if (value !== null && value !== undefined) {
       formData.append(formKey, value.toString());
     }
@@ -766,7 +944,7 @@ const loadStudent = async (id: number) => {
     const response = await studentService.getById(id);
     hydrateStudentFromApi(response.data as StudentUserResponse);
   } catch (error) {
-    console.error('Failed to load student data:', error);
+    console.error("Failed to load student data:", error);
     showError(t("Failed to load student data"));
   }
 };
@@ -776,7 +954,7 @@ const loadSelfStudent = async () => {
     const response = await personalDataService.get();
     hydrateStudentFromApi(response.data as StudentUserResponse, false);
   } catch (error) {
-    console.error('Failed to load student data:', error);
+    console.error("Failed to load student data:", error);
     showError(t("Failed to load student data"));
   }
 };
@@ -784,10 +962,9 @@ const loadSelfStudent = async () => {
 function formattedDate(dateString: string): string {
   // 2025-10-26T14:00:55.000000Z to 2025-10-26
   if (dateString) {
-    const r = dateString.split('T')[0];
+    const r = dateString.split("T")[0];
     return r;
   }
-  return '';
+  return "";
 }
-
 </script>

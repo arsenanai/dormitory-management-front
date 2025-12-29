@@ -1,18 +1,17 @@
-
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import api, { authService } from '@/services/api'
-import { User, UserStatus } from '@/models/User'
+import { defineStore } from "pinia";
+import { ref, computed } from "vue";
+import { useRouter } from "vue-router";
+import api, { authService } from "@/services/api";
+import { User, UserStatus } from "@/models/User";
 
 /**
  * Interface for login credentials
  */
 interface LoginCredentials {
   /** User's email address */
-  email: string
+  email: string;
   /** User's password */
-  password: string
+  password: string;
 }
 
 /**
@@ -20,18 +19,18 @@ interface LoginCredentials {
  */
 interface PasswordResetData {
   /** Reset token from email */
-  token: string
+  token: string;
   /** New password */
-  password: string
+  password: string;
   /** Password confirmation */
-  password_confirmation: string
+  password_confirmation: string;
   /** User's email address */
-  email: string
+  email: string;
 }
 
 /**
  * Authentication store for managing user authentication state
- * 
+ *
  * This store handles:
  * - User login/logout
  * - User registration
@@ -40,85 +39,86 @@ interface PasswordResetData {
  * - Authentication state persistence
  * - Role-based access control
  */
-export const useAuthStore = defineStore('auth', () => {
-  const router = useRouter()
+export const useAuthStore = defineStore("auth", () => {
+  const router = useRouter();
 
   // State
   /** Current authenticated user or null if not authenticated */
-  const user = ref<User | null>(null)
+  const user = ref<User | null>(null);
   /** Authentication token or null if not authenticated */
-  const token = ref<string | null>(null)
+  const token = ref<string | null>(null);
   /** Loading state for async operations */
-  const loading = ref(false)
-  const loadingProfile = ref(false)
+  const loading = ref(false);
+  const loadingProfile = ref(false);
   /** Error message for failed operations */
-  const error = ref<string | null>(null)
+  const error = ref<string | null>(null);
 
   // Initialize auth store from localStorage
   const initializeAuthStore = () => {
     try {
       // Check if localStorage is available (for tests)
-      if (typeof localStorage === 'undefined' || !localStorage.getItem) {
-        return
+      if (typeof localStorage === "undefined" || !localStorage.getItem) {
+        return;
       }
-      
-      const storedToken = localStorage.getItem('token')
-      const storedUser = localStorage.getItem('user')
-      
+
+      const storedToken = localStorage.getItem("token");
+      const storedUser = localStorage.getItem("user");
+
       if (storedToken && storedUser) {
-        token.value = storedToken
-        user.value = JSON.parse(storedUser)
+        token.value = storedToken;
+        user.value = JSON.parse(storedUser);
       }
-    } catch (error) {
+    } catch {
       // Clear corrupted data only if localStorage is available
-      if (typeof localStorage !== 'undefined' && localStorage.removeItem) {
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
+      if (typeof localStorage !== "undefined" && localStorage.removeItem) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
       }
     }
-  }
+  };
 
   // Initialize the store when it's created (only if localStorage is available)
-  if (typeof localStorage !== 'undefined') {
-    initializeAuthStore()
+  if (typeof localStorage !== "undefined") {
+    initializeAuthStore();
   }
 
   // Getters
   /** Whether the user is currently authenticated */
-  const isAuthenticated = computed(() => !!token.value)
-  
+  const isAuthenticated = computed(() => !!token.value);
+
   /** Current user's role name or null if not authenticated */
   const userRole = computed(() => {
-    
     if (!user.value?.role) return null;
-    
+
     // If role is an object with name property
-    if (typeof user.value.role === 'object' && user.value.role.name) {
+    if (typeof user.value.role === "object" && user.value.role.name) {
       return user.value.role.name;
     }
-    
+
     // If role is a string, use it directly
-    if (typeof user.value.role === 'string') {
+    if (typeof user.value.role === "string") {
       return user.value.role;
     }
-    
+
     return null;
-  })
-  
+  });
+
   /** User's full name (first_name + last_name) */
   const fullName = computed(() =>
-    user.value ? `${user.value.first_name || user.value.name || ''} ${user.value.last_name || ''}`.trim() : ''
-  )
+    user.value
+      ? `${user.value.first_name || user.value.name || ""} ${user.value.last_name || ""}`.trim()
+      : ""
+  );
 
   // Actions
 
   /**
    * Authenticate user with email and password
-   * 
+   *
    * @param credentials - Login credentials containing email and password
    * @throws {Error} When login fails due to invalid credentials or network issues
    * @returns {Promise<void>} Resolves when login is successful
-   * 
+   *
    * @example
    * ```typescript
    * await authStore.login({
@@ -129,70 +129,68 @@ export const useAuthStore = defineStore('auth', () => {
    */
   const login = async (credentials: LoginCredentials) => {
     try {
-      loading.value = true
-      error.value = null
+      loading.value = true;
+      error.value = null;
 
+      const response = await authService.login(credentials);
 
-
-      const response = await authService.login(credentials)
-
-      token.value = response.data.token
+      token.value = response.data.token;
       // Convert API User to model User type
-      const apiUser = response.data.user
+      const apiUser = response.data.user;
       user.value = {
         id: apiUser.id,
         name: apiUser.name,
         email: apiUser.email,
         phone_numbers: apiUser.phone_numbers,
-        status: 'active' as UserStatus, // Default to active for logged in users
+        status: "active" as UserStatus, // Default to active for logged in users
         role: apiUser.role, // Store role as string from API
-        dormitory: apiUser.dormitory // Standardized dormitory property
-      }
+        dormitory: apiUser.dormitory, // Standardized dormitory property
+      };
 
       // Store token and user data in localStorage for persistence
       if (token.value) {
-        localStorage.setItem('token', token.value)
+        localStorage.setItem("token", token.value);
       }
       if (user.value) {
-        localStorage.setItem('user', JSON.stringify(user.value))
+        localStorage.setItem("user", JSON.stringify(user.value));
       }
 
       // Redirect based on role
-      let redirectPath = '/main'
-      
-      const roleName = userRole.value
+      let redirectPath = "/main";
+
+      const roleName = userRole.value;
       if (roleName) {
         switch (roleName) {
-          case 'student':
-            redirectPath = '/student-main'
-            break
-          case 'guest':
-            redirectPath = '/guest-home'
-            break
-          case 'sudo':
-          case 'admin':
+          case "student":
+            redirectPath = "/student-main";
+            break;
+          case "guest":
+            redirectPath = "/guest-home";
+            break;
+          case "sudo":
+          case "admin":
           default:
-            redirectPath = '/main'
-            break
+            redirectPath = "/main";
+            break;
         }
       }
-      
-      router.push(redirectPath)
+
+      router.push(redirectPath);
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Login failed'
-      throw err
+      error.value = err.response?.data?.message || "Login failed";
+      throw err;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
-  }
+  };
 
   /**
    * Register a new user account
-   * 
+   *
    * @param userData - User registration data including name, email, password, and role
    * @throws {Error} When registration fails due to validation errors or network issues
    * @returns {Promise<any>} Registration response data
-   * 
+   *
    * @example
    * ```typescript
    * await authStore.register({
@@ -206,48 +204,48 @@ export const useAuthStore = defineStore('auth', () => {
    */
   const register = async (userData: any) => {
     try {
-      loading.value = true
-      error.value = null
+      loading.value = true;
+      error.value = null;
 
-      const response = await authService.register(userData)
+      const response = await authService.register(userData);
 
-      return response.data
+      return response.data;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Registration failed'
-      throw err
+      error.value = err.response?.data?.message || "Registration failed";
+      throw err;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
-  }
+  };
 
   /**
    * Logout current user and clear authentication state
-   * 
+   *
    * This method:
    * - Clears the authentication token
    * - Removes user data from store
    * - Removes token from localStorage
    * - Redirects to login page
-   * 
+   *
    * @example
    * ```typescript
    * authStore.logout()
    * ```
    */
   const logout = () => {
-    token.value = null
-    user.value = null
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    router.push('/')
-  }
+    token.value = null;
+    user.value = null;
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    router.push("/");
+  };
 
   /**
    * Load current user's profile from API
-   * 
+   *
    * @throws {Error} When profile loading fails due to network issues or invalid token
    * @returns {Promise<void>} Resolves when profile is loaded successfully
-   * 
+   *
    * @example
    * ```typescript
    * await authStore.loadProfile()
@@ -259,11 +257,11 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       loadingProfile.value = true;
-      error.value = null
+      error.value = null;
 
       const response = await authService.getProfile();
       // Convert API User to model User type
-      const apiUser = response.data
+      const apiUser = response.data;
       user.value = {
         id: apiUser.id,
         name: apiUser.name,
@@ -271,38 +269,39 @@ export const useAuthStore = defineStore('auth', () => {
         last_name: apiUser.last_name,
         email: apiUser.email,
         phone_numbers: apiUser.phone_numbers,
-        status: 'active' as UserStatus, // Default to active for logged in users
+        status: "active" as UserStatus, // Default to active for logged in users
         role: apiUser.role, // Store role as string from API
         dormitory: apiUser.dormitory, // Standardized dormitory property
-      }
+      };
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to load profile'
-      throw err
+      error.value = err.response?.data?.message || "Failed to load profile";
+      throw err;
     } finally {
       loadingProfile.value = false;
     }
-  }
+  };
 
   const profileDataFilled = computed(() => {
-    return !!(user.value 
-      && user.value.first_name 
-      && user.value.last_name 
-      && user.value.email
-      && user.value.phone_numbers
-      && user.value.phone_numbers.length > 0
-      && user.value.phone_numbers[0]
-      && user.value.phone_numbers[0].trim() !== ''
-      && user.value.phone_numbers[0].trim().length >= 5
+    return !!(
+      user.value &&
+      user.value.first_name &&
+      user.value.last_name &&
+      user.value.email &&
+      user.value.phone_numbers &&
+      user.value.phone_numbers.length > 0 &&
+      user.value.phone_numbers[0] &&
+      user.value.phone_numbers[0].trim() !== "" &&
+      user.value.phone_numbers[0].trim().length >= 5
     );
   });
 
   /**
    * Update current user's profile information
-   * 
+   *
    * @param profileData - Profile data to update
    * @throws {Error} When profile update fails due to validation errors or network issues
    * @returns {Promise<any>} Update response data
-   * 
+   *
    * @example
    * ```typescript
    * await authStore.updateProfile({
@@ -314,40 +313,40 @@ export const useAuthStore = defineStore('auth', () => {
    */
   const updateProfile = async (profileData: any) => {
     try {
-      loading.value = true
-      error.value = null
+      loading.value = true;
+      error.value = null;
 
-      const response = await authService.updateProfile(profileData)
+      const response = await authService.updateProfile(profileData);
       // Convert API User to model User type
-      const apiUser = response.data
+      const apiUser = response.data;
       user.value = {
         id: apiUser.id,
         name: apiUser.name,
         email: apiUser.email,
         phone_numbers: apiUser.phone_numbers,
-        status: 'active' as UserStatus, // Default to active for logged in users
+        status: "active" as UserStatus, // Default to active for logged in users
         role: apiUser.role, // Store role as string from API
         dormitory: apiUser.dormitory, // Standardized dormitory property
-      }
+      };
 
-      return response.data
+      return response.data;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to update profile'
-      throw err
+      error.value = err.response?.data?.message || "Failed to update profile";
+      throw err;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
-  }
+  };
 
   /**
    * Initialize authentication state on app startup
-   * 
+   *
    * This method:
    * - Checks for existing token in localStorage
    * - Validates token with server
    * - Loads user profile if token is valid
    * - Clears invalid tokens
-   * 
+   *
    * @example
    * ```typescript
    * // Call in app initialization
@@ -355,31 +354,31 @@ export const useAuthStore = defineStore('auth', () => {
    * ```
    */
   const initializeAuth = async () => {
-    const savedToken = localStorage.getItem('token')
-    
+    const savedToken = localStorage.getItem("token");
+
     if (savedToken) {
-      token.value = savedToken
+      token.value = savedToken;
       // Set token in API headers
       if (api.defaults && api.defaults.headers) {
-        api.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`
+        api.defaults.headers.common["Authorization"] = `Bearer ${savedToken}`;
       }
-      
+
       // Try to load user profile to validate token
       try {
-        await loadProfile()
-      } catch (err) {
+        await loadProfile();
+      } catch {
         // If loading profile fails, clear the invalid token
-        logout()
+        logout();
       }
     }
-  }
+  };
 
   /**
    * Check if current authentication is valid
-   * 
+   *
    * @throws {Error} When authentication check fails
    * @returns {Promise<boolean>} True if authentication is valid, false otherwise
-   * 
+   *
    * @example
    * ```typescript
    * const isValid = await authStore.checkAuth()
@@ -390,24 +389,24 @@ export const useAuthStore = defineStore('auth', () => {
    */
   const checkAuth = async () => {
     try {
-      if (!token.value) return false
-      
-      await loadProfile()
-      return true
-    } catch (err) {
+      if (!token.value) return false;
+
+      await loadProfile();
+      return true;
+    } catch {
       // Clear invalid token
-      logout()
-      return false
+      logout();
+      return false;
     }
-  }
+  };
 
   /**
    * Send password reset link to user's email
-   * 
+   *
    * @param email - User's email address
    * @throws {Error} When password reset request fails
    * @returns {Promise<any>} Reset request response data
-   * 
+   *
    * @example
    * ```typescript
    * await authStore.resetPassword('user@example.com')
@@ -415,26 +414,26 @@ export const useAuthStore = defineStore('auth', () => {
    */
   const resetPassword = async (email: string) => {
     try {
-      loading.value = true
-      error.value = null
+      loading.value = true;
+      error.value = null;
 
-      const response = await authService.resetPassword(email)
-      return response.data
+      const response = await authService.resetPassword(email);
+      return response.data;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to send reset link'
-      throw err
+      error.value = err.response?.data?.message || "Failed to send reset link";
+      throw err;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
-  }
+  };
 
   /**
    * Confirm password reset with token and new password
-   * 
+   *
    * @param resetData - Password reset confirmation data
    * @throws {Error} When password reset confirmation fails
    * @returns {Promise<any>} Reset confirmation response data
-   * 
+   *
    * @example
    * ```typescript
    * await authStore.resetPasswordConfirm({
@@ -447,26 +446,26 @@ export const useAuthStore = defineStore('auth', () => {
    */
   const resetPasswordConfirm = async (resetData: PasswordResetData) => {
     try {
-      loading.value = true
-      error.value = null
-      
-      const response = await authService.resetPasswordConfirm(resetData)
-      return response.data
+      loading.value = true;
+      error.value = null;
+
+      const response = await authService.resetPasswordConfirm(resetData);
+      return response.data;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to reset password'
-      throw err
+      error.value = err.response?.data?.message || "Failed to reset password";
+      throw err;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
-  }
+  };
 
   /**
    * Change user's password
-   * 
+   *
    * @param passwordData - Password change data
    * @throws {Error} When password change fails
    * @returns {Promise<any>} Password change response data
-   * 
+   *
    * @example
    * ```typescript
    * await authStore.changePassword({
@@ -478,18 +477,18 @@ export const useAuthStore = defineStore('auth', () => {
    */
   const changePassword = async (passwordData: any) => {
     try {
-      loading.value = true
-      error.value = null
+      loading.value = true;
+      error.value = null;
 
-      const response = await api.put('/users/change-password', passwordData)
-      return response.data
+      const response = await api.put("/users/change-password", passwordData);
+      return response.data;
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to change password'
-      throw err
+      error.value = err.response?.data?.message || "Failed to change password";
+      throw err;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
-  }
+  };
 
   return {
     // State
@@ -497,12 +496,12 @@ export const useAuthStore = defineStore('auth', () => {
     token,
     loading,
     error,
-    
+
     // Getters
     isAuthenticated,
     userRole,
     fullName,
-    
+
     // Actions
     login,
     register,
@@ -513,6 +512,6 @@ export const useAuthStore = defineStore('auth', () => {
     checkAuth,
     resetPassword,
     resetPasswordConfirm,
-    changePassword
-  }
-})
+    changePassword,
+  };
+});
