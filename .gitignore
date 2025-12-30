@@ -34,7 +34,6 @@ coverage
 .env.test.local
 .env.production.local
 .env.testing
-.env.testing.example
 .env.sdu
 .env.production
 .env.example
