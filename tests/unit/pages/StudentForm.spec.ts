@@ -636,4 +636,107 @@ describe('StudentForm', () => {
       expect(component.studentProfile).toBeDefined();
     });
   });
+
+  describe('Identification Fields', () => {
+    it('should display identification fields in emergency contact section', () => {
+      const wrapper = mount(StudentForm, {
+        global: {
+          plugins: [router, i18n],
+        },
+      });
+
+      // Check if identification fields exist
+      expect(wrapper.find('#student-identification-type').exists()).toBe(true);
+      expect(wrapper.find('#student-identification-number').exists()).toBe(true);
+    });
+
+    it('should have correct identification type options', () => {
+      const wrapper = mount(StudentForm, {
+        global: {
+          plugins: [router, i18n],
+        },
+      });
+
+      const component = wrapper.vm as any;
+      
+      // Check identification type options
+      const options = component.identificationOptions;
+      expect(options).toEqual([
+        { value: 'passport', name: 'Passport' },
+        { value: 'national_id', name: 'National ID' },
+        { value: 'drivers_license', name: "Driver's License" },
+        { value: 'other', name: 'Other' },
+      ]);
+    });
+
+    it('should bind identification fields to user.student_profile', async () => {
+      const wrapper = mount(StudentForm, {
+        global: {
+          plugins: [router, i18n],
+        },
+      });
+
+      const component = wrapper.vm as any;
+      
+      // Set identification values
+      component.user.student_profile.identification_type = 'passport';
+      component.user.student_profile.identification_number = 'A123456789';
+      
+      await wrapper.vm.$nextTick();
+
+      // Check if values are bound correctly
+      expect(component.user.student_profile.identification_type).toBe('passport');
+      expect(component.user.student_profile.identification_number).toBe('A123456789');
+    });
+
+    it('should include identification fields in form submission', async () => {
+      const wrapper = mount(StudentForm, {
+        global: {
+          plugins: [router, i18n],
+        },
+      });
+
+      const component = wrapper.vm as any;
+      
+      // Set identification values
+      component.user.student_profile.identification_type = 'national_id';
+      component.user.student_profile.identification_number = '123456789012';
+      
+      await wrapper.vm.$nextTick();
+
+      // Mock the studentService.update method
+      const mockUpdate = vi.fn().mockResolvedValue({ success: true });
+      vi.mocked(api.studentService.update).mockImplementation(mockUpdate);
+
+      // Trigger form submission
+      await component.submitForm();
+
+      // Check if identification fields were included in the API call
+      expect(mockUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          student_profile: expect.objectContaining({
+            identification_type: 'national_id',
+            identification_number: '123456789012',
+          }),
+        }),
+        expect.any(Number),
+        expect.any(Object),
+      );
+    });
+
+    it('should mark identification fields as required', () => {
+      const wrapper = mount(StudentForm, {
+        global: {
+          plugins: [router, i18n],
+        },
+      });
+
+      // Check if identification fields have required attribute
+      const identificationTypeField = wrapper.find('#student-identification-type');
+      const identificationNumberField = wrapper.find('#student-identification-number');
+      
+      expect(identificationTypeField.attributes('required')).toBeDefined();
+      expect(identificationNumberField.attributes('required')).toBeDefined();
+    });
+  });
 }); 

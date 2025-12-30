@@ -205,6 +205,21 @@
             :label="t('Emergency Contact Email')"
             :placeholder="t('Enter Emergency Contact Email')"
           />
+          <CSelect
+            id="registration-identification-type"
+            v-model="user.student_profile.identification_type"
+            :options="identificationOptions"
+            :label="t('Identification Type')"
+            required
+          />
+          <CInput
+            id="registration-identification-number"
+            v-model="user.student_profile.identification_number"
+            type="text"
+            :label="t('Identification Number')"
+            :placeholder="t('Enter Identification Number')"
+            required
+          />
         </div>
       </CStep>
 
@@ -464,12 +479,14 @@ const user = ref<Partial<User>>({
     emergency_contact_phone: "",
     emergency_contact_type: null,
     emergency_contact_email: "",
+    identification_type: "",
+    identification_number: "",
     deal_number: "",
     agree_to_dormitory_rules: false,
     has_meal_plan: false,
     allergies: "",
     violations: "",
-    files: [null, null, null], // Files belong to the profile
+    files: [null, null], // Files belong to the profile (063 Form, 075 Form)
   },
   payment: {
     payment_check: null,
@@ -478,7 +495,7 @@ const user = ref<Partial<User>>({
 
 type ValidationState = "success" | "error" | "";
 
-const registrationFileLabels = [t("063 Form"), t("075 Form"), t("ID Check")];
+const registrationFileLabels = [t("063 Form"), t("075 Form")];
 const registrationValidationState = ref<{
   iin: ValidationState;
   first_name: ValidationState;
@@ -532,7 +549,7 @@ const registrationValidationMessage = ref({
   payment_check: "",
 });
 const isSubmitting = ref(false);
-const fileValidationStatus = ref<boolean[]>([true, true, true, true]);
+const fileValidationStatus = ref<boolean[]>([true, true]);
 const currentStep = ref(0);
 
 const handleRegistration = async () => {
@@ -643,7 +660,12 @@ const handleRegistration = async () => {
   } catch (error: unknown) {
     //NOSONAR
     console.error("registration error", error);
-    const axiosError = error as { response?: { status?: number; data?: { message?: string; errors?: Record<string, string[]> } } };
+    const axiosError = error as {
+      response?: {
+        status?: number;
+        data?: { message?: string; errors?: Record<string, string[]> };
+      };
+    };
     const response = axiosError.response;
     if (response?.status === 403 && response.data?.message?.includes("closed")) {
       emit("registration-closed");
@@ -766,6 +788,12 @@ const emergencyContactTypeOptions = [
   { value: "guardian", name: t("Guardian") },
   { value: "other", name: t("Other") },
 ];
+const identificationOptions = [
+  { value: "passport", name: "Passport" },
+  { value: "national_id", name: "National ID" },
+  { value: "drivers_license", name: "Driver's License" },
+  { value: "other", name: "Other" },
+];
 const bloodTypeOptions = [
   { value: "A+", name: "A+" },
   { value: "A-", name: "A-" },
@@ -856,8 +884,9 @@ const isPhoneNumbersStepValid = computed(() => {
 
 // Step 5: Emergency Contact
 const isEmergencyContactStepValid = computed(() => {
-  // No required fields in this step based on the template
-  return true;
+  // Require identification fields
+  const profile = user.value.student_profile;
+  return !!profile?.identification_type?.trim() && !!profile?.identification_number?.trim();
 });
 
 // Step 6: Health Information

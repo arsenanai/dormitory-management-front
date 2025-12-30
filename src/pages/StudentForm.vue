@@ -252,6 +252,29 @@
               placeholder="Enter Emergency Contact Email"
             />
           </div>
+          <!-- Identification Type Field -->
+          <div>
+            <CSelect
+              id="student-identification-type"
+              v-model="user.student_profile.identification_type"
+              :options="identificationOptions"
+              :label="t('Identification Type')"
+              :error="validationErrors['student_profile.identification_type']?.[0]"
+              required
+            />
+          </div>
+          <!-- Identification Number Field -->
+          <div>
+            <CInput
+              id="student-identification-number"
+              v-model="user.student_profile.identification_number"
+              type="text"
+              :error="validationErrors['student_profile.identification_number']?.[0]"
+              :label="t('Identification Number')"
+              placeholder="Enter Identification Number"
+              required
+            />
+          </div>
         </div>
       </fieldset>
 
@@ -454,7 +477,7 @@ const props = defineProps<{
   submitLabel?: string;
 }>();
 
-const registrationFileLabels = ["063 Form", "075 Form", "Identification document", "Bank Check"];
+const registrationFileLabels = ["063 Form", "075 Form", "Bank Check"];
 
 // Real dormitories and rooms from API
 const rooms = ref<Room[]>([]);
@@ -531,14 +554,16 @@ const user = ref<Partial<User>>({
     deal_number: "",
     emergency_contact_name: "",
     emergency_contact_phone: "",
+    emergency_contact_type: null,
+    emergency_contact_email: "",
+    identification_type: "",
+    identification_number: "",
     enrollment_year: new Date().getFullYear(),
     faculty: "",
-    files: [null, null, null],
+    files: [null, null, null], // 063 Form, 075 Form, Bank Check
     gender: "",
     has_meal_plan: false,
     iin: "",
-    emergency_contact_type: null,
-    emergency_contact_email: "",
     region: "",
     registration_date: "",
     specialist: "",
@@ -650,6 +675,12 @@ const emergencyContactTypeOptions = [
   { value: "parent", name: t("Parent") },
   { value: "guardian", name: t("Guardian") },
   { value: "other", name: t("Other") },
+];
+const identificationOptions = [
+  { value: "passport", name: "Passport" },
+  { value: "national_id", name: "National ID" },
+  { value: "drivers_license", name: "Driver's License" },
+  { value: "other", name: "Other" },
 ];
 
 const statusOptions = [
@@ -876,7 +907,12 @@ const submitForm = async (): Promise<void> => {
       showSuccess(t("Student created successfully!"));
     }
   } catch (error: unknown) {
-    const axiosError = error as { response?: { status?: number; data?: { message?: string; errors?: Record<string, string[]> } } };
+    const axiosError = error as {
+      response?: {
+        status?: number;
+        data?: { message?: string; errors?: Record<string, string[]> };
+      };
+    };
     if (axiosError.response?.status === 422 && axiosError.response?.data?.errors) {
       validationErrors.value = axiosError.response.data.errors;
       showError(axiosError.response.data.message || t("Please check the form for errors."));

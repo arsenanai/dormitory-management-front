@@ -175,6 +175,109 @@ describe('RegistrationTab - Emergency Contact Fields', () => {
       expect(component.user.student_profile.emergency_contact_phone).toBe('+77001234568');
       expect(component.user.student_profile.emergency_contact_email).toBe('jane@example.com');
     });
+
+    it('should bind identification fields to user.student_profile', async () => {
+      const wrapper = mount(RegistrationTab, {
+        global: {
+          plugins: [router, i18n],
+        },
+      });
+
+      const component = wrapper.vm as any;
+      
+      // Set identification values
+      component.user.student_profile.identification_type = 'passport';
+      component.user.student_profile.identification_number = 'A123456789';
+      
+      await wrapper.vm.$nextTick();
+
+      // Check if values are bound correctly
+      expect(component.user.student_profile.identification_type).toBe('passport');
+      expect(component.user.student_profile.identification_number).toBe('A123456789');
+    });
+  });
+
+  describe('Identification Fields', () => {
+    it('should display identification fields in emergency contact step', async () => {
+      const wrapper = mount(RegistrationTab, {
+        global: {
+          plugins: [router, i18n],
+        },
+      });
+
+      const component = wrapper.vm as any;
+      
+      // Navigate to emergency contact step by filling previous steps
+      component.user.student_profile.gender = 'male';
+      component.user.email = 'test@example.com';
+      component.user.password = 'password123';
+      component.user.password_confirmation = 'password123';
+      component.user.first_name = 'John';
+      component.user.last_name = 'Doe';
+      component.user.phone_numbers = ['+77001234567'];
+      
+      // Move to emergency contact step
+      component.currentStep = 4; // Emergency contact is step 4 (0-indexed)
+      
+      await wrapper.vm.$nextTick();
+
+      // Check if identification fields exist
+      expect(wrapper.find('#registration-identification-type').exists()).toBe(true);
+      expect(wrapper.find('#registration-identification-number').exists()).toBe(true);
+    });
+
+    it('should have correct identification type options', () => {
+      const wrapper = mount(RegistrationTab, {
+        global: {
+          plugins: [router, i18n],
+        },
+      });
+
+      const component = wrapper.vm as any;
+      
+      // Check identification type options
+      const options = component.identificationOptions;
+      expect(options).toEqual([
+        { value: 'passport', name: 'Passport' },
+        { value: 'national_id', name: 'National ID' },
+        { value: 'drivers_license', name: "Driver's License" },
+        { value: 'other', name: 'Other' },
+      ]);
+    });
+
+    it('should validate identification fields as required', () => {
+      const wrapper = mount(RegistrationTab, {
+        global: {
+          plugins: [router, i18n],
+        },
+      });
+
+      const component = wrapper.vm as any;
+      
+      // Test emergency contact step validation with empty identification fields
+      component.user.student_profile.identification_type = '';
+      component.user.student_profile.identification_number = '';
+      
+      const isValid = component.isEmergencyContactStepValid;
+      expect(isValid).toBe(false);
+    });
+
+    it('should pass validation when identification fields are filled', () => {
+      const wrapper = mount(RegistrationTab, {
+        global: {
+          plugins: [router, i18n],
+        },
+      });
+
+      const component = wrapper.vm as any;
+      
+      // Test emergency contact step validation with filled identification fields
+      component.user.student_profile.identification_type = 'passport';
+      component.user.student_profile.identification_number = 'A123456789';
+      
+      const isValid = component.isEmergencyContactStepValid;
+      expect(isValid).toBe(true);
+    });
   });
 
   describe('Emergency Contact Step Validation', () => {

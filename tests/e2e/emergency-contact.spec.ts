@@ -304,4 +304,138 @@ test.describe('Student Form Emergency Contact', () => {
     await humanLikePause(page);
     await expect(page.locator('#student-emergency-email')).toHaveValue('emergency@test.com');
   });
+
+  test('should display and fill identification fields in student registration', async ({ page }) => {
+    // Click on registration tab button with pause
+    await page.waitForSelector('[data-testid="tab-registration"]', { timeout: 10000 });
+    await page.click('[data-testid="tab-registration"]');
+    await page.waitForTimeout(1000); // Pause to see the tab click
+    
+    // Fill gender step
+    await page.selectOption('#registration-gender', 'male');
+    await page.click('button:has-text("Next")');
+    await page.waitForTimeout(500); // Pause after gender step
+
+    // Fill account step with human-like typing
+    await humanLikeType(page, '#registration-iin', '123456789012');
+    await humanLikeType(page, '#registration-email', 'test@example.com');
+    await humanLikeType(page, '#registration-password', 'password123');
+    await humanLikeType(page, '#registration-confirm-password', 'password123');
+    await page.click('button:has-text("Next")');
+    await page.waitForTimeout(500); // Pause after account step
+
+    // Fill personal details with human-like typing
+    await humanLikeType(page, '#registration-first-name', 'John');
+    await humanLikeType(page, '#registration-last-name', 'Doe');
+    await page.click('button:has-text("Next")');
+    await page.waitForTimeout(500); // Pause after personal details
+
+    // Fill phone numbers with human-like typing
+    await humanLikeType(page, '#phone-number-0', '+77001234567');
+    await page.click('button:has-text("Next")');
+    await page.waitForTimeout(1000); // Pause before emergency contact step
+
+    // Check identification fields are present in emergency contact step
+    const identificationTypeField = page.locator('#registration-identification-type');
+    await expect(identificationTypeField).toBeVisible();
+    await identificationTypeField.scrollIntoViewIfNeeded();
+    await identificationTypeField.evaluate((el: any) => el.style.border = '3px solid blue'); // Highlight field
+    await humanLikePause(page);
+    
+    const identificationNumberField = page.locator('#registration-identification-number');
+    await expect(identificationNumberField).toBeVisible();
+    await identificationNumberField.scrollIntoViewIfNeeded();
+    await identificationNumberField.evaluate((el: any) => el.style.border = '3px solid blue'); // Highlight field
+    await humanLikePause(page);
+
+    // Fill identification fields with human-like interaction
+    await humanLikeSelect(page, '#registration-identification-type', 'passport');
+    await humanLikePause(page);
+    await humanLikeType(page, '#registration-identification-number', 'A123456789');
+    await humanLikePause(page);
+
+    // Verify identification field values
+    await expect(page.locator('#registration-identification-type')).toHaveValue('passport');
+    await humanLikePause(page);
+    await expect(page.locator('#registration-identification-number')).toHaveValue('A123456789');
+    await humanLikePause(page);
+  });
+
+  test('should validate identification fields as required in registration', async ({ page }) => {
+    // Click on registration tab button
+    await page.waitForSelector('[data-testid="tab-registration"]', { timeout: 10000 });
+    await page.click('[data-testid="tab-registration"]');
+    await page.waitForTimeout(1000);
+    
+    // Fill all steps up to emergency contact
+    await page.selectOption('#registration-gender', 'male');
+    await page.click('button:has-text("Next")');
+    await page.waitForTimeout(500);
+
+    await humanLikeType(page, '#registration-iin', '123456789012');
+    await humanLikeType(page, '#registration-email', 'test@example.com');
+    await humanLikeType(page, '#registration-password', 'password123');
+    await humanLikeType(page, '#registration-confirm-password', 'password123');
+    await page.click('button:has-text("Next")');
+    await page.waitForTimeout(500);
+
+    await humanLikeType(page, '#registration-first-name', 'John');
+    await humanLikeType(page, '#registration-last-name', 'Doe');
+    await page.click('button:has-text("Next")');
+    await page.waitForTimeout(500);
+
+    await humanLikeType(page, '#phone-number-0', '+77001234567');
+    await page.click('button:has-text("Next")');
+    await page.waitForTimeout(1000);
+
+    // Try to proceed without filling identification fields
+    await page.click('button:has-text("Next")');
+    await page.waitForTimeout(500);
+
+    // Check if validation prevents proceeding (step should remain on emergency contact)
+    const currentStep = await page.locator('.stepper-item.active').textContent();
+    expect(currentStep).toContain('Emergency Contact'); // Should still be on emergency contact step
+  });
+
+  test('should display and fill identification fields in student form', async ({ page }) => {
+    // Login as admin
+    await page.goto('/login');
+    await humanLikeType(page, '#email', 'admin@example.com');
+    await humanLikeType(page, '#password', 'password');
+    await page.click('button[type="submit"]');
+    await page.waitForTimeout(2000);
+
+    // Navigate to students page
+    await page.goto('/students');
+    await page.waitForTimeout(1000);
+
+    // Click add student button
+    await page.click('button:has-text("Add Student")');
+    await page.waitForTimeout(1000);
+
+    // Check identification fields are present in student form
+    const identificationTypeField = page.locator('#student-identification-type');
+    await expect(identificationTypeField).toBeVisible();
+    await identificationTypeField.scrollIntoViewIfNeeded();
+    await identificationTypeField.evaluate((el: any) => el.style.border = '3px solid green'); // Highlight field
+    await humanLikePause(page);
+    
+    const identificationNumberField = page.locator('#student-identification-number');
+    await expect(identificationNumberField).toBeVisible();
+    await identificationNumberField.scrollIntoViewIfNeeded();
+    await identificationNumberField.evaluate((el: any) => el.style.border = '3px solid green'); // Highlight field
+    await humanLikePause(page);
+
+    // Fill identification fields
+    await humanLikeSelect(page, '#student-identification-type', 'national_id');
+    await humanLikePause(page);
+    await humanLikeType(page, '#student-identification-number', '123456789012');
+    await humanLikePause(page);
+
+    // Verify identification field values
+    await expect(page.locator('#student-identification-type')).toHaveValue('national_id');
+    await humanLikePause(page);
+    await expect(page.locator('#student-identification-number')).toHaveValue('123456789012');
+    await humanLikePause(page);
+  });
 });
