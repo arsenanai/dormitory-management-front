@@ -3,26 +3,62 @@
     <!-- Form Fields -->
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <!-- Name Field -->
-      <CInput id="admin-name" v-model="user.first_name" :label="t('Firstname')" placeholder="Enter Firstname" required />
+      <CInput
+        id="admin-name"
+        v-model="user.first_name"
+        :label="t('Firstname')"
+        placeholder="Enter Firstname"
+        required
+      />
 
       <!-- Surname Field -->
-      <CInput id="admin-surname" v-model="user.last_name" type="text" :label="t('Lastname')" placeholder="Enter Lastname"
-        required />
+      <CInput
+        id="admin-surname"
+        v-model="user.last_name"
+        type="text"
+        :label="t('Lastname')"
+        placeholder="Enter Lastname"
+        required
+      />
 
       <!-- Dormitory Field - Show when editing -->
-      <CSelect id="admin-dormitory" v-model="user.dormitory_id" :options="dormitoryOptions" :label="t('Dormitory')"
-        placeholder="Select a dormitory" required />
+      <CSelect
+        id="admin-dormitory"
+        v-model="user.dormitory_id"
+        :options="dormitoryOptions"
+        :label="t('Dormitory')"
+        placeholder="Select a dormitory"
+        required
+      />
 
       <!-- Email Field -->
-      <CInput id="admin-email" v-model="user.email" type="email" :label="t('E-mail')" placeholder="Enter E-mail"
-        required />
+      <CInput
+        id="admin-email"
+        v-model="user.email"
+        type="email"
+        :label="t('E-mail')"
+        placeholder="Enter E-mail"
+        required
+      />
 
       <!-- Password Fields (only when adding) -->
       <template v-if="!isEditing">
-        <CInput id="admin-password" v-model="user.password" type="password" :label="t('Password')"
-          placeholder="Enter Password" required />
-        <CInput id="admin-confirm-password" v-model="user.confirmPassword" type="password"
-          :label="t('Confirm Password')" placeholder="Confirm Password" required />
+        <CInput
+          id="admin-password"
+          v-model="user.password"
+          type="password"
+          :label="t('Password')"
+          placeholder="Enter Password"
+          required
+        />
+        <CInput
+          id="admin-confirm-password"
+          v-model="user.confirmPassword"
+          type="password"
+          :label="t('Confirm Password')"
+          placeholder="Confirm Password"
+          required
+        />
       </template>
 
       <!-- Phone Number Field -->
@@ -31,14 +67,24 @@
           {{ t("Phone Number") }}
         </label>
         <div class="flex items-center gap-2">
-          <CInput id="admin-phone" v-model="phoneNumber" type="tel" placeholder="Enter Phone Number" required />
+          <CInput
+            id="admin-phone"
+            v-model="phoneNumber"
+            type="tel"
+            placeholder="Enter Phone Number"
+            required
+          />
         </div>
       </div>
     </div>
 
     <!-- Submit Button -->
     <div class="mt-6 flex flex-row items-end justify-end gap-2">
-      <CButton v-if="isEditing" data-testid="change-password-btn" @click="showPasswordForm = !showPasswordForm">
+      <CButton
+        v-if="isEditing"
+        data-testid="change-password-btn"
+        @click="showPasswordForm = !showPasswordForm"
+      >
         {{ t("Change Password") }}
       </CButton>
       <CButton type="submit" variant="primary" @click="submitForm">
@@ -47,16 +93,34 @@
     </div>
 
     <!-- Password Change Section -->
-    <div v-if="showPasswordForm" class="mt-6 border-t border-primary-200 pt-6">
-      <h3 class="text-lg font-semibold mb-4 text-primary-700">{{ t("Change Password") }}</h3>
+    <div v-if="showPasswordForm" class="border-primary-200 mt-6 border-t pt-6">
+      <h3 class="text-primary-700 mb-4 text-lg font-semibold">{{ t("Change Password") }}</h3>
       <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <CInput id="current-password" v-model="passwordData.current_password" type="password"
-          :label="t('Current Password')" placeholder="Enter current password" required />
+        <CInput
+          id="current-password"
+          v-model="passwordData.current_password"
+          type="password"
+          :label="t('Current Password')"
+          placeholder="Enter current password"
+          required
+        />
         <div></div>
-        <CInput id="new-password" v-model="passwordData.password" type="password" :label="t('New Password')"
-          placeholder="Enter new password" required />
-        <CInput id="confirm-password" v-model="passwordData.password_confirmation" type="password"
-          :label="t('Confirm New Password')" placeholder="Confirm new password" required />
+        <CInput
+          id="new-password"
+          v-model="passwordData.password"
+          type="password"
+          :label="t('New Password')"
+          placeholder="Enter new password"
+          required
+        />
+        <CInput
+          id="confirm-password"
+          v-model="passwordData.password_confirmation"
+          type="password"
+          :label="t('Confirm New Password')"
+          placeholder="Confirm new password"
+          required
+        />
       </div>
       <div class="mt-4 flex gap-2">
         <CButton type="button" @click="changePassword">
@@ -96,7 +160,7 @@ const authStore = useAuthStore();
 const { showError, showSuccess } = useToast();
 
 // Check if we're editing (ID in route params)
-const userId = computed(() => route.params.id ? Number(route.params.id) : null);
+const userId = computed(() => (route.params.id ? Number(route.params.id) : null));
 const isEditing = computed(() => !!userId.value);
 const isEditingOwnProfile = computed(() => isEditing.value && userId.value === authStore.user?.id);
 
@@ -134,22 +198,24 @@ const passwordData = ref({
 // Computed property for phone number v-model
 const phoneNumber = computed({
   get() {
-    return user.value.phone_numbers && user.value.phone_numbers.length > 0 ? user.value.phone_numbers[0] : '';
+    return user.value.phone_numbers && user.value.phone_numbers.length > 0
+      ? user.value.phone_numbers[0]
+      : "";
   },
   set(val: string) {
     if (!user.value.phone_numbers) user.value.phone_numbers = [];
     user.value.phone_numbers[0] = val;
-  }
+  },
 });
 
 // For test compatibility: proxy phone_numbers as phoneNumbers
 const phoneNumbers = computed({
   get() {
-    return user.value.phone_numbers || [''];
+    return user.value.phone_numbers || [""];
   },
   set(val: string[]) {
     user.value.phone_numbers = val;
-  }
+  },
 });
 
 // Maximum number of phone numbers (from .env)
@@ -157,20 +223,21 @@ const maxPhoneNumbers = parseInt(import.meta.env.VITE_MAX_PHONE_NUMBERS || "3");
 
 // Combine phone number parts into single phone number
 const combinePhoneNumber = (phoneArray: string[]): string => {
-  if (!phoneArray || phoneArray.length === 0) return '';
-  return phoneArray.join('');
+  if (!phoneArray || phoneArray.length === 0) return "";
+  return phoneArray.join("");
 };
 
 // Split combined phone number into parts for display
 const splitPhoneNumber = (phoneNumber: string): string[] => {
   // For now, just return as single entry
-  return phoneNumber ? [phoneNumber] : [''];
+  return phoneNumber ? [phoneNumber] : [""];
 };
 
 // Submit the form
 const submitForm = async (): Promise<void> => {
   // Ensure we have a clean array of phone numbers (filter out empty strings)
-  const cleanPhoneNumbers = user.value.phone_numbers?.filter(phone => phone && phone.trim()) || [];
+  const cleanPhoneNumbers =
+    user.value.phone_numbers?.filter((phone) => phone && phone.trim()) || [];
 
   if (cleanPhoneNumbers.length === 0) {
     showError(t("At least one phone number is required."));
@@ -203,7 +270,7 @@ const submitForm = async (): Promise<void> => {
         };
         await adminService.update(userId.value, updatePayload);
         showSuccess(t("Admin profile updated successfully!"));
-        router.push('/admins');
+        router.push("/admins");
       }
     } else {
       // For new admin creation, include password fields
@@ -219,7 +286,7 @@ const submitForm = async (): Promise<void> => {
       };
       await adminService.create(createPayload);
       showSuccess(t("Admin created successfully!"));
-      router.push('/admins');
+      router.push("/admins");
     }
   } catch (error: any) {
     showError(error.response?.data?.message || t("Failed to save admin data"));
@@ -230,7 +297,8 @@ const submitForm = async (): Promise<void> => {
 const updateProfile = async (): Promise<void> => {
   try {
     // Ensure we have a clean array of phone numbers
-    const cleanPhoneNumbers = user.value.phone_numbers?.filter(phone => phone && phone.trim()) || [];
+    const cleanPhoneNumbers =
+      user.value.phone_numbers?.filter((phone) => phone && phone.trim()) || [];
 
     const payload = {
       first_name: user.value.first_name,
@@ -250,11 +318,15 @@ const updateProfile = async (): Promise<void> => {
 
 // Password change functions
 const changePassword = async (): Promise<void> => {
-  if (!passwordData.value.current_password || !passwordData.value.password || !passwordData.value.password_confirmation) {
+  if (
+    !passwordData.value.current_password ||
+    !passwordData.value.password ||
+    !passwordData.value.password_confirmation
+  ) {
     showError(t("All password fields are required."));
     return;
   }
-  
+
   if (passwordData.value.password !== passwordData.value.password_confirmation) {
     showError(t("New passwords do not match."));
     return;
@@ -283,8 +355,6 @@ const cancelPasswordChange = (): void => {
   };
 };
 
-
-
 // Populate the form if editing an existing user
 watch(
   () => userStore.selectedUser,
@@ -294,7 +364,11 @@ watch(
       user.value.first_name = selectedUser.first_name || "";
       user.value.last_name = selectedUser.last_name || "";
       user.value.email = selectedUser.email || "";
-      user.value.phone_numbers = selectedUser.phone_numbers?.length ? selectedUser.phone_numbers : selectedUser.phone ? [selectedUser.phone] : [""];
+      user.value.phone_numbers = selectedUser.phone_numbers?.length
+        ? selectedUser.phone_numbers
+        : selectedUser.phone
+          ? [selectedUser.phone]
+          : [""];
       user.value.password = ""; // Clear password when editing
       user.value.confirmPassword = ""; // Clear confirm password when editing
       user.value.dormitory_id = selectedUser.admin_dormitory.id || null;
@@ -329,7 +403,11 @@ const loadUser = async (id: number) => {
       email: userData.email || "",
       phone_numbers: (() => {
         // Always ensure we have an array of phone numbers
-        if (userData.phone_numbers && Array.isArray(userData.phone_numbers) && userData.phone_numbers.length > 0) {
+        if (
+          userData.phone_numbers &&
+          Array.isArray(userData.phone_numbers) &&
+          userData.phone_numbers.length > 0
+        ) {
           return userData.phone_numbers;
         } else if (userData.phone && userData.phone.trim()) {
           return [userData.phone];
@@ -379,7 +457,6 @@ onMounted(async () => {
     } else {
       dormitories.value = [];
     }
-
   } catch (error) {
     showError(t("Failed to load dormitories"));
     dormitories.value = [];
@@ -400,7 +477,7 @@ defineExpose({
   loadUser,
   user,
   admin,
-  adminProfile
+  adminProfile,
 });
 </script>
 

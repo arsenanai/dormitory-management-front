@@ -1,6 +1,5 @@
 <template>
   <Navigation :title="t('Dormitory Information')">
-
     <!-- Education Information Settings -->
     <h2 class="mb-4 text-xl font-bold text-gray-800">
       {{ t("EDUCATION INFORMATION SETTINGS") }}

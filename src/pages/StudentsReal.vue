@@ -62,11 +62,14 @@
 
       <!-- Loading State -->
       <div v-if="isLoading" class="flex justify-center p-8">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <div class="h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"></div>
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+      <div
+        v-else-if="error"
+        class="rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700"
+      >
         {{ error }}
       </div>
 
@@ -91,21 +94,21 @@
             <CTableCell>
               <CCheckbox :id="'checkbox-' + student.id" />
             </CTableCell>
-            <CTableCell>{{ student.first_name || student.name || '' }}</CTableCell>
-            <CTableCell>{{ student.last_name || '' }}</CTableCell>
+            <CTableCell>{{ student.first_name || student.name || "" }}</CTableCell>
+            <CTableCell>{{ student.last_name || "" }}</CTableCell>
             <CTableCell>{{ student.email }}</CTableCell>
-            <CTableCell>{{ student.student_id || '' }}</CTableCell>
+            <CTableCell>{{ student.student_id || "" }}</CTableCell>
             <CTableCell>
-              <span 
+              <span
                 :class="getStatusClass(student.status)"
-                class="px-2 py-1 rounded-full text-xs font-medium"
+                class="rounded-full px-2 py-1 text-xs font-medium"
               >
                 {{ getStatusLabel(student.status) }}
               </span>
             </CTableCell>
-            <CTableCell>{{ student.faculty || '' }}</CTableCell>
-            <CTableCell>{{ student.course || '' }}</CTableCell>
-            <CTableCell>{{ student.phone || '' }}</CTableCell>
+            <CTableCell>{{ student.faculty || "" }}</CTableCell>
+            <CTableCell>{{ student.course || "" }}</CTableCell>
+            <CTableCell>{{ student.phone || "" }}</CTableCell>
             <CTableCell class="text-right">
               <div class="flex justify-end gap-2">
                 <CButton @click="editStudent(student)" size="small">
@@ -126,25 +129,17 @@
       </CTable>
 
       <!-- Pagination -->
-      <div v-if="pagination" class="flex justify-between items-center mt-4">
-        <div class="text-sm text-primary-600">
-          {{ t('Showing') }} {{ pagination.from || 0 }} {{ t('to') }} {{ pagination.to || 0 }} 
-          {{ t('of') }} {{ pagination.total || 0 }} {{ t('results') }}
+      <div v-if="pagination" class="mt-4 flex items-center justify-between">
+        <div class="text-primary-600 text-sm">
+          {{ t("Showing") }} {{ pagination.from || 0 }} {{ t("to") }} {{ pagination.to || 0 }}
+          {{ t("of") }} {{ pagination.total || 0 }} {{ t("results") }}
         </div>
         <div class="flex gap-2">
-          <CButton
-            @click="previousPage"
-            :disabled="!pagination.prev_page_url"
-            size="small"
-          >
-            {{ t('Previous') }}
+          <CButton @click="previousPage" :disabled="!pagination.prev_page_url" size="small">
+            {{ t("Previous") }}
           </CButton>
-          <CButton
-            @click="nextPage"
-            :disabled="!pagination.next_page_url"
-            size="small"
-          >
-            {{ t('Next') }}
+          <CButton @click="nextPage" :disabled="!pagination.next_page_url" size="small">
+            {{ t("Next") }}
           </CButton>
         </div>
       </div>
@@ -199,9 +194,7 @@ const filters = ref({
 });
 
 // Options
-const roomOptions = ref([
-  { value: "", name: t("All Rooms") },
-]);
+const roomOptions = ref([{ value: "", name: t("All Rooms") }]);
 
 const statusOptions = [
   { value: "", name: t("All Statuses") },
@@ -225,14 +218,14 @@ const fetchStudents = async () => {
     };
 
     // Remove empty parameters
-    Object.keys(params).forEach(key => {
-      if (params[key] === '' || params[key] === undefined) {
+    Object.keys(params).forEach((key) => {
+      if (params[key] === "" || params[key] === undefined) {
         delete params[key];
       }
     });
 
     const response = await studentService.getAll(params);
-    
+
     if (response.data.data) {
       students.value = response.data.data;
       pagination.value = {
@@ -249,9 +242,9 @@ const fetchStudents = async () => {
       students.value = response.data;
     }
   } catch (err: any) {
-    error.value = err.response?.data?.message || t('Failed to fetch students');
+    error.value = err.response?.data?.message || t("Failed to fetch students");
     showError(error.value);
-    console.error('Error fetching students:', err);
+    console.error("Error fetching students:", err);
   } finally {
     isLoading.value = false;
   }
@@ -262,7 +255,7 @@ const approveStudent = async (studentId: number) => {
     await studentService.approve(studentId);
     await fetchStudents(); // Refresh the list
   } catch (err: any) {
-    error.value = err.response?.data?.message || t('Failed to approve student');
+    error.value = err.response?.data?.message || t("Failed to approve student");
     showError(error.value);
   }
 };
@@ -277,19 +270,19 @@ const exportStudents = async () => {
     };
 
     const response = await studentService.export(params);
-    
+
     // Create blob and download
-    const blob = new Blob([response.data], { 
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+    const blob = new Blob([response.data], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
     const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    link.download = `students_${new Date().toISOString().split('T')[0]}.xlsx`;
+    link.download = `students_${new Date().toISOString().split("T")[0]}.xlsx`;
     link.click();
     window.URL.revokeObjectURL(url);
   } catch (err: any) {
-    error.value = err.response?.data?.message || t('Failed to export students');
+    error.value = err.response?.data?.message || t("Failed to export students");
     showError(error.value);
   }
 };
@@ -305,25 +298,25 @@ const navigateToAddStudent = () => {
 
 const getStatusClass = (status: string) => {
   switch (status) {
-    case 'approved':
-      return 'bg-green-100 text-green-800';
-    case 'pending':
-      return 'bg-yellow-100 text-yellow-800';
-    case 'rejected':
-      return 'bg-red-100 text-red-800';
+    case "approved":
+      return "bg-green-100 text-green-800";
+    case "pending":
+      return "bg-yellow-100 text-yellow-800";
+    case "rejected":
+      return "bg-red-100 text-red-800";
     default:
-      return 'bg-gray-100 text-gray-800';
+      return "bg-gray-100 text-gray-800";
   }
 };
 
 const getStatusLabel = (status: string) => {
   switch (status) {
-    case 'approved':
-      return t('Approved');
-    case 'pending':
-      return t('Pending');
-    case 'rejected':
-      return t('Rejected');
+    case "approved":
+      return t("Approved");
+    case "pending":
+      return t("Pending");
+    case "rejected":
+      return t("Rejected");
     default:
       return status;
   }
@@ -344,10 +337,14 @@ const nextPage = () => {
 };
 
 // Watchers
-watch([searchQuery, filters], () => {
-  currentPage.value = 1;
-  fetchStudents();
-}, { deep: true });
+watch(
+  [searchQuery, filters],
+  () => {
+    currentPage.value = 1;
+    fetchStudents();
+  },
+  { deep: true }
+);
 
 // Lifecycle
 onMounted(() => {

@@ -4,7 +4,7 @@
       <!-- Search and Actions Bar -->
       <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <!-- Unified Search Field -->
-        <div class="flex-1 max-w-md">
+        <div class="max-w-md flex-1">
           <CInput
             id="unified-search"
             v-model="searchQuery"
@@ -14,46 +14,46 @@
             class="w-full"
           />
         </div>
-        
+
         <!-- Add Message Button -->
         <div v-if="isAdmin" class="flex-shrink-0">
-          <CButton 
-            data-testid="add-message-button" 
-            @click="openCreateModal"
-          >
+          <CButton data-testid="add-message-button" @click="openCreateModal">
             <PlusIcon class="h-5 w-5" />
-            {{ t('Add Message') }}
+            {{ t("Add Message") }}
           </CButton>
         </div>
       </div>
 
       <!-- Messages Table -->
-      <div class="bg-white rounded-lg overflow-hidden">
+      <div class="overflow-hidden rounded-lg bg-white">
         <!-- Loading State -->
-        <div v-if="loading" class="text-center py-8 text-primary-600">
+        <div v-if="loading" class="text-primary-600 py-8 text-center">
           {{ t("Loading...") }}
         </div>
 
         <!-- Error State -->
-        <div v-else-if="error" class="text-center py-8 text-red-500">
+        <div v-else-if="error" class="py-8 text-center text-red-500">
           {{ error }}
         </div>
 
         <!-- Empty State -->
-        <div v-else-if="filteredMessages.length === 0" class="text-center py-8 text-gray-500">
-          <div class="text-4xl mb-4">📬</div>
-          <p class="text-lg">{{ isAdmin ? t('No messages yet') : t('No messages received yet') }}</p>
-          <p class="text-sm mt-2">{{ isAdmin ? t('Create your first message to get started') : t('Messages from administrators will appear here') }}</p>
+        <div v-else-if="filteredMessages.length === 0" class="py-8 text-center text-gray-500">
+          <div class="mb-4 text-4xl">📬</div>
+          <p class="text-lg">
+            {{ isAdmin ? t("No messages yet") : t("No messages received yet") }}
+          </p>
+          <p class="mt-2 text-sm">
+            {{
+              isAdmin
+                ? t("Create your first message to get started")
+                : t("Messages from administrators will appear here")
+            }}
+          </p>
         </div>
 
         <!-- Messages Table -->
         <div v-else data-testid="messages-table">
-          <CTable 
-            :data="paginatedMessages"
-            :columns="tableColumns"
-            :loading="loading"
-            hoverable
-          >
+          <CTable :data="paginatedMessages" :columns="tableColumns" :loading="loading" hoverable>
             <template #cell-room="{ row }">
               <div class="font-medium">
                 {{ getRoomDisplayName(row) }}
@@ -62,38 +62,38 @@
                 {{ t(row.type) }}
               </div>
             </template>
-            
+
             <template #cell-message="{ row }">
               <div class="max-w-md">
-                <div class="font-medium text-gray-900 mb-1">
-                  {{ row.title || row.subject || t('No Subject') }}
+                <div class="mb-1 font-medium text-gray-900">
+                  {{ row.title || row.subject || t("No Subject") }}
                 </div>
-                <div class="text-sm text-gray-600 line-clamp-2">
+                <div class="line-clamp-2 text-sm text-gray-600">
                   {{ row.content }}
                 </div>
               </div>
             </template>
-            
+
             <template #cell-sent="{ row }">
               <div class="text-sm text-gray-500">
                 {{ formatDate(row.created_at || row.dateTime) }}
               </div>
             </template>
-            
+
             <template #cell-actions="{ row }" v-if="isAdmin">
-              <div class="flex gap-2 justify-end">
-                <CButton 
-                  size="small" 
-                  @click="openEditModal(row)" 
+              <div class="flex justify-end gap-2">
+                <CButton
+                  size="small"
+                  @click="openEditModal(row)"
                   data-testid="edit-message-button"
                   class=""
                 >
                   <PencilSquareIcon class="h-5 w-5" />
                 </CButton>
-                <CButton 
-                  size="small" 
-                  variant="danger" 
-                  @click="confirmDelete(row.id)" 
+                <CButton
+                  size="small"
+                  variant="danger"
+                  @click="confirmDelete(row.id)"
                   data-testid="delete-message-button"
                   class=""
                 >
@@ -102,25 +102,41 @@
               </div>
             </template>
           </CTable>
-          
+
           <!-- Pagination Controls -->
-          <div v-if="totalPages > 1" class="flex flex-col items-center justify-between gap-4 md:flex-row mt-4" data-testid="pagination">
+          <div
+            v-if="totalPages > 1"
+            class="mt-4 flex flex-col items-center justify-between gap-4 md:flex-row"
+            data-testid="pagination"
+          >
             <div class="text-sm text-gray-700">
               <span v-if="totalMessages > 0">
-                <span class="font-medium">{{ startIndex + 1 }}</span> - <span class="font-medium">{{ endIndex }}</span> / <span class="font-medium">{{ totalMessages }}</span>
+                <span class="font-medium">{{ startIndex + 1 }}</span> -
+                <span class="font-medium">{{ endIndex }}</span> /
+                <span class="font-medium">{{ totalMessages }}</span>
               </span>
               <span v-else>
-                {{ t('No data available') }}
+                {{ t("No data available") }}
               </span>
             </div>
             <div class="flex items-center gap-2">
-              <CButton :disabled="currentPage === 1" @click="goToPrevPage" :aria-label="t('Previous page')" class="h-10">
+              <CButton
+                :disabled="currentPage === 1"
+                @click="goToPrevPage"
+                :aria-label="t('Previous page')"
+                class="h-10"
+              >
                 <ChevronLeftIcon class="h-5 w-5" />
               </CButton>
               <div class="flex items-center gap-1 text-sm">
                 <span>{{ currentPage }} / {{ totalPages }}</span>
               </div>
-              <CButton :disabled="currentPage === totalPages" @click="goToNextPage" :aria-label="t('Next page')" class="h-10">
+              <CButton
+                :disabled="currentPage === totalPages"
+                @click="goToNextPage"
+                :aria-label="t('Next page')"
+                class="h-10"
+              >
                 <ChevronRightIcon class="h-5 w-5" />
               </CButton>
             </div>
@@ -134,49 +150,51 @@
   <!-- Debug: showForm = {{ showForm }}, isAdmin = {{ isAdmin }} -->
   <CModal v-if="isAdmin" v-model="showForm">
     <div>
-      <h2 class="text-xl font-bold mb-4">{{ editingMessage ? t('Edit Message') : t('New Message') }}</h2>
+      <h2 class="mb-4 text-xl font-bold">
+        {{ editingMessage ? t("Edit Message") : t("New Message") }}
+      </h2>
       <form @submit.prevent="submitForm">
         <div class="space-y-4">
-          <CInput 
+          <CInput
             id="message-title-input"
-            data-testid="message-title-input" 
-            v-model="form.title" 
-            :label="t('Title')" 
-            required 
+            data-testid="message-title-input"
+            v-model="form.title"
+            :label="t('Title')"
+            required
           />
-          <CTextarea 
+          <CTextarea
             id="message-content-input"
-            data-testid="message-content-input" 
-            v-model="form.content" 
-            :label="t('Content')" 
-            required 
+            data-testid="message-content-input"
+            v-model="form.content"
+            :label="t('Content')"
+            required
           />
-          
+
           <!-- Recipient Type Selection -->
-          <CSelect 
+          <CSelect
             id="recipient-type-select"
             data-testid="recipient-type-select"
-            v-model="form.recipient_type" 
-            :label="t('Recipient Type')" 
+            v-model="form.recipient_type"
+            :label="t('Recipient Type')"
             :options="recipientTypeOptions"
-            required 
+            required
           />
-          
+
           <!-- Room Selection (only show if recipient_type is room) -->
-          <CSelect 
+          <CSelect
             id="room-select"
             v-if="form.recipient_type === 'room'"
             data-testid="room-select"
-            v-model="form.room_id" 
-            :label="t('Room')" 
+            v-model="form.room_id"
+            :label="t('Room')"
             :options="filteredRoomOptions"
-            required 
+            required
           />
         </div>
-        <div class="flex justify-end gap-2 mt-6">
-          <CButton @click="closeForm">{{ t('Cancel') }}</CButton>
+        <div class="mt-6 flex justify-end gap-2">
+          <CButton @click="closeForm">{{ t("Cancel") }}</CButton>
           <CButton type="submit" variant="primary" data-testid="submit-message-button">
-            {{ editingMessage ? t('Update') : t('Create') }}
+            {{ editingMessage ? t("Update") : t("Create") }}
           </CButton>
         </div>
       </form>
@@ -198,7 +216,13 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { ChevronLeftIcon, ChevronRightIcon, PlusIcon, PencilSquareIcon, TrashIcon } from "@heroicons/vue/24/outline";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  PlusIcon,
+  PencilSquareIcon,
+  TrashIcon,
+} from "@heroicons/vue/24/outline";
 import Navigation from "@/components/CNavigation.vue";
 import CSelect from "@/components/CSelect.vue";
 import CButton from "@/components/CButton.vue";
@@ -219,7 +243,9 @@ import CConfirmationModal from "@/components/CConfirmationModal.vue";
 const { t } = useI18n();
 const { showError, showSuccess } = useToast();
 const authStore = useAuthStore();
-const isAdmin = computed(() => authStore.user?.role?.name === 'admin' || authStore.user?.role === 'admin');
+const isAdmin = computed(
+  () => authStore.user?.role?.name === "admin" || authStore.user?.role === "admin"
+);
 
 // Data
 const messages = ref<any[]>([]);
@@ -232,21 +258,21 @@ const searchQuery = ref("");
 
 // Form state
 const showForm = ref(false);
-const editingMessage = ref<any|null>(null);
+const editingMessage = ref<any | null>(null);
 const showDelete = ref(false);
-const messageToDelete = ref<number|null>(null);
-const form = ref({ 
-  title: '', 
-  content: '', 
-  recipient_type: 'all',
+const messageToDelete = ref<number | null>(null);
+const form = ref({
+  title: "",
+  content: "",
+  recipient_type: "all",
   room_id: "",
-  type: 'general'
+  type: "general",
 });
 
 // Recipient type options
 const recipientTypeOptions = computed(() => [
-  { value: 'all', name: t('All Students') },
-  { value: 'room', name: t('Specific Room') }
+  { value: "all", name: t("All Students") },
+  { value: "room", name: t("Specific Room") },
 ]);
 
 // Filter rooms by admin's dormitory
@@ -255,7 +281,7 @@ const filteredRoomOptions = computed(() => {
   // So we can use all the rooms returned from the API
   return [
     { value: "", name: t("All Rooms") },
-    ...rooms.value.map(room => ({ value: room.id, name: room.number }))
+    ...rooms.value.map((room) => ({ value: room.id, name: room.number })),
   ];
 });
 
@@ -263,13 +289,13 @@ const filteredRoomOptions = computed(() => {
 const loadData = async () => {
   loading.value = true;
   error.value = null;
-  
+
   try {
     // Check if user is authenticated via auth store
     const isUserAuthenticated = authStore.isAuthenticated && authStore.user;
-    
+
     if (!isUserAuthenticated) {
-      error.value = 'Authentication required';
+      error.value = "Authentication required";
       messages.value = [];
       rooms.value = [];
       return;
@@ -284,27 +310,27 @@ const loadData = async () => {
     }
 
     // For students, fetch their messages (messages sent to their dormitory or room)
-    const fetchMessages = authStore.user?.role?.name === 'student'
-      ? messageService.getMyMessages(params)
-      : messageService.getAll(params);
+    const fetchMessages =
+      authStore.user?.role?.name === "student"
+        ? messageService.getMyMessages(params)
+        : messageService.getAll(params);
 
     // For admin users, fetch rooms from their assigned dormitory
-    const fetchRooms = authStore.user?.role?.name === 'admin' && authStore.user?.adminProfile?.dormitory_id
-      ? roomService.getByDormitory(authStore.user.adminProfile.dormitory_id)
-      : roomService.listAll();
+    const fetchRooms =
+      authStore.user?.role?.name === "admin" && authStore.user?.adminProfile?.dormitory_id
+        ? roomService.getByDormitory(authStore.user.adminProfile.dormitory_id)
+        : roomService.listAll();
 
-    const [messagesResponse, roomsResponse] = await Promise.all([
-      fetchMessages,
-      fetchRooms
-    ]);
-    
+    const [messagesResponse, roomsResponse] = await Promise.all([fetchMessages, fetchRooms]);
+
     // Handle Laravel paginated response structure for messages
     if (messagesResponse && messagesResponse.data) {
       // Laravel paginated response: { data: [...], total: X, ... }
       if (messagesResponse.data.data && Array.isArray(messagesResponse.data.data)) {
         messages.value = messagesResponse.data.data;
         totalMessages.value = messagesResponse.data.total || 0;
-      } else if (Array.isArray(messagesResponse.data)) { // Non-paginated array response
+      } else if (Array.isArray(messagesResponse.data)) {
+        // Non-paginated array response
         messages.value = messagesResponse.data;
         totalMessages.value = messagesResponse.data.length;
       } else {
@@ -315,7 +341,7 @@ const loadData = async () => {
       messages.value = [];
       totalMessages.value = 0;
     }
-    
+
     // Handle Laravel paginated response structure for rooms
     if (roomsResponse && roomsResponse.data) {
       if (Array.isArray(roomsResponse.data)) {
@@ -330,18 +356,18 @@ const loadData = async () => {
     } else {
       rooms.value = [];
     }
-    
-    console.log('Fetched messages:', messages.value.length);
-    console.log('Total messages:', totalMessages.value);
-    console.log('Total pages:', totalPages.value);
-    console.log('Current page:', currentPage.value);
-    console.log('Items per page:', itemsPerPage);
-    console.log('Calculated total pages:', Math.ceil(totalMessages.value / itemsPerPage));
-    console.log('Fetched rooms:', rooms.value.length);
+
+    console.log("Fetched messages:", messages.value.length);
+    console.log("Total messages:", totalMessages.value);
+    console.log("Total pages:", totalPages.value);
+    console.log("Current page:", currentPage.value);
+    console.log("Items per page:", itemsPerPage);
+    console.log("Calculated total pages:", Math.ceil(totalMessages.value / itemsPerPage));
+    console.log("Fetched rooms:", rooms.value.length);
   } catch (err: any) {
-    console.error('Error loading messages:', err);
-    error.value = 'Failed to load messages data';
-    showError(t('Failed to load messages data'));
+    console.error("Error loading messages:", err);
+    error.value = "Failed to load messages data";
+    showError(t("Failed to load messages data"));
   } finally {
     loading.value = false;
   }
@@ -372,11 +398,11 @@ const visiblePages = computed(() => {
   const maxVisible = 5;
   let start = Math.max(1, currentPage.value - Math.floor(maxVisible / 2));
   let end = Math.min(totalPages.value, start + maxVisible - 1);
-  
+
   if (end - start + 1 < maxVisible) {
     start = Math.max(1, end - maxVisible + 1);
   }
-  
+
   for (let i = start; i <= end; i++) {
     pages.push(i);
   }
@@ -420,93 +446,93 @@ watch(searchQuery, () => {
 // Table columns configuration
 const tableColumns = computed(() => {
   const columns = [
-    { key: 'room', label: t('Room') },
-    { key: 'message', label: t('Message') },
-    { key: 'sent', label: t('Sent') }
+    { key: "room", label: t("Room") },
+    { key: "message", label: t("Message") },
+    { key: "sent", label: t("Sent") },
   ];
-  
+
   if (isAdmin.value) {
-    columns.push({ key: 'actions', label: t('Actions') });
+    columns.push({ key: "actions", label: t("Actions") });
   }
-  
+
   return columns;
 });
 
 // Filtered messages based on search query
 const filteredMessages = computed(() => {
   if (!messages.value.length) return [];
-  
+
   const query = searchQuery.value.toLowerCase().trim();
   if (!query) return messages.value;
-  
-  return messages.value.filter(msg => {
+
+  return messages.value.filter((msg) => {
     const roomMatch = getRoomDisplayName(msg).toLowerCase().includes(query);
-    const titleMatch = (msg.title || msg.subject || '').toLowerCase().includes(query);
-    const contentMatch = (msg.content || '').toLowerCase().includes(query);
-    
+    const titleMatch = (msg.title || msg.subject || "").toLowerCase().includes(query);
+    const contentMatch = (msg.content || "").toLowerCase().includes(query);
+
     return roomMatch || titleMatch || contentMatch;
   });
 });
 
 // Helper function to get room display name
 const getRoomDisplayName = (msg: any) => {
-  if (msg.recipient_type === 'all') {
-    return t('All Rooms');
+  if (msg.recipient_type === "all") {
+    return t("All Rooms");
   }
-  
+
   if (msg.room_id) {
-    const room = rooms.value.find(r => r.id === msg.room_id);
-    return room ? room.number : t('Unknown Room');
+    const room = rooms.value.find((r) => r.id === msg.room_id);
+    return room ? room.number : t("Unknown Room");
   }
-  
-  return t('All Rooms');
+
+  return t("All Rooms");
 };
 
 // Modal functions
-const openCreateModal = () => { 
-  console.log('openCreateModal called');
-  editingMessage.value = null; 
-  form.value = { 
-    title: '', 
-    content: '', 
-    recipient_type: 'all',
+const openCreateModal = () => {
+  console.log("openCreateModal called");
+  editingMessage.value = null;
+  form.value = {
+    title: "",
+    content: "",
+    recipient_type: "all",
     room_id: "",
-    type: 'general'
-  }; 
-  showForm.value = true; 
-  console.log('showForm set to:', showForm.value);
+    type: "general",
+  };
+  showForm.value = true;
+  console.log("showForm set to:", showForm.value);
 };
 
-const openEditModal = (msg: any) => { 
-  editingMessage.value = msg; 
-  form.value = { 
-    title: msg.title || '', 
-    content: msg.content || '',
-    recipient_type: msg.recipient_type || 'all',
+const openEditModal = (msg: any) => {
+  editingMessage.value = msg;
+  form.value = {
+    title: msg.title || "",
+    content: msg.content || "",
+    recipient_type: msg.recipient_type || "all",
     room_id: msg.room_id || "",
-    type: msg.type || 'general'
-  }; 
-  showForm.value = true; 
+    type: msg.type || "general",
+  };
+  showForm.value = true;
 };
 
-const closeForm = () => { 
-  showForm.value = false; 
-  form.value = { 
-    title: '', 
-    content: '', 
-    recipient_type: 'all',
+const closeForm = () => {
+  showForm.value = false;
+  form.value = {
+    title: "",
+    content: "",
+    recipient_type: "all",
     room_id: "",
-    type: 'general'
+    type: "general",
   };
 };
 
 const submitForm = async () => {
   try {
     if (!form.value.title || !form.value.content) {
-      showError(t('Please fill in all required fields'));
+      showError(t("Please fill in all required fields"));
       return;
     }
-    
+
     const messageData = {
       title: form.value.title,
       content: form.value.content,
@@ -514,31 +540,31 @@ const submitForm = async () => {
       recipient_type: form.value.recipient_type,
       dormitory_id: authStore.user?.adminProfile?.dormitory_id, // Use admin's assigned dormitory
       room_id: form.value.room_id,
-      receiver_id: authStore.user?.id
+      receiver_id: authStore.user?.id,
     };
-    
+
     if (editingMessage.value) {
       const res = await messageService.update(editingMessage.value.id, messageData);
       const idx = messages.value.findIndex((m: any) => m.id === editingMessage.value.id);
       if (idx !== -1) messages.value[idx] = res.data;
-      showSuccess(t('Message updated successfully'));
+      showSuccess(t("Message updated successfully"));
     } else {
       const res = await messageService.create(messageData);
       messages.value.unshift(res.data);
-      showSuccess(t('Message created successfully'));
+      showSuccess(t("Message created successfully"));
     }
     showForm.value = false;
     await loadData();
   } catch (e) {
-    console.error('Error submitting form:', e);
-    showError(t('Failed to save message'));
+    console.error("Error submitting form:", e);
+    showError(t("Failed to save message"));
   }
 };
 
 // Delete functions
-const confirmDelete = (id: number) => { 
-  messageToDelete.value = id; 
-  showDelete.value = true; 
+const confirmDelete = (id: number) => {
+  messageToDelete.value = id;
+  showDelete.value = true;
 };
 
 const deleteMessage = async () => {
@@ -546,18 +572,18 @@ const deleteMessage = async () => {
   try {
     await messageService.delete(messageToDelete.value);
     messages.value = messages.value.filter((m: any) => m.id !== messageToDelete.value);
-    showSuccess(t('Message deleted successfully'));
+    showSuccess(t("Message deleted successfully"));
   } catch (e) {
-    showError(t('Failed to delete message'));
+    showError(t("Failed to delete message"));
   } finally {
-    showDelete.value = false; 
+    showDelete.value = false;
     messageToDelete.value = null;
   }
 };
 
 // Format date helper
 const formatDate = (dateString: string) => {
-  if (!dateString) return '-';
+  if (!dateString) return "-";
   return new Date(dateString).toLocaleString();
 };
 </script>

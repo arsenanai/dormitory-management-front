@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap&subset=cyrillic-ext');
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap&subset=cyrillic-ext");
 @import "tailwindcss";
 @plugin 'flowbite/plugin';
 
@@ -6,16 +6,16 @@
 
 @theme {
   /* Primary SDU Blue */
-  --color-primary-50: #f3f4f9;   /* Lightest */
-  --color-primary-100: #e1e3f0;  /* Lighter */
-  --color-primary-200: #c2c6e1;  /* Light */
-  --color-primary-300: #a3a8d2;  /* Medium Light */
-  --color-primary-400: #848bc3;  /* Medium */
-  --color-primary-500: #2f3459;  /* Main SDU Blue */
-  --color-primary-600: #2a2f50;  /* Dark */
-  --color-primary-700: #232743;  /* Darker */
-  --color-primary-800: #1c1f36;  /* Even Darker */
-  --color-primary-900: #141624;  /* Darkest */
+  --color-primary-50: #f3f4f9; /* Lightest */
+  --color-primary-100: #e1e3f0; /* Lighter */
+  --color-primary-200: #c2c6e1; /* Light */
+  --color-primary-300: #a3a8d2; /* Medium Light */
+  --color-primary-400: #848bc3; /* Medium */
+  --color-primary-500: #2f3459; /* Main SDU Blue */
+  --color-primary-600: #2a2f50; /* Dark */
+  --color-primary-700: #232743; /* Darker */
+  --color-primary-800: #1c1f36; /* Even Darker */
+  --color-primary-900: #141624; /* Darkest */
 
   /* Secondary SDU Orange */
   --color-secondary-50: #fdf7f5; /* Lightest */
@@ -71,7 +71,9 @@
 /* Remove borders from dropdowns in accessibility mode */
 .accessibility-mode .user-menu-dropdown {
   border: none !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
 }
 
 .accessibility-mode .user-menu-dropdown * {
@@ -88,7 +90,9 @@
 }
 
 .accessibility-mode .shadow-lg {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
 }
 
 /* Force remove all borders in accessibility mode */

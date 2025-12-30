@@ -1,17 +1,30 @@
 <template>
-  <aside class="overflow-visible w-full lg:static lg:w-64 lg:flex-shrink-0 z-30 lg:z-10">
-    <nav v-if="isVisible" class="flex flex-col min-h-0 lg:h-full" aria-label="Main sidebar navigation">
+  <aside class="z-30 w-full overflow-visible lg:static lg:z-10 lg:w-64 lg:flex-shrink-0">
+    <nav
+      v-if="isVisible"
+      class="flex min-h-0 flex-col lg:h-full"
+      aria-label="Main sidebar navigation"
+    >
       <h2 class="sr-only">Main Navigation</h2>
       <div v-for="menu in topLevelMenus" :key="menu.name" class="p-0">
         <!-- Top-Level Menu -->
-        <router-link :to="menu.path" :class="[
-          'hover:bg-gray-200 focus:ring-3 focus:outline-none focus:ring-secondary-300 flex w-full items-center gap-3 p-3 text-left text-base leading-5 font-medium transition-all duration-150',
-          route.path === menu.path
-            ? 'bg-primary-100 text-primary-700 border-r-3 border-r-secondary-600'
-            : 'bg-transparent lg:text-gray-500 border-r-3 border-r-transparent',
-        ]" :aria-current="route.path === menu.path ? 'page' : undefined" @click="handleNavClick(menu)">
-          <component :is="menu.meta.icon" class="h-5 w-5" :class="route.path === menu.path ? 'text-secondary-600' : 'text-gray-500'
-            " aria-hidden="true" />
+        <router-link
+          :to="menu.path"
+          :class="[
+            'focus:ring-secondary-300 flex w-full items-center gap-3 p-3 text-left text-base leading-5 font-medium transition-all duration-150 hover:bg-gray-200 focus:ring-3 focus:outline-none',
+            route.path === menu.path
+              ? 'bg-primary-100 text-primary-700 border-r-secondary-600 border-r-3'
+              : 'border-r-3 border-r-transparent bg-transparent lg:text-gray-500',
+          ]"
+          :aria-current="route.path === menu.path ? 'page' : undefined"
+          @click="handleNavClick(menu)"
+        >
+          <component
+            :is="menu.meta.icon"
+            class="h-5 w-5"
+            :class="route.path === menu.path ? 'text-secondary-600' : 'text-gray-500'"
+            aria-hidden="true"
+          />
           <!-- Possible titles -->
           <!-- t('Dashboard') -->
           <!-- t('Admins') -->
@@ -34,28 +47,42 @@
           <!-- t('Room Types') -->
           <span class="flex-1">{{ t(menu.meta.title) }}</span>
           <!-- Badge for messages (students only) -->
-          <span v-if="menu.name === 'Messages' && authStore.userRole === 'student' && unreadMessagesCount > 0"
-            class="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center min-w-[20px]">
-            {{ unreadMessagesCount > 99 ? '99+' : unreadMessagesCount }}
+          <span
+            v-if="
+              menu.name === 'Messages' &&
+              authStore.userRole === 'student' &&
+              unreadMessagesCount > 0
+            "
+            class="flex h-5 w-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 text-xs text-white"
+          >
+            {{ unreadMessagesCount > 99 ? "99+" : unreadMessagesCount }}
           </span>
         </router-link>
 
         <!-- Submenus -->
-        <div v-if="
-          menu.submenus &&
-          menu.submenus.length &&
-          isSubmenuActive(menu.submenus)
-        " class="ml-6 flex flex-col">
-          <router-link v-for="submenu in menu.submenus" :key="submenu.name" :to="submenu.path" :class="[
-            'hover:bg-gray-200 focus:ring-3 focus:outline-none focus:ring-secondary-300 flex w-full items-center gap-3 p-3 text-left text-sm leading-5 font-medium transition-all duration-150',
-            isSubmenuHighlighted(submenu)
-              ? 'bg-primary-100 text-primary-700 border-r-3 border-r-secondary-600'
-              : 'bg-transparent lg:text-gray-500 border-r-3 border-r-transparent',
-          ]" :aria-current="isSubmenuHighlighted(submenu) ? 'page' : undefined" @click="handleNavClick(submenu)">
-            <component :is="submenu.meta.icon" class="h-4 w-4" :class="isSubmenuHighlighted(submenu)
-                ? 'text-secondary-600'
-                : 'text-gray-500'
-              " aria-hidden="true" />
+        <div
+          v-if="menu.submenus && menu.submenus.length && isSubmenuActive(menu.submenus)"
+          class="ml-6 flex flex-col"
+        >
+          <router-link
+            v-for="submenu in menu.submenus"
+            :key="submenu.name"
+            :to="submenu.path"
+            :class="[
+              'focus:ring-secondary-300 flex w-full items-center gap-3 p-3 text-left text-sm leading-5 font-medium transition-all duration-150 hover:bg-gray-200 focus:ring-3 focus:outline-none',
+              isSubmenuHighlighted(submenu)
+                ? 'bg-primary-100 text-primary-700 border-r-secondary-600 border-r-3'
+                : 'border-r-3 border-r-transparent bg-transparent lg:text-gray-500',
+            ]"
+            :aria-current="isSubmenuHighlighted(submenu) ? 'page' : undefined"
+            @click="handleNavClick(submenu)"
+          >
+            <component
+              :is="submenu.meta.icon"
+              class="h-4 w-4"
+              :class="isSubmenuHighlighted(submenu) ? 'text-secondary-600' : 'text-gray-500'"
+              aria-hidden="true"
+            />
             {{ t(submenu.meta.title) }}
           </router-link>
         </div>
@@ -102,7 +129,7 @@ const isVisible = ref(true);
 
 // Define emits
 const emit = defineEmits<{
-  'nav-click': [item: Menu];
+  "nav-click": [item: Menu];
 }>();
 
 // Function to map a route to a menu item
@@ -111,7 +138,7 @@ const mapRouteToMenu = (route: any): Menu => ({
   path: route.path,
   meta: {
     title: (route.meta?.title as string) || "",
-    icon: (route.meta?.icon as object | (() => void)) || (() => { }),
+    icon: (route.meta?.icon as object | (() => void)) || (() => {}),
     sidebar: (route.meta?.sidebar as boolean) || false,
     parent: (route.meta?.parent as string) || "",
     roles: (route.meta?.roles as string[]) || [],
@@ -122,13 +149,15 @@ const mapRouteToMenu = (route: any): Menu => ({
 // Function to map submenus for a given menu
 const mapSubmenus = (menuName: string): Menu[] => {
   return router.options.routes
-    .filter(
-      (submenu) => submenu.meta?.parent === menuName && submenu.meta?.sidebar,
-    )
+    .filter((submenu) => submenu.meta?.parent === menuName && submenu.meta?.sidebar)
     .filter((submenu) => {
       // Check role-based access
-      if (submenu.meta?.roles && Array.isArray(submenu.meta.roles) && submenu.meta.roles.length > 0) {
-        return submenu.meta.roles.includes(authStore.userRole || '');
+      if (
+        submenu.meta?.roles &&
+        Array.isArray(submenu.meta.roles) &&
+        submenu.meta.roles.length > 0
+      ) {
+        return submenu.meta.roles.includes(authStore.userRole || "");
       }
       return true;
     })
@@ -142,7 +171,7 @@ const topLevelMenus = computed<Menu[]>(() => {
     .filter((route) => {
       // Check role-based access
       if (route.meta?.roles && Array.isArray(route.meta.roles) && route.meta.roles.length > 0) {
-        return route.meta.roles.includes(authStore.userRole || '');
+        return route.meta.roles.includes(authStore.userRole || "");
       }
       return true;
     });
@@ -157,8 +186,7 @@ const topLevelMenus = computed<Menu[]>(() => {
 const isSubmenuActive = (submenus: Menu[]): boolean => {
   return submenus.some((submenu) => {
     return route.matched.some(
-      (matchedRoute: RouteLocationMatched) =>
-        matchedRoute.path === submenu.path,
+      (matchedRoute: RouteLocationMatched) => matchedRoute.path === submenu.path
     );
   });
 };
@@ -166,14 +194,14 @@ const isSubmenuActive = (submenus: Menu[]): boolean => {
 // Check if a specific submenu is highlighted
 const isSubmenuHighlighted = (submenu: Menu): boolean => {
   return route.matched.some(
-    (matchedRoute: RouteLocationMatched) => matchedRoute.path === submenu.path,
+    (matchedRoute: RouteLocationMatched) => matchedRoute.path === submenu.path
   );
 };
 
 // Function to handle navigation item click
 const handleNavClick = (item: Menu) => {
   // Emit the nav-click event to notify parent component
-  emit('nav-click', item);
+  emit("nav-click", item);
 
   // If it's a top-level menu with submenus, we might want to handle it differently
   if (item.submenus && item.submenus.length > 0) {
@@ -186,10 +214,7 @@ const handleNavClick = (item: Menu) => {
 };
 
 // Watch for route changes and user role changes to update the sidebar dynamically
-watch(
-  [() => route.path, () => authStore.userRole],
-  () => {
-    // The computed property will automatically update when dependencies change
-  },
-);
+watch([() => route.path, () => authStore.userRole], () => {
+  // The computed property will automatically update when dependencies change
+});
 </script>

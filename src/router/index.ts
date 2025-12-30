@@ -1,7 +1,7 @@
-import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
-import { useAuthStore } from '@/stores/auth';
-import Login from '@/pages/Login.vue';
-import Main from '@/pages/Statistics.vue';
+import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
+import { useAuthStore } from "@/stores/auth";
+import Login from "@/pages/Login.vue";
+import Main from "@/pages/Statistics.vue";
 import {
   HomeIcon,
   AcademicCapIcon,
@@ -11,7 +11,7 @@ import {
   ClipboardDocumentListIcon,
   Cog6ToothIcon,
   UserGroupIcon,
-} from '@heroicons/vue/24/outline';
+} from "@heroicons/vue/24/outline";
 
 // Define meta fields for routes
 interface RouteMeta {
@@ -38,149 +38,149 @@ const routes: AppRouteRecordRaw[] = [
   //   },
   // },
   {
-    path: '/',
-    name: 'login',
+    path: "/",
+    name: "login",
     component: Login,
     meta: {
-      title: 'Login',
+      title: "Login",
       requiresAuth: false,
     },
   },
   {
-    path: '/main',
-    name: 'Main Page',
+    path: "/main",
+    name: "Main Page",
     component: Main,
     meta: {
-      title: 'Dashboard',
+      title: "Dashboard",
       requiresAuth: true,
       sidebar: true,
       icon: HomeIcon,
-      roles: ['sudo', 'admin'],
+      roles: ["sudo", "admin"],
     },
   },
   {
-    path: '/admins',
-    name: 'Admins',
-    component: () => import('@/pages/Admins.vue'),
+    path: "/admins",
+    name: "Admins",
+    component: () => import("@/pages/Admins.vue"),
     meta: {
-      title: 'Admins',
+      title: "Admins",
       requiresAuth: true,
       sidebar: true,
       icon: UserGroupIcon,
-      roles: ['sudo'],
+      roles: ["sudo"],
     },
   },
   {
-    path: '/admin-form/:id?',
-    name: 'Admin Form',
-    component: () => import('@/pages/AdminForm.vue'),
+    path: "/admin-form/:id?",
+    name: "Admin Form",
+    component: () => import("@/pages/AdminForm.vue"),
     meta: {
-      title: 'Admin Form',
+      title: "Admin Form",
       requiresAuth: true,
       sidebar: true,
       icon: PencilSquareIcon,
-      parent: 'Admins',
-      roles: ['sudo', 'admin'],
+      parent: "Admins",
+      roles: ["sudo", "admin"],
     },
   },
   {
-    path: '/students',
-    name: 'Students',
-    component: () => import('@/pages/Students.vue'),
+    path: "/students",
+    name: "Students",
+    component: () => import("@/pages/Students.vue"),
     meta: {
-      title: 'Students',
+      title: "Students",
       requiresAuth: true,
       sidebar: true,
       icon: UserGroupIcon,
-      roles: ['admin'],
+      roles: ["admin"],
     },
   },
   {
-    path: '/student-form/:id?',
-    name: 'Student Form',
-    component: () => import('@/pages/StudentForm.vue'),
+    path: "/student-form/:id?",
+    name: "Student Form",
+    component: () => import("@/pages/StudentForm.vue"),
     meta: {
-      title: 'Student Form',
+      title: "Student Form",
       requiresAuth: true,
       sidebar: true,
       icon: PencilSquareIcon,
-      parent: 'Students',
-      roles: ['admin'],
+      parent: "Students",
+      roles: ["admin"],
     },
   },
   {
-    path: '/student-main',
-    name: 'Main',
-    component: () => import('@/pages/StudentMain.vue'),
+    path: "/student-main",
+    name: "Main",
+    component: () => import("@/pages/StudentMain.vue"),
     meta: {
-      title: 'Main',
+      title: "Main",
       requiresAuth: true,
       sidebar: true,
       icon: HomeIcon,
-      roles: ['student'],
+      roles: ["student"],
     },
   },
   {
-    path: '/student-my-payments',
-    name: 'Student Payments',
-    component: () => import('@/pages/Payments.vue'),
+    path: "/student-my-payments",
+    name: "Student Payments",
+    component: () => import("@/pages/Payments.vue"),
     meta: {
-      title: 'My Payments',
+      title: "My Payments",
       requiresAuth: true,
       sidebar: true,
       icon: ClipboardDocumentListIcon,
-      roles: ['student'],
+      roles: ["student"],
       // Flag used inside Payments.vue to switch to "self-service" mode
       myPayments: true,
     } as any,
   },
   {
-    path: '/student-messages',
-    name: 'Student Messages',
-    component: () => import('@/pages/StudentMessages.vue'),
+    path: "/student-messages",
+    name: "Student Messages",
+    component: () => import("@/pages/StudentMessages.vue"),
     meta: {
-      title: 'All Messages',
+      title: "All Messages",
       requiresAuth: true,
       sidebar: true,
       icon: ChatBubbleLeftRightIcon,
-      roles: ['student'],
+      roles: ["student"],
     },
   },
   {
-    path: '/guest-house',
-    name: 'Guests',
-    component: () => import('@/pages/Guests.vue'),
+    path: "/guest-house",
+    name: "Guests",
+    component: () => import("@/pages/Guests.vue"),
     meta: {
-      title: 'Guests',
+      title: "Guests",
       requiresAuth: true,
       sidebar: true,
       icon: BuildingOfficeIcon,
-      roles: ['admin'],
+      roles: ["admin"],
     },
   },
   {
-    path: '/guest-form/:id?',
-    name: 'Guest Form',
-    component: () => import('@/pages/GuestForm.vue'),
+    path: "/guest-form/:id?",
+    name: "Guest Form",
+    component: () => import("@/pages/GuestForm.vue"),
     meta: {
-      title: 'Guest Form',
-      parent: 'Guests',
+      title: "Guest Form",
+      parent: "Guests",
       requiresAuth: true,
       sidebar: true,
       icon: PencilSquareIcon,
-      roles: ['admin'],
+      roles: ["admin"],
     },
   },
   {
-    path: '/guest-home',
-    name: 'Guest Home',
-    component: () => import('@/pages/GuestHome.vue'),
+    path: "/guest-home",
+    name: "Guest Home",
+    component: () => import("@/pages/GuestHome.vue"),
     meta: {
-      title: 'Guest Home',
+      title: "Guest Home",
       requiresAuth: true,
       sidebar: true,
       icon: HomeIcon,
-      roles: ['guest'],
+      roles: ["guest"],
     },
   },
   // {
@@ -197,40 +197,40 @@ const routes: AppRouteRecordRaw[] = [
   //   } as any,
   // },
   {
-    path: '/messages',
-    name: 'Messages',
-    component: () => import('@/pages/Messages.vue'),
+    path: "/messages",
+    name: "Messages",
+    component: () => import("@/pages/Messages.vue"),
     meta: {
-      title: 'Messages',
+      title: "Messages",
       requiresAuth: true,
       sidebar: true,
       icon: ChatBubbleLeftRightIcon,
-      roles: ['admin'],
+      roles: ["admin"],
     },
   },
   {
-    path: '/payments',
-    name: 'Payments',
-    component: () => import('@/pages/Payments.vue'),
+    path: "/payments",
+    name: "Payments",
+    component: () => import("@/pages/Payments.vue"),
     meta: {
-      title: 'Payments',
+      title: "Payments",
       requiresAuth: true,
       sidebar: true,
       icon: ClipboardDocumentListIcon,
-      roles: ['admin'],
+      roles: ["admin"],
     },
   },
   {
-    path: '/payment-form/:id?',
-    name: 'Payment Form',
-    component: () => import('@/pages/PaymentForm.vue'),
+    path: "/payment-form/:id?",
+    name: "Payment Form",
+    component: () => import("@/pages/PaymentForm.vue"),
     meta: {
-      title: 'Payment Form',
-      parent: 'Payments',
+      title: "Payment Form",
+      parent: "Payments",
       requiresAuth: true,
       sidebar: true,
       icon: PencilSquareIcon,
-      roles: ['admin'],
+      roles: ["admin"],
     },
   },
   // {
@@ -246,118 +246,118 @@ const routes: AppRouteRecordRaw[] = [
   //   },
   // },
   {
-    path: '/settings',
-    name: 'Settings',
-    component: () => import('@/pages/WebsiteSettings.vue'),
+    path: "/settings",
+    name: "Settings",
+    component: () => import("@/pages/WebsiteSettings.vue"),
     meta: {
-      title: 'Settings',
+      title: "Settings",
       requiresAuth: true,
       sidebar: true,
       icon: Cog6ToothIcon,
-      roles: ['sudo'],
+      roles: ["sudo"],
     },
   },
   {
-    path: '/account-preferences',
-    name: 'AccountPreferences',
-    component: () => import('@/pages/AccountPreferences.vue'),
+    path: "/account-preferences",
+    name: "AccountPreferences",
+    component: () => import("@/pages/AccountPreferences.vue"),
     meta: {
-      title: 'Account Preferences',
+      title: "Account Preferences",
       requiresAuth: true,
       sidebar: false,
-      roles: ['sudo', 'admin', 'student', 'guest'],
+      roles: ["sudo", "admin", "student", "guest"],
     },
   },
   {
-    path: '/dormitories',
-    name: 'Dormitories',
-    component: () => import('@/pages/Dormitories.vue'),
+    path: "/dormitories",
+    name: "Dormitories",
+    component: () => import("@/pages/Dormitories.vue"),
     meta: {
-      title: 'Dormitories',
+      title: "Dormitories",
       requiresAuth: true,
       sidebar: true,
       icon: Cog6ToothIcon,
-      roles: ['sudo'],
+      roles: ["sudo"],
     },
   },
   {
-    path: '/dormitory-form/:id?',
-    name: 'Dormitory Form',
-    component: () => import('@/pages/DormitoryForm.vue'),
+    path: "/dormitory-form/:id?",
+    name: "Dormitory Form",
+    component: () => import("@/pages/DormitoryForm.vue"),
     meta: {
-      title: 'Dormitory Form',
-      parent: 'Dormitories',
+      title: "Dormitory Form",
+      parent: "Dormitories",
       requiresAuth: true,
       sidebar: true,
       icon: PencilSquareIcon,
-      roles: ['sudo'],
+      roles: ["sudo"],
     },
   },
   {
-    path: '/rooms',
-    name: 'Rooms',
-    component: () => import('@/pages/Rooms.vue'),
+    path: "/rooms",
+    name: "Rooms",
+    component: () => import("@/pages/Rooms.vue"),
     meta: {
-      title: 'Rooms',
+      title: "Rooms",
       requiresAuth: true,
       sidebar: true,
       icon: BuildingOfficeIcon,
-      roles: ['admin'],
+      roles: ["admin"],
     },
   },
   {
-    path: '/room-form/:id?',
-    name: 'Room Form',
-    component: () => import('@/pages/RoomForm.vue'),
+    path: "/room-form/:id?",
+    name: "Room Form",
+    component: () => import("@/pages/RoomForm.vue"),
     meta: {
-      title: 'Room Form',
-      parent: 'Rooms',
+      title: "Room Form",
+      parent: "Rooms",
       requiresAuth: true,
       sidebar: true,
       icon: PencilSquareIcon,
-      roles: ['admin'],
+      roles: ["admin"],
     },
   },
   {
-    path: '/room-types',
-    name: 'Room Types',
-    component: () => import('@/pages/RoomTypes.vue'),
+    path: "/room-types",
+    name: "Room Types",
+    component: () => import("@/pages/RoomTypes.vue"),
     meta: {
-      title: 'Room Types',
+      title: "Room Types",
       requiresAuth: true,
       sidebar: true,
       icon: BuildingOfficeIcon,
-      roles: ['sudo'],
+      roles: ["sudo"],
     },
   },
   {
-    path: '/room-type-form/:id?',
-    name: 'Room Type Form',
-    component: () => import('@/pages/RoomTypeBasicForm.vue'),
+    path: "/room-type-form/:id?",
+    name: "Room Type Form",
+    component: () => import("@/pages/RoomTypeBasicForm.vue"),
     meta: {
-      title: 'Room Type Form',
-      parent: 'Room Types',
+      title: "Room Type Form",
+      parent: "Room Types",
       requiresAuth: true,
       sidebar: false,
-      roles: ['sudo'],
+      roles: ["sudo"],
     },
   },
   {
-    path: '/reset-password-form',
-    name: 'Password Reset Form',
-    component: () => import('@/pages/PasswordResetForm.vue'),
+    path: "/reset-password-form",
+    name: "Password Reset Form",
+    component: () => import("@/pages/PasswordResetForm.vue"),
     meta: {
-      title: 'Password Reset Form',
+      title: "Password Reset Form",
       requiresAuth: false,
       sidebar: false,
     },
   },
   {
-    path: '/:pathMatch(.*)*',
-    name: 'NotFound',
-    component: () => import('@/pages/NotFound.vue'),
+    path: "/:pathMatch(.*)*",
+    name: "NotFound",
+    component: () => import("@/pages/NotFound.vue"),
     meta: {
-      title: 'Not Found',
+      title: "Not Found",
       requiresAuth: false,
       sidebar: false,
     },
@@ -385,22 +385,22 @@ router.beforeEach(async (to, from, next) => {
   const isAuthenticated = authStore.isAuthenticated;
   // Get user role after ensuring profile is loaded
   const userRole = authStore.user?.role?.name || null;
-  
+
   // Helper function to get appropriate redirect path based on user role
   const getRedirectPath = (userRole: string | null) => {
-    if (userRole === 'student') {
-      return '/student-main';
-    } else if (userRole === 'guest') {
-      return '/guest-home';
+    if (userRole === "student") {
+      return "/student-main";
+    } else if (userRole === "guest") {
+      return "/guest-home";
     } else {
       // For admin/sudo users or unknown roles, redirect to main dashboard
-      return '/main';
+      return "/main";
     }
   };
-  
+
   if (to.meta?.requiresAuth && !isAuthenticated) {
-    next({ name: 'login' });
-  } else if (to.name === 'login' && isAuthenticated) {
+    next({ name: "login" });
+  } else if (to.name === "login" && isAuthenticated) {
     // Redirect authenticated users away from login page
     const redirectPath = getRedirectPath(userRole);
     next({ path: redirectPath });
@@ -408,7 +408,7 @@ router.beforeEach(async (to, from, next) => {
     // Check role-based access
     if (!userRole || !(to.meta.roles as string[]).includes(userRole)) {
       const redirectPath = getRedirectPath(userRole);
-      
+
       // Prevent infinite redirect by checking if we're already trying to redirect to the same path
       if (to.path === redirectPath) {
         // If we're already on the correct path but don't have the right role,
@@ -422,20 +422,20 @@ router.beforeEach(async (to, from, next) => {
     }
   } else {
     // Check for user profile access restrictions
-    if (to.path.includes('/admin-form/') || to.path.includes('/student-form/')) {
+    if (to.path.includes("/admin-form/") || to.path.includes("/student-form/")) {
       const userId = to.params.id;
       const currentUserId = authStore.user?.id;
-      
+
       // Only allow access if:
       // 1. User is accessing their own profile, OR
       // 2. User is a super admin (sudo) accessing other profiles
-      if (userId && currentUserId && userId !== currentUserId.toString() && userRole !== 'sudo') {
+      if (userId && currentUserId && userId !== currentUserId.toString() && userRole !== "sudo") {
         // Redirect to account preferences if trying to access another user's profile
-        next({ path: '/account-preferences' });
+        next({ path: "/account-preferences" });
         return;
       }
     }
-    
+
     next();
   }
 });
@@ -444,8 +444,8 @@ router.afterEach((to) => {
   // This runs after the navigation is confirmed and `beforeEach` has completed.
   const authStore = useAuthStore();
   const dormitoryName = authStore.user?.dormitory?.name;
-  const baseTitle = dormitoryName ? `${dormitoryName} | ` : 'Dormitory | ';
-  document.title = baseTitle + (to.meta?.title ?? '');
+  const baseTitle = dormitoryName ? `${dormitoryName} | ` : "Dormitory | ";
+  document.title = baseTitle + (to.meta?.title ?? "");
 });
 
 export default router;

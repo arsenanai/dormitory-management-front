@@ -1,5 +1,10 @@
 <template>
-  <div v-show="isActive" role="tabpanel" :aria-labelledby="`${name}-tab`" class="rounded-lg p-4 h-full">
+  <div
+    v-show="isActive"
+    role="tabpanel"
+    :aria-labelledby="`${name}-tab`"
+    class="h-full rounded-lg p-4"
+  >
     <slot />
   </div>
 </template>
@@ -17,13 +22,12 @@ const props = defineProps<Props>();
 
 // Inject activeTab and registerTab from the parent Tabs component
 const activeTab = inject<Ref<string>>("activeTab");
-const registerTab =
-  inject<(tab: { name: string; title: string }) => void>("registerTab");
+const registerTab = inject<(tab: { name: string; title: string }) => void>("registerTab");
 
 // Ensure the injected values are defined
 if (!activeTab || !registerTab) {
   throw new Error(
-    "CTab must be used within a Tabs component that provides activeTab and registerTab.",
+    "CTab must be used within a Tabs component that provides activeTab and registerTab."
   );
 }
 

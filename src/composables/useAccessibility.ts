@@ -1,4 +1,4 @@
-import { ref, reactive, watch } from 'vue';
+import { ref, reactive, watch } from "vue";
 
 interface AccessibilitySettings {
   accessibilityMode: boolean;
@@ -20,7 +20,7 @@ const isInitialized = ref(false);
 export function useAccessibility() {
   const loadSettings = () => {
     try {
-      const saved = localStorage.getItem('accessibility-settings');
+      const saved = localStorage.getItem("accessibility-settings");
       if (saved) {
         const parsed = JSON.parse(saved);
         Object.assign(settings, { ...defaultSettings, ...parsed });
@@ -28,16 +28,16 @@ export function useAccessibility() {
         // If no saved settings, use defaults (accessibilityMode: false)
         Object.assign(settings, defaultSettings);
       }
-      
+
       // Ensure accessibilityMode is false by default for admin@email.com
       if (settings.accessibilityMode === undefined || settings.accessibilityMode === null) {
         settings.accessibilityMode = false;
       }
-      
+
       applySettings();
       isInitialized.value = true;
     } catch (error) {
-      console.error('Failed to load accessibility settings:', error);
+      console.error("Failed to load accessibility settings:", error);
       // Fallback to defaults on error
       Object.assign(settings, defaultSettings);
       applySettings();
@@ -47,42 +47,42 @@ export function useAccessibility() {
 
   const saveSettings = () => {
     try {
-      localStorage.setItem('accessibility-settings', JSON.stringify(settings));
+      localStorage.setItem("accessibility-settings", JSON.stringify(settings));
       applySettings();
     } catch (error) {
-      console.error('Failed to save accessibility settings:', error);
+      console.error("Failed to save accessibility settings:", error);
     }
   };
 
   const applySettings = () => {
     const root = document.documentElement;
-    
+
     // Apply accessibility mode (remove borders, use shadows)
     if (settings.accessibilityMode) {
-      root.classList.add('accessibility-mode');
+      root.classList.add("accessibility-mode");
     } else {
-      root.classList.remove('accessibility-mode');
+      root.classList.remove("accessibility-mode");
     }
-    
+
     // Apply high contrast mode
     if (settings.highContrast) {
-      root.classList.add('high-contrast');
+      root.classList.add("high-contrast");
     } else {
-      root.classList.remove('high-contrast');
+      root.classList.remove("high-contrast");
     }
-    
+
     // Apply reduced motion
     if (settings.reducedMotion) {
-      root.classList.add('reduced-motion');
+      root.classList.add("reduced-motion");
     } else {
-      root.classList.remove('reduced-motion');
+      root.classList.remove("reduced-motion");
     }
-    
+
     // Apply large text
     if (settings.largeText) {
-      root.classList.add('large-text');
+      root.classList.add("large-text");
     } else {
-      root.classList.remove('large-text');
+      root.classList.remove("large-text");
     }
   };
 
@@ -105,9 +105,13 @@ export function useAccessibility() {
   };
 
   // Watch for changes and apply them
-  watch(settings, () => {
-    applySettings();
-  }, { deep: true });
+  watch(
+    settings,
+    () => {
+      applySettings();
+    },
+    { deep: true }
+  );
 
   return {
     settings,
@@ -119,4 +123,4 @@ export function useAccessibility() {
     resetSettings,
     resetAccessibilityMode,
   };
-} 
+}

@@ -4,20 +4,19 @@
     <label
       v-if="label"
       :for="id"
-      :class="['block text-sm font-medium', disabled ? 'text-gray-400' : 'text-gray-900 dark:text-white']"
+      :class="[
+        'block text-sm font-medium',
+        disabled ? 'text-gray-400' : 'text-gray-900 dark:text-white',
+      ]"
     >
-      {{ label }}{{ required ? '*' : '' }}
+      {{ label }}{{ required ? "*" : "" }}
     </label>
 
     <!-- Select Dropdown -->
     <select
       :id="id"
       v-model="internalValue"
-      :class="[
-        baseSelectClass,
-        validationClass,
-        disabled || readonly ? disabledSelectClass : '',
-      ]"
+      :class="[baseSelectClass, validationClass, disabled || readonly ? disabledSelectClass : '']"
       :required="required"
       :disabled="disabled"
       :readonly="readonly"
@@ -26,11 +25,7 @@
     >
       <option v-if="placeholder" disabled value="">{{ placeholder }}</option>
       <!-- options must always have a defined value (string | number) -->
-      <option
-        v-for="option in safeOptions"
-        :key="option.value"
-        :value="option.value"
-      >
+      <option v-for="option in safeOptions" :key="option.value" :value="option.value">
         {{ option.name }}
       </option>
     </select>
@@ -71,7 +66,9 @@ const props = defineProps<Props>();
 
 // Computed property to filter out options with undefined/null value
 const safeOptions: ComputedRef<Array<{ value: string | number; name: string }>> = computed(() =>
-  (props.options || []).filter((o): o is { value: string | number; name: string } => o.value !== undefined && o.value !== null)
+  (props.options || []).filter(
+    (o): o is { value: string | number; name: string } => o.value !== undefined && o.value !== null
+  )
 );
 
 // Emit events
@@ -110,7 +107,8 @@ const baseSelectClass =
   "bg-gray-50 border text-gray-900 text-sm rounded-lg focus:ring-4 focus:ring-primary-300 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-700 dark:focus:border-primary-500";
 
 // Disabled Classes
-const disabledSelectClass = 'cursor-not-allowed bg-gray-100 border-gray-300 text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-500';
+const disabledSelectClass =
+  "cursor-not-allowed bg-gray-100 border-gray-300 text-gray-400 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-500";
 
 // Validation Classes
 const validationClass = computed(() => {

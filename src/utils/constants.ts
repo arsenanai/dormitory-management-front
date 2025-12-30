@@ -1,10 +1,10 @@
 /**
  * Application Constants
- * 
+ *
  * Centralized constants for the SDU Dormitory Management System.
  * This file contains all magic numbers, strings, and configuration values
  * used throughout the application to improve maintainability.
- * 
+ *
  * @module constants
  */
 
@@ -15,15 +15,15 @@ export const FILE_CONSTANTS = {
   /** Maximum file size in bytes (5MB) */
   MAX_FILE_SIZE: 5 * 1024 * 1024,
   /** Allowed file types for document uploads */
-  ALLOWED_DOCUMENT_TYPES: ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'],
+  ALLOWED_DOCUMENT_TYPES: ["application/pdf", "image/jpeg", "image/png", "image/jpg"],
   /** Allowed file types for image uploads */
-  ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'],
+  ALLOWED_IMAGE_TYPES: ["image/jpeg", "image/png", "image/webp", "image/jpg"],
   /** Maximum file size for images in bytes (2MB) */
   MAX_IMAGE_SIZE: 2 * 1024 * 1024,
   /** File extensions for documents */
-  ALLOWED_DOCUMENT_EXTENSIONS: ['.pdf', '.jpg', '.jpeg', '.png'],
+  ALLOWED_DOCUMENT_EXTENSIONS: [".pdf", ".jpg", ".jpeg", ".png"],
   /** File extensions for images */
-  ALLOWED_IMAGE_EXTENSIONS: ['.jpg', '.jpeg', '.png', '.webp'],
+  ALLOWED_IMAGE_EXTENSIONS: [".jpg", ".jpeg", ".png", ".webp"],
 } as const;
 
 /**
@@ -69,13 +69,13 @@ export const PAGINATION_CONSTANTS = {
  */
 export const DATE_CONSTANTS = {
   /** Default date format for display */
-  DISPLAY_FORMAT: 'MM/DD/YYYY',
+  DISPLAY_FORMAT: "MM/DD/YYYY",
   /** Date format for API requests */
-  API_FORMAT: 'YYYY-MM-DD',
+  API_FORMAT: "YYYY-MM-DD",
   /** Date format for file names */
-  FILENAME_FORMAT: 'YYYY-MM-DD_HH-mm-ss',
+  FILENAME_FORMAT: "YYYY-MM-DD_HH-mm-ss",
   /** Default locale for date formatting */
-  DEFAULT_LOCALE: 'en-US',
+  DEFAULT_LOCALE: "en-US",
 } as const;
 
 /**
@@ -83,9 +83,9 @@ export const DATE_CONSTANTS = {
  */
 export const CURRENCY_CONSTANTS = {
   /** Default currency code */
-  DEFAULT_CURRENCY: 'KZT',
+  DEFAULT_CURRENCY: "KZT",
   /** Default locale for currency formatting */
-  DEFAULT_LOCALE: 'en-US',
+  DEFAULT_LOCALE: "en-US",
   /** Minimum payment amount */
   MIN_PAYMENT_AMOUNT: 0,
   /** Maximum payment amount */
@@ -97,7 +97,7 @@ export const CURRENCY_CONSTANTS = {
  */
 export const PHONE_CONSTANTS = {
   /** Default country code */
-  DEFAULT_COUNTRY_CODE: '+7',
+  DEFAULT_COUNTRY_CODE: "+7",
   /** Minimum phone number length */
   MIN_PHONE_LENGTH: 10,
   /** Maximum phone number length */
@@ -127,13 +127,13 @@ export const ROOM_CONSTANTS = {
  */
 export const USER_STATUS = {
   /** Active user status */
-  ACTIVE: 'active',
+  ACTIVE: "active",
   /** Pending user status */
-  PENDING: 'pending',
+  PENDING: "pending",
   /** Rejected user status */
-  REJECTED: 'rejected',
+  REJECTED: "rejected",
   /** Suspended user status */
-  SUSPENDED: 'suspended',
+  SUSPENDED: "suspended",
 } as const;
 
 /**
@@ -141,13 +141,13 @@ export const USER_STATUS = {
  */
 export const USER_ROLES = {
   /** Admin role */
-  ADMIN: 'admin',
+  ADMIN: "admin",
   /** Student role */
-  STUDENT: 'student',
+  STUDENT: "student",
   /** Guest role */
-  GUEST: 'guest',
+  GUEST: "guest",
   /** Super admin role */
-  SUPER_ADMIN: 'sudo',
+  SUPER_ADMIN: "sudo",
 } as const;
 
 /**
@@ -155,13 +155,13 @@ export const USER_ROLES = {
  */
 export const PAYMENT_STATUS = {
   /** Pending payment */
-  PENDING: 'pending',
+  PENDING: "pending",
   /** Paid payment */
-  PAID: 'paid',
+  PAID: "paid",
   /** Overdue payment */
-  OVERDUE: 'overdue',
+  OVERDUE: "overdue",
   /** Cancelled payment */
-  CANCELLED: 'cancelled',
+  CANCELLED: "cancelled",
 } as const;
 
 /**
@@ -169,15 +169,15 @@ export const PAYMENT_STATUS = {
  */
 export const MESSAGE_TYPES = {
   /** General message */
-  GENERAL: 'general',
+  GENERAL: "general",
   /** Announcement message */
-  ANNOUNCEMENT: 'announcement',
+  ANNOUNCEMENT: "announcement",
   /** Violation message */
-  VIOLATION: 'violation',
+  VIOLATION: "violation",
   /** Emergency message */
-  EMERGENCY: 'emergency',
+  EMERGENCY: "emergency",
   /** Urgent message */
-  URGENT: 'urgent',
+  URGENT: "urgent",
 } as const;
 
 /**
@@ -185,11 +185,11 @@ export const MESSAGE_TYPES = {
  */
 export const MESSAGE_STATUS = {
   /** Draft message */
-  DRAFT: 'draft',
+  DRAFT: "draft",
   /** Sent message */
-  SENT: 'sent',
+  SENT: "sent",
   /** Read message */
-  READ: 'read',
+  READ: "read",
 } as const;
 
 /**
@@ -197,9 +197,9 @@ export const MESSAGE_STATUS = {
  */
 export const GENDER = {
   /** Male gender */
-  MALE: 'male',
+  MALE: "male",
   /** Female gender */
-  FEMALE: 'female',
+  FEMALE: "female",
 } as const;
 
 /**
@@ -207,21 +207,21 @@ export const GENDER = {
  */
 export const BLOOD_TYPES = {
   /** A positive */
-  A_POSITIVE: 'A+',
+  A_POSITIVE: "A+",
   /** A negative */
-  A_NEGATIVE: 'A-',
+  A_NEGATIVE: "A-",
   /** B positive */
-  B_POSITIVE: 'B+',
+  B_POSITIVE: "B+",
   /** B negative */
-  B_NEGATIVE: 'B-',
+  B_NEGATIVE: "B-",
   /** AB positive */
-  AB_POSITIVE: 'AB+',
+  AB_POSITIVE: "AB+",
   /** AB negative */
-  AB_NEGATIVE: 'AB-',
+  AB_NEGATIVE: "AB-",
   /** O positive */
-  O_POSITIVE: 'O+',
+  O_POSITIVE: "O+",
   /** O negative */
-  O_NEGATIVE: 'O-',
+  O_NEGATIVE: "O-",
 } as const;
 
 /**
@@ -229,11 +229,11 @@ export const BLOOD_TYPES = {
  */
 export const SEMESTERS = {
   /** Fall semester */
-  FALL: 'fall',
+  FALL: "fall",
   /** Spring semester */
-  SPRING: 'spring',
+  SPRING: "spring",
   /** Summer semester */
-  SUMMER: 'summer',
+  SUMMER: "summer",
 } as const;
 
 /**
@@ -263,15 +263,15 @@ export const API_CONSTANTS = {
  */
 export const LOCALE_CONSTANTS = {
   /** English locale */
-  ENGLISH: 'en',
+  ENGLISH: "en",
   /** Kazakh locale */
-  KAZAKH: 'kk',
+  KAZAKH: "kk",
   /** Russian locale */
-  RUSSIAN: 'ru',
+  RUSSIAN: "ru",
   /** Default locale */
-  DEFAULT: 'en',
+  DEFAULT: "en",
   /** Available locales */
-  AVAILABLE: ['en', 'kk', 'ru'],
+  AVAILABLE: ["en", "kk", "ru"],
 } as const;
 
 /**
@@ -279,11 +279,11 @@ export const LOCALE_CONSTANTS = {
  */
 export const THEME_CONSTANTS = {
   /** Light theme */
-  LIGHT: 'light',
+  LIGHT: "light",
   /** Dark theme */
-  DARK: 'dark',
+  DARK: "dark",
   /** System theme */
-  SYSTEM: 'system',
+  SYSTEM: "system",
 } as const;
 
 /**
@@ -291,11 +291,11 @@ export const THEME_CONSTANTS = {
  */
 export const EXPORT_CONSTANTS = {
   /** Excel export format */
-  EXCEL: 'xlsx',
+  EXCEL: "xlsx",
   /** CSV export format */
-  CSV: 'csv',
+  CSV: "csv",
   /** PDF export format */
-  PDF: 'pdf',
+  PDF: "pdf",
 } as const;
 
 /**
@@ -317,15 +317,15 @@ export const TIMEOUT_CONSTANTS = {
  */
 export const STORAGE_CONSTANTS = {
   /** Auth token storage key */
-  AUTH_TOKEN_KEY: 'auth_token',
+  AUTH_TOKEN_KEY: "auth_token",
   /** User data storage key */
-  USER_DATA_KEY: 'user_data',
+  USER_DATA_KEY: "user_data",
   /** Theme storage key */
-  THEME_KEY: 'theme',
+  THEME_KEY: "theme",
   /** Locale storage key */
-  LOCALE_KEY: 'locale',
+  LOCALE_KEY: "locale",
   /** Sidebar collapsed state key */
-  SIDEBAR_COLLAPSED_KEY: 'sidebar_collapsed',
+  SIDEBAR_COLLAPSED_KEY: "sidebar_collapsed",
 } as const;
 
 /**
@@ -333,21 +333,21 @@ export const STORAGE_CONSTANTS = {
  */
 export const ROUTE_CONSTANTS = {
   /** Login route */
-  LOGIN: '/',
+  LOGIN: "/",
   /** Main dashboard route */
-  MAIN: '/main',
+  MAIN: "/main",
   /** Students route */
-  STUDENTS: '/students',
+  STUDENTS: "/students",
   /** Guests route */
-  GUESTS: '/guests',
+  GUESTS: "/guests",
   /** Payments route */
-  PAYMENTS: '/payments',
+  PAYMENTS: "/payments",
   /** Messages route */
-  MESSAGES: '/messages',
+  MESSAGES: "/messages",
   /** Settings route */
-  SETTINGS: '/settings',
+  SETTINGS: "/settings",
   /** Profile route */
-  PROFILE: '/profile',
+  PROFILE: "/profile",
 } as const;
 
 /**
@@ -355,19 +355,19 @@ export const ROUTE_CONSTANTS = {
  */
 export const ERROR_MESSAGES = {
   /** Generic error message */
-  GENERIC: 'An error occurred. Please try again.',
+  GENERIC: "An error occurred. Please try again.",
   /** Network error message */
-  NETWORK: 'Network error. Please check your connection.',
+  NETWORK: "Network error. Please check your connection.",
   /** Validation error message */
-  VALIDATION: 'Please check your input and try again.',
+  VALIDATION: "Please check your input and try again.",
   /** Authentication error message */
-  AUTHENTICATION: 'Authentication failed. Please login again.',
+  AUTHENTICATION: "Authentication failed. Please login again.",
   /** Authorization error message */
-  AUTHORIZATION: 'You do not have permission to perform this action.',
+  AUTHORIZATION: "You do not have permission to perform this action.",
   /** Not found error message */
-  NOT_FOUND: 'The requested resource was not found.',
+  NOT_FOUND: "The requested resource was not found.",
   /** Server error message */
-  SERVER_ERROR: 'Server error. Please try again later.',
+  SERVER_ERROR: "Server error. Please try again later.",
 } as const;
 
 /**
@@ -375,19 +375,19 @@ export const ERROR_MESSAGES = {
  */
 export const SUCCESS_MESSAGES = {
   /** Generic success message */
-  GENERIC: 'Operation completed successfully.',
+  GENERIC: "Operation completed successfully.",
   /** Created success message */
-  CREATED: 'Item created successfully.',
+  CREATED: "Item created successfully.",
   /** Updated success message */
-  UPDATED: 'Item updated successfully.',
+  UPDATED: "Item updated successfully.",
   /** Deleted success message */
-  DELETED: 'Item deleted successfully.',
+  DELETED: "Item deleted successfully.",
   /** Saved success message */
-  SAVED: 'Changes saved successfully.',
+  SAVED: "Changes saved successfully.",
   /** Login success message */
-  LOGIN: 'Login successful.',
+  LOGIN: "Login successful.",
   /** Logout success message */
-  LOGOUT: 'Logout successful.',
+  LOGOUT: "Logout successful.",
   /** Registration success message */
-  REGISTRATION: 'Registration successful.',
-} as const; 
+  REGISTRATION: "Registration successful.",
+} as const;

@@ -19,7 +19,10 @@ export const useRoomTypesStore = defineStore("roomTypesStore", {
   actions: {
     setSelectedRoomType(roomType: RoomType) {
       this.selectedRoomType = JSON.parse(JSON.stringify(roomType));
-      localStorage.setItem(LOCAL_STORAGE_SELECTED_ROOM_TYPE_KEY, JSON.stringify(this.selectedRoomType));
+      localStorage.setItem(
+        LOCAL_STORAGE_SELECTED_ROOM_TYPE_KEY,
+        JSON.stringify(this.selectedRoomType)
+      );
     },
     restoreSelectedRoomType() {
       const saved = localStorage.getItem(LOCAL_STORAGE_SELECTED_ROOM_TYPE_KEY);

@@ -4,4 +4,4 @@ export interface AdminProfile {
   office_phone?: string;
   dormitory_id?: number;
   [key: string]: any;
-} 
+}

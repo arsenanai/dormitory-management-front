@@ -7,9 +7,9 @@ export class Room {
   floor: number | null;
   notes: string;
   dormitory: Dormitory | null; // Many-to-one
-  room_type: RoomType | null;   // Many-to-one
-  beds: Bed[];                 // One-to-many
-  quota: number | null;        // Room quota
+  room_type: RoomType | null; // Many-to-one
+  beds: Bed[]; // One-to-many
+  quota: number | null; // Room quota
 
   constructor(
     number = "",

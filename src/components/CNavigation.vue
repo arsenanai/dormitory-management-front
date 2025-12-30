@@ -1,20 +1,16 @@
 <template>
-  <div class="flex h-auto lg:h-screen flex-col">
+  <div class="flex h-auto flex-col lg:h-screen">
     <!-- Top Navigation Bar (not fixed) -->
-    <nav
-      class="relative z-30"
-      @keydown.tab="handleKeyboardNav"
-      @keydown.enter="handleEnterKey"
-    >
+    <nav class="relative z-30" @keydown.tab="handleKeyboardNav" @keydown.enter="handleEnterKey">
       <!-- Main Navigation Bar -->
       <div class="flex flex-row items-center justify-between py-2 pr-4">
         <!-- Logo & Brand Section -->
-        <div class="flex items-center justify-start lg:space-x-2 lg:w-64 lg:justify-center">
+        <div class="flex items-center justify-start lg:w-64 lg:justify-center lg:space-x-2">
           <!-- Mobile Menu Toggle -->
           <button
             v-if="isMobile"
             @click="toggleMobileMenu"
-            class="lg:hidden p-2 rounded hover:bg-gray-200 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            class="rounded p-2 hover:bg-gray-200 focus:ring-2 focus:ring-blue-500 focus:outline-none lg:hidden"
             :aria-label="'Toggle mobile menu'"
           >
             <Bars3Icon class="h-6 w-6" />
@@ -24,18 +20,22 @@
           <button
             v-if="collapsible"
             @click="toggleCollapse"
-            class="hidden lg:block p-2 rounded hover:bg-gray-200"
+            class="hidden rounded p-2 hover:bg-gray-200 lg:block"
           >
             <Bars3Icon class="h-5 w-5" />
           </button>
 
-          <img src="/src/assets/sdu logo.png" class="h-8 lg:h-12 inline-block mr-4 lg:mr-0" alt="Logo" />
-          <span class="text-lg font-bold text-primary-700 lg:hidden">{{ pageTitle }}</span>
+          <img
+            src="/src/assets/sdu logo.png"
+            class="mr-4 inline-block h-8 lg:mr-0 lg:h-12"
+            alt="Logo"
+          />
+          <span class="text-primary-700 text-lg font-bold lg:hidden">{{ pageTitle }}</span>
         </div>
 
         <!-- Desktop Title (aligned with main content) -->
-        <div class="hidden lg:flex items-center">
-          <span class="text-lg font-bold text-primary-700">{{ pageTitle }}</span>
+        <div class="hidden items-center lg:flex">
+          <span class="text-primary-700 text-lg font-bold">{{ pageTitle }}</span>
         </div>
 
         <!-- Spacer -->
@@ -47,13 +47,13 @@
           <div class="relative z-40">
             <button
               @click="toggleUserMenu"
-              class="flex items-center space-x-2 p-2 rounded hover:bg-gray-200 user-menu-button"
+              class="user-menu-button flex items-center space-x-2 rounded p-2 hover:bg-gray-200"
               data-testid="user-menu-button"
               type="button"
             >
               <div v-if="currentUser" class="text-right">
-                <p class="text-sm font-medium text-primary-700">{{ currentUser.name }}</p>
-                <p class="text-xs text-primary-500 hidden lg:block">{{ currentUser.email }}</p>
+                <p class="text-primary-700 text-sm font-medium">{{ currentUser.name }}</p>
+                <p class="text-primary-500 hidden text-xs lg:block">{{ currentUser.email }}</p>
               </div>
               <ChevronDownIcon class="h-4 w-4" />
             </button>
@@ -63,8 +63,8 @@
               <div
                 v-if="userMenuOpen"
                 :class="[
-                  'fixed w-48 bg-white rounded-lg border border-gray-200 shadow-lg z-[9999] user-menu-dropdown',
-                  isAccessibilityMode ? 'border' : ''
+                  'user-menu-dropdown fixed z-[9999] w-48 rounded-lg border border-gray-200 bg-white shadow-lg',
+                  isAccessibilityMode ? 'border' : '',
                 ]"
                 :style="dropdownStyle"
                 :data-visible="userMenuOpen"
@@ -72,18 +72,18 @@
                 <button
                   @click="handleProfileClick"
                   data-testid="profile-link"
-                  class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-200 flex items-center gap-2"
+                  class="block flex w-full items-center gap-2 px-4 py-2 text-left text-sm hover:bg-gray-200"
                 >
                   <UserCircleIcon class="h-5 w-5" />
-                  {{ t('Profile') }}
+                  {{ t("Profile") }}
                 </button>
-                <hr class="my-1 border-gray-200">
+                <hr class="my-1 border-gray-200" />
                 <button
                   @click="handleLogout"
-                  class="w-full text-left px-4 py-2 text-sm hover:bg-gray-200 text-red-600 flex items-center gap-2"
+                  class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-200"
                 >
                   <ArrowRightOnRectangleIcon class="h-5 w-5" />
-                  {{ t('Logout') }}
+                  {{ t("Logout") }}
                 </button>
               </div>
             </Teleport>
@@ -92,7 +92,7 @@
       </div>
 
       <!-- Breadcrumbs -->
-      <div v-if="breadcrumbs && breadcrumbs.length" class="px-4 py-2 border-t border-gray-200">
+      <div v-if="breadcrumbs && breadcrumbs.length" class="border-t border-gray-200 px-4 py-2">
         <nav class="flex" aria-label="Breadcrumb">
           <ol class="flex items-center space-x-1">
             <li v-for="(crumb, index) in breadcrumbs" :key="index">
@@ -106,7 +106,7 @@
               <span v-else class="text-gray-500">{{ crumb.name }}</span>
               <ChevronRightIcon
                 v-if="index < breadcrumbs.length - 1"
-                class="h-4 w-4 text-gray-400 mx-1"
+                class="mx-1 h-4 w-4 text-gray-400"
               />
             </li>
           </ol>
@@ -117,7 +117,7 @@
     <!-- Mobile Sidebar (expands below navigation bar) -->
     <div
       v-if="isMobile && mobileMenuOpen"
-      class="lg:hidden transition-all duration-300 ease-in-out relative z-30 lg:z-10 border-b border-gray-200 bg-white max-h-screen overflow-y-auto"
+      class="relative z-30 max-h-screen overflow-y-auto border-b border-gray-200 bg-white transition-all duration-300 ease-in-out lg:z-10 lg:hidden"
     >
       <div class="bg-white shadow-sm">
         <CSidebar @nav-click="handleSidebarNavClick" />
@@ -125,17 +125,16 @@
     </div>
 
     <!-- Main Content Area -->
-    <div class="flex flex-1 relative">
+    <div class="relative flex flex-1">
       <!-- Desktop Sidebar -->
-      <div
-        v-if="!isMobile"
-        class="hidden lg:block border-r border-gray-200 w-64 relative z-10"
-      >
+      <div v-if="!isMobile" class="relative z-10 hidden w-64 border-r border-gray-200 lg:block">
         <CSidebar />
       </div>
 
       <!-- Main Content -->
-      <main class="flex-1 overflow-auto bg-white shadow relative min-h-full p-4 lg:p-6 z-10 lg:z-30">
+      <main
+        class="relative z-10 min-h-full flex-1 overflow-auto bg-white p-4 shadow lg:z-30 lg:p-6"
+      >
         <slot></slot>
       </main>
     </div>
@@ -143,8 +142,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick, Teleport } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, computed, onMounted, onUnmounted, nextTick, Teleport } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import {
   Bars3Icon,
   ChevronDownIcon,
@@ -156,16 +155,16 @@ import {
   CurrencyDollarIcon,
   ChatBubbleLeftRightIcon,
   UserCircleIcon,
-  ArrowRightOnRectangleIcon
-} from '@heroicons/vue/24/outline';
-import { useAuthStore } from '@/stores/auth';
-import { useI18n } from 'vue-i18n';
-import CSelect from '@/components/CSelect.vue';
-import { useAccessibility } from '@/composables/useAccessibility';
-import CSidebar from '@/components/CSidebar.vue';
+  ArrowRightOnRectangleIcon,
+} from "@heroicons/vue/24/outline";
+import { useAuthStore } from "@/stores/auth";
+import { useI18n } from "vue-i18n";
+import CSelect from "@/components/CSelect.vue";
+import { useAccessibility } from "@/composables/useAccessibility";
+import CSidebar from "@/components/CSidebar.vue";
 
 // Define component name for test recognition
-defineOptions({ name: 'CNavigation' });
+defineOptions({ name: "CNavigation" });
 
 // Auth store
 const authStore = useAuthStore();
@@ -204,12 +203,12 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  title: 'Dormitory Management',
+  title: "Dormitory Management",
   collapsible: false,
   notifications: 0,
   loading: false,
   permissions: () => [],
-  restrictedItems: () => []
+  restrictedItems: () => [],
 });
 
 const pageTitle = computed(() => {
@@ -228,8 +227,8 @@ const currentUser = computed(() => {
   // Prioritize auth store user over prop
   if (authStore.user) {
     return {
-      name: authStore.fullName || authStore.user.name || 'Unknown User',
-      email: authStore.user.email || 'No email'
+      name: authStore.fullName || authStore.user.name || "Unknown User",
+      email: authStore.user.email || "No email",
     };
   }
   return props.user;
@@ -253,12 +252,12 @@ const defaultNavItems = computed<NavItem[]>(() => {
     .filter((route) => {
       // Check role-based access
       if (route.meta?.roles && Array.isArray(route.meta.roles) && route.meta.roles.length > 0) {
-        return route.meta.roles.includes(authStore.userRole || '');
+        return route.meta.roles.includes(authStore.userRole || "");
       }
       return true;
     })
     .map((route) => ({
-      name: (route.meta?.title as string) || (route.name as string) || '',
+      name: (route.meta?.title as string) || (route.name as string) || "",
       path: route.path,
       icon: (route.meta?.icon as any) || HomeIcon,
       permission: (route.meta?.permission as string) || undefined,
@@ -273,8 +272,8 @@ const dropdownStyle = computed(() => {
 
   // Default positioning - will be refined if needed
   return {
-    right: '1rem',
-    top: '4rem'
+    right: "1rem",
+    top: "4rem",
   };
 });
 
@@ -325,10 +324,8 @@ const handleProfileClick = () => {
   userMenuOpen.value = false;
 
   // Always navigate to account preferences for own profile
-  router.push('/account-preferences');
+  router.push("/account-preferences");
 };
-
-
 
 const isActive = (path: string) => {
   return route.path === path;
@@ -338,12 +335,12 @@ const handleNavClick = (item: NavItem) => {
   closeMobileMenu();
 
   if (item.external) {
-    window.open(item.path, '_blank');
+    window.open(item.path, "_blank");
     return;
   }
 
   router.push(item.path);
-  emit('navigate', item);
+  emit("navigate", item);
 };
 
 const handleSidebarNavClick = (item: any) => {
@@ -355,7 +352,7 @@ const handleKeyboardNav = async (event: KeyboardEvent) => {
   if (navItems.length === 0) return;
 
   // For Tab key, set the first item as focused
-  if (event.key === 'Tab') {
+  if (event.key === "Tab") {
     event.preventDefault();
     focusedItem.value = navItems[0].path;
     await nextTick(); // Ensure DOM updates
@@ -363,7 +360,7 @@ const handleKeyboardNav = async (event: KeyboardEvent) => {
     // Add the focused class for testing
     const item = document.querySelector(`a[href="${focusedItem.value}"]`);
     if (item) {
-      item.classList.add('focused');
+      item.classList.add("focused");
     }
   }
 };
@@ -373,7 +370,7 @@ const handleEnterKey = () => {
     const item = visibleNavItems.value.find((item: NavItem) => item.path === focusedItem.value);
     if (item) {
       handleNavClick(item);
-      emit('navigate', item);
+      emit("navigate", item);
     }
   }
 };
@@ -381,13 +378,13 @@ const handleEnterKey = () => {
 // Lifecycle hooks
 onMounted(() => {
   checkMobile();
-  window.addEventListener('resize', checkMobile);
+  window.addEventListener("resize", checkMobile);
 
   // Close dropdowns when clicking outside
-  document.addEventListener('click', (e) => {
+  document.addEventListener("click", (e) => {
     const target = e.target as Element;
-    const userMenuButton = target.closest('.user-menu-button');
-    const userMenuDropdown = target.closest('.user-menu-dropdown');
+    const userMenuButton = target.closest(".user-menu-button");
+    const userMenuDropdown = target.closest(".user-menu-dropdown");
 
     // Only close if we're not clicking on the button or dropdown
     if (!userMenuButton && !userMenuDropdown) {
@@ -397,7 +394,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  window.removeEventListener('resize', checkMobile);
+  window.removeEventListener("resize", checkMobile);
 });
 
 const { t } = useI18n();

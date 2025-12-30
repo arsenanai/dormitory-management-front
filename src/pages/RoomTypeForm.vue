@@ -1,8 +1,8 @@
 <!-- filepath: /Users/rsa/lab/dormitory-management-front/src/pages/RoomTypeForm.vue -->
 <template>
-    <div v-if="error" class="mb-4 p-2 bg-red-100 text-red-700 rounded border border-red-300">
-      {{ error }}
-    </div>
+  <div v-if="error" class="mb-4 rounded border border-red-300 bg-red-100 p-2 text-red-700">
+    {{ error }}
+  </div>
   <Navigation :title="t('Room Type Plan Editor')">
     <form @submit.prevent="handleSubmit">
       <!-- Room Type Name -->
@@ -15,7 +15,7 @@
         :validationState="errors.name ? 'error' : ''"
         :validationMessage="errors.name"
       />
-      
+
       <!-- Room Type Description -->
       <CInput
         id="room-type-description"
@@ -26,7 +26,7 @@
         :validationState="errors.description ? 'error' : ''"
         :validationMessage="errors.description"
       />
-      
+
       <!-- Room Type Capacity -->
       <CInput
         id="room-type-capacity"
@@ -39,7 +39,7 @@
         :validationState="errors.capacity ? 'error' : ''"
         :validationMessage="errors.capacity"
       />
-      
+
       <!-- Room Type Price -->
       <CInput
         id="room-type-price"
@@ -76,23 +76,19 @@
 
       <!-- Display uploaded photos -->
       <div v-if="roomType.photos.length > 0" class="mt-4">
-        <h3 class="text-lg font-medium mb-2 text-primary-700">{{ t('Uploaded Photos') }}</h3>
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          <div
-            v-for="(photo, index) in roomType.photos"
-            :key="index"
-            class="relative group"
-          >
+        <h3 class="text-primary-700 mb-2 text-lg font-medium">{{ t("Uploaded Photos") }}</h3>
+        <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+          <div v-for="(photo, index) in roomType.photos" :key="index" class="group relative">
             <img
               :src="photo"
               :alt="`Room photo ${index + 1}`"
-              class="w-full h-24 object-cover rounded-lg border"
+              class="h-24 w-full rounded-lg border object-cover"
             />
             <CButton
               @click="removePhoto(index)"
               size="small"
               variant="danger"
-              class="absolute top-1 right-1 w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+              class="absolute top-1 right-1 flex h-6 w-6 items-center justify-center text-xs opacity-0 transition-opacity group-hover:opacity-100"
               type="button"
             >
               ×
@@ -103,25 +99,23 @@
 
       <!-- Room plan container with background image -->
       <div
-        class="relative mx-auto my-4 border-2 border-primary-200 rounded-lg overflow-hidden shadow-md bg-primary-50"
+        class="border-primary-200 bg-primary-50 relative mx-auto my-4 overflow-hidden rounded-lg border-2 shadow-md"
         :style="roomPlanStyle"
         ref="roomPlanRef"
       >
-        <svg
-          :width="stageConfig.width"
-          :height="stageConfig.height"
-          style="display: block;"
-        >
+        <svg :width="stageConfig.width" :height="stageConfig.height" style="display: block">
           <g
             v-for="(bed, idx) in beds"
             :key="bed.id"
             @mousedown="startDrag(idx, $event)"
             @dblclick="removeBed(idx)"
             @click="selectBed(idx)"
-            style="cursor: pointer;"
+            style="cursor: pointer"
           >
             <!-- Rotated bed rectangle -->
-            <g :transform="`translate(${bed.x},${bed.y}) rotate(${bed.rotation},${bedWidth/2},${bedHeight/2})`">
+            <g
+              :transform="`translate(${bed.x},${bed.y}) rotate(${bed.rotation},${bedWidth / 2},${bedHeight / 2})`"
+            >
               <rect
                 :width="bedWidth"
                 :height="bedHeight"
@@ -134,8 +128,8 @@
             </g>
             <!-- Upright bed number -->
             <text
-              :x="bed.x + bedWidth/2"
-              :y="bed.y + bedHeight/2 + 6"
+              :x="bed.x + bedWidth / 2"
+              :y="bed.y + bedHeight / 2 + 6"
               text-anchor="middle"
               font-size="18"
               fill="#fff"
@@ -151,17 +145,23 @@
       </div>
 
       <!-- Bed controls and info -->
-      <div class="flex flex-col md:flex-row md:items-center md:gap-4 mb-2">
-        <div class="text-primary-500 text-sm flex-1">
-          {{ t('Double-click a bed to remove it. Drag beds to reposition. Select a bed and use the rotate buttons.') }}
+      <div class="mb-2 flex flex-col md:flex-row md:items-center md:gap-4">
+        <div class="text-primary-500 flex-1 text-sm">
+          {{
+            t(
+              "Double-click a bed to remove it. Drag beds to reposition. Select a bed and use the rotate buttons."
+            )
+          }}
         </div>
-        <div v-if="selectedBedIdx !== null" class="flex gap-2 items-center mt-2 md:mt-0">
-          <span class="font-medium">{{ t('Selected Bed') }}: {{ beds[selectedBedIdx].number }}</span>
+        <div v-if="selectedBedIdx !== null" class="mt-2 flex items-center gap-2 md:mt-0">
+          <span class="font-medium"
+            >{{ t("Selected Bed") }}: {{ beds[selectedBedIdx].number }}</span
+          >
           <CButton size="sm" @click="rotateBed(-15)" type="button">
-            {{ t('Rotate Left') }}
+            {{ t("Rotate Left") }}
           </CButton>
           <CButton size="sm" @click="rotateBed(15)" type="button">
-            {{ t('Rotate Right') }}
+            {{ t("Rotate Right") }}
           </CButton>
         </div>
       </div>
@@ -169,19 +169,17 @@
       <!-- Action Buttons -->
       <div class="mt-6 flex flex-row items-end justify-end gap-2">
         <CButton @click.prevent="addBed" type="button">
-          {{ t('Add Bed') }}
+          {{ t("Add Bed") }}
         </CButton>
         <CButton variant="primary" type="submit">
-          {{ t('Save Plan') }}
+          {{ t("Save Plan") }}
         </CButton>
       </div>
     </form>
   </Navigation>
 </template>
 
-
 <script setup lang="ts">
-
 import { ref, computed, onMounted, watch } from "vue";
 import { v4 as uuidv4 } from "uuid";
 import { useI18n } from "vue-i18n";
@@ -198,8 +196,8 @@ import { roomTypeService as defaultRoomTypeService } from "@/services/api";
 const props = defineProps({
   roomTypeService: {
     type: Object,
-    default: () => defaultRoomTypeService
-  }
+    default: () => defaultRoomTypeService,
+  },
 });
 
 // Theme colors
@@ -208,12 +206,12 @@ const secondary500 = "#d69979";
 const roomTypeService = props.roomTypeService;
 
 const error = ref<string | null>(null);
-const errors = ref<any>({ 
-  name: '', 
-  description: '', 
-  photos: '',
-  capacity: '',
-  price: ''
+const errors = ref<any>({
+  name: "",
+  description: "",
+  photos: "",
+  capacity: "",
+  price: "",
 });
 
 // ...existing code...
@@ -224,9 +222,8 @@ defineExpose({
   handleSubmit,
   validateForm,
   error,
-  errors
+  errors,
 });
-
 
 const { t } = useI18n();
 const route = useRoute();
@@ -234,13 +231,13 @@ const roomTypeStore = useRoomTypesStore();
 const { showError, showSuccess } = useToast();
 
 // Check if we're editing (ID in route params)
-const roomTypeId = computed(() => route.params.id ? Number(route.params.id) : null);
+const roomTypeId = computed(() => (route.params.id ? Number(route.params.id) : null));
 const isEditing = computed(() => !!roomTypeId.value);
 
 // Add description to RoomType instance
 const roomType = ref<any>({
   ...new RoomType(uuidv4(), "", "", [], 1, 0, []),
-  description: ""
+  description: "",
 });
 
 const stageConfig = { width: 600, height: 400 };
@@ -263,7 +260,6 @@ const roomPlanStyle = computed(() => ({
   border: `2px solid ${primary700}`,
 }));
 
-
 // For duplicate name check (fetch from API)
 const existingNames = ref<string[]>([]);
 
@@ -273,7 +269,7 @@ const loadExistingNames = async () => {
     const response = await roomTypeService.getAll();
     existingNames.value = response.data.data.map((roomType: any) => roomType.name);
   } catch (error) {
-    console.error('Failed to load existing room type names:', error);
+    console.error("Failed to load existing room type names:", error);
     existingNames.value = [];
   }
 };
@@ -293,48 +289,48 @@ function validatePhoto(file: File) {
     errors.value.photos = "File is too large";
     return false;
   }
-  errors.value.photos = '';
+  errors.value.photos = "";
   return true;
 }
 
 function validateForm() {
   let valid = true;
-  errors.value.name = '';
-  errors.value.description = '';
-  errors.value.photos = '';
-  errors.value.capacity = '';
-  errors.value.price = '';
-  
+  errors.value.name = "";
+  errors.value.description = "";
+  errors.value.photos = "";
+  errors.value.capacity = "";
+  errors.value.price = "";
+
   if (!roomType.value.name) {
-    errors.value.name = 'Name is required';
+    errors.value.name = "Name is required";
     valid = false;
   } else if (existingNames.value.includes(roomType.value.name)) {
-    errors.value.name = 'Room type name already exists';
+    errors.value.name = "Room type name already exists";
     valid = false;
   }
-  
+
   if (!roomType.value.description) {
-    errors.value.description = 'Description is required';
+    errors.value.description = "Description is required";
     valid = false;
   }
-  
+
   if (!roomType.value.capacity || roomType.value.capacity < 1) {
-    errors.value.capacity = 'Capacity must be at least 1';
+    errors.value.capacity = "Capacity must be at least 1";
     valid = false;
   }
-  
+
   if (!roomType.value.price || roomType.value.price < 0) {
-    errors.value.price = 'Price must be at least 0';
+    errors.value.price = "Price must be at least 0";
     valid = false;
   }
-  
+
   // Optionally validate photos
   return valid;
 }
 
 async function createOrUpdateRoomType() {
   // Simulate API call
-  if (roomType.value.name === 'fail') throw new Error('API Error');
+  if (roomType.value.name === "fail") throw new Error("API Error");
   return { data: { id: 1, name: roomType.value.name } };
 }
 
@@ -353,10 +349,10 @@ async function handleSubmit() {
     } else {
       await roomTypeService.create(roomType.value);
     }
-    showSuccess(t('Room type plan saved successfully!'));
+    showSuccess(t("Room type plan saved successfully!"));
     return true;
   } catch (e: any) {
-    error.value = e.message || 'API Error';
+    error.value = e.message || "API Error";
     showError(error.value);
     return false;
   }
@@ -470,7 +466,7 @@ const loadRoomType = async (id: number) => {
         roomTypeData.price || 0,
         roomTypeData.beds || []
       ),
-      description: roomTypeData.description || ""
+      description: roomTypeData.description || "",
     };
     // Load beds if minimap exists
     if (roomTypeData.minimap) {
@@ -502,7 +498,7 @@ watch(
           selectedRoomType.price || 0,
           selectedRoomType.beds || []
         ),
-        description: selectedRoomType.description || ""
+        description: selectedRoomType.description || "",
       };
       // Load beds if minimap exists
       if (selectedRoomType.minimap) {
@@ -522,7 +518,7 @@ watch(
 onMounted(async () => {
   // First try to restore from store
   roomTypeStore.restoreSelectedRoomType();
-  
+
   // If editing and no data in store, load from API
   if (isEditing.value && !roomTypeStore.selectedRoomType) {
     await loadRoomType(roomTypeId.value!);

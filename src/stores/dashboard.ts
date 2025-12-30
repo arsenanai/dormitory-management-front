@@ -1,7 +1,7 @@
-import { defineStore } from 'pinia';
-import { ref } from 'vue';
-import { dashboardService } from '@/services/api';
-import { useAuthStore } from '@/stores/auth';
+import { defineStore } from "pinia";
+import { ref } from "vue";
+import { dashboardService } from "@/services/api";
+import { useAuthStore } from "@/stores/auth";
 
 export interface DashboardStats {
   dormitories: number;
@@ -15,7 +15,7 @@ export interface DashboardStats {
   quotaStudents: number;
 }
 
-export const useDashboardStore = defineStore('dashboard', () => {
+export const useDashboardStore = defineStore("dashboard", () => {
   const stats = ref<DashboardStats>({
     dormitories: 0,
     rooms: 0,
@@ -39,17 +39,17 @@ export const useDashboardStore = defineStore('dashboard', () => {
       if (!authStore.token) return;
 
       let response;
-      
+
       // Call appropriate endpoint based on user role
       const roleName = authStore.userRole;
-      if (roleName === 'student') {
+      if (roleName === "student") {
         response = await dashboardService.getStudentStats();
       } else {
         response = await dashboardService.getStats();
       }
-      
+
       const data = response.data || {};
-      
+
       // Map backend response to frontend expected structure
       stats.value = {
         dormitories: Number(data.total_dormitories ?? 0), // Default to 4 based on seeded data
@@ -63,8 +63,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
         quotaStudents: Number(data.quota_students ?? 0),
       };
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Failed to load dashboard statistics';
-      
+      error.value = err.response?.data?.message || "Failed to load dashboard statistics";
+
       // Set default values based on seeded data if API fails
       // stats.value = {
       //   dormitories: 4,
@@ -83,4 +83,4 @@ export const useDashboardStore = defineStore('dashboard', () => {
   }
 
   return { stats, loading, error, fetchStats };
-}); 
+});

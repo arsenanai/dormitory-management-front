@@ -1,11 +1,15 @@
 <template>
-  <div class="h-full flex items-stretch lg:items-center justify-center bg-primary-50 py-2 lg:p-4">
-    <div class="w-full flex flex-col items-center">
-      <div v-if="successMessage" class="bg-green-100 text-green-800 p-3 rounded mb-4 w-full max-w-md mx-auto" data-testid="success-message">
+  <div class="bg-primary-50 flex h-full items-stretch justify-center py-2 lg:items-center lg:p-4">
+    <div class="flex w-full flex-col items-center">
+      <div
+        v-if="successMessage"
+        class="mx-auto mb-4 w-full max-w-md rounded bg-green-100 p-3 text-green-800"
+        data-testid="success-message"
+      >
         {{ successMessage }}
       </div>
       <div class="w-full max-w-md">
-        <div class="mb-4 w-full flex justify-end">
+        <div class="mb-4 flex w-full justify-end">
           <CSelect
             id="language-switcher"
             v-model="selectedLanguage"
@@ -37,10 +41,10 @@
           </CTabs>
         </div>
       </div>
-      <div v-if="registrationClosed" class="bg-red-100 text-red-800 p-3 rounded mb-4">
-        {{ t('Registration is closed. Student limit reached.') }}
+      <div v-if="registrationClosed" class="mb-4 rounded bg-red-100 p-3 text-red-800">
+        {{ t("Registration is closed. Student limit reached.") }}
       </div>
-      <div v-if="reserveListMessage" class="bg-yellow-100 text-yellow-800 p-3 rounded mb-4">
+      <div v-if="reserveListMessage" class="mb-4 rounded bg-yellow-100 p-3 text-yellow-800">
         {{ reserveListMessage }}
       </div>
     </div>
@@ -49,15 +53,15 @@
 
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch } from "vue";
 import { useToast } from "@/composables/useToast";
-import i18n from '@/i18n';
+import i18n from "@/i18n";
 import CSelect from "@/components/CSelect.vue";
 import CTabs from "@/components/CTabs.vue";
 import CTab from "@/components/CTab.vue";
-import LoginTab from '@/pages/LoginTab.vue';
-import RegistrationTab from '@/pages/RegistrationTab.vue';
-import GuestTab from '@/pages/GuestTab.vue';
+import LoginTab from "@/pages/LoginTab.vue";
+import RegistrationTab from "@/pages/RegistrationTab.vue";
+import GuestTab from "@/pages/GuestTab.vue";
 
 const { t } = useI18n();
 const { showSuccess, showError } = useToast();
@@ -77,29 +81,29 @@ const languageOptions = [
 const onRegistered = (message: string) => {
   successMessage.value = message;
   showSuccess(message);
-  activeTab.value = 'login';
+  activeTab.value = "login";
 };
 
 const onAddedToReserveList = (message: string) => {
   reserveListMessage.value = message;
   showSuccess(message);
-  activeTab.value = 'login';
+  activeTab.value = "login";
 };
 
 const onRegistrationClosed = () => {
   registrationClosed.value = true;
-  showError(t('Registration is closed. Student limit reached.'));
-}
+  showError(t("Registration is closed. Student limit reached."));
+};
 
 // Computed email placeholder based on selected language
 const emailPlaceholder = computed(() => {
   switch (selectedLanguage.value) {
-    case 'kk':
-      return 'мысалы: user@mysdu.kz';
-    case 'ru':
-      return 'например: user@mysdu.kz';
+    case "kk":
+      return "мысалы: user@mysdu.kz";
+    case "ru":
+      return "например: user@mysdu.kz";
     default:
-      return 'example@domain.com';
+      return "example@domain.com";
   }
 });
 

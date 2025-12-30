@@ -1,6 +1,10 @@
 <template>
-  <div class="flex w-full flex-col items-stretch justify-center" @dragover.prevent="handleDragOver"
-    @dragleave.prevent="handleDragLeave" @drop.prevent="handleDrop">
+  <div
+    class="flex w-full flex-col items-stretch justify-center"
+    @dragover.prevent="handleDragOver"
+    @dragleave.prevent="handleDragLeave"
+    @drop.prevent="handleDrop"
+  >
     <!-- Label -->
     <label v-if="label" :for="id" class="block text-sm font-medium" :class="labelClass">
       {{ label }}
@@ -9,48 +13,78 @@
     <!-- File Input Wrapper -->
     <div
       class="focus:ring-primary-300 dark:focus:ring-primary-700 flex w-full cursor-pointer flex-row items-center justify-between rounded-lg border border-gray-300 bg-gray-50 hover:bg-gray-200 focus:ring-4 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:hover:border-gray-500 dark:hover:bg-gray-600"
-      tabindex="0" @click="focusFileInput" @keydown.enter.prevent="focusFileInput"
+      tabindex="0"
+      @click="focusFileInput"
+      @keydown.enter.prevent="focusFileInput"
       @keydown.space.prevent="focusFileInput"
-      :class="{ 'bg-blue-50 dark:bg-blue-900': isDragging, 'items-start': !displayFileName }">
-      <div class="relative px-2.5 py-2 pl-10 w-full">
+      :class="{ 'bg-blue-50 dark:bg-blue-900': isDragging, 'items-start': !displayFileName }"
+    >
+      <div class="relative w-full px-2.5 py-2 pl-10">
         <!-- File Icon -->
         <PaperClipIcon
-          class="pointer-events-none absolute top-1/2 left-0 h-8 w-8 -translate-y-1/2 pl-3 text-gray-500 dark:text-gray-400" />
+          class="pointer-events-none absolute top-1/2 left-0 h-8 w-8 -translate-y-1/2 pl-3 text-gray-500 dark:text-gray-400"
+        />
 
         <!-- Show selected file name, existing file path, or default text -->
-        <div v-if="displayFileName"
-          class="flex w-full items-center justify-between text-base text-primary-500 dark:text-primary-400">
-          <button v-if="isDownloadable" type="button" @click.prevent.stop="downloadFile"
-            class="font-medium text-primary-600 hover:underline dark:text-primary-400 grow text-left">
+        <div
+          v-if="displayFileName"
+          class="text-primary-500 dark:text-primary-400 flex w-full items-center justify-between text-base"
+        >
+          <button
+            v-if="isDownloadable"
+            type="button"
+            @click.prevent.stop="downloadFile"
+            class="text-primary-600 dark:text-primary-400 grow text-left font-medium hover:underline"
+          >
             {{ shortenFileName(displayFileName) }}
           </button>
-          <span v-else class="font-medium grow text-left">
+          <span v-else class="grow text-left font-medium">
             {{ shortenFileName(displayFileName) }}
           </span>
-          <button type="button" @click.stop="clearFile"
-            class="ml-2 inline-flex items-center text-red-500 hover:text-red-700" :title="t('Remove file')">
+          <button
+            type="button"
+            @click.stop="clearFile"
+            class="ml-2 inline-flex items-center text-red-500 hover:text-red-700"
+            :title="t('Remove file')"
+          >
             <TrashIcon class="h-5 w-5" />
           </button>
         </div>
-        <p v-else class="flex flex-col text-sm text-gray-500 dark:text-gray-400 sm:flex-row sm:text-base">
-          <span class="hidden sm:inline text-primary-600 dark:text-primary-500">{{ t('Drag and drop your file here, or')
-            }}&nbsp;</span>
-          <span class="sm:hidden text-primary-600 dark:text-primary-500">{{ t('Tap to select a file') }}</span>
-          <span class="font-medium text-primary-600 hover:underline dark:text-primary-500">
-            <label :for="id" class="cursor-pointer hidden sm:inline">
-              {{ t('browse') }}
+        <p
+          v-else
+          class="flex flex-col text-sm text-gray-500 sm:flex-row sm:text-base dark:text-gray-400"
+        >
+          <span class="text-primary-600 dark:text-primary-500 hidden sm:inline"
+            >{{ t("Drag and drop your file here, or") }}&nbsp;</span
+          >
+          <span class="text-primary-600 dark:text-primary-500 sm:hidden">{{
+            t("Tap to select a file")
+          }}</span>
+          <span class="text-primary-600 dark:text-primary-500 font-medium hover:underline">
+            <label :for="id" class="hidden cursor-pointer sm:inline">
+              {{ t("browse") }}
             </label>
           </span>
         </p>
       </div>
       <!-- Hidden File Input -->
-      <input :id="id" type="file" class="hidden" :name="formatName(name)"
-        :accept="allowedExtensions?.map((ext) => `.${ext}`).join(',')" :multiple="multiple" @change="handleFileChange"
-        ref="fileInput" />
+      <input
+        :id="id"
+        type="file"
+        class="hidden"
+        :name="formatName(name)"
+        :accept="allowedExtensions?.map((ext) => `.${ext}`).join(',')"
+        :multiple="multiple"
+        @change="handleFileChange"
+        ref="fileInput"
+      />
     </div>
 
     <!-- Validation Message -->
-    <p v-if="validationMessage || internalValidationMessage" class="mt-1 text-sm text-red-600 dark:text-red-500">
+    <p
+      v-if="validationMessage || internalValidationMessage"
+      class="mt-1 text-sm text-red-600 dark:text-red-500"
+    >
       {{ validationMessage || internalValidationMessage }}
     </p>
   </div>
@@ -80,12 +114,10 @@ const props = withDefaults(defineProps<Props>(), {
   allowedExtensions: () => [],
 });
 
-
-
 // Define emits
 const emit = defineEmits<{
-  (e: 'change', value: File | FileList | null | string): void;
-  (e: 'validation', payload: { valid: boolean }): void;
+  (e: "change", value: File | FileList | null | string): void;
+  (e: "validation", payload: { valid: boolean }): void;
 }>();
 
 // i18n
@@ -114,7 +146,7 @@ const displayFileName = computed(() => {
     return selectedFile.value;
   }
   // Show the base name of the existing file path
-  return props.filePath ? props.filePath.split('/').pop() : null;
+  return props.filePath ? props.filePath.split("/").pop() : null;
 });
 
 const shortenFileName = (fileName: string | null): string | null => {
@@ -126,9 +158,9 @@ const shortenFileName = (fileName: string | null): string | null => {
     return fileName;
   }
 
-  const lastDotIndex = fileName.lastIndexOf('.');
+  const lastDotIndex = fileName.lastIndexOf(".");
   let baseName = fileName;
-  let extension = '';
+  let extension = "";
 
   if (lastDotIndex !== -1) {
     baseName = fileName.substring(0, lastDotIndex);
@@ -141,14 +173,17 @@ const shortenFileName = (fileName: string | null): string | null => {
 
   if (availableSpaceForBase <= 0) {
     // If extension + ellipsis is already too long, just truncate the whole thing
-    return fileName.substring(0, MAX_DISPLAY_LENGTH - 3) + '...';
+    return fileName.substring(0, MAX_DISPLAY_LENGTH - 3) + "...";
   }
 
   const charsFromStart = Math.floor(availableSpaceForBase / 2);
   const charsFromEnd = availableSpaceForBase - charsFromStart;
 
-  const shortenedBaseName = baseName.substring(0, charsFromStart) + '...' + baseName.substring(baseName.length - charsFromEnd);
-  return shortenedBaseName + (extension ? '.' + extension : '');
+  const shortenedBaseName =
+    baseName.substring(0, charsFromStart) +
+    "..." +
+    baseName.substring(baseName.length - charsFromEnd);
+  return shortenedBaseName + (extension ? "." + extension : "");
 };
 
 // Methods
@@ -160,10 +195,10 @@ const downloadFile = async () => {
   internalValidationMessage.value = null; // Clear previous errors
 
   try {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     const response = await fetch(fileUrl, {
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -172,8 +207,8 @@ const downloadFile = async () => {
     }
 
     // Best practice: Try to get filename from Content-Disposition header first.
-    const contentDisposition = response.headers.get('Content-Disposition');
-    let downloadFilename = displayFileName.value || 'download';
+    const contentDisposition = response.headers.get("Content-Disposition");
+    let downloadFilename = displayFileName.value || "download";
     if (contentDisposition) {
       const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
       if (filenameMatch && filenameMatch.length > 1) {
@@ -183,7 +218,7 @@ const downloadFile = async () => {
 
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = downloadFilename; // Use the determined filename
     document.body.appendChild(a);
@@ -191,8 +226,8 @@ const downloadFile = async () => {
     window.URL.revokeObjectURL(url);
     a.remove();
   } catch (error: any) {
-    console.error('Download error:', error);
-    internalValidationMessage.value = t('Failed to download file. Please try again.');
+    console.error("Download error:", error);
+    internalValidationMessage.value = t("Failed to download file. Please try again.");
   }
 };
 
@@ -203,11 +238,11 @@ const handleFileChange = (event: Event) => {
 
   if (props.multiple) {
     validateMultipleFiles(files);
-    emit('change', files);
+    emit("change", files);
   } else {
     const file = files?.[0] || null;
     validateFile(file);
-    emit('change', file);
+    emit("change", file);
   }
 };
 
@@ -219,10 +254,10 @@ const focusFileInput = (): void => {
 
 const clearFile = () => {
   if (fileInput.value) {
-    fileInput.value.value = ''; // Clear the file input
+    fileInput.value.value = ""; // Clear the file input
   }
   selectedFile.value = null;
-  emit('change', null); // Emit null to signify removal
+  emit("change", null); // Emit null to signify removal
 };
 
 const handleDragOver = (): void => {
@@ -244,11 +279,11 @@ const handleDrop = (event: DragEvent) => {
 
   if (props.multiple) {
     validateMultipleFiles(files);
-    emit('change', files);
+    emit("change", files);
   } else {
     const file = files?.[0] || null;
     validateFile(file);
-    emit('change', file);
+    emit("change", file);
   }
 };
 
@@ -257,7 +292,7 @@ const validateFile = (file: File | null) => {
   if (!file) {
     internalValidationMessage.value = "";
     selectedFile.value = null;
-    emit('validation', { valid: true });
+    emit("validation", { valid: true });
     return;
   }
 
@@ -270,7 +305,7 @@ const validateFile = (file: File | null) => {
       maxSize: props.maxFileSize / (1024 * 1024),
     });
     selectedFile.value = null;
-    emit('validation', { valid: false });
+    emit("validation", { valid: false });
     return;
   }
 
@@ -280,14 +315,14 @@ const validateFile = (file: File | null) => {
       extensions: props.allowedExtensions.join(", "),
     });
     selectedFile.value = null;
-    emit('validation', { valid: false });
+    emit("validation", { valid: false });
     return;
   }
 
   // Valid file
   internalValidationMessage.value = "";
   selectedFile.value = shortenFileName(file.name);
-  emit('validation', { valid: true });
+  emit("validation", { valid: true });
 };
 
 // File Validation for multiple files
@@ -295,7 +330,7 @@ const validateMultipleFiles = (files: FileList | null) => {
   if (!files || files.length === 0) {
     internalValidationMessage.value = "";
     selectedFile.value = null;
-    emit('validation', { valid: true });
+    emit("validation", { valid: true });
     return;
   }
 
@@ -312,7 +347,7 @@ const validateMultipleFiles = (files: FileList | null) => {
         maxSize: props.maxFileSize / (1024 * 1024),
       });
       selectedFile.value = null;
-      emit('validation', { valid: false });
+      emit("validation", { valid: false });
       return;
     }
 
@@ -322,7 +357,7 @@ const validateMultipleFiles = (files: FileList | null) => {
         extensions: props.allowedExtensions.join(", "),
       });
       selectedFile.value = null;
-      emit('validation', { valid: false });
+      emit("validation", { valid: false });
       return;
     }
 
@@ -331,7 +366,8 @@ const validateMultipleFiles = (files: FileList | null) => {
 
   // All files are valid
   internalValidationMessage.value = "";
-  selectedFile.value = files.length === 1 ? shortenFileName(fileNames[0]) : `${files.length} files selected`;
-  emit('validation', { valid: true });
+  selectedFile.value =
+    files.length === 1 ? shortenFileName(fileNames[0]) : `${files.length} files selected`;
+  emit("validation", { valid: true });
 };
 </script>

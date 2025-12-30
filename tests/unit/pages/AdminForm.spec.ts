@@ -324,6 +324,7 @@ describe('AdminForm', () => {
       try {
         await component.submitForm();
       } catch (error) {
+        // Expected error for validation failure
       }
 
       // Should handle the error gracefully

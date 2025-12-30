@@ -2,41 +2,57 @@
   <Navigation :title="t('Accounting Overview')">
     <div class="flex flex-col gap-4">
       <!-- Debug: {{ settingsStore.publicSettings?.currency_symbol }} -->
-      <h1>{{ t('Accounting') }}</h1>
+      <h1>{{ t("Accounting") }}</h1>
       <!-- Filters -->
-      <div class="flex flex-wrap gap-4 mb-4">
-        <CSelect id="student-filter" v-model="studentFilter" :options="studentOptions" :label="t('Student')"
-          class="w-48" />
-        <CInput id="semester-filter" v-model="semesterFilter" :label="t('Semester')" placeholder="e.g. 2024-fall"
-          class="w-32" />
-        <CInput id="start-date" v-model="startDate" type="date" :label="t('Start Date')" class="w-36" />
+      <div class="mb-4 flex flex-wrap gap-4">
+        <CSelect
+          id="student-filter"
+          v-model="studentFilter"
+          :options="studentOptions"
+          :label="t('Student')"
+          class="w-48"
+        />
+        <CInput
+          id="semester-filter"
+          v-model="semesterFilter"
+          :label="t('Semester')"
+          placeholder="e.g. 2024-fall"
+          class="w-32"
+        />
+        <CInput
+          id="start-date"
+          v-model="startDate"
+          type="date"
+          :label="t('Start Date')"
+          class="w-36"
+        />
         <CInput id="end-date" v-model="endDate" type="date" :label="t('End Date')" class="w-36" />
         <CButton @click="exportAccounting" data-testid="export-accounting-button">
           <ArrowDownTrayIcon class="h-5 w-5" />
-          {{ t('Download') }}
+          {{ t("Download") }}
         </CButton>
       </div>
       <!-- Loading State -->
-      <div v-if="loading" class="text-center py-8">
-        <div class="text-primary-600">{{ t('Loading...') }}</div>
+      <div v-if="loading" class="py-8 text-center">
+        <div class="text-primary-600">{{ t("Loading...") }}</div>
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error" class="text-center py-8">
+      <div v-else-if="error" class="py-8 text-center">
         <div class="text-red-500">{{ error }}</div>
       </div>
 
       <CTable v-else>
         <CTableHead>
-          <CTableHeadCell>{{ t('Student') }}</CTableHeadCell>
-          <CTableHeadCell>{{ t('Semester') }}</CTableHeadCell>
-          <CTableHeadCell>{{ t('Total Paid') }}</CTableHeadCell>
-          <CTableHeadCell>{{ t('Outstanding') }}</CTableHeadCell>
+          <CTableHeadCell>{{ t("Student") }}</CTableHeadCell>
+          <CTableHeadCell>{{ t("Semester") }}</CTableHeadCell>
+          <CTableHeadCell>{{ t("Total Paid") }}</CTableHeadCell>
+          <CTableHeadCell>{{ t("Outstanding") }}</CTableHeadCell>
         </CTableHead>
         <CTableBody>
           <CTableRow v-if="filteredRows.length === 0">
-            <CTableCell colspan="4" class="text-center text-primary-500">
-              {{ t('No accounting data available') }}
+            <CTableCell colspan="4" class="text-primary-500 text-center">
+              {{ t("No accounting data available") }}
             </CTableCell>
           </CTableRow>
           <CTableRow v-for="row in filteredRows" :key="row.id">
@@ -52,22 +68,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { accountingApi } from '@/services/api';
-import Navigation from '@/components/CNavigation.vue';
-import CInput from '@/components/CInput.vue';
-import CSelect from '@/components/CSelect.vue';
-import CButton from '@/components/CButton.vue';
-import CTable from '@/components/CTable.vue';
-import CTableHead from '@/components/CTableHead.vue';
-import CTableHeadCell from '@/components/CTableHeadCell.vue';
-import CTableBody from '@/components/CTableBody.vue';
-import CTableRow from '@/components/CTableRow.vue';
-import CTableCell from '@/components/CTableCell.vue';
-import { useSettingsStore } from '@/stores/settings';
-import { getCurrencySymbol } from '@/utils/formatters';
-import { ArrowDownTrayIcon } from '@heroicons/vue/24/outline';
+import { ref, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
+import { accountingApi } from "@/services/api";
+import Navigation from "@/components/CNavigation.vue";
+import CInput from "@/components/CInput.vue";
+import CSelect from "@/components/CSelect.vue";
+import CButton from "@/components/CButton.vue";
+import CTable from "@/components/CTable.vue";
+import CTableHead from "@/components/CTableHead.vue";
+import CTableHeadCell from "@/components/CTableHeadCell.vue";
+import CTableBody from "@/components/CTableBody.vue";
+import CTableRow from "@/components/CTableRow.vue";
+import CTableCell from "@/components/CTableCell.vue";
+import { useSettingsStore } from "@/stores/settings";
+import { getCurrencySymbol } from "@/utils/formatters";
+import { ArrowDownTrayIcon } from "@heroicons/vue/24/outline";
 
 const { t } = useI18n();
 const settingsStore = useSettingsStore();
@@ -79,10 +95,10 @@ const error = ref<string | null>(null);
 const summary = ref<any>({});
 
 // Filters
-const studentFilter = ref('');
-const semesterFilter = ref('');
-const startDate = ref('');
-const endDate = ref('');
+const studentFilter = ref("");
+const semesterFilter = ref("");
+const startDate = ref("");
+const endDate = ref("");
 
 // Student options for filter
 const studentOptions = ref<{ value: string; name: string }[]>([]);
@@ -98,9 +114,9 @@ const fetchAccountingData = async () => {
     error.value = null;
 
     // Check if user is authenticated
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      error.value = 'Authentication required';
+      error.value = "Authentication required";
       rows.value = [];
       return;
     }
@@ -117,26 +133,43 @@ const fetchAccountingData = async () => {
 
     // Extract unique students for filter options
     const students = new Set<string>();
-    rows.value.forEach(row => {
+    rows.value.forEach((row) => {
       if (row.student_name) {
         students.add(row.student_name);
       }
     });
 
-    studentOptions.value = Array.from(students).map(name => ({
+    studentOptions.value = Array.from(students).map((name) => ({
       value: name,
-      name: name
+      name: name,
     }));
-
   } catch (err: any) {
-    console.error('Failed to fetch accounting data:', err);
-    error.value = err.response?.data?.message || t('Failed to load accounting data');
+    console.error("Failed to fetch accounting data:", err);
+    error.value = err.response?.data?.message || t("Failed to load accounting data");
 
     // Fallback to mock data if API fails
     rows.value = [
-      { id: 1, student_name: 'Alice Smith', semester: '2024-fall', amount: 120000, payment_approved: true },
-      { id: 2, student_name: 'Bob Lee', semester: '2024-fall', amount: 60000, payment_approved: false },
-      { id: 3, student_name: 'Charlie Kim', semester: '2024-spring', amount: 120000, payment_approved: true },
+      {
+        id: 1,
+        student_name: "Alice Smith",
+        semester: "2024-fall",
+        amount: 120000,
+        payment_approved: true,
+      },
+      {
+        id: 2,
+        student_name: "Bob Lee",
+        semester: "2024-fall",
+        amount: 60000,
+        payment_approved: false,
+      },
+      {
+        id: 3,
+        student_name: "Charlie Kim",
+        semester: "2024-spring",
+        amount: 120000,
+        payment_approved: true,
+      },
     ];
   } finally {
     loading.value = false;
@@ -161,11 +194,10 @@ const exportAccounting = async () => {
 
     // For now, just show a success message
     // In a real implementation, this would download a file
-    alert(t('Export completed successfully'));
-
+    alert(t("Export completed successfully"));
   } catch (err: any) {
-    console.error('Failed to export accounting data:', err);
-    alert(t('Failed to export accounting data'));
+    console.error("Failed to export accounting data:", err);
+    alert(t("Failed to export accounting data"));
   }
 };
 

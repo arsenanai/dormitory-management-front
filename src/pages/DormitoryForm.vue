@@ -1,91 +1,144 @@
 <template>
   <Navigation :title="isEditing ? t('Edit Dormitory') : t('Add Dormitory')">
     <form @submit.prevent="submitDormitory" class="space-y-6">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <!-- Dormitory Name -->
         <div>
-          <CInput id="dormitory-name" v-model="dormitory.name" type="text" :label="t('Dormitory Name')"
-            placeholder="Enter Dormitory Name" required />
+          <CInput
+            id="dormitory-name"
+            v-model="dormitory.name"
+            type="text"
+            :label="t('Dormitory Name')"
+            placeholder="Enter Dormitory Name"
+            required
+          />
         </div>
 
         <!-- Capacity -->
         <div>
-          <CInput id="dormitory-capacity" v-model="dormitory.capacity" type="number" :label="t('Capacity')"
-            placeholder="Enter Capacity" required />
+          <CInput
+            id="dormitory-capacity"
+            v-model="dormitory.capacity"
+            type="number"
+            :label="t('Capacity')"
+            placeholder="Enter Capacity"
+            required
+          />
         </div>
 
         <!-- Gender -->
         <div>
-          <CSelect id="dormitory-gender" v-model="dormitory.gender" :options="genderOptions" :label="t('Gender')"
-            placeholder="Select Gender" required />
+          <CSelect
+            id="dormitory-gender"
+            v-model="dormitory.gender"
+            :options="genderOptions"
+            :label="t('Gender')"
+            placeholder="Select Gender"
+            required
+          />
         </div>
 
         <!-- Admin -->
         <div>
-          <CSelect id="dormitory-admin" v-model="dormitory.admin_id" :options="adminOptions" :label="t('Admin')"
-            placeholder="Select an Admin" required />
+          <CSelect
+            id="dormitory-admin"
+            v-model="dormitory.admin_id"
+            :options="adminOptions"
+            :label="t('Admin')"
+            placeholder="Select an Admin"
+            required
+          />
         </div>
 
         <!-- Address -->
         <div>
-          <CInput id="dormitory-address" v-model="dormitory.address" type="text" :label="t('Address')"
-            placeholder="Enter Address" />
+          <CInput
+            id="dormitory-address"
+            v-model="dormitory.address"
+            type="text"
+            :label="t('Address')"
+            placeholder="Enter Address"
+          />
         </div>
 
         <!-- Description -->
         <div>
-          <CInput id="dormitory-description" v-model="dormitory.description" type="text" :label="t('Description')"
-            placeholder="Enter Description" />
+          <CInput
+            id="dormitory-description"
+            v-model="dormitory.description"
+            type="text"
+            :label="t('Description')"
+            placeholder="Enter Description"
+          />
         </div>
-
-
 
         <!-- Phone -->
         <div>
-          <CInput id="dormitory-phone" v-model="dormitory.phone" type="text" :label="t('Phone')"
-            placeholder="Enter Phone Number" />
+          <CInput
+            id="dormitory-phone"
+            v-model="dormitory.phone"
+            type="text"
+            :label="t('Phone')"
+            placeholder="Enter Phone Number"
+          />
         </div>
 
         <!-- Computed Fields (Display-Only) -->
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            {{ t('Student Capacity') }}
+            {{ t("Student Capacity") }}
           </label>
-          <div class="mt-1 p-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md">
+          <div
+            class="mt-1 rounded-md border border-gray-300 bg-gray-50 p-3 dark:border-gray-600 dark:bg-gray-700"
+          >
             <span class="text-gray-900 dark:text-gray-100">{{ calculatedCapacity }}</span>
-            <span class="text-sm text-gray-500 dark:text-gray-400 ml-2">({{ t('Calculated from rooms') }})</span>
+            <span class="ml-2 text-sm text-gray-500 dark:text-gray-400"
+              >({{ t("Calculated from rooms") }})</span
+            >
           </div>
         </div>
 
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            {{ t('Registered Students') }}
+            {{ t("Registered Students") }}
           </label>
-          <div class="mt-1 p-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md">
+          <div
+            class="mt-1 rounded-md border border-gray-300 bg-gray-50 p-3 dark:border-gray-600 dark:bg-gray-700"
+          >
             <span class="text-gray-900 dark:text-gray-100">{{ calculatedRegisteredStudents }}</span>
-            <span class="text-sm text-gray-500 dark:text-gray-400 ml-2">({{ t('Calculated automatically') }})</span>
+            <span class="ml-2 text-sm text-gray-500 dark:text-gray-400"
+              >({{ t("Calculated automatically") }})</span
+            >
           </div>
         </div>
 
         <!-- Free Beds -->
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            {{ t('Free Beds') }}
+            {{ t("Free Beds") }}
           </label>
-          <div class="mt-1 p-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md">
+          <div
+            class="mt-1 rounded-md border border-gray-300 bg-gray-50 p-3 dark:border-gray-600 dark:bg-gray-700"
+          >
             <span class="text-gray-900 dark:text-gray-100">{{ calculatedFreeBeds }}</span>
-            <span class="text-sm text-gray-500 dark:text-gray-400 ml-2">({{ t('Calculated automatically') }})</span>
+            <span class="ml-2 text-sm text-gray-500 dark:text-gray-400"
+              >({{ t("Calculated automatically") }})</span
+            >
           </div>
         </div>
 
         <!-- Rooms Count -->
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            {{ t('Rooms Count') }}
+            {{ t("Rooms Count") }}
           </label>
-          <div class="mt-1 p-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md">
+          <div
+            class="mt-1 rounded-md border border-gray-300 bg-gray-50 p-3 dark:border-gray-600 dark:bg-gray-700"
+          >
             <span class="text-gray-900 dark:text-gray-100">{{ calculatedRoomsCount }}</span>
-            <span class="text-sm text-gray-500 dark:text-gray-400 ml-2">({{ t('Calculated automatically') }})</span>
+            <span class="ml-2 text-sm text-gray-500 dark:text-gray-400"
+              >({{ t("Calculated automatically") }})</span
+            >
           </div>
         </div>
       </div>
@@ -121,10 +174,10 @@ const dormitoryStore = useDormitoriesStore();
 const { showError, showSuccess } = useToast();
 
 // Check if we're editing (ID in route params)
-const dormitoryId = computed(() => route.params.id ? Number(route.params.id) : null);
+const dormitoryId = computed(() => (route.params.id ? Number(route.params.id) : null));
 const isEditing = computed(() => {
   // Force check if we're in edit mode by looking at the route path
-  const hasIdInPath = route.path.includes('/dormitory-form/') && route.path.split('/').length > 2;
+  const hasIdInPath = route.path.includes("/dormitory-form/") && route.path.split("/").length > 2;
   const hasIdInParams = !!dormitoryId.value;
   return hasIdInPath || hasIdInParams;
 });
@@ -171,7 +224,7 @@ const loadAdmins = async () => {
       name: admin.name || admin.email || `Admin ${admin.id}`,
     }));
   } catch (error) {
-    console.error('Failed to load admins:', error);
+    console.error("Failed to load admins:", error);
     showError(t("Failed to load admin options"));
 
     // Fallback to mock data if API fails
@@ -206,9 +259,9 @@ const submitDormitory = async (): Promise<void> => {
     }
 
     // Redirect to dormitories list
-    router.push('/dormitories');
+    router.push("/dormitories");
   } catch (error) {
-    console.error('Error submitting dormitory:', error);
+    console.error("Error submitting dormitory:", error);
     showError(t("Failed to submit dormitory"));
   } finally {
     isSubmitting.value = false;
@@ -228,7 +281,6 @@ const loadDormitory = async (id: number) => {
       let adminId = dormitoryData.admin_id;
       if (dormitoryData.admin && dormitoryData.admin.id) {
         adminId = dormitoryData.admin.id;
-
       }
 
       // Create new Dormitory instance with the loaded data
@@ -247,11 +299,9 @@ const loadDormitory = async (id: number) => {
         dormitoryData.rooms_count || 0,
         dormitoryData.rooms || []
       );
-
-
     }
   } catch (error) {
-    console.error('Error loading dormitory:', error);
+    console.error("Error loading dormitory:", error);
     showError(t("Failed to load dormitory data"));
   }
 };
@@ -261,7 +311,6 @@ watch(
   () => route.params.id,
   async (newId) => {
     if (newId && isEditing.value) {
-
       await loadDormitory(Number(newId));
     }
   },
@@ -272,8 +321,7 @@ watch(
 watch(
   () => route.path,
   async (newPath) => {
-    if (newPath.includes('/dormitory-form/') && isEditing.value && dormitoryId.value) {
-
+    if (newPath.includes("/dormitory-form/") && isEditing.value && dormitoryId.value) {
       // Force fresh data load by clearing any cached data
       dormitoryStore.clearSelectedDormitory();
       await loadDormitory(dormitoryId.value);
@@ -342,7 +390,7 @@ const loadRoomOptionsForDormitory = async (dormitoryId: number) => {
       ];
     }
   } catch (error) {
-    console.error('Failed to load room options:', error);
+    console.error("Failed to load room options:", error);
     showError(t("Failed to load room options"));
 
     // Fallback to mock data if API fails
@@ -373,7 +421,7 @@ const addRoom = async () => {
     room_type_id: null,
     dormitory_id: null,
     notes: "",
-    beds: []
+    beds: [],
   };
   dormitory.value.rooms.push(newRoom);
 };

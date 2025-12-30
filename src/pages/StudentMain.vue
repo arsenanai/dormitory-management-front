@@ -22,50 +22,58 @@
 
       <!-- Room Information -->
       <div v-if="roomInfo" class="mb-6">
-        <div class="flex items-center mb-4">
-          <BuildingOfficeIcon class="h-6 w-6 text-secondary-600 mr-3" />
-          <h2 class="text-xl font-semibold text-gray-900">{{ t('Room Information') }}</h2>
+        <div class="mb-4 flex items-center">
+          <BuildingOfficeIcon class="text-secondary-600 mr-3 h-6 w-6" />
+          <h2 class="text-xl font-semibold text-gray-900">{{ t("Room Information") }}</h2>
         </div>
         <div class="space-y-3">
           <div class="flex justify-between">
-            <span class="text-gray-600">{{ t('Dormitory') }}:</span>
+            <span class="text-gray-600">{{ t("Dormitory") }}:</span>
             <span class="font-medium">{{ roomInfo.dormitory_name }}</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-gray-600">{{ t('Floor') }}:</span>
+            <span class="text-gray-600">{{ t("Floor") }}:</span>
             <span class="font-medium">{{ roomInfo.floor }}</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-gray-600">{{ t('Room Number') }}:</span>
+            <span class="text-gray-600">{{ t("Room Number") }}:</span>
             <span class="font-medium">{{ roomInfo.room_number }}</span>
           </div>
           <div v-if="dashboardData.student_bed" class="flex justify-between">
-            <span class="text-gray-600">{{ t('Bed') }}:</span>
-            <span class="font-medium">{{ roomInfo.room_number }}-{{ dashboardData.student_bed.bed_number }}</span>
+            <span class="text-gray-600">{{ t("Bed") }}:</span>
+            <span class="font-medium"
+              >{{ roomInfo.room_number }}-{{ dashboardData.student_bed.bed_number }}</span
+            >
           </div>
         </div>
       </div>
 
       <!-- Reception Contacts -->
       <div class="mb-6">
-        <div class="flex items-center mb-4" data-testid="reception-contacts">
-          <PhoneIcon class="h-6 w-6 text-secondary-600 mr-3" />
+        <div class="mb-4 flex items-center" data-testid="reception-contacts">
+          <PhoneIcon class="text-secondary-600 mr-3 h-6 w-6" />
           <h2 class="text-xl font-semibold text-gray-900">
-            {{ $t('guest.home.reception.title') }}
+            {{ $t("guest.home.reception.title") }}
           </h2>
         </div>
 
         <div class="grid grid-cols-1 gap-6" v-if="receptionContacts">
           <div class="space-y-3">
-            <h3 class="font-medium text-gray-900">{{ $t('guest.home.reception.mainContact') }}</h3>
+            <h3 class="font-medium text-gray-900">{{ $t("guest.home.reception.mainContact") }}</h3>
             <div class="space-y-2">
-              <a :href="receptionContacts.whatsappLink" target="_blank"
-                class="flex items-center text-gray-600 hover:text-blue-600">
-                <PhoneIcon class="h-4 w-4 text-gray-500 mr-2" />
+              <a
+                :href="receptionContacts.whatsappLink"
+                target="_blank"
+                class="flex items-center text-gray-600 hover:text-blue-600"
+              >
+                <PhoneIcon class="mr-2 h-4 w-4 text-gray-500" />
                 <span>{{ receptionContacts.phone }}</span>
               </a>
-              <a :href="receptionContacts.emailLink" class="flex items-center text-gray-600 hover:text-blue-600">
-                <EnvelopeIcon class="h-4 w-4 text-gray-500 mr-2" />
+              <a
+                :href="receptionContacts.emailLink"
+                class="flex items-center text-gray-600 hover:text-blue-600"
+              >
+                <EnvelopeIcon class="mr-2 h-4 w-4 text-gray-500" />
                 <span>{{ receptionContacts.email }}</span>
               </a>
             </div>
@@ -90,42 +98,54 @@
 
       <!-- Messages Section -->
       <div class="mb-6">
-        <h2 class="flex items-center gap-2 text-xl font-semibold text-gray-900 mb-4">
-          <ChatBubbleLeftRightIcon class="h-6 w-6 text-secondary-600" /> {{ t('Recent messages') }}
+        <h2 class="mb-4 flex items-center gap-2 text-xl font-semibold text-gray-900">
+          <ChatBubbleLeftRightIcon class="text-secondary-600 h-6 w-6" /> {{ t("Recent messages") }}
         </h2>
 
         <!-- Messages Table -->
-        <CTable :columns="messageColumns" :data="messages" :loading="messagesLoading" hoverable
-          data-testid="messages-table" @row-click="handleMessageClick" />
+        <CTable
+          :columns="messageColumns"
+          :data="messages"
+          :loading="messagesLoading"
+          hoverable
+          data-testid="messages-table"
+          @row-click="handleMessageClick"
+        />
       </div>
-
     </div>
   </Navigation>
 
   <!-- Message Detail Modal -->
-  <CModal :model-value="showMessageModal" @update:model-value="showMessageModal = $event"
-    :title="selectedMessage?.subject || t('Message')">
-    <div v-if="selectedMessage" class="flex flex-col h-full">
-      <div class="p-3 bg-gray-50 rounded-lg border border-gray-200 flex-shrink-0">
+  <CModal
+    :model-value="showMessageModal"
+    @update:model-value="showMessageModal = $event"
+    :title="selectedMessage?.subject || t('Message')"
+  >
+    <div v-if="selectedMessage" class="flex h-full flex-col">
+      <div class="flex-shrink-0 rounded-lg border border-gray-200 bg-gray-50 p-3">
         <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-600">
           <div class="flex items-center">
-            <EnvelopeIcon class="h-4 w-4 mr-1 text-gray-400" />
-            <span class="font-medium text-gray-800">{{ t('From') }}:</span>
-            <span class="ml-1">{{ selectedMessage.from || t('Administrator') }}</span>
+            <EnvelopeIcon class="mr-1 h-4 w-4 text-gray-400" />
+            <span class="font-medium text-gray-800">{{ t("From") }}:</span>
+            <span class="ml-1">{{ selectedMessage.from || t("Administrator") }}</span>
           </div>
           <div class="flex items-center">
-            <ClockIcon class="h-4 w-4 mr-1 text-gray-400" />
-            <span class="font-medium text-gray-800">{{ t('Date') }}:</span>
+            <ClockIcon class="mr-1 h-4 w-4 text-gray-400" />
+            <span class="font-medium text-gray-800">{{ t("Date") }}:</span>
             <span class="ml-1">{{ selectedMessage.dateTime }}</span>
           </div>
         </div>
       </div>
 
-      <div class="pt-2 flex flex-col flex-grow min-h-0">
-        <label class="block text-sm font-medium text-gray-700 mb-1 flex-shrink-0">{{ t('Message Content') }}</label>
-        <div class="w-full p-4 border border-gray-300 rounded-lg bg-white overflow-y-auto flex-grow">
-          <p class="whitespace-pre-wrap text-base text-gray-800">
-            {{ selectedMessage.content || t('No content available.') }}
+      <div class="flex min-h-0 flex-grow flex-col pt-2">
+        <label class="mb-1 block flex-shrink-0 text-sm font-medium text-gray-700">{{
+          t("Message Content")
+        }}</label>
+        <div
+          class="w-full flex-grow overflow-y-auto rounded-lg border border-gray-300 bg-white p-4"
+        >
+          <p class="text-base whitespace-pre-wrap text-gray-800">
+            {{ selectedMessage.content || t("No content available.") }}
           </p>
         </div>
       </div>
@@ -142,8 +162,14 @@ import CTextarea from "@/components/CTextarea.vue";
 import CModal from "@/components/CModal.vue";
 
 import { Message } from "@/models/Message"; // Import the Message class
-import { PhoneIcon, EnvelopeIcon, BuildingOfficeIcon, ChatBubbleLeftRightIcon, ClockIcon } from '@heroicons/vue/24/outline';
-import { authService, messageService } from '@/services/api';
+import {
+  PhoneIcon,
+  EnvelopeIcon,
+  BuildingOfficeIcon,
+  ChatBubbleLeftRightIcon,
+  ClockIcon,
+} from "@heroicons/vue/24/outline";
+import { authService, messageService } from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
 import { formatDateToLocalString } from "@/utils/formatters";
 import CButton from "@/components/CButton.vue";
@@ -153,12 +179,12 @@ const authStore = useAuthStore();
 
 // Message table columns
 const messageColumns = [
-  { key: 'from', label: t('FROM') },
-  { key: 'subject', label: t('SUBJECT') },
-  { key: 'dateTime', label: t('DATE-TIME') },
+  { key: "from", label: t("FROM") },
+  { key: "subject", label: t("SUBJECT") },
+  { key: "dateTime", label: t("DATE-TIME") },
 ];
 
-const appName = import.meta.env.VITE_APP_NAME || 'Dormitory CRM';
+const appName = import.meta.env.VITE_APP_NAME || "Dormitory CRM";
 // Dashboard Data
 const dashboardData = ref<any>({});
 const roomInfo = ref<any>(null);
@@ -175,7 +201,7 @@ const showMessageModal = ref(false);
 // Status banner
 const dormitoryAccessChecked = ref<boolean>(false);
 const dormitoryAccessLoading = ref<boolean>(true);
-const studentStatus = ref<string>('active');
+const studentStatus = ref<string>("active");
 
 // Select Message
 const selectMessage = (message: Message, index: number): void => {
@@ -185,7 +211,7 @@ const selectMessage = (message: Message, index: number): void => {
 
 // Handle message row click
 const handleMessageClick = (message: Message): void => {
-  const index = messages.value.findIndex(m => m === message);
+  const index = messages.value.findIndex((m) => m === message);
   if (index !== -1) {
     selectMessage(message, index);
     showMessageModal.value = true;
@@ -200,13 +226,15 @@ const receptionContacts = computed(() => {
   const phone = admin.phone_numbers?.[0] || admin.phone;
   const email = admin.email;
 
-  const messageBody = encodeURIComponent(t('guest.home.reception.prefilledMessage', { appName }));
+  const messageBody = encodeURIComponent(t("guest.home.reception.prefilledMessage", { appName }));
 
   return {
     phone,
     email,
-    whatsappLink: phone ? `https://wa.me/${phone.replace(/\D/g, '')}?text=${messageBody}` : '#',
-    emailLink: email ? `mailto:${email}?subject=${encodeURIComponent(t('guest.home.reception.prefilledSubject'))}&body=${messageBody}` : '#',
+    whatsappLink: phone ? `https://wa.me/${phone.replace(/\D/g, "")}?text=${messageBody}` : "#",
+    emailLink: email
+      ? `mailto:${email}?subject=${encodeURIComponent(t("guest.home.reception.prefilledSubject"))}&body=${messageBody}`
+      : "#",
   };
 });
 
@@ -216,9 +244,15 @@ const fetchDashboardData = async () => {
     // Use authService to get the full profile, including nested admin data
     const response = await authService.getProfile();
     dashboardData.value = response.data;
-    roomInfo.value = response.data.room_info || { room_number: response.data.room?.number, floor: response.data.room?.floor, dormitory_name: response.data.room?.dormitory?.name, room_type: response.data.room?.room_type?.name };
-  } catch (error) { //NOSONAR
-    console.error('Failed to fetch dashboard data:', error);
+    roomInfo.value = response.data.room_info || {
+      room_number: response.data.room?.number,
+      floor: response.data.room?.floor,
+      dormitory_name: response.data.room?.dormitory?.name,
+      room_type: response.data.room?.room_type?.name,
+    };
+  } catch (error) {
+    //NOSONAR
+    console.error("Failed to fetch dashboard data:", error);
   }
 };
 
@@ -227,13 +261,12 @@ const fetchRecentAdminMessages = async () => {
   messagesLoading.value = true;
 
   try {
-
     // Check authentication status
-    const token = localStorage.getItem('token');
-    const user = localStorage.getItem('user');
+    const token = localStorage.getItem("token");
+    const user = localStorage.getItem("user");
 
     if (!token) {
-      console.error('❌ No authentication token found!');
+      console.error("❌ No authentication token found!");
       return;
     }
 
@@ -242,7 +275,6 @@ const fetchRecentAdminMessages = async () => {
     const response = await messageService.getMyMessages(params as any);
 
     if (response && response.data) {
-
       let messagesArray: any[] = [];
 
       if (Array.isArray(response.data)) {
@@ -261,21 +293,17 @@ const fetchRecentAdminMessages = async () => {
           let created = msg.created_at || msg.sent_at || new Date().toISOString();
           created = formatDateToLocalString(created);
           return new Message(
-            msg.sender?.name || 'Admin',
-            msg.receiver_name || 'All',
-            msg.title || msg.subject || 'No Subject',
+            msg.sender?.name || "Admin",
+            msg.receiver_name || "All",
+            msg.title || msg.subject || "No Subject",
             created,
-            msg.content || 'No content'
+            msg.content || "No content"
           );
-        }
-        );
+        });
     } else {
       messages.value = [];
-
     }
-
   } catch (error) {
-
     messages.value = [];
   } finally {
     messagesLoading.value = false;
@@ -288,21 +316,16 @@ onMounted(async () => {
   messagesLoading.value = true;
 
   try {
-
     // derive status from auth store
-    studentStatus.value = (authStore.user?.status as string) || 'active';
+    studentStatus.value = (authStore.user?.status as string) || "active";
     // Fire messages request immediately so it appears in Network panel regardless of profile
     try {
       await fetchRecentAdminMessages();
     } catch (err) {
-
+      // Ignore errors in fetching recent admin messages
     }
     // Fetch dashboard data and recent messages in parallel
-    await Promise.all([
-      fetchDashboardData(),
-      fetchRecentAdminMessages()
-    ]);
-
+    await Promise.all([fetchDashboardData(), fetchRecentAdminMessages()]);
 
     // Set the latest message as active if available
     if (messages.value.length > 0) {
@@ -310,7 +333,7 @@ onMounted(async () => {
       selectMessage(messages.value[latestIndex], latestIndex);
     }
   } catch (e) {
-    console.error('❌ Error loading student dashboard:', e);
+    console.error("❌ Error loading student dashboard:", e);
 
     // Don't set fallback messages - let the API handle it
     messages.value = [];

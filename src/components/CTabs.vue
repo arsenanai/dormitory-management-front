@@ -2,17 +2,8 @@
   <div>
     <!-- Tabs Navigation -->
     <div class="border-b border-gray-200 dark:border-gray-700">
-      <ul
-        v-if="tabs.length > 0"
-        class="flex w-full text-center text-sm font-medium"
-        role="tablist"
-      >
-        <li
-          v-for="tab in tabs"
-          :key="tab.name"
-          class="w-full"
-          role="presentation"
-        >
+      <ul v-if="tabs.length > 0" class="flex w-full text-center text-sm font-medium" role="tablist">
+        <li v-for="tab in tabs" :key="tab.name" class="w-full" role="presentation">
           <button
             :class="[
               'inline-block w-full rounded-t-lg border-b-2 p-4 transition-all focus:outline-none',
@@ -32,8 +23,8 @@
           </button>
         </li>
       </ul>
-      <p v-else class="text-center text-primary-500 dark:text-primary-400">
-        {{ t('No tabs available') }}
+      <p v-else class="text-primary-500 dark:text-primary-400 text-center">
+        {{ t("No tabs available") }}
       </p>
     </div>
 
@@ -73,7 +64,7 @@ const { t } = useI18n();
 // Provide the active tab and a method to register tabs
 provide(
   "activeTab",
-  computed(() => props.modelValue),
+  computed(() => props.modelValue)
 );
 provide("registerTab", (tab: Tab) => {
   if (!tabs.value.some((t) => t.name === tab.name)) {

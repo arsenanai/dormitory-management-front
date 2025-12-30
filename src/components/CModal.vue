@@ -1,25 +1,39 @@
 <template>
-  <div v-if="modelValue"
+  <div
+    v-if="modelValue"
     class="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(30,30,30,0.35)] backdrop-blur-md backdrop-saturate-125"
-    role="dialog">
-    <div class="bg-white rounded-lg shadow-lg pt-10 w-full max-w-md relative border border-primary-200" @click.stop
-      ref="modalContent" tabindex="-1" @keydown.tab="onTab">
+    role="dialog"
+  >
+    <div
+      class="border-primary-200 relative w-full max-w-md rounded-lg border bg-white pt-10 shadow-lg"
+      @click.stop
+      ref="modalContent"
+      tabindex="-1"
+      @keydown.tab="onTab"
+    >
       <!-- Modal Header -->
-      <div class="absolute top-0 left-0 right-0 h-10 flex items-center px-3">
+      <div class="absolute top-0 right-0 left-0 flex h-10 items-center px-3">
         <div class="group">
-          <button @click="$emit('update:modelValue', false)"
-            class="w-5 h-5 rounded-full bg-[#FF5F57] flex items-center justify-center border border-[#E33E41] shadow cursor-pointer transition-all duration-150 focus:outline-none focus-visible:ring-3 focus-visible:ring-[#FFB3B3] group"
-            :aria-label="$t ? $t('Close') : 'Close'" type="button">
+          <button
+            @click="$emit('update:modelValue', false)"
+            class="group flex h-5 w-5 cursor-pointer items-center justify-center rounded-full border border-[#E33E41] bg-[#FF5F57] shadow transition-all duration-150 focus:outline-none focus-visible:ring-3 focus-visible:ring-[#FFB3B3]"
+            :aria-label="$t ? $t('Close') : 'Close'"
+            type="button"
+          >
             <XMarkIcon
-              class="h-4 w-4 text-primary-900 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-150" />
-            <span class="sr-only">{{ $t ? $t('Close') : 'Close' }}</span>
+              class="text-primary-900 h-4 w-4 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100"
+            />
+            <span class="sr-only">{{ $t ? $t("Close") : "Close" }}</span>
           </button>
         </div>
-        <h3 v-if="title"
-          class="flex-1 text-center text-sm font-semibold text-gray-500 dark:text-gray-400 -ml-5 pointer-events-none">{{
-          title }}</h3>
+        <h3
+          v-if="title"
+          class="pointer-events-none -ml-5 flex-1 text-center text-sm font-semibold text-gray-500 dark:text-gray-400"
+        >
+          {{ title }}
+        </h3>
       </div>
-      <div class="px-3 pb-3 max-w-[80vw] overflow-x-auto max-h-[80vh] overflow-y-auto">
+      <div class="max-h-[80vh] max-w-[80vw] overflow-x-auto overflow-y-auto px-3 pb-3">
         <slot />
       </div>
     </div>
@@ -27,19 +41,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
-import { XMarkIcon } from '@heroicons/vue/24/solid';
+import { ref, onMounted, onBeforeUnmount, watch, nextTick } from "vue";
+import { XMarkIcon } from "@heroicons/vue/24/solid";
 const props = defineProps({
   modelValue: {
     type: Boolean,
-    required: true
+    required: true,
   },
   title: {
     type: String,
-    default: ''
-  }
+    default: "",
+  },
 });
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(["update:modelValue"]);
 
 const modalContent = ref<HTMLElement | null>(null);
 
@@ -81,19 +95,22 @@ function trapFocus() {
   });
 }
 
-watch(() => props.modelValue, (val) => {
-  if (val) {
-    trapFocus();
-    document.body.style.overflow = 'hidden';
-  } else {
-    document.body.style.overflow = '';
+watch(
+  () => props.modelValue,
+  (val) => {
+    if (val) {
+      trapFocus();
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
   }
-});
+);
 
 onMounted(() => {
   if (props.modelValue) trapFocus();
 });
 onBeforeUnmount(() => {
-  document.body.style.overflow = '';
+  document.body.style.overflow = "";
 });
 </script>

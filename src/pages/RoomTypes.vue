@@ -4,10 +4,8 @@
     <div class="flex flex-col gap-4">
       <!-- Filters and Add Button -->
       <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div class="flex flex-col gap-2 lg:flex-row lg:items-end">
-
-        </div>
-        <div class="flex-1 flex justify-end">
+        <div class="flex flex-col gap-2 lg:flex-row lg:items-end"></div>
+        <div class="flex flex-1 justify-end">
           <CButton @click="navigateToAddRoomType">
             <PlusIcon class="h-5 w-5" />
             {{ t("Add Room Type") }}
@@ -16,12 +14,12 @@
       </div>
 
       <!-- Loading State -->
-      <div v-if="loading" class="text-center py-4 text-primary-600">
+      <div v-if="loading" class="text-primary-600 py-4 text-center">
         {{ t("Loading...") }}
       </div>
 
       <!-- Error State -->
-      <div v-if="error" class="text-red-500 text-center py-4">
+      <div v-if="error" class="py-4 text-center text-red-500">
         {{ error }}
       </div>
 
@@ -41,7 +39,7 @@
             {{ formatPrice(row.semester_rate || 0) }}
           </template>
           <template #cell-actions="{ row }">
-            <div class="flex gap-2 justify-end">
+            <div class="flex justify-end gap-2">
               <CButton @click="navigateToEditRoomType(row.id)">
                 <PencilSquareIcon class="h-5 w-5" />
               </CButton>
@@ -96,14 +94,14 @@ const roomTypes = ref<any[]>([]);
 const dormitories = ref<any[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
-const currencySymbol = ref('USD');
+const currencySymbol = ref("USD");
 
 const columns = [
-  { key: 'name', label: t('Room Type Name') },
-  { key: 'capacity', label: t('Capacity') },
-  { key: 'daily_rate', label: t('Daily Rate') },
-  { key: 'semester_rate', label: t('Semester Rate') },
-  { key: 'actions', label: t('Action'), class: 'text-right' }
+  { key: "name", label: t("Room Type Name") },
+  { key: "capacity", label: t("Capacity") },
+  { key: "daily_rate", label: t("Daily Rate") },
+  { key: "semester_rate", label: t("Semester Rate") },
+  { key: "actions", label: t("Action"), class: "text-right" },
 ];
 
 // Load data on component mount
@@ -140,11 +138,10 @@ const loadData = async () => {
     } else {
       dormitories.value = [];
     }
-
   } catch (err) {
-    console.error('Error loading room types:', err);
-    error.value = 'Failed to load room types data';
-    showError(t('Failed to load room types data'));
+    console.error("Error loading room types:", err);
+    error.value = "Failed to load room types data";
+    showError(t("Failed to load room types data"));
   } finally {
     loading.value = false;
   }
@@ -153,10 +150,10 @@ const loadData = async () => {
 onMounted(async () => {
   try {
     const currencyResponse = await configurationService.getCurrency();
-    currencySymbol.value = currencyResponse.data.currency_symbol || 'USD';
+    currencySymbol.value = currencyResponse.data.currency_symbol || "USD";
   } catch (err) {
-    console.error('Failed to load currency symbol on mount:', err);
-    currencySymbol.value = '$'; // fallback
+    console.error("Failed to load currency symbol on mount:", err);
+    currencySymbol.value = "$"; // fallback
   }
   loadData();
   roomTypesStore.clearSelectedRoomType();
@@ -173,9 +170,7 @@ const filteredRoomTypes = computed(() => {
   if (!filters.value.dormitory) {
     return roomTypes.value;
   }
-  return roomTypes.value.filter(
-    (rt) => rt.dormitory_id === parseInt(filters.value.dormitory, 10)
-  );
+  return roomTypes.value.filter((rt) => rt.dormitory_id === parseInt(filters.value.dormitory, 10));
 });
 
 // Filters
@@ -184,20 +179,15 @@ const filters = ref({
 });
 
 // Sorting
-const sortBy = ref('');
-const sortOrder = ref('asc');
+const sortBy = ref("");
+const sortOrder = ref("asc");
 
 // Pagination
 const currentPage = ref(1);
 const itemsPerPage = 10;
-const totalPages = computed(() =>
-  Math.ceil(filteredRoomTypes.value.length / itemsPerPage)
-);
+const totalPages = computed(() => Math.ceil(filteredRoomTypes.value.length / itemsPerPage));
 const paginatedRoomTypes = computed(() =>
-  roomTypes.value.slice(
-    (currentPage.value - 1) * itemsPerPage,
-    currentPage.value * itemsPerPage
-  )
+  roomTypes.value.slice((currentPage.value - 1) * itemsPerPage, currentPage.value * itemsPerPage)
 );
 
 // Get bed count from minimap JSON or bed count field
@@ -208,7 +198,7 @@ function getBedCount(roomType: any): number {
   }
 
   try {
-    const beds = JSON.parse(roomType.beds || '[]');
+    const beds = JSON.parse(roomType.beds || "[]");
     return Array.isArray(beds) ? beds.length : 0;
   } catch {
     return 0;
@@ -217,9 +207,11 @@ function getBedCount(roomType: any): number {
 
 // Get dormitory name
 function getDormitoryName(roomType: any): string {
-  return roomType.dormitory?.name ||
-    dormitories.value.find(d => d.id === roomType.dormitory_id)?.name ||
-    '-';
+  return (
+    roomType.dormitory?.name ||
+    dormitories.value.find((d) => d.id === roomType.dormitory_id)?.name ||
+    "-"
+  );
 }
 
 // Form state
@@ -231,11 +223,11 @@ async function createRoomType(roomTypeData: any) {
     loading.value = true;
     const response = await roomTypeService.create(roomTypeData);
     await loadData(); // Reload data
-    showSuccess(t('Room type created successfully'));
+    showSuccess(t("Room type created successfully"));
     return response.data;
   } catch (err) {
-    error.value = 'Failed to create room type';
-    showError(t('Failed to create room type'));
+    error.value = "Failed to create room type";
+    showError(t("Failed to create room type"));
     throw err;
   } finally {
     loading.value = false;
@@ -247,11 +239,11 @@ async function updateRoomType(id: number, roomTypeData: any) {
     loading.value = true;
     const response = await roomTypeService.update(id, roomTypeData);
     await loadData(); // Reload data
-    showSuccess(t('Room type updated successfully'));
+    showSuccess(t("Room type updated successfully"));
     return response.data;
   } catch (err) {
-    error.value = 'Failed to update room type';
-    showError(t('Failed to update room type'));
+    error.value = "Failed to update room type";
+    showError(t("Failed to update room type"));
     throw err;
   } finally {
     loading.value = false;
@@ -265,8 +257,8 @@ async function loadRoomTypes() {
     const response = await roomTypeService.getAll();
     roomTypes.value = response.data || [];
   } catch (err) {
-    error.value = 'Failed to load room types';
-    showError(t('Failed to load room types'));
+    error.value = "Failed to load room types";
+    showError(t("Failed to load room types"));
     // Do not rethrow the error - let the test check error state
   } finally {
     loading.value = false;
@@ -286,25 +278,25 @@ async function handleFormSubmit(formData: any) {
     await roomTypeService.create(formData);
     closeRoomTypeForm();
     await loadData();
-    showSuccess(t('Room type created successfully'));
+    showSuccess(t("Room type created successfully"));
   } catch (err) {
-    showError(t('Failed to create room type'));
+    showError(t("Failed to create room type"));
     throw err;
   }
 }
 
 // Utility functions
-const formatPrice = (price: number): string => formatCurrency(price, currencySymbol.value, 'USD');
+const formatPrice = (price: number): string => formatCurrency(price, currencySymbol.value, "USD");
 
 const formatAmenities = (amenities: string[]): string => {
-  return amenities.join(', ');
+  return amenities.join(", ");
 };
 
 const getCapacityColor = (capacity: number): string => {
-  if (capacity <= 1) return 'blue';
-  if (capacity <= 2) return 'green';
-  if (capacity <= 4) return 'orange';
-  return 'red';
+  if (capacity <= 1) return "blue";
+  if (capacity <= 2) return "green";
+  if (capacity <= 4) return "orange";
+  return "red";
 };
 
 const capitalize = (text: string): string => {
@@ -328,13 +320,13 @@ const sortedRoomTypes = computed(() => {
   return sorted.sort((a, b) => {
     let aValue, bValue;
 
-    if (sortBy.value === 'daily_rate') {
+    if (sortBy.value === "daily_rate") {
       aValue = a.daily_rate || 0;
       bValue = b.daily_rate || 0;
-    } else if (sortBy.value === 'semester_rate') {
+    } else if (sortBy.value === "semester_rate") {
       aValue = a.semester_rate || 0;
       bValue = b.semester_rate || 0;
-    } else if (sortBy.value === 'capacity') {
+    } else if (sortBy.value === "capacity") {
       aValue = a.capacity || getBedCount(a);
       bValue = b.capacity || getBedCount(b);
     } else {
@@ -342,7 +334,7 @@ const sortedRoomTypes = computed(() => {
     }
 
     const comparison = aValue - bValue;
-    return sortOrder.value === 'desc' ? -comparison : comparison;
+    return sortOrder.value === "desc" ? -comparison : comparison;
   });
 });
 
@@ -352,7 +344,7 @@ function navigateToAddRoomType() {
 }
 
 function navigateToEditRoomType(id: number) {
-  const roomType = roomTypes.value.find(rt => rt.id === id);
+  const roomType = roomTypes.value.find((rt) => rt.id === id);
   if (roomType) {
     roomTypesStore.setSelectedRoomType(roomType);
   }
@@ -361,17 +353,17 @@ function navigateToEditRoomType(id: number) {
 
 async function deleteRoomType(id: number) {
   const confirmed = await showConfirmation(
-    t('Are you sure? This change is not recoverable'),
-    t('Delete Room Type')
+    t("Are you sure? This change is not recoverable"),
+    t("Delete Room Type")
   );
 
   if (confirmed) {
     try {
       await roomTypeService.delete(id);
       await loadData(); // Reload data
-      showSuccess(t('Room type deleted successfully'));
+      showSuccess(t("Room type deleted successfully"));
     } catch (err) {
-      showError(t('Failed to delete room type'));
+      showError(t("Failed to delete room type"));
     }
   }
 }

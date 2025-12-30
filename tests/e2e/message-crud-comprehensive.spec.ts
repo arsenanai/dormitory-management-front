@@ -41,7 +41,9 @@ test.describe('Message CRUD Comprehensive Tests', () => {
     await page.goto('/messages');
     await page.waitForLoadState('networkidle');
     // Ensure we are on /messages
-    try { await page.waitForURL('/messages', { timeout: 5000 }); } catch {}
+    try { await page.waitForURL('/messages', { timeout: 5000 }); } catch {
+      // Ignore timeout if URL doesn't match
+    }
     // If redirected, log and try again
     const currentUrl = page.url();
     if (!currentUrl.endsWith('/messages')) {

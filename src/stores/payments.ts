@@ -25,7 +25,10 @@ export const usePaymentsStore = defineStore("paymentsStore", {
   actions: {
     setSelectedPayment(payment: Payment) {
       this.selectedPayment = JSON.parse(JSON.stringify(payment));
-      localStorage.setItem(LOCAL_STORAGE_SELECTED_PAYMENT_KEY, JSON.stringify(this.selectedPayment));
+      localStorage.setItem(
+        LOCAL_STORAGE_SELECTED_PAYMENT_KEY,
+        JSON.stringify(this.selectedPayment)
+      );
     },
     restoreSelectedPayment() {
       const saved = localStorage.getItem(LOCAL_STORAGE_SELECTED_PAYMENT_KEY);

@@ -1,5 +1,7 @@
 <template>
-  <thead class="text-xs text-primary-700 uppercase bg-primary-50 dark:bg-primary-700 dark:text-primary-400">
+  <thead
+    class="text-primary-700 bg-primary-50 dark:bg-primary-700 dark:text-primary-400 text-xs uppercase"
+  >
     <tr>
       <slot />
     </tr>

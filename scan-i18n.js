@@ -55,8 +55,8 @@ for (var _a = 0, locales_1 = locales; _a < locales_1.length; _a++) {
 // Output results
 console.log(chalk_1.default.yellow("\uD83D\uDD0D Found ".concat(i18nKeys.size, " translation keys in .vue templates.")));
 for (var _b = 0, locales_2 = locales; _b < locales_2.length; _b++) {
-    var locale = locales_2[_b];
-    var missing = missingByLocale[locale];
+    var localeItem = locales_2[_b];
+    var missing = missingByLocale[localeItem];
     if (!missing)
         continue;
     console.log(chalk_1.default.blue("\n\uD83C\uDF10 Missing in ".concat(locale, ".json (").concat(missing.length, "):")));

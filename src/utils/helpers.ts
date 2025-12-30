@@ -8,11 +8,11 @@
  * @returns Formatted date string or dash for invalid dates
  */
 export const formatDateHelper = (dateString: string | null | undefined): string => {
-  if (!dateString) return '-';
-  
+  if (!dateString) return "-";
+
   const date = new Date(dateString);
-  if (isNaN(date.getTime())) return '-';
-  
+  if (isNaN(date.getTime())) return "-";
+
   return date.toLocaleDateString();
 };
 
@@ -22,8 +22,8 @@ export const formatDateHelper = (dateString: string | null | undefined): string 
  * @returns Formatted amount string
  */
 export const formatAmount = (amount: number | string | null | undefined): string => {
-  if (!amount) return '0';
-  return typeof amount === 'number' ? `${amount}T` : amount;
+  if (!amount) return "0";
+  return typeof amount === "number" ? `${amount}T` : amount;
 };
 
 /**
@@ -33,12 +33,16 @@ export const formatAmount = (amount: number | string | null | undefined): string
  * @param searchFields - Fields to search in
  * @returns Filtered array
  */
-export const filterArrayBySearch = (array: any[], searchQuery: string, searchFields: string[]): any[] => {
+export const filterArrayBySearch = (
+  array: any[],
+  searchQuery: string,
+  searchFields: string[]
+): any[] => {
   if (!searchQuery) return array;
-  
-  return array.filter(item => {
-    return searchFields.some(field => {
-      const value = field.split('.').reduce((obj, key) => obj?.[key], item);
+
+  return array.filter((item) => {
+    return searchFields.some((field) => {
+      const value = field.split(".").reduce((obj, key) => obj?.[key], item);
       return value?.toString().toLowerCase().includes(searchQuery.toLowerCase());
     });
   });
@@ -74,9 +78,9 @@ export const calculateTotalPages = (totalItems: number, itemsPerPage: number): n
  */
 export const downloadBlob = (blob: Blob, filename: string): void => {
   const url = window.URL.createObjectURL(blob);
-  const link = document.createElement('a');
+  const link = document.createElement("a");
   link.href = url;
-  link.setAttribute('download', filename);
+  link.setAttribute("download", filename);
   document.body.appendChild(link);
   link.click();
   link.remove();

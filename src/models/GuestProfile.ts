@@ -18,4 +18,4 @@ export interface GuestProfile {
   bank_paycheck: any;
   bed_id?: number;
   [key: string]: any;
-} 
+}

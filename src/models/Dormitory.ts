@@ -2,14 +2,14 @@ import { Room } from "./Room";
 
 export class Dormitory {
   constructor(
-    public name: string = '',
+    public name: string = "",
     public capacity: number = 0,
-    public gender: string = '',
-    public admin: string = '',
+    public gender: string = "",
+    public admin: string = "",
     public admin_id: number | null = null,
-    public address: string = '',
-    public description: string = '',
-    public phone: string = '',
+    public address: string = "",
+    public description: string = "",
+    public phone: string = "",
     // Computed fields (read-only, calculated by backend)
     public registered: number = 0,
     public freeBeds: number = 0,
@@ -47,7 +47,8 @@ export class Dormitory {
   // Calculate free beds count
   calculateFreeBeds(): number {
     return this.rooms.reduce((total, room) => {
-      const availableBeds = room.beds?.filter(bed => bed.status === 'available' && !bed.reserved_for_staff) || [];
+      const availableBeds =
+        room.beds?.filter((bed) => bed.status === "available" && !bed.reserved_for_staff) || [];
       return total + availableBeds.length;
     }, 0);
   }
@@ -55,21 +56,22 @@ export class Dormitory {
   // Calculate registered students count
   calculateRegisteredStudents(): number {
     return this.rooms.reduce((total, room) => {
-      const occupiedBeds = room.beds?.filter(bed => bed.status === 'occupied' && !bed.reserved_for_staff) || [];
+      const occupiedBeds =
+        room.beds?.filter((bed) => bed.status === "occupied" && !bed.reserved_for_staff) || [];
       return total + occupiedBeds.length;
     }, 0);
   }
 
   static fromApi(data: any): Dormitory {
     return new Dormitory(
-      data.name || '',
+      data.name || "",
       data.capacity || 0,
-      data.gender || '',
-      data.admin?.name || data.admin || '',
+      data.gender || "",
+      data.admin?.name || data.admin || "",
       data.admin_id || null,
-      data.address || '',
-      data.description || '',
-      data.phone || '',
+      data.address || "",
+      data.description || "",
+      data.phone || "",
       // Computed fields
       data.registered || 0,
       data.freeBeds || 0,

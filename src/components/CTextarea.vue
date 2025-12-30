@@ -4,41 +4,67 @@
       <label :for="id" class="block text-sm font-medium text-gray-900 dark:text-white">
         {{ label }}
       </label>
-      <button v-if="fullscreen" type="button" @click="toggleFullScreen"
+      <button
+        v-if="fullscreen"
+        type="button"
+        @click="toggleFullScreen"
         class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-        :title="isFullScreen ? t('Exit fullscreen') : t('Enter fullscreen')">
+        :title="isFullScreen ? t('Exit fullscreen') : t('Enter fullscreen')"
+      >
         <ArrowsPointingOutIcon class="h-5 w-5" />
       </button>
     </div>
-    <textarea :id="id" :rows="rows" :placeholder="placeholder" :value="modelValue"
-      @input="updateValue(($event.target as HTMLTextAreaElement).value)" :class="[
+    <textarea
+      :id="id"
+      :rows="rows"
+      :placeholder="placeholder"
+      :value="modelValue"
+      @input="updateValue(($event.target as HTMLTextAreaElement).value)"
+      :class="[
         baseTextareaClass,
-        validationState === 'success' ? successClass :
-          validationState === 'error' ? errorClass :
-            validationClass,
-        { 'cursor-not-allowed bg-gray-100 dark:bg-gray-800': readonly || disabled, 'resize-none': fullscreen },
-        additionalClass
-      ]" :disabled="readonly || disabled" :tabindex="readonly || disabled ? -1 : 0" @focus="onFocus"></textarea>
+        validationState === 'success'
+          ? successClass
+          : validationState === 'error'
+            ? errorClass
+            : validationClass,
+        {
+          'cursor-not-allowed bg-gray-100 dark:bg-gray-800': readonly || disabled,
+          'resize-none': fullscreen,
+        },
+        additionalClass,
+      ]"
+      :disabled="readonly || disabled"
+      :tabindex="readonly || disabled ? -1 : 0"
+      @focus="onFocus"
+    ></textarea>
     <p v-if="!isValid" class="mt-1 text-sm text-red-600 dark:text-red-500">
       {{ validationMessage }}
     </p>
     <!-- Fullscreen Overlay -->
     <div v-if="isFullScreen" class="fixed inset-0 z-50 flex flex-col bg-white p-4 dark:bg-gray-900">
       <div class="flex items-center justify-between pb-2">
-        <label :for="`${id}-fullscreen`" class="block text-lg font-medium text-gray-900 dark:text-white">{{ label
-          }}</label>
-        <button @click="toggleFullScreen"
+        <label
+          :for="`${id}-fullscreen`"
+          class="block text-lg font-medium text-gray-900 dark:text-white"
+          >{{ label }}</label
+        >
+        <button
+          @click="toggleFullScreen"
           class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-          :title="t('Exit fullscreen')">
+          :title="t('Exit fullscreen')"
+        >
           <ArrowsPointingInIcon class="h-6 w-6" />
         </button>
       </div>
-      <textarea :id="`${id}-fullscreen`" :placeholder="placeholder" :value="modelValue"
-        @input="updateValue(($event.target as HTMLTextAreaElement).value)" :class="[
-          baseTextareaClass,
-          validationClass,
-          'flex-grow'
-        ]" class="h-full w-full flex-1" ref="fullscreenTextarea"></textarea>
+      <textarea
+        :id="`${id}-fullscreen`"
+        :placeholder="placeholder"
+        :value="modelValue"
+        @input="updateValue(($event.target as HTMLTextAreaElement).value)"
+        :class="[baseTextareaClass, validationClass, 'flex-grow']"
+        class="h-full w-full flex-1"
+        ref="fullscreenTextarea"
+      ></textarea>
     </div>
   </div>
 </template>
@@ -129,7 +155,6 @@ const inputValue = ref(modelValue);
 const isValid = ref(true);
 const isFullScreen = ref(false);
 const fullscreenTextarea = ref<HTMLTextAreaElement | null>(null);
-
 
 // Watch for external changes to modelValue
 watch(

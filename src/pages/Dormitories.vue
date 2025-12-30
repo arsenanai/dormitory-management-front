@@ -2,7 +2,7 @@
   <Navigation :title="t('Dormitory Information')">
     <!-- Search and Filters -->
     <div class="mb-4">
-      <CInput 
+      <CInput
         id="search-dormitory"
         v-model="searchQuery"
         type="text"
@@ -13,9 +13,7 @@
 
     <!-- Action Buttons -->
     <div class="mb-4 flex items-center justify-between">
-      <div
-        class="flex flex-col items-stretch gap-4 lg:flex-row lg:items-center"
-      > 
+      <div class="flex flex-col items-stretch gap-4 lg:flex-row lg:items-center">
         <!-- <CButton @click="exportToExcel">
           <ArrowDownTrayIcon class="h-5 w-5" />
           {{ t("Download") }}
@@ -28,24 +26,24 @@
     </div>
 
     <!-- Loading State -->
-    <div v-if="loading" class="text-center py-4 text-primary-600" data-testid="loading">
+    <div v-if="loading" class="text-primary-600 py-4 text-center" data-testid="loading">
       {{ t("Loading...") }}
     </div>
 
     <!-- Error State -->
-    <div v-if="error" class="text-red-500 text-center py-4">
+    <div v-if="error" class="py-4 text-center text-red-500">
       {{ error }}
     </div>
 
     <!-- Dormitory Table -->
     <CTable v-if="!loading && !error" :columns="columns" :data="paginatedDorms" :loading="loading">
       <template #cell-admin_name="{ row }">
-        {{ row.admin?.name || row.admin?.username || row.admin || '-' }}
+        {{ row.admin?.name || row.admin?.username || row.admin || "-" }}
       </template>
 
       <template #cell-freeBeds="{ row }">
         <span :class="{ 'text-red-500': row.freeBeds === 0 }">
-          {{ row.freeBeds || '-' }}
+          {{ row.freeBeds || "-" }}
         </span>
       </template>
       <template #cell-actions="{ row }">
@@ -93,7 +91,6 @@
           </CButton>
         </div>
       </div> -->
-
   </Navigation>
 </template>
 
@@ -101,8 +98,15 @@
 import Navigation from "@/components/CNavigation.vue";
 import { useI18n } from "vue-i18n";
 import { ref, computed, onMounted, watch, onUnmounted } from "vue";
-import { useRouter, useRoute } from "vue-router"; 
-import { ArrowDownTrayIcon, PlusIcon, ChevronLeftIcon, ChevronRightIcon, PencilSquareIcon, TrashIcon } from "@heroicons/vue/24/outline";
+import { useRouter, useRoute } from "vue-router";
+import {
+  ArrowDownTrayIcon,
+  PlusIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  PencilSquareIcon,
+  TrashIcon,
+} from "@heroicons/vue/24/outline";
 import CInput from "@/components/CInput.vue";
 import CSelect from "@/components/CSelect.vue";
 import CCheckbox from "@/components/CCheckbox.vue";
@@ -144,43 +148,39 @@ const loadDormitories = async () => {
   try {
     const response = await dormitoryService.getAll();
 
-    
     // Handle different response structures
     if (response && response.data) {
       // If response.data is an array, use it directly (this is what the backend returns)
       if (Array.isArray(response.data)) {
-  
         dorms.value = response.data;
-      } 
+      }
       // If response.data is an object with data property (paginated structure)
-      else if (typeof response.data === 'object' && response.data.data && Array.isArray(response.data.data)) {
-
+      else if (
+        typeof response.data === "object" &&
+        response.data.data &&
+        Array.isArray(response.data.data)
+      ) {
         dorms.value = response.data.data;
-      } 
+      }
       // If response.data is an object but not an array, try to find data property
-      else if (typeof response.data === 'object' && response.data.data) {
-
+      else if (typeof response.data === "object" && response.data.data) {
         dorms.value = Array.isArray(response.data.data) ? response.data.data : [];
       }
       // Otherwise, try to use response.data as is
       else {
-
         dorms.value = [];
       }
     } else if (Array.isArray(response)) {
       // Direct array response
-      
+
       dorms.value = response;
     } else {
-      
       dorms.value = [];
     }
-    
-    
   } catch (err) {
-    console.error('Error loading dormitories:', err);
-    error.value = 'Failed to load dormitories';
-    showError(t('Failed to load dormitories'));
+    console.error("Error loading dormitories:", err);
+    error.value = "Failed to load dormitories";
+    showError(t("Failed to load dormitories"));
   } finally {
     loading.value = false;
   }
@@ -190,31 +190,28 @@ onMounted(() => {
   pageInput.value = currentPage.value;
   loadDormitories();
   dormitoriesStore.clearSelectedDormitory();
-  
+
   // Listen for dormitory update/creation events
-  window.addEventListener('dormitory-updated', () => {
-    
+  window.addEventListener("dormitory-updated", () => {
     loadDormitories();
   });
-  
-  window.addEventListener('dormitory-created', () => {
-    
+
+  window.addEventListener("dormitory-created", () => {
     loadDormitories();
   });
 });
 
 // Clean up event listeners
 onUnmounted(() => {
-  window.removeEventListener('dormitory-updated', () => {});
-  window.removeEventListener('dormitory-created', () => {});
+  window.removeEventListener("dormitory-updated", () => {});
+  window.removeEventListener("dormitory-created", () => {});
 });
 
 // Watch for route changes to refresh data when returning to this page
 watch(
   () => route.path,
   (newPath) => {
-    if (newPath === '/dormitories') {
-
+    if (newPath === "/dormitories") {
       loadDormitories();
     }
   }
@@ -226,12 +223,10 @@ const filteredDorms = computed(() => {
   return dorms.value.filter(
     (dorm) =>
       dorm.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      (dorm.admin && 
-        (typeof dorm.admin === 'string' 
+      (dorm.admin &&
+        (typeof dorm.admin === "string"
           ? dorm.admin.toLowerCase().includes(searchQuery.value.toLowerCase())
-          : dorm.admin.username?.toLowerCase().includes(searchQuery.value.toLowerCase())
-        )
-      ),
+          : dorm.admin.username?.toLowerCase().includes(searchQuery.value.toLowerCase())))
   );
 });
 
@@ -240,9 +235,7 @@ const currentPage = ref<number>(1);
 const itemsPerPage = 10;
 const pageInput = ref(1);
 
-const totalPages = computed<number>(() =>
-  Math.ceil(filteredDorms.value.length / itemsPerPage),
-);
+const totalPages = computed<number>(() => Math.ceil(filteredDorms.value.length / itemsPerPage));
 
 const totalDorms = computed(() => filteredDorms.value.length);
 const fromDorm = computed(() => {
@@ -257,10 +250,9 @@ const toDorm = computed(() => {
 const paginatedDorms = computed(() =>
   filteredDorms.value.slice(
     (currentPage.value - 1) * itemsPerPage,
-    currentPage.value * itemsPerPage,
-  ),
+    currentPage.value * itemsPerPage
+  )
 );
-
 
 // Export function
 const exportToExcel = async () => {
@@ -268,14 +260,14 @@ const exportToExcel = async () => {
     const response = await dormitoryService.export();
     // Create blob link to download
     const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    link.setAttribute('download', 'dormitories.xlsx');
+    link.setAttribute("download", "dormitories.xlsx");
     document.body.appendChild(link);
     link.click();
     link.remove();
   } catch (err) {
-    showError(t('Failed to export dormitories'));
+    showError(t("Failed to export dormitories"));
   }
 };
 
@@ -285,7 +277,7 @@ const navigateToAddDormitory = (): void => {
 };
 
 const navigateToEditDormitory = (id: number): void => {
-  const dormitory = dorms.value.find(d => d.id === id);
+  const dormitory = dorms.value.find((d) => d.id === id);
   if (dormitory) {
     dormitoriesStore.setSelectedDormitory(dormitory);
   }
@@ -295,33 +287,33 @@ const navigateToEditDormitory = (id: number): void => {
 // Delete function
 const deleteDormitory = async (row: any) => {
   const confirmed = await showConfirmation(
-    t('Are you sure? This change is not recoverable'),
-    t('Delete Dormitory')
+    t("Are you sure? This change is not recoverable"),
+    t("Delete Dormitory")
   );
-  
+
   if (confirmed) {
     try {
       await dormitoryService.delete(row.id);
-      showSuccess(t('Dormitory deleted successfully'));
+      showSuccess(t("Dormitory deleted successfully"));
       loadDormitories(); // Reload data after deletion
     } catch (err) {
-      console.error('Error deleting dormitory:', err);
-      showError(t('Failed to delete dormitory'));
+      console.error("Error deleting dormitory:", err);
+      showError(t("Failed to delete dormitory"));
     }
   }
 };
 
 // Columns for the table
 const columns = [
-  { key: 'name', label: t('DORMITORY') },
-  { key: 'capacity', label: t('STUDENT CAPACITY') },
+  { key: "name", label: t("DORMITORY") },
+  { key: "capacity", label: t("STUDENT CAPACITY") },
 
-  { key: 'gender', label: t('GENDER') },
-  { key: 'admin_name', label: t('ADMIN USERNAME') },
-  { key: 'registered', label: t('REGISTERED STUDENTS') },
-  { key: 'freeBeds', label: t('FREE BEDS') },
-  { key: 'rooms_count', label: t('ROOM') },
-  { key: 'actions', label: t('EDIT') },
+  { key: "gender", label: t("GENDER") },
+  { key: "admin_name", label: t("ADMIN USERNAME") },
+  { key: "registered", label: t("REGISTERED STUDENTS") },
+  { key: "freeBeds", label: t("FREE BEDS") },
+  { key: "rooms_count", label: t("ROOM") },
+  { key: "actions", label: t("EDIT") },
 ];
 
 const goToPage = () => {
@@ -337,7 +329,6 @@ const goToPage = () => {
 watch(currentPage, (newPage) => {
   pageInput.value = newPage;
 });
-
 </script>
 
 <style scoped>

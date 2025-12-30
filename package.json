@@ -13,6 +13,7 @@
     "test:e2e:headed": "playwright test --headed",
     "lint": "eslint . --fix",
     "format": "prettier --write src/",
+    "type-check": "tsc --noEmit",
     "scan:i18n": "tsx scan-i18n.ts"
   },
   "devDependencies": {
@@ -21,11 +22,15 @@
     "@pinia/testing": "^1.0.2",
     "@playwright/test": "^1.40.0",
     "@types/node": "^24.0.10",
+    "@typescript-eslint/eslint-plugin": "^8.50.1",
+    "@typescript-eslint/parser": "^8.50.1",
     "@vitest/coverage-v8": "^3.2.4",
     "@vue/test-utils": "^2.4.6",
     "autoprefixer": "^10.4.20",
     "chalk": "^5.6.2",
     "dotenv-cli": "^9.0.0",
+    "eslint": "^9.39.2",
+    "eslint-plugin-vue": "^10.6.2",
     "fast-glob": "^3.3.3",
     "jsdom": "^26.1.0",
     "prettier": "^3.5.1",

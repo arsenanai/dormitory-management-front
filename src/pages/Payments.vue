@@ -1,13 +1,17 @@
 <template>
   <Navigation :title="t('Payment Management')">
     <div class="flex flex-col gap-4">
-
       <!-- Filter Section -->
-      <div class="flex flex-col gap-4 w-full">
+      <div class="flex w-full flex-col gap-4">
         <!-- Filter Section - Organized in rows for better responsive layout -->
         <div class="flex flex-col gap-2 sm:flex-row sm:gap-4">
           <div class="flex-1">
-            <CInput id="search" v-model="searchTerm" :label="t('Search')" :placeholder="t('Search payments...')" />
+            <CInput
+              id="search"
+              v-model="searchTerm"
+              :label="t('Search')"
+              :placeholder="t('Search payments...')"
+            />
           </div>
           <div class="flex-1">
             <CInput id="start-date" v-model="startDate" type="date" :label="t('Start Date')" />
@@ -17,7 +21,12 @@
           </div>
           <!-- <div v-if="!isMyPayments" class="flex-1"> -->
           <div class="flex-1" v-if="isAdmin">
-            <CSelect id="role-filter" v-model="selectedRole" :options="roleOptions" :label="t('Role')" />
+            <CSelect
+              id="role-filter"
+              v-model="selectedRole"
+              :options="roleOptions"
+              :label="t('Role')"
+            />
           </div>
         </div>
         <!-- Action Buttons Section -->
@@ -28,7 +37,12 @@
           </CButton>
           <!-- <CButton v-if="!isMyPayments" @click="exportPayments" data-testid="export-payments-button"
             :disabled="loading"> -->
-          <CButton @click="exportPayments" data-testid="export-payments-button" :disabled="loading" v-if="isAdmin">
+          <CButton
+            @click="exportPayments"
+            data-testid="export-payments-button"
+            :disabled="loading"
+            v-if="isAdmin"
+          >
             <ArrowDownTrayIcon class="h-5 w-5" />
             {{ t("Download") }}
           </CButton>
@@ -36,43 +50,48 @@
       </div>
 
       <!-- Error State -->
-      <div v-if="error" class="error-message text-red-500 text-center py-4">
+      <div v-if="error" class="error-message py-4 text-center text-red-500">
         {{ error }}
       </div>
 
       <!-- Payments Table -->
-      <CTable v-if="!error" :columns="tableColumns" :data="paginatedPayments" :loading="loading"
-        data-testid="payments-table">
+      <CTable
+        v-if="!error"
+        :columns="tableColumns"
+        :data="paginatedPayments"
+        :loading="loading"
+        data-testid="payments-table"
+      >
         <template #cell-user="{ row: payment }">
           <div class="flex flex-col gap-2">
             <span>
-              {{ payment.user?.name || '-' }}
+              {{ payment.user?.name || "-" }}
             </span>
             <span>
-              {{ payment.user?.email ? payment.user.email : '' }}
+              {{ payment.user?.email ? payment.user.email : "" }}
             </span>
             <span v-if="payment.user.phoneNumbers" class="flex flex-col">
-              <span v-for="phone in payment.user.phoneNumbers">
+              <span v-for="phone in payment.user.phoneNumbers" :key="phone">
                 {{ phone }}
               </span>
             </span>
           </div>
         </template>
         <template #cell-amount="{ row: payment }">
-          {{ formatPrice(parseFloat(payment.amount || '0')) }}
+          {{ formatPrice(parseFloat(payment.amount || "0")) }}
         </template>
         <template #cell-role="{ row: payment }">
-          <span class="capitalize">{{ payment.user?.role?.name || '-' }}</span>
+          <span class="capitalize">{{ payment.user?.role?.name || "-" }}</span>
         </template>
         <template #cell-deal_number="{ row: payment }">
-          {{ payment.dealNumber || '-' }}
+          {{ payment.dealNumber || "-" }}
         </template>
         <template #cell-period="{ row: payment }">
-          <span class="whitespace-nowrap">{{ payment.dateFrom?.split('T')[0] }}</span> - <span
-            class="whitespace-nowrap">{{ payment.dateTo?.split('T')[0] }}</span>
+          <span class="whitespace-nowrap">{{ payment.dateFrom?.split("T")[0] }}</span> -
+          <span class="whitespace-nowrap">{{ payment.dateTo?.split("T")[0] }}</span>
         </template>
         <template #cell-actions="{ row: payment }">
-          <div class="flex gap-2 justify-end">
+          <div class="flex justify-end gap-2">
             <CButton @click="editPayment(payment)" :disabled="loading">
               <PencilSquareIcon class="h-5 w-5" />
             </CButton>
@@ -84,35 +103,54 @@
       </CTable>
 
       <!-- Pagination -->
-      <div v-if="totalPages > 1" class="flex flex-col items-center justify-between gap-4 md:flex-row"
-        data-testid="pagination">
+      <div
+        v-if="totalPages > 1"
+        class="flex flex-col items-center justify-between gap-4 md:flex-row"
+        data-testid="pagination"
+      >
         <div class="text-sm text-gray-700">
           <span v-if="total > 0">
-            <span class="font-medium">{{ fromPayment }}</span> - <span class="font-medium">{{ toPayment }}</span> /
+            <span class="font-medium">{{ fromPayment }}</span> -
+            <span class="font-medium">{{ toPayment }}</span> /
             <span class="font-medium">{{ total }}</span>
           </span>
           <span v-else>
-            {{ t('No data available') }}
+            {{ t("No data available") }}
           </span>
         </div>
         <div class="flex items-center gap-2">
-          <CButton :disabled="currentPage === 1" @click="currentPage--" :aria-label="t('Previous page')" class="h-10">
+          <CButton
+            :disabled="currentPage === 1"
+            @click="currentPage--"
+            :aria-label="t('Previous page')"
+            class="h-10"
+          >
             <ChevronLeftIcon class="h-5 w-5" />
           </CButton>
           <div class="flex items-center gap-1 text-sm">
             <div class="w-20">
-              <CInput id="page-input" v-model.number="pageInput" type="number" :min="1" :max="totalPages"
-                class="text-center h-10" @keyup.enter="goToPage" />
+              <CInput
+                id="page-input"
+                v-model.number="pageInput"
+                type="number"
+                :min="1"
+                :max="totalPages"
+                class="h-10 text-center"
+                @keyup.enter="goToPage"
+              />
             </div>
             <span>/ {{ totalPages }}</span>
           </div>
-          <CButton :disabled="currentPage === totalPages" @click="currentPage++" :aria-label="t('Next page')"
-            class="h-10">
+          <CButton
+            :disabled="currentPage === totalPages"
+            @click="currentPage++"
+            :aria-label="t('Next page')"
+            class="h-10"
+          >
             <ChevronRightIcon class="h-5 w-5" />
           </CButton>
         </div>
       </div>
-
     </div>
 
     <!-- Delete Confirmation Modal -->
@@ -120,13 +158,23 @@
       :message="t('Are you sure? This change is not recoverable')" :title="t('Delete Payment')"
       :confirm-text="t('Delete')" :cancel-text="t('Cancel')" @confirm="deletePayment"
       @cancel="showDeleteConfirmation = false" /> -->
-    <CConfirmationModal v-if="showDeleteConfirmation" :message="t('Are you sure? This change is not recoverable')"
-      :title="t('Delete Payment')" :confirm-text="t('Delete')" :cancel-text="t('Cancel')" @confirm="deletePayment"
-      @cancel="showDeleteConfirmation = false" />
+    <CConfirmationModal
+      v-if="showDeleteConfirmation"
+      :message="t('Are you sure? This change is not recoverable')"
+      :title="t('Delete Payment')"
+      :confirm-text="t('Delete')"
+      :cancel-text="t('Cancel')"
+      @confirm="deletePayment"
+      @cancel="showDeleteConfirmation = false"
+    />
     <!-- <PaymentForm v-model="showForm" :selected-payment="isMyPayments ? null : selectedPayment"
       :currency-symbol="currencySymbol" :self-service="isMyPayments" @submit="handleFormSubmission" /> -->
-    <PaymentForm v-model="showForm" :selected-payment="selectedPayment"
-      :currency-symbol="currencySymbol" @submit="handleFormSubmission" />
+    <PaymentForm
+      v-model="showForm"
+      :selected-payment="selectedPayment"
+      :currency-symbol="currencySymbol"
+      @submit="handleFormSubmission"
+    />
   </Navigation>
 </template>
 
@@ -143,18 +191,24 @@ import CConfirmationModal from "@/components/CConfirmationModal.vue";
 import CSelect from "@/components/CSelect.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useSettingsStore } from "@/stores/settings";
-import { PencilSquareIcon, ArrowDownTrayIcon, ChevronLeftIcon, ChevronRightIcon, TrashIcon } from "@heroicons/vue/24/outline";
+import {
+  PencilSquareIcon,
+  ArrowDownTrayIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  TrashIcon,
+} from "@heroicons/vue/24/outline";
 import { paymentService, configurationService } from "@/services/api";
 import { usePaymentsStore } from "@/stores/payments";
 import { useToast } from "@/composables/useToast";
 import { formatCurrency } from "@/utils/formatters";
 
 const authStore = useAuthStore();
-const isAdmin = computed(() => authStore.user?.role?.name === 'admin' || authStore.user?.role === 'admin');
-
-const PaymentForm = defineAsyncComponent(() =>
-  import("./PaymentForm.vue")
+const isAdmin = computed(
+  () => authStore.user?.role?.name === "admin" || authStore.user?.role === "admin"
 );
+
+const PaymentForm = defineAsyncComponent(() => import("./PaymentForm.vue"));
 
 const { t } = useI18n();
 const router = useRouter();
@@ -170,10 +224,10 @@ const payments = ref<any[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
 const total = ref<number>(0);
-const startDate = ref<string>('');
-const endDate = ref<string>('');
-const searchTerm = ref<string>('');
-const selectedRole = ref<string>('');
+const startDate = ref<string>("");
+const endDate = ref<string>("");
+const searchTerm = ref<string>("");
+const selectedRole = ref<string>("");
 const currentPage = ref<number>(1);
 const itemsPerPage = ref<number>(10);
 const pageInput = ref(1);
@@ -183,16 +237,16 @@ const showForm = ref<boolean>(false);
 const selectedPayment = ref<any>(null);
 const showDeleteConfirmation = ref<boolean>(false);
 const paymentToDelete = ref<number | null>(null);
-const currencySymbol = computed(() => settingsStore.publicSettings?.currency_symbol || '$');
+const currencySymbol = computed(() => settingsStore.publicSettings?.currency_symbol || "$");
 
 // Determine if this page is used as "My Payments" for students/guests
 const isMyPayments = computed(() => route.meta && (route.meta as any).myPayments === true);
 
 // Role filter options
 const roleOptions = [
-  { value: '', name: t('All Roles') },
-  { value: 'student', name: t('Student') },
-  { value: 'guest', name: t('Guest') },
+  { value: "", name: t("All Roles") },
+  { value: "student", name: t("Student") },
+  { value: "guest", name: t("Guest") },
 ];
 
 // Table columns
@@ -218,9 +272,9 @@ const loadPayments = async () => {
   error.value = null;
   try {
     // Check if user is authenticated
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      error.value = 'Authentication required';
+      error.value = "Authentication required";
       payments.value = [];
       loading.value = false;
       return;
@@ -240,12 +294,15 @@ const loadPayments = async () => {
       ? await paymentService.getMyPayments(params)
       : await paymentService.getAll(params);
 
-    if (response.data && response.data.meta) { // Check for the new paginated structure
+    if (response.data && response.data.meta) {
+      // Check for the new paginated structure
       payments.value = response.data.data.map((payment: any) => {
-        if (payment.user && typeof payment.user.phoneNumbers === 'string') {
+        if (payment.user && typeof payment.user.phoneNumbers === "string") {
           try {
             payment.user.phoneNumbers = JSON.parse(payment.user.phoneNumbers);
-          } catch (e) { console.error('Failed to parse phoneNumbers', e); }
+          } catch (e) {
+            console.error("Failed to parse phoneNumbers", e);
+          }
         }
         return payment;
       });
@@ -262,8 +319,8 @@ const loadPayments = async () => {
     }
   } catch (err) {
     payments.value = [];
-    error.value = 'Failed to load payments';
-    console.error('Error loading payments:', err);
+    error.value = "Failed to load payments";
+    console.error("Error loading payments:", err);
   } finally {
     loading.value = false;
   }
@@ -298,7 +355,7 @@ watch(currentPage, (newPage, oldPage) => {
   }
 });
 
-const formatPrice = (price: number): string => formatCurrency(price, currencySymbol.value, 'USD');
+const formatPrice = (price: number): string => formatCurrency(price, currencySymbol.value, "USD");
 
 const confirmDeletePayment = (id: number) => {
   paymentToDelete.value = id;
@@ -310,10 +367,10 @@ const deletePayment = async () => {
 
   try {
     await paymentService.delete(paymentToDelete.value);
-    payments.value = payments.value.filter(p => p.id !== paymentToDelete.value);
-    showSuccess(t('Payment deleted successfully'));
+    payments.value = payments.value.filter((p) => p.id !== paymentToDelete.value);
+    showSuccess(t("Payment deleted successfully"));
   } catch (err) {
-    showError(t('Failed to delete payment'));
+    showError(t("Failed to delete payment"));
     throw err;
   } finally {
     showDeleteConfirmation.value = false;
@@ -329,19 +386,21 @@ async function exportPayments() {
     if (endDate.value) filters.date_to = endDate.value;
 
     const response = await paymentService.export(filters);
-    const blob = new Blob([(response && (response as any).data) ? (response as any).data : response], { type: 'text/csv' }); // Changed to text/csv
+    const blob = new Blob(
+      [response && (response as any).data ? (response as any).data : response],
+      { type: "text/csv" }
+    ); // Changed to text/csv
     const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    link.setAttribute('download', 'payments.csv');
+    link.setAttribute("download", "payments.csv");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
-
   } catch (err) {
-    showError(t('Failed to export payments'));
-    console.error('Error exporting payments:', err);
+    showError(t("Failed to export payments"));
+    console.error("Error exporting payments:", err);
   }
 }
 

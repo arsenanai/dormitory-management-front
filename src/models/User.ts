@@ -3,7 +3,6 @@ import { City } from "./City";
 import { Room } from "./Room";
 import { Dormitory } from "./Dormitory";
 
-
 export type UserStatus = "pending" | "active" | "passive";
 
 export interface User {
@@ -12,7 +11,7 @@ export interface User {
   first_name?: string; // Changed to snake_case
   last_name?: string; // Changed to snake_case
   email: string;
-  emailVerifiedAt?: string;
+  email_verified_at?: string;
   phone_numbers?: string[]; // Changed to snake_case
   dormitory_id?: number | null;
   room_id?: number | null;
@@ -27,32 +26,30 @@ export interface User {
   city?: City;
   // Student-specific fields (some may be moved to StudentProfile)
   student_id?: string;
-  birthDate?: string;
-  bloodType?: string;
+  birth_date?: string;
+  blood_type?: string;
   course?: string;
   faculty?: string;
   specialty?: string;
-  enrollmentYear?: number;
-  graduationYear?: number;
-  gender?: 'male' | 'female';
-  emergency_contact?: string;
-  emergency_phone?: string;
+  enrollment_year?: number;
+  graduation_year?: number;
+  gender?: "male" | "female";
   violations?: string;
   // Profile relationships
   student_profile?: StudentProfile;
   admin_profile?: AdminProfile;
   guest_profile?: GuestProfile;
   // Timestamps
-  createdAt?: string;
-  updatedAt?: string;
-  deletedAt?: string;  
+  created_at?: string;
+  updated_at?: string;
+  deleted_at?: string;
   dormitory?: Dormitory; // Add dormitory to the main User interface
 }
 
 // Import types after the interface to avoid circular imports
-import type { StudentProfile } from './StudentProfile';
-import type { AdminProfile } from './AdminProfile';
-import type { GuestProfile } from './GuestProfile';
+import type { StudentProfile } from "./StudentProfile";
+import type { AdminProfile } from "./AdminProfile";
+import type { GuestProfile } from "./GuestProfile";
 import { RoomType } from "./RoomType";
 
 // Legacy User class for forms/registration (kept for compatibility)
