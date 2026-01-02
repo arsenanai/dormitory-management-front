@@ -48,7 +48,8 @@ const i18n = createI18n({
       'Loading recent messages...': 'Loading recent messages...',
       'No recent messages from administrators': 'No recent messages from administrators',
       'Message': 'Message',
-      'Sent': 'Sent'
+      'Sent': 'Sent',
+      'Student Photo (3x4)': 'Student Photo (3x4)'
     }
   }
 })
@@ -182,5 +183,180 @@ describe('StudentMain.vue', () => {
 
     // Verify page renders even when error occurs
     expect(wrapper.text()).toContain('Recent messages')
+  })
+
+  // New tests for profile picture functionality
+  describe('Profile Picture Functionality', () => {
+    it('should display profile picture when files[2] exists', async () => {
+      const mockDashboardData = {
+        first_name: 'John',
+        last_name: 'Doe',
+        student_profile: {
+          files: ['file1.jpg', 'file2.jpg', 'student-photo.jpg']
+        }
+      }
+
+      const wrapper = mount(StudentMain, {
+        global: {
+          plugins: [i18n, router],
+          stubs: {
+            'CNavigation': true,
+            'CTable': true,
+            'CTextarea': true
+          }
+        }
+      })
+
+      // Set the dashboard data
+      wrapper.vm.dashboardData = mockDashboardData
+      await wrapper.vm.$nextTick()
+
+      // Check if profilePictureUrl computed property returns correct URL
+      const profilePictureUrl = wrapper.vm.profilePictureUrl
+      expect(profilePictureUrl).toBe('/api/files/download/student-photo.jpg')
+
+      // Check if the profile picture image element is rendered
+      const profileImage = wrapper.find('img[alt="Student Photo (3x4)"]')
+      expect(profileImage.exists()).toBe(true)
+      expect(profileImage.attributes('src')).toBe('/api/files/download/student-photo.jpg')
+    })
+
+    it('should display placeholder when no profile picture exists', async () => {
+      const mockDashboardData = {
+        first_name: 'John',
+        last_name: 'Doe',
+        student_profile: {
+          files: ['file1.jpg', 'file2.jpg'] // No files[2]
+        }
+      }
+
+      const wrapper = mount(StudentMain, {
+        global: {
+          plugins: [i18n, router],
+          stubs: {
+            'CNavigation': true,
+            'CTable': true,
+            'CTextarea': true,
+            'UserIcon': true
+          }
+        }
+      })
+
+      // Set the dashboard data
+      wrapper.vm.dashboardData = mockDashboardData
+      await wrapper.vm.$nextTick()
+
+      // Check if profilePictureUrl computed property returns null
+      const profilePictureUrl = wrapper.vm.profilePictureUrl
+      expect(profilePictureUrl).toBeNull()
+
+      // Check if placeholder div is rendered instead of image
+      const profileImage = wrapper.find('img[alt="Student Photo (3x4)"]')
+      expect(profileImage.exists()).toBe(false)
+
+      // Should show placeholder with UserIcon
+      const placeholder = wrapper.find('.h-24.w-24.items-center.justify-center.rounded-full')
+      expect(placeholder.exists()).toBe(true)
+    })
+
+    it('should handle full URL for profile picture', async () => {
+      const mockDashboardData = {
+        first_name: 'John',
+        last_name: 'Doe',
+        student_profile: {
+          files: ['file1.jpg', 'file2.jpg', 'https://example.com/full-url-photo.jpg']
+        }
+      }
+
+      const wrapper = mount(StudentMain, {
+        global: {
+          plugins: [i18n, router],
+          stubs: {
+            'CNavigation': true,
+            'CTable': true,
+            'CTextarea': true
+          }
+        }
+      })
+
+      // Set the dashboard data
+      wrapper.vm.dashboardData = mockDashboardData
+      await wrapper.vm.$nextTick()
+
+      // Check if profilePictureUrl computed property returns the full URL as-is
+      const profilePictureUrl = wrapper.vm.profilePictureUrl
+      expect(profilePictureUrl).toBe('https://example.com/full-url-photo.jpg')
+
+      // Check if the profile picture image element is rendered with full URL
+      const profileImage = wrapper.find('img[alt="Student Photo (3x4)"]')
+      expect(profileImage.exists()).toBe(true)
+      expect(profileImage.attributes('src')).toBe('https://example.com/full-url-photo.jpg')
+    })
+
+    it('should handle missing student_profile gracefully', async () => {
+      const mockDashboardData = {
+        first_name: 'John',
+        last_name: 'Doe'
+        // No student_profile at all
+      }
+
+      const wrapper = mount(StudentMain, {
+        global: {
+          plugins: [i18n, router],
+          stubs: {
+            'CNavigation': true,
+            'CTable': true,
+            'CTextarea': true,
+            'UserIcon': true
+          }
+        }
+      })
+
+      // Set the dashboard data
+      wrapper.vm.dashboardData = mockDashboardData
+      await wrapper.vm.$nextTick()
+
+      // Check if profilePictureUrl computed property returns null
+      const profilePictureUrl = wrapper.vm.profilePictureUrl
+      expect(profilePictureUrl).toBeNull()
+
+      // Check if placeholder is rendered
+      const profileImage = wrapper.find('img[alt="Student Photo (3x4)"]')
+      expect(profileImage.exists()).toBe(false)
+    })
+
+    it('should handle empty files array', async () => {
+      const mockDashboardData = {
+        first_name: 'John',
+        last_name: 'Doe',
+        student_profile: {
+          files: []
+        }
+      }
+
+      const wrapper = mount(StudentMain, {
+        global: {
+          plugins: [i18n, router],
+          stubs: {
+            'CNavigation': true,
+            'CTable': true,
+            'CTextarea': true,
+            'UserIcon': true
+          }
+        }
+      })
+
+      // Set the dashboard data
+      wrapper.vm.dashboardData = mockDashboardData
+      await wrapper.vm.$nextTick()
+
+      // Check if profilePictureUrl computed property returns null
+      const profilePictureUrl = wrapper.vm.profilePictureUrl
+      expect(profilePictureUrl).toBeNull()
+
+      // Check if placeholder is rendered
+      const profileImage = wrapper.find('img[alt="Student Photo (3x4)"]')
+      expect(profileImage.exists()).toBe(false)
+    })
   })
 })

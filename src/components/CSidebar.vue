@@ -17,6 +17,7 @@
               : 'border-r-3 border-r-transparent bg-transparent lg:text-gray-500',
           ]"
           :aria-current="route.path === menu.path ? 'page' : undefined"
+          :data-testid="`sidebar-${menu.name.toLowerCase().replace(/\s+/g, '-')}`"
           @click="handleNavClick(menu)"
         >
           <component
@@ -75,6 +76,7 @@
                 : 'border-r-3 border-r-transparent bg-transparent lg:text-gray-500',
             ]"
             :aria-current="isSubmenuHighlighted(submenu) ? 'page' : undefined"
+            :data-testid="`sidebar-${submenu.name.toLowerCase().replace(/\s+/g, '-')}`"
             @click="handleNavClick(submenu)"
           >
             <component

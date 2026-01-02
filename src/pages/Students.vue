@@ -68,7 +68,27 @@
         data-testid="students-table"
       >
         <template #cell-student="{ row }">
-          {{ row.name || "-" }}
+          <div class="flex items-center space-x-3">
+            <!-- Profile Picture -->
+            <div class="flex-shrink-0">
+              <div v-if="getProfilePictureUrl(row)" class="h-10 w-10 overflow-hidden rounded-full bg-gray-200">
+                <img
+                  :src="getProfilePictureUrl(row)"
+                  :alt="row.name || 'Student'"
+                  class="h-full w-full object-cover"
+                  style="image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges;"
+                />
+              </div>
+              <div
+                v-else
+                class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200"
+              >
+                <UserIcon class="h-5 w-5 text-gray-400" />
+              </div>
+            </div>
+            <!-- Student Name -->
+            <span class="font-medium">{{ row.name || "-" }}</span>
+          </div>
         </template>
         <template #cell-status="{ row }">
           <span
@@ -179,6 +199,7 @@ import {
   TrashIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  UserIcon,
 } from "@heroicons/vue/24/outline";
 import CInput from "@/components/CInput.vue";
 import CSelect from "@/components/CSelect.vue";
@@ -427,6 +448,20 @@ const getStatusLabel = (status: string) => {
     suspended: t("Suspended"),
   };
   return statusMap[status] || status;
+};
+
+const getProfilePictureUrl = (row) => {
+  const profilePicture = row.student_profile?.files?.[2];
+  if (!profilePicture) return null;
+
+  // If it's already a full URL, return as is
+  if (profilePicture.startsWith("http")) {
+    return profilePicture;
+  }
+
+  // Extract filename from path and use public avatar endpoint
+  const filename = profilePicture.split('/').pop();
+  return `/api/avatars/${filename}`;
 };
 
 const goToPage = () => {

@@ -50,12 +50,20 @@ test.describe('Student Form Functionality', () => {
     await page.click('button:has-text("Add Student")');
     await page.waitForURL(/student-form/);
 
-    // Verify all form fields are visible
+    // Verify required fields are visible
     const requiredFields = [
+      '#student-profile-iin',
       '#student-name',
       '#student-email',
       '#student-password',
-      '#student-password-confirmation'
+      '#student-password-repeat',
+      '#student-gender',
+      '#student-faculty',
+      '#student-specialist',
+      '#student-enrollment-year',
+      '#student-identification-type',
+      '#student-identification-number',
+      '#student-profile-photo'
     ];
 
     for (const fieldId of requiredFields) {
@@ -244,14 +252,14 @@ test.describe('Student Form Functionality', () => {
 
     // Debug: Check browser console for any errors or logs
     const logs = await page.evaluate(() => {
-      return window.console.logs || [];
+      return (window as any).console.log || [];
     });
     console.log('Browser console logs:', logs);
 
     // Debug: Check if the dormitory preset logic executed
     const dormitoryPresetExecuted = await page.evaluate(() => {
       // Check if the dormitory preset logic ran
-      return window.dormitoryPresetExecuted || false;
+      return (window as any).dormitoryPresetExecuted || false;
     });
     console.log('Dormitory preset logic executed:', dormitoryPresetExecuted);
 

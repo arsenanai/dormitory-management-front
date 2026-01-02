@@ -120,6 +120,25 @@
               :required="isEditing ? false : true"
             />
           </div>
+          <!-- Student Photo Field -->
+          <div class="lg:col-span-2">
+            <CFileInput
+              id="student-profile-photo"
+              :label="t('Student Photo (3x4)')"
+              :file-path="
+                typeof user.student_profile.files?.[2] === 'string'
+                  ? user.student_profile.files[2]
+                  : null
+              "
+              :allowed-extensions="['jpg', 'jpeg', 'png']"
+              :validation-message="validationErrors['student_profile.files.2']?.[0]"
+              @change="(newFile) => handleFileChange(2, newFile)"
+              accept="image/*"
+            />
+            <p class="mt-1 text-sm text-gray-500">
+              {{ t("Please upload a 3x4 cm photo in JPG or PNG format") }}
+            </p>
+          </div>
           <!-- Phone Numbers (moved to the end) -->
           <div class="lg:col-span-2">
             <label class="block text-sm font-medium text-gray-700">
@@ -425,7 +444,10 @@
       <fieldset class="border-primary-200 rounded border p-4">
         <legend class="text-primary-700 px-2 text-lg font-semibold">{{ t("Documents") }}</legend>
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2" data-testid="document-uploads">
-          <div v-for="(file, index) in user.student_profile.files || []" :key="`file-${index}`">
+          <div
+            v-for="(file, index) in (user.student_profile.files || []).slice(0, 2)"
+            :key="`file-${index}`"
+          >
             <CFileInput
               :id="`student-file-${index}`"
               :label="registrationFileLabels[index]"
@@ -477,7 +499,7 @@ const props = defineProps<{
   submitLabel?: string;
 }>();
 
-const registrationFileLabels = ["063 Form", "075 Form", "Bank Check"];
+const registrationFileLabels = ["063 Form", "075 Form", "Student Photo (3x4)"];
 
 // Real dormitories and rooms from API
 const rooms = ref<Room[]>([]);
@@ -560,7 +582,7 @@ const user = ref<Partial<User>>({
     identification_number: "",
     enrollment_year: new Date().getFullYear(),
     faculty: "",
-    files: [null, null, null], // 063 Form, 075 Form, Bank Check
+    files: [null, null, null], // 063 Form, 075 Form, Student Photo
     gender: "",
     has_meal_plan: false,
     iin: "",

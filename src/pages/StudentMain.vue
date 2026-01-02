@@ -1,6 +1,41 @@
 <template>
   <Navigation :title="t('Student\'s page')">
     <div class="container mx-auto px-4">
+      <!-- Profile Section -->
+      <div class="mb-6">
+        <div class="flex items-center space-x-6">
+          <!-- Profile Picture -->
+          <div class="flex-shrink-0">
+            <div
+              v-if="profilePictureUrl"
+              class="h-24 w-24 overflow-hidden rounded-full border-4 border-white shadow-lg bg-gray-200"
+            >
+              <img
+                :src="profilePictureUrl"
+                :alt="t('Student Photo (3x4)')"
+                class="h-full w-full object-cover"
+                style="image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges;"
+              />
+            </div>
+            <div
+              v-else
+              class="flex h-24 w-24 items-center justify-center rounded-full border-4 border-white bg-gray-200 shadow-lg"
+            >
+              <UserIcon class="h-12 w-12 text-gray-400" />
+            </div>
+          </div>
+          <!-- Student Info -->
+          <div class="flex-grow">
+            <h1 class="text-2xl font-bold text-gray-900">
+              {{ dashboardData.first_name }} {{ dashboardData.last_name }}
+            </h1>
+            <p class="text-gray-600">{{ dashboardData.email }}</p>
+            <p class="text-sm text-gray-500">
+              {{ t("Student ID") }}: {{ dashboardData.student_profile?.student_id || "-" }}
+            </p>
+          </div>
+        </div>
+      </div>
       <!-- Access status derived from student's status -->
       <!-- <div v-if="dormitoryAccessLoading" class="bg-primary-100 text-primary-800 p-3 rounded animate-pulse">
         {{ t('Loading status...') }}
@@ -168,6 +203,7 @@ import {
   BuildingOfficeIcon,
   ChatBubbleLeftRightIcon,
   ClockIcon,
+  UserIcon,
 } from "@heroicons/vue/24/outline";
 import { authService, messageService } from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
@@ -226,16 +262,27 @@ const receptionContacts = computed(() => {
   const phone = admin.phone_numbers?.[0] || admin.phone;
   const email = admin.email;
 
-  const messageBody = encodeURIComponent(t("guest.home.reception.prefilledMessage", { appName }));
-
   return {
     phone,
     email,
-    whatsappLink: phone ? `https://wa.me/${phone.replace(/\D/g, "")}?text=${messageBody}` : "#",
-    emailLink: email
-      ? `mailto:${email}?subject=${encodeURIComponent(t("guest.home.reception.prefilledSubject"))}&body=${messageBody}`
-      : "#",
+    whatsappLink: `https://wa.me/${phone?.replace(/[^0-9]/g, "")}`,
+    emailLink: `mailto:${email}`,
   };
+});
+
+// Profile picture URL computed property
+const profilePictureUrl = computed(() => {
+  const profilePicture = dashboardData.value.student_profile?.files?.[2];
+  if (!profilePicture) return null;
+
+  // If it's already a full URL, return as is
+  if (profilePicture.startsWith("http")) {
+    return profilePicture;
+  }
+
+  // Extract filename from path and use public avatar endpoint
+  const filename = profilePicture.split('/').pop();
+  return `/api/avatars/${filename}`;
 });
 
 // Fetch dashboard data (do not touch messages loaded from my-messages)

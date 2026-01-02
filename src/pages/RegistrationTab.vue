@@ -268,7 +268,7 @@
             id="registration-specialist"
             v-model="user.student_profile.specialist"
             type="text"
-            :label="t('Specialist')"
+            :label="t('Specialty')"
             :placeholder="t('Enter Specialty/Program Name')"
             required
             :validationState="registrationValidationState.specialist"
@@ -349,13 +349,19 @@
               :id="`registration-file-${index}`"
               :name="fileLabel"
               :label="t(fileLabel)"
-              :allowedExtensions="['jpg', 'jpeg', 'png', 'pdf']"
+              :allowedExtensions="
+                index === 2 ? ['jpg', 'jpeg', 'png'] : ['jpg', 'jpeg', 'png', 'pdf']
+              "
               :maxFileSize="2 * 1024 * 1024"
               :validation-message="registrationValidationMessage.files[index]"
+              :accept="index === 2 ? 'image/*' : undefined"
               data-testid="file-input"
               @validation="({ valid }) => (fileValidationStatus[index] = valid)"
               @change="(file) => updateRegistrationFileInput(index, file)"
             />
+            <p v-if="index === 2" class="mt-1 text-sm text-gray-500">
+              {{ t("Please upload a 3x4 cm photo in JPG or PNG format") }}
+            </p>
           </div>
           <CCheckbox
             v-if="user.student_profile"
@@ -486,7 +492,7 @@ const user = ref<Partial<User>>({
     has_meal_plan: false,
     allergies: "",
     violations: "",
-    files: [null, null], // Files belong to the profile (063 Form, 075 Form)
+    files: [null, null, null], // Files belong to the profile (063 Form, 075 Form, Profile Picture)
   },
   payment: {
     payment_check: null,
@@ -495,7 +501,7 @@ const user = ref<Partial<User>>({
 
 type ValidationState = "success" | "error" | "";
 
-const registrationFileLabels = [t("063 Form"), t("075 Form")];
+const registrationFileLabels = [t("063 Form"), t("075 Form"), t("Student Photo (3x4)")];
 const registrationValidationState = ref<{
   iin: ValidationState;
   first_name: ValidationState;
