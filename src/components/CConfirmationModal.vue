@@ -93,15 +93,19 @@ const handleEscape = (event: KeyboardEvent) => {
 
 onMounted(() => {
   isVisible.value = true;
-  document.addEventListener("keydown", handleEscape);
-  // Focus trap - focus the confirm button
-  setTimeout(() => {
-    const confirmButton = document.querySelector("[data-confirm-button]") as HTMLElement;
-    confirmButton?.focus();
-  }, 100);
+  if (typeof document !== "undefined") {
+    document.addEventListener("keydown", handleEscape);
+    // Focus trap - focus the confirm button
+    setTimeout(() => {
+      const confirmButton = document.querySelector("[data-confirm-button]") as HTMLElement;
+      confirmButton?.focus();
+    }, 100);
+  }
 });
 
 onUnmounted(() => {
-  document.removeEventListener("keydown", handleEscape);
+  if (typeof document !== "undefined") {
+    document.removeEventListener("keydown", handleEscape);
+  }
 });
 </script>

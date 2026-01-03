@@ -1,5 +1,5 @@
 <template>
-  <td class="px-6 py-4">
+  <td class="px-2 py-1">
     <slot />
   </td>
 </template>

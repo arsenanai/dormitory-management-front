@@ -66,17 +66,27 @@
         :columns="tableColumns"
         :loading="loading"
         data-testid="students-table"
+        hoverable
+        @row-click="handleRowClick"
       >
         <template #cell-student="{ row }">
-          <div class="flex items-center space-x-3">
+          <div class="flex items-center space-x-2">
             <!-- Profile Picture -->
             <div class="flex-shrink-0">
-              <div v-if="getProfilePictureUrl(row)" class="h-10 w-10 overflow-hidden rounded-full bg-gray-200">
+              <div
+                v-if="getProfilePictureUrl(row)"
+                class="h-10 w-10 cursor-pointer overflow-hidden rounded bg-gray-200 transition-opacity hover:opacity-80"
+              >
                 <img
                   :src="getProfilePictureUrl(row)"
                   :alt="row.name || 'Student'"
                   class="h-full w-full object-cover"
-                  style="image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges;"
+                  style="
+                    image-rendering: pixelated;
+                    image-rendering: -moz-crisp-edges;
+                    image-rendering: crisp-edges;
+                  "
+                  @click.stop="showStudentPicture(row)"
                 />
               </div>
               <div
@@ -112,6 +122,9 @@
         </template>
         <template #cell-telephone="{ row }">
           {{ row.phone_numbers?.[0] || row.phone || "-" }}
+        </template>
+        <template #cell-registration_date="{ row }">
+          {{ formatDate(row.created_at) || "-" }}
         </template>
         <template #cell-in_out="{ row }">
           <span v-if="row.status === 'active'" class="text-green-500">
@@ -182,6 +195,34 @@
         </div>
       </div>
     </div>
+
+    <!-- Picture Modal -->
+    <CModal v-model="showPictureModal" :title="selectedStudent?.name || 'Student Picture'">
+      <div
+        v-if="selectedStudent && getProfilePictureUrl(selectedStudent)"
+        class="flex flex-col items-center"
+      >
+        <img
+          :src="getProfilePictureUrl(selectedStudent)"
+          :alt="selectedStudent.name || 'Student'"
+          class="max-h-[70vh] max-w-full rounded-lg object-contain"
+        />
+        <p class="mt-4 text-center text-gray-600">
+          <strong>{{ selectedStudent.name }}</strong
+          ><br />
+          <span v-if="selectedStudent.student_profile?.enrollment_year">
+            {{ selectedStudent.student_profile.enrollment_year }}
+          </span>
+          <span v-if="selectedStudent.student_profile?.faculty">
+            • {{ selectedStudent.student_profile.faculty }}
+          </span>
+        </p>
+      </div>
+      <div v-else class="text-center text-gray-500">
+        <UserIcon class="mx-auto mb-4 h-16 w-16 text-gray-400" />
+        <p>No picture available</p>
+      </div>
+    </CModal>
   </Navigation>
 </template>
 
@@ -210,6 +251,7 @@ import { useToast } from "@/composables/useToast";
 import CTable from "@/components/CTable.vue";
 import CTableHead from "@/components/CTableHead.vue";
 import CTableHeadCell from "@/components/CTableHeadCell.vue";
+import CModal from "@/components/CModal.vue";
 import { studentService } from "@/services/api";
 
 const { t } = useI18n();
@@ -242,6 +284,7 @@ const tableColumns = [
   { key: "faculty", label: t("FACULTY") },
   { key: "bed", label: t("BED") },
   { key: "telephone", label: t("TELEPHONE") },
+  { key: "registration_date", label: t("REGISTRATION DATE") },
   { key: "in_out", label: t("IN/OUT") },
   { key: "actions", label: "" },
 ];
@@ -265,6 +308,8 @@ const fromStudent = ref(0);
 const toStudent = ref(0);
 
 const totalPages = ref(1);
+const selectedStudent = ref(null);
+const showPictureModal = ref(false);
 
 // Fetch students from API
 const fetchStudents = async () => {
@@ -375,7 +420,7 @@ const exportStudents = async () => {
       room_id: filters.value.room,
       status: filters.value.status,
       my_dormitory_only: filters.value.showDormitoryStudents,
-      columns: "name,status,enrollment_year,faculty,dormitory,bed,phone", // Only columns in the table
+      columns: "name,status,enrollment_year,faculty,dormitory,bed,phone,created_at", // Only columns in the table
     };
 
     const response = await studentService.export(apiParams);
@@ -428,6 +473,21 @@ const navigateToEditStudent = (studentId) => {
   }
 };
 
+const formatDate = (dateString: string) => {
+  if (!dateString) return null;
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return dateString;
+  }
+};
+
 const getStatusClass = (status: string) => {
   switch (status) {
     case "active":
@@ -460,7 +520,7 @@ const getProfilePictureUrl = (row) => {
   }
 
   // Extract filename from path and use public avatar endpoint
-  const filename = profilePicture.split('/').pop();
+  const filename = profilePicture.split("/").pop();
   return `/api/avatars/${filename}`;
 };
 
@@ -490,6 +550,15 @@ watch(currentPage, (newPage) => {
   pageInput.value = newPage;
   fetchStudents();
 });
+
+const handleRowClick = (row) => {
+  showStudentPicture(row);
+};
+
+const showStudentPicture = (student) => {
+  selectedStudent.value = student;
+  showPictureModal.value = true;
+};
 
 onMounted(async () => {
   console.log("🚀 Students component mounted");

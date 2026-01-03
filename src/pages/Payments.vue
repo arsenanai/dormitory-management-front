@@ -13,12 +13,27 @@
               :placeholder="t('Search payments...')"
             />
           </div>
-          <div class="flex-1">
-            <CInput id="start-date" v-model="startDate" type="date" :label="t('Start Date')" />
+
+          <!-- Date filters for admin users (when not filtering students) -->
+          <template v-if="!showSemesterFilter">
+            <div class="flex-1">
+              <CInput id="start-date" v-model="startDate" type="date" :label="t('Start Date')" />
+            </div>
+            <div class="flex-1">
+              <CInput id="end-date" v-model="endDate" type="date" :label="t('End Date')" />
+            </div>
+          </template>
+
+          <!-- Semester selector for students or admin filtering students -->
+          <div class="flex-1" v-if="showSemesterFilter">
+            <CSelect
+              id="semester-filter"
+              v-model="selectedSemester"
+              :options="semesterOptions"
+              :label="t('Semester')"
+            />
           </div>
-          <div class="flex-1">
-            <CInput id="end-date" v-model="endDate" type="date" :label="t('End Date')" />
-          </div>
+
           <!-- <div v-if="!isMyPayments" class="flex-1"> -->
           <div class="flex-1" v-if="isAdmin">
             <CSelect
@@ -207,6 +222,7 @@ const authStore = useAuthStore();
 const isAdmin = computed(
   () => authStore.user?.role?.name === "admin" || authStore.user?.role === "admin"
 );
+const isStudent = computed(() => authStore.user?.role?.name === "student");
 
 const PaymentForm = defineAsyncComponent(() => import("./PaymentForm.vue"));
 
@@ -228,6 +244,7 @@ const startDate = ref<string>("");
 const endDate = ref<string>("");
 const searchTerm = ref<string>("");
 const selectedRole = ref<string>("");
+const selectedSemester = ref<string>("");
 const currentPage = ref<number>(1);
 const itemsPerPage = ref<number>(10);
 const pageInput = ref(1);
@@ -242,12 +259,64 @@ const currencySymbol = computed(() => settingsStore.publicSettings?.currency_sym
 // Determine if this page is used as "My Payments" for students/guests
 const isMyPayments = computed(() => route.meta && (route.meta as any).myPayments === true);
 
+// Determine if semester filtering should be shown
+const showSemesterFilter = computed(() => {
+  return isStudent.value || (isAdmin.value && selectedRole.value === "student");
+});
+
 // Role filter options
 const roleOptions = [
   { value: "", name: t("All Roles") },
   { value: "student", name: t("Student") },
   { value: "guest", name: t("Guest") },
 ];
+
+// Generate semester options for the current and past few years
+const semesterOptions = computed(() => {
+  const currentYear = new Date().getFullYear();
+  const options = [{ value: "", name: t("All Semesters") }];
+
+  // Generate semesters for current year and past 3 years
+  for (let year = currentYear; year >= currentYear - 3; year--) {
+    // Fall semester (September - December)
+    options.push({
+      value: `${year}-fall`,
+      name: `${t("Fall")} ${year}`,
+      startDate: `${year}-09-01`,
+      endDate: `${year}-12-31`,
+    });
+
+    // Spring semester (January - May)
+    options.push({
+      value: `${year}-spring`,
+      name: `${t("Spring")} ${year}`,
+      startDate: `${year}-01-01`,
+      endDate: `${year}-05-31`,
+    });
+
+    // Summer semester (June - August)
+    options.push({
+      value: `${year}-summer`,
+      name: `${t("Summer")} ${year}`,
+      startDate: `${year}-06-01`,
+      endDate: `${year}-08-31`,
+    });
+  }
+
+  return options;
+});
+
+// Function to get semester date range
+const getSemesterDateRange = (semesterValue: string) => {
+  const semester = semesterOptions.value.find((opt) => opt.value === semesterValue);
+  if (semester && semester.startDate && semester.endDate) {
+    return {
+      startDate: semester.startDate,
+      endDate: semester.endDate,
+    };
+  }
+  return { startDate: "", endDate: "" };
+};
 
 // Table columns
 const tableColumns = computed(() => {
@@ -289,6 +358,13 @@ const loadPayments = async () => {
     if (startDate.value) params.date_from = startDate.value;
     if (endDate.value) params.date_to = endDate.value;
     if (selectedRole.value && !isMyPayments.value) params.role = selectedRole.value;
+
+    // Handle semester selection for students or admin filtering students
+    if (showSemesterFilter.value && selectedSemester.value) {
+      const dateRange = getSemesterDateRange(selectedSemester.value);
+      params.date_from = dateRange.startDate;
+      params.date_to = dateRange.endDate;
+    }
 
     const response = isMyPayments.value
       ? await paymentService.getMyPayments(params)
@@ -333,10 +409,17 @@ onMounted(async () => {
 });
 
 // Watch filters and reload payments
-watch([searchTerm, startDate, endDate, selectedRole], () => {
+watch([searchTerm, startDate, endDate, selectedRole, selectedSemester], () => {
   currentPage.value = 1;
   pageInput.value = 1;
   loadPayments();
+});
+
+// Reset semester selection when role changes
+watch(selectedRole, (newRole) => {
+  if (!showSemesterFilter.value) {
+    selectedSemester.value = "";
+  }
 });
 
 // Pagination
@@ -384,6 +467,13 @@ async function exportPayments() {
     if (searchTerm.value) filters.search = searchTerm.value;
     if (startDate.value) filters.date_from = startDate.value;
     if (endDate.value) filters.date_to = endDate.value;
+
+    // Handle semester selection for students or admin filtering students
+    if (showSemesterFilter.value && selectedSemester.value) {
+      const dateRange = getSemesterDateRange(selectedSemester.value);
+      filters.date_from = dateRange.startDate;
+      filters.date_to = dateRange.endDate;
+    }
 
     const response = await paymentService.export(filters);
     const blob = new Blob(

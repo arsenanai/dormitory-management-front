@@ -1,13 +1,8 @@
 {
-  "files": [],
-  "references": [
-    { "path": "./tsconfig.src.json" },
-    { "path": "./tsconfig.tests.json" }
-  ],
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": ["ES2020"],
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
@@ -20,16 +15,14 @@
     "isolatedModules": true,
     "noEmit": true,
     "types": ["vitest/globals", "node"],
-    "paths": {
-      "@/*": ["./src/*"]
-    },
     "incremental": true,
-    "tsBuildInfoFile": ".tsbuildinfo",
+    "tsBuildInfoFile": ".tsbuildinfo.tests",
     "assumeChangesOnlyAffectDirectDependencies": true,
     "disableSourceOfProjectReferenceRedirect": true,
     "disableReferencedProjectLoad": true,
-    "skipDefaultLibCheck": true
+    "skipDefaultLibCheck": true,
+    "composite": true
   },
-  "include": ["src/vue-shims.d.ts"],
+  "include": ["tests/**/*"],
   "exclude": ["node_modules", "dist", "**/*.config.ts", "**/*.config.js"]
 }

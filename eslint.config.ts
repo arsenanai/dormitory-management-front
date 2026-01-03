@@ -5,6 +5,13 @@ import * as parserTypeScript from '@typescript-eslint/parser'
 import pluginTs from '@typescript-eslint/eslint-plugin'
 
 export default [
+  {
+    cache: true,
+    cacheLocation: '.eslintcache',
+    cacheStrategy: 'content',
+    allowInlineConfig: false,
+    reportUnusedDisableDirectives: true
+  },
   js.configs.recommended,
   ...pluginVue.configs['flat/essential'],
   {
@@ -14,7 +21,13 @@ export default [
       sourceType: 'module',
       parser: parserVue,
       parserOptions: {
-        parser: parserTypeScript
+        parser: parserTypeScript,
+        ecmaFeatures: {
+          jsx: false
+        },
+        sourceType: 'module',
+        project: './tsconfig.json',
+        extraFileExtensions: ['.vue']
       },
       globals: {
         window: 'readonly',
@@ -52,7 +65,10 @@ export default [
       'vue/multi-word-component-names': 'off',
       'vue/no-v-html': 'off',
       'no-unused-vars': 'warn',
-      'no-undef': 'off'
+      'no-undef': 'off',
+      '@typescript-eslint/no-unused-expressions': 'off',
+      '@typescript-eslint/prefer-optional-chain': 'off',
+      '@typescript-eslint/prefer-nullish-coalescing': 'off'
     }
   },
   {
@@ -72,6 +88,6 @@ export default [
     }
   },
   {
-    ignores: ['dist', 'node_modules', '*.config.ts', '*.config.js']
+    ignores: ['dist', 'node_modules', '*.config.ts', '*.config.js', '.tsbuildinfo', '.eslintcache']
   }
 ]

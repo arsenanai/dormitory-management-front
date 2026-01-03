@@ -7,7 +7,7 @@
       >
         <tr>
           <!-- Checkbox header cell: Render slot if provided, otherwise render default checkbox if selectable -->
-          <th v-if="hasCheckboxColumn" class="p-4">
+          <th v-if="hasCheckboxColumn" class="px-4 py-2">
             <slot name="header-checkbox">
               <!-- Fallback for backward compatibility when `selectable` is true but slot is not used -->
               <input
@@ -22,7 +22,7 @@
             v-for="column in dataColumns"
             :key="column.key"
             :class="[
-              'px-6 py-3',
+              'px-4 py-2',
               column.sortable ? 'cursor-pointer hover:bg-gray-200' : '',
               column.class || '',
             ]"
@@ -52,7 +52,7 @@
           @click="handleRowClick(row)"
         >
           <!-- Checkbox body cell -->
-          <td v-if="hasCheckboxColumn" class="px-6 py-4">
+          <td v-if="hasCheckboxColumn" class="px-4 py-2">
             <slot :name="`cell-checkbox`" :row="row">
               <!-- Fallback for backward compatibility -->
               <input
@@ -67,7 +67,7 @@
           <td
             v-for="column in dataColumns"
             :key="`${getRowKey(row, index)}-${column.key}`"
-            :class="['px-6 py-4', column.class || '']"
+            :class="['px-4 py-2', column.class || '']"
           >
             <slot
               :name="`cell-${column.key}`"

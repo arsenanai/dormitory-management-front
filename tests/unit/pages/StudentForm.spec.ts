@@ -4,7 +4,6 @@ import { createRouterMock, injectRouterMock } from 'vue-router-mock';
 import { createPinia, setActivePinia } from 'pinia';
 import i18n from '@/i18n';
 import * as api from '@/services/api';
-// @ts-expect-error: Vue SFC import for test
 import StudentForm from '../../../src/pages/StudentForm.vue';
 
 // Configure vue-router-mock
@@ -54,6 +53,19 @@ const createMockResponse = (data: any) => ({
   headers: {},
   config: { headers: {} },
 });
+
+// Helper function to mount StudentForm with proper setup
+const mountStudentForm = (options = {}) => {
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  
+  return mount(StudentForm, {
+    global: {
+      plugins: [router, i18n, pinia],
+    },
+    ...options,
+  });
+};
 
 describe('StudentForm', () => {
   beforeEach(() => {
@@ -114,11 +126,7 @@ describe('StudentForm', () => {
 
   describe('Component Initialization', () => {
     it('should render the student form with all required fields', () => {
-      const wrapper = mount(StudentForm, {
-        global: {
-          plugins: [router, i18n],
-        },
-      });
+      const wrapper = mountStudentForm();
 
       // Check if all form sections are present
       expect(wrapper.text()).toContain('Personal Information');
@@ -127,7 +135,7 @@ describe('StudentForm', () => {
       expect(wrapper.text()).toContain('Educational Information');
 
       // Check if key form fields are present
-      expect(wrapper.find('#student-iin').exists()).toBe(true);
+      expect(wrapper.find('#student-profile-iin').exists()).toBe(true);
       expect(wrapper.find('#student-name').exists()).toBe(true);
       expect(wrapper.find('#student-surname').exists()).toBe(true);
       expect(wrapper.find('#student-email').exists()).toBe(true);

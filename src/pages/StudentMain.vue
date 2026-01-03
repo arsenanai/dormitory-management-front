@@ -8,13 +8,17 @@
           <div class="flex-shrink-0">
             <div
               v-if="profilePictureUrl"
-              class="h-24 w-24 overflow-hidden rounded-full border-4 border-white shadow-lg bg-gray-200"
+              class="h-24 w-24 overflow-hidden rounded-full border-4 border-white bg-gray-200 shadow-lg"
             >
               <img
                 :src="profilePictureUrl"
                 :alt="t('Student Photo (3x4)')"
                 class="h-full w-full object-cover"
-                style="image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges;"
+                style="
+                  image-rendering: pixelated;
+                  image-rendering: -moz-crisp-edges;
+                  image-rendering: crisp-edges;
+                "
               />
             </div>
             <div
@@ -281,7 +285,7 @@ const profilePictureUrl = computed(() => {
   }
 
   // Extract filename from path and use public avatar endpoint
-  const filename = profilePicture.split('/').pop();
+  const filename = profilePicture.split("/").pop();
   return `/api/avatars/${filename}`;
 });
 
