@@ -4,6 +4,7 @@ import { createTestingPinia } from '@pinia/testing';
 import { createRouterMock, injectRouterMock } from 'vue-router-mock'
 import RoomTypes from '@/pages/RoomTypes.vue'
 import { roomTypeService, dormitoryService } from '@/services/api'
+import i18n from '@/i18n'
 
 // Mock the API services
 vi.mock('@/services/api', () => ({
@@ -85,12 +86,20 @@ describe('RoomTypes.vue', () => {
     vi.mocked(roomTypeService.getAll).mockResolvedValue({ data: mockRoomTypes })
     vi.mocked(dormitoryService.getAll).mockResolvedValue({ data: mockDormitories })
     
+    vi.stubGlobal('useSettingsStore', () => ({
+        publicSettings: {
+            currency_symbol: '$'
+        }
+    }));
+
     wrapper = mount(RoomTypes, {
       global: {
         plugins: [
           createTestingPinia({
             createSpy: vi.fn
-          })
+          }),
+          router,
+          i18n,
         ]
       }
     })

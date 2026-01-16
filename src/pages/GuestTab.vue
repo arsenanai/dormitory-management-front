@@ -84,6 +84,7 @@
             required
           />
         </div>
+        <CRoomTypePhotos :photos="selectedRoom?.room_type?.photos || []" />
         <div v-if="loadingRooms || loadingBeds" class="mt-4 flex justify-center">
           <div class="border-primary-500 h-5 w-5 animate-spin rounded-full border-b-2"></div>
         </div>
@@ -286,7 +287,7 @@ import { useI18n } from "vue-i18n";
 import { useAuthStore } from "@/stores/auth";
 import { useSettingsStore } from "@/stores/settings";
 import { useToast } from "@/composables/useToast";
-import { dormitoryService, roomService } from "@/services/api";
+import { dormitoryService, roomService, resolvedBaseUrl } from "@/services/api";
 import CInput from "@/components/CInput.vue";
 import CButton from "@/components/CButton.vue";
 import CSelect from "@/components/CSelect.vue";
@@ -294,6 +295,8 @@ import CTextarea from "@/components/CTextarea.vue";
 import CStepper from "@/components/CStepper.vue";
 import CFileInput from "@/components/CFileInput.vue";
 import CStep from "@/components/CStep.vue";
+import CModal from "@/components/CModal.vue";
+import CRoomTypePhotos from "@/components/CRoomTypePhotos.vue";
 import CCheckbox from "@/components/CCheckbox.vue";
 import { getCurrencySymbol } from "@/utils/formatters";
 
@@ -487,6 +490,10 @@ const bedOptions = computed(() => {
   return availableBeds.value.map((b) => {
     return { value: b.id, name: `${selectedRoom.number}-${b.bed_number}` };
   });
+});
+
+const selectedRoom = computed(() => {
+  return availableRooms.value.find((r) => r.id === guest.value.room_id);
 });
 
 watch(

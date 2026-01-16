@@ -149,7 +149,7 @@ const loadDormitories = async () => {
     const response = await dormitoryService.getAll();
 
     // Handle different response structures
-    if (response && response.data) {
+    if (response?.data) {
       // If response.data is an array, use it directly (this is what the backend returns)
       if (Array.isArray(response.data)) {
         dorms.value = response.data;

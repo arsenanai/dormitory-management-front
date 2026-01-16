@@ -470,11 +470,21 @@ export const roomTypeService = {
 
   getById: (id: number): Promise<ApiResponse<RoomType>> => api.get(`/room-types/${id}`),
 
-  create: (data: Partial<RoomType>): Promise<ApiResponse<RoomType>> =>
-    api.post("/room-types", data),
+  create: (data: Partial<RoomType> | FormData): Promise<ApiResponse<RoomType>> => {
+    const config =
+      data instanceof FormData ? { headers: { "Content-Type": "multipart/form-data" } } : {};
+    return api.post("/room-types", data, config);
+  },
 
-  update: (id: number, data: Partial<RoomType>): Promise<ApiResponse<RoomType>> =>
-    api.put(`/room-types/${id}`, data),
+  update: (id: number, data: Partial<RoomType> | FormData): Promise<ApiResponse<RoomType>> => {
+    if (data instanceof FormData) {
+      data.append("_method", "PUT");
+      return api.post(`/room-types/${id}`, data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+    }
+    return api.put(`/room-types/${id}`, data);
+  },
 
   delete: (id: number): Promise<ApiResponse<{ message: string }>> =>
     api.delete(`/room-types/${id}`),

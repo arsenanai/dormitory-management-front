@@ -347,12 +347,12 @@ const fetchStudents = async () => {
       hasData: !!response.data,
       dataType: typeof response.data,
       isArray: Array.isArray(response.data),
-      hasDataData: response.data && response.data.data,
-      dataDataIsArray: response.data && response.data.data && Array.isArray(response.data.data),
+      hasDataData: response.data?.data,
+      dataDataIsArray: response.data?.data && Array.isArray(response.data.data),
     });
 
     // Handle Laravel paginated response structure
-    if (response && response.data) {
+    if (response?.data) {
       // Laravel paginated response: { data: [...], current_page: 1, ... }
       currentPage.value = response.data.current_page;
       totalPages.value = response.data.last_page;
@@ -403,7 +403,7 @@ import { roomService } from "@/services/api";
 const fetchFilterOptions = async () => {
   try {
     const response = await roomService.getAll({ per_page: 1000 });
-    if (response.data && response.data.data) {
+    if (response.data?.data) {
       allRooms.value = response.data.data;
     }
   } catch (err) {
@@ -519,9 +519,8 @@ const getProfilePictureUrl = (row) => {
     return profilePicture;
   }
 
-  // Extract filename from path and use public avatar endpoint
-  const filename = profilePicture.split("/").pop();
-  return `/api/avatars/${filename}`;
+  // Use unified download endpoint for avatars
+  return `/api/files/download/${profilePicture}`;
 };
 
 const goToPage = () => {

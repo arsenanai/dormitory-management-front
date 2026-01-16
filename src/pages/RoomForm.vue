@@ -81,6 +81,7 @@
             {{ t("No room types available") }}
           </div>
         </div>
+
         <!-- Quota -->
         <div>
           <CInput
@@ -163,7 +164,7 @@ import { Bed } from "@/models/Bed";
 import { useRoomsStore } from "@/stores/rooms";
 import { useAuthStore } from "@/stores/auth";
 import { useToast } from "@/composables/useToast";
-import { roomService, roomTypeService, bedService } from "@/services/api";
+import { roomService, roomTypeService, bedService, resolvedBaseUrl } from "@/services/api";
 import api from "@/services/api";
 
 // i18n, router, and stores
@@ -519,7 +520,7 @@ const loadRoomTypes = async () => {
 
   try {
     const roomTypesResponse = await roomTypeService.getAll(params);
-    if (roomTypesResponse.data && roomTypesResponse.data.data) {
+    if (roomTypesResponse.data?.data) {
       roomTypes.value = roomTypesResponse.data.data;
     } else if (roomTypesResponse.data && Array.isArray(roomTypesResponse.data)) {
       roomTypes.value = roomTypesResponse.data;

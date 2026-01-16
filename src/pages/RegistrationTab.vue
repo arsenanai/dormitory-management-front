@@ -295,6 +295,12 @@
               required
             />
           </div>
+        </div>
+      </CStep>
+
+      <!-- Step 8: Accommodation -->
+      <CStep :title="t('Accommodation')" :validator="() => isAccommodationStepValid">
+        <div class="grid grid-cols-1 gap-4">
           <div>
             <CSelect
               id="registration-dormitory"
@@ -338,10 +344,13 @@
               <span>{{ t("Loading beds...") }}</span>
             </div>
           </div>
+
+          <!-- Room Photos Display -->
+          <CRoomTypePhotos :photos="selectedRoom?.room_type?.photos || []" />
         </div>
       </CStep>
 
-      <!-- Step 8: Documents -->
+      <!-- Step 9: Documents -->
       <CStep :title="t('Documents')" :validator="() => isDocumentsStepValid">
         <div class="grid grid-cols-1 gap-4">
           <div v-for="(fileLabel, index) in registrationFileLabels" :key="index">
@@ -372,7 +381,7 @@
         </div>
       </CStep>
 
-      <!-- Step 9: Payment -->
+      <!-- Step 10: Payment -->
       <CStep :title="t('Payment')" :validator="() => isPaymentStepValid">
         <div class="grid grid-cols-1 gap-4">
           <label class="font-semibold"
@@ -401,7 +410,7 @@
         </div>
       </CStep>
 
-      <!-- Step 10: Registration Status -->
+      <!-- Step 11: Registration Status -->
       <CStep :title="t('Registration & Status')" :validator="() => isRegistrationStatusStepValid">
         <div v-if="user.student_profile" class="flex h-full flex-1 flex-col gap-4">
           <CTextarea
@@ -431,7 +440,7 @@ import { useI18n } from "vue-i18n";
 import { useAuthStore } from "@/stores/auth";
 import { useSettingsStore } from "@/stores/settings";
 import { useToast } from "@/composables/useToast";
-import { dormitoryService } from "@/services/api";
+import { dormitoryService, resolvedBaseUrl } from "@/services/api";
 import type { User } from "@/models/User";
 import CInput from "@/components/CInput.vue";
 import CButton from "@/components/CButton.vue";
@@ -441,6 +450,8 @@ import CStepper from "@/components/CStepper.vue";
 import CStep from "@/components/CStep.vue";
 import CFileInput from "@/components/CFileInput.vue";
 import CTextarea from "@/components/CTextarea.vue";
+import CModal from "@/components/CModal.vue";
+import CRoomTypePhotos from "@/components/CRoomTypePhotos.vue";
 import { PlusIcon, TrashIcon } from "@heroicons/vue/24/solid";
 import { getCurrencySymbol } from "@/utils/formatters";
 
@@ -584,8 +595,7 @@ const handleRegistration = async () => {
   if (!user.value.student_profile?.specialist?.trim())
     setErr("specialist", t("Specialist is required"));
   if (
-    !user.value.student_profile?.enrollment_year ||
-    user.value.student_profile.enrollment_year.toString().length !== 4
+    user.value.student_profile?.enrollment_year?.toString().length !== 4
   )
     setErr("enrollment_year", t("Enter 4-digit year"));
   if (!user.value.student_profile?.gender) setErr("gender", t("Gender is required"));
@@ -904,25 +914,26 @@ const isHealthInfoStepValid = computed(() => {
 // Step 7: Educational Information
 const isEducationalInfoStepValid = computed(() => {
   const { faculty, specialist, enrollment_year, deal_number } = user.value.student_profile ?? {};
-  const { dormitory_id, room_id, bed_id } = user.value;
   return (
     !!faculty?.trim() &&
     !!specialist?.trim() &&
     !!deal_number?.trim() &&
     !!enrollment_year &&
-    enrollment_year.toString().length === 4 &&
-    !!dormitory_id &&
-    !!room_id &&
-    !!bed_id
+    enrollment_year.toString().length === 4
   );
 });
 
-// Step 8: Documents (No required files based on current template)
+// Step 8: Accommodation
+const isAccommodationStepValid = computed(() => {
+  return !!user.value.dormitory_id && !!user.value.room_id && !!user.value.bed_id;
+});
+
+// Step 9: Documents (No required files based on current template)
 const isDocumentsStepValid = computed(() => {
   return fileValidationStatus.value.every((isValid) => isValid);
 });
 
-// Step 9: Payment Check
+// Step 10: Payment Check
 const isPaymentStepValid = computed(() => {
   // validate file input here
   if (!user.value.payment) return false;
@@ -936,7 +947,7 @@ const isPaymentStepValid = computed(() => {
   if (!allowedExtensions.includes(fileExtension)) return false;
   return true;
 });
-// Step 10: Registration & Status
+// Step 11: Registration & Status
 const isRegistrationStatusStepValid = computed(() => {
   return !!user.value.student_profile?.agree_to_dormitory_rules;
 });
@@ -954,6 +965,10 @@ const filteredDormitoryOptions = computed(() => {
   return (dormitoryOptions.value || [])
     .filter((dorm) => (dorm.gender === "mixed" || dorm.gender === gender) && dorm.freeBeds > 0)
     .map((dorm) => ({ value: dorm.id.toString(), name: dorm.name }));
+});
+
+const selectedRoom = computed(() => {
+  return availableRooms.value.find((r) => r.id === user.value.room_id);
 });
 
 watch(
@@ -993,7 +1008,7 @@ watch(
     loadingBeds.value = true;
     try {
       const room = availableRooms.value.find((r) => r.id === roomId);
-      if (room && room.beds) {
+      if (room?.beds) {
         selectedRoomNumber.value = room.number;
         selectedRoomPrice.value = room.room_type?.semester_rate
           ? parseFloat(room.room_type.semester_rate)

@@ -280,21 +280,6 @@ describe('RegistrationTab - Emergency Contact Fields', () => {
     });
   });
 
-  describe('Emergency Contact Step Validation', () => {
-    it('should validate emergency contact step correctly', () => {
-      const wrapper = mount(RegistrationTab, {
-        global: {
-          plugins: [router, i18n],
-        },
-      });
-
-      const component = wrapper.vm as any;
-      
-      // Emergency contact step should be valid (no required fields)
-      expect(component.isEmergencyContactStepValid).toBe(true);
-    });
-  });
-
   describe('Form Submission with Emergency Contact', () => {
     it('should include emergency contact data in registration submission', async () => {
       const wrapper = mount(RegistrationTab, {

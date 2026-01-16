@@ -283,8 +283,7 @@ export const useAuthStore = defineStore("auth", () => {
 
   const profileDataFilled = computed(() => {
     return !!(
-      user.value &&
-      user.value.first_name &&
+      user.value?.first_name &&
       user.value.last_name &&
       user.value.email &&
       user.value.phone_numbers &&
@@ -359,7 +358,7 @@ export const useAuthStore = defineStore("auth", () => {
     if (savedToken) {
       token.value = savedToken;
       // Set token in API headers
-      if (api.defaults && api.defaults.headers) {
+      if (api.defaults?.headers) {
         api.defaults.headers.common["Authorization"] = `Bearer ${savedToken}`;
       }
 

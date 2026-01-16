@@ -18,7 +18,7 @@
 export const formatDate = (
   date: string | Date,
   format: string = "en-US",
-  options?: Intl.DateTimeFormatOptions
+  _options?: Intl.DateTimeFormatOptions
 ): string => {
   const dateObj = typeof date === "string" ? new Date(date) : date;
 
@@ -88,7 +88,7 @@ export const formatCurrency = (amount: number, currency: string, locale?: string
     amount = 0;
   }
 
-  const browserLocale = locale || navigator.language;
+  const browserLocale = locale ?? navigator.language;
 
   // Format the number part according to the browser's locale to respect user's number formatting preferences (e.g., '.' vs ',').
   const numberFormatter = new Intl.NumberFormat(browserLocale, {
@@ -97,7 +97,7 @@ export const formatCurrency = (amount: number, currency: string, locale?: string
     maximumFractionDigits: 2,
   });
   const formattedNumber = numberFormatter.format(amount);
-  const symbol = currencySymbolMap[currency.toUpperCase()] || currency;
+  const symbol = currencySymbolMap[currency.toUpperCase()] ?? currency;
 
   // Combine the formatted number and the symbol. For USD and some others, symbol comes first.
   return `${symbol}${formattedNumber}`;
@@ -414,7 +414,7 @@ export const sortBy = (array: any[], key: string, direction: "asc" | "desc" = "a
  * @returns Debounced function
  */
 export const debounce = (func: Function, wait: number) => {
-  let timeout: NodeJS.Timeout;
+  let timeout: ReturnType<typeof setTimeout>;
   return function executedFunction(...args: any[]) {
     const later = () => {
       clearTimeout(timeout);

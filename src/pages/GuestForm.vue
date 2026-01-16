@@ -126,6 +126,11 @@
         />
       </div>
 
+      <!-- Room Photos Display -->
+      <div v-if="user.room_id" class="lg:col-span-2">
+        <CRoomTypePhotos :photos="selectedRoom?.room_type?.photos || []" />
+      </div>
+
       <!-- Purpose of Visit -->
       <div>
         <CInput
@@ -267,12 +272,14 @@ import Navigation from "@/components/CNavigation.vue";
 import CInput from "@/components/CInput.vue";
 import CSelect from "@/components/CSelect.vue";
 import CButton from "@/components/CButton.vue";
+import CTextarea from "@/components/CTextarea.vue";
+import CModal from "@/components/CModal.vue";
+import CRoomTypePhotos from "@/components/CRoomTypePhotos.vue";
 import { useToast } from "@/composables/useToast";
 import { guestService, roomService, personalDataService } from "@/services/api";
 import { useSettingsStore } from "@/stores/settings";
 import type { User } from "@/models/User";
 import type { GuestProfile } from "@/models/GuestProfile";
-import CTextarea from "@/components/CTextarea.vue";
 
 const props = defineProps<{
   embedded?: boolean;
@@ -454,7 +461,7 @@ const submitForm = async (): Promise<void> => {
   } catch (error: any) {
     // If backend returned validation errors, map them to fields
     const resp = error?.response?.data;
-    if (resp && resp.errors && typeof resp.errors === "object") {
+    if (resp?.errors && typeof resp.errors === "object") {
       Object.entries(resp.errors).forEach(([key, messages]) => {
         // messages is an array of strings
         if (Array.isArray(messages)) {
@@ -527,13 +534,18 @@ const loadSelfGuest = async (): Promise<void> => {
 const updateBedOptions = (roomId: number | string | null) => {
   bedOptions.value = [];
   const selectedRoom = allRoomsData.value.find((room) => room.id == roomId); // Use '==' for loose comparison
-  if (selectedRoom && selectedRoom.beds) {
+  if (selectedRoom?.beds) {
     bedOptions.value = selectedRoom.beds.map((bed: any) => ({
       value: bed.id.toString(), // Ensure value is a string for consistency
       name: `${selectedRoom.number}-${bed.bed_number}`,
     }));
   }
 };
+
+// Selected room computed property
+const selectedRoom = computed(() => {
+  return allRoomsData.value.find((r) => r.id == user.value.room_id);
+});
 
 // calculateTotalAmount removed (payment calculation disabled)
 

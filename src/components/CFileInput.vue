@@ -190,17 +190,13 @@ const shortenFileName = (fileName: string | null): string | null => {
 const downloadFile = async () => {
   if (!isDownloadable.value || !props.filePath) return;
 
-  // Construct the full URL for download
+  // Use the unified file download endpoint with the full relative path
   const fileUrl = `${resolvedBaseUrl}/files/download/${encodeURIComponent(props.filePath)}`;
+
   internalValidationMessage.value = null; // Clear previous errors
 
   try {
-    const token = localStorage.getItem("token");
-    const response = await fetch(fileUrl, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await fetch(fileUrl);
 
     if (!response.ok) {
       throw new Error(`Download failed: ${response.statusText}`);

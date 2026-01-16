@@ -612,5 +612,13 @@
   "results": "results",
   "showForm": "showForm",
   "student": "student",
-  "to": "to"
+  "to": "to",
+  "Instructions": "Instructions",
+  "Click \"Add Bed\" to create a new bed": "Click \"Add Bed\" to create a new bed",
+  "Drag beds to move them": "Drag beds to move them",
+  "Double-click a bed to rotate it 90 degrees": "Double-click a bed to rotate it 90 degrees",
+  "Use \"Size +\" and \"Size -\" buttons to resize all beds": "Use \"Size +\" and \"Size -\" buttons to resize all beds",
+  "Click \"Auto Arrange\" to automatically position beds": "Click \"Auto Arrange\" to automatically position beds",
+  "Size +": "Size +",
+  "Size -": "Size -"
 }

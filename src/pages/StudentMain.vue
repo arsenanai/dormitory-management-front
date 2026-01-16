@@ -284,9 +284,8 @@ const profilePictureUrl = computed(() => {
     return profilePicture;
   }
 
-  // Extract filename from path and use public avatar endpoint
-  const filename = profilePicture.split("/").pop();
-  return `/api/avatars/${filename}`;
+  // Use unified download endpoint for avatars
+  return `/api/files/download/${profilePicture}`;
 });
 
 // Fetch dashboard data (do not touch messages loaded from my-messages)
@@ -325,7 +324,7 @@ const fetchRecentAdminMessages = async () => {
     const params = { page: 1, per_page: 3 } as const;
     const response = await messageService.getMyMessages(params as any);
 
-    if (response && response.data) {
+    if (response?.data) {
       let messagesArray: any[] = [];
 
       if (Array.isArray(response.data)) {

@@ -1,89 +1,99 @@
 import js from '@eslint/js'
 import pluginVue from 'eslint-plugin-vue'
-import * as parserVue from 'vue-eslint-parser'
-import * as parserTypeScript from '@typescript-eslint/parser'
 import pluginTs from '@typescript-eslint/eslint-plugin'
+import parserVue from 'vue-eslint-parser'
+import parserTs from '@typescript-eslint/parser'
 
 export default [
-  {
-    cache: true,
-    cacheLocation: '.eslintcache',
-    cacheStrategy: 'content',
-    allowInlineConfig: false,
-    reportUnusedDisableDirectives: true
-  },
   js.configs.recommended,
   ...pluginVue.configs['flat/essential'],
   {
-    files: ['**/*.{js,mjs,cjs,ts,vue}'],
+    files: ['**/*.{ts,tsx,vue}'],
+    ignores: [
+        'tests/**/*',
+        'vitest.setup.ts',
+        'tests/urlPolyfill.ts',
+        'scan-i18n.js'
+    ],
     languageOptions: {
-      ecmaVersion: 'latest',
-      sourceType: 'module',
       parser: parserVue,
       parserOptions: {
-        parser: parserTypeScript,
-        ecmaFeatures: {
-          jsx: false
-        },
+        parser: parserTs,
+        ecmaVersion: 'latest',
         sourceType: 'module',
-        project: './tsconfig.json',
-        extraFileExtensions: ['.vue']
+        ecmaFeatures: {
+          jsx: true,
+        },
+        project: ['./tsconfig.json', './tsconfig.src.json'],
+        extraFileExtensions: ['.vue'],
+        globals: {
+          window: 'readonly',
+          document: 'readonly', 
+          localStorage: 'readonly',
+          navigator: 'readonly',
+          setTimeout: 'readonly',
+          clearTimeout: 'readonly',
+          console: 'readonly',
+          NodeJS: 'readonly',
+          require: 'readonly',
+          exports: 'readonly'
+        }
       },
-      globals: {
-        window: 'readonly',
-        document: 'readonly',
-        localStorage: 'readonly',
-        sessionStorage: 'readonly',
-        navigator: 'readonly',
-        location: 'readonly',
-        history: 'readonly',
-        fetch: 'readonly',
-        URL: 'readonly',
-        Blob: 'readonly',
-        FormData: 'readonly',
-        File: 'readonly',
-        setTimeout: 'readonly',
-        clearTimeout: 'readonly',
-        setInterval: 'readonly',
-        clearInterval: 'readonly',
-        console: 'readonly',
-        process: 'readonly',
-        require: 'readonly',
-        __dirname: 'readonly',
-        __filename: 'readonly',
-        Buffer: 'readonly',
-        global: 'readonly'
-      }
     },
     plugins: {
       '@typescript-eslint': pluginTs,
-      vue: pluginVue
+      vue: pluginVue,
     },
     rules: {
-      '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      // Strict TypeScript rules
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-unused-vars': ['error', { 
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_'
+      }],
+      '@typescript-eslint/no-non-null-assertion': 'error',
+      '@typescript-eslint/prefer-nullish-coalescing': 'error',
+      '@typescript-eslint/prefer-optional-chain': 'error',
+      
+      // Vue rules
       'vue/multi-word-component-names': 'off',
       'vue/no-v-html': 'off',
-      'no-unused-vars': 'warn',
-      'no-undef': 'off',
+      
+      // Disable generic rules in favor of TypeScript-specific ones
+      'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-expressions': 'off',
-      '@typescript-eslint/prefer-optional-chain': 'off',
-      '@typescript-eslint/prefer-nullish-coalescing': 'off'
     }
   },
   {
-    files: ['tests/**/*.{js,mjs,cjs,ts,vue}', '**/*.spec.{js,mjs,cjs,ts,vue}', '**/*.test.{js,mjs,cjs,ts,vue}'],
+    files: ['vitest.setup.ts', 'scan-i18n.js', 'scan-i18n.ts'],
     languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
       globals: {
-        describe: 'readonly',
-        it: 'readonly',
-        test: 'readonly',
-        expect: 'readonly',
-        beforeEach: 'readonly',
-        afterEach: 'readonly',
-        beforeAll: 'readonly',
-        afterAll: 'readonly',
-        vi: 'readonly'
+        require: 'readonly',
+        exports: 'readonly',
+        globalThis: 'readonly'
+      }
+    }
+  },
+  {
+    files: ['**/*.vue'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: {
+        console: 'readonly'
+      }
+    }
+  },
+  {
+    files: ['**/*.js'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: {
+        console: 'readonly'
       }
     }
   },

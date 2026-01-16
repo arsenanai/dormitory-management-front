@@ -437,6 +437,11 @@
               {{ t("No beds available in this room") }}
             </div>
           </div>
+
+          <!-- Room Photos Display -->
+          <div v-if="user.room_id" class="lg:col-span-2">
+            <CRoomTypePhotos :photos="selectedRoom?.room_type?.photos || []" />
+          </div>
         </div>
       </fieldset>
 
@@ -483,6 +488,8 @@ import CSelect from "@/components/CSelect.vue";
 import CButton from "@/components/CButton.vue";
 import CCheckbox from "@/components/CCheckbox.vue";
 import CFileInput from "@/components/CFileInput.vue";
+import CModal from "@/components/CModal.vue";
+import CRoomTypePhotos from "@/components/CRoomTypePhotos.vue";
 import { PlusIcon, PrinterIcon, TrashIcon } from "@heroicons/vue/24/outline";
 import type { User } from "@/models/User";
 import { Room } from "@/models/Room";
@@ -640,6 +647,11 @@ const bedOptions = computed(() => {
   }
 
   return options;
+});
+
+// Selected room computed property
+const selectedRoom = computed(() => {
+  return rooms.value.find((r) => r.id === user.value.room_id);
 });
 
 // Watch for changes to room and reset bed if needed
@@ -824,7 +836,7 @@ const submitForm = async (): Promise<void> => {
   validationErrors.value = {}; // Clear previous errors
 
   // Basic validation
-  if (!user.value.student_profile.iin || user.value.student_profile.iin.length !== 12) {
+  if (user.value.student_profile.iin?.length !== 12) {
     showError(t("IIN must be exactly 12 digits."));
     return;
   }
@@ -845,8 +857,7 @@ const submitForm = async (): Promise<void> => {
     return;
   }
   if (
-    !user.value.student_profile.enrollment_year ||
-    user.value.student_profile.enrollment_year.toString().length !== 4
+    user.value.student_profile.enrollment_year?.toString().length !== 4
   ) {
     showError(t("Enrollment year must be a 4-digit year."));
     return;
@@ -890,7 +901,7 @@ const submitForm = async (): Promise<void> => {
 
   // Check if selected bed is staff reserved
   const selectedBed = allBeds.value.find((b) => b.id === user.value.bed_id);
-  if (selectedBed && selectedBed.reserved_for_staff) {
+  if (selectedBed?.reserved_for_staff) {
     showError(t("Staff reserved beds cannot be selected for students."));
     return;
   }

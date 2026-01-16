@@ -207,7 +207,7 @@ const loadAdmins = async () => {
     let admins = [];
 
     // Handle different response structures
-    if (response.data && response.data.data) {
+    if (response.data?.data) {
       // Paginated response
       admins = response.data.data;
     } else if (response.data && Array.isArray(response.data)) {
@@ -279,7 +279,7 @@ const loadDormitory = async (id: number) => {
 
       // Extract admin_id from the admin object if it exists
       let adminId = dormitoryData.admin_id;
-      if (dormitoryData.admin && dormitoryData.admin.id) {
+      if (dormitoryData.admin?.id) {
         adminId = dormitoryData.admin.id;
       }
 
@@ -368,7 +368,7 @@ const loadRoomOptionsForDormitory = async (dormitoryId: number) => {
     // Only load rooms when we're actually going to use them
     if (window.roomService) {
       const response = await window.roomService.getAll({ dormitory_id: dormitoryId });
-      if (response.data && response.data.data) {
+      if (response.data?.data) {
         roomOptions.value = response.data.data.map((room: any) => ({
           value: room.id,
           name: room.name || room.number || `Room ${room.id}`,

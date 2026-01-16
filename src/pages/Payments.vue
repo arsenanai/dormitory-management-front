@@ -309,7 +309,7 @@ const semesterOptions = computed(() => {
 // Function to get semester date range
 const getSemesterDateRange = (semesterValue: string) => {
   const semester = semesterOptions.value.find((opt) => opt.value === semesterValue);
-  if (semester && semester.startDate && semester.endDate) {
+  if (semester?.startDate && semester.endDate) {
     return {
       startDate: semester.startDate,
       endDate: semester.endDate,
@@ -370,7 +370,7 @@ const loadPayments = async () => {
       ? await paymentService.getMyPayments(params)
       : await paymentService.getAll(params);
 
-    if (response.data && response.data.meta) {
+    if (response.data?.meta) {
       // Check for the new paginated structure
       payments.value = response.data.data.map((payment: any) => {
         if (payment.user && typeof payment.user.phoneNumbers === "string") {

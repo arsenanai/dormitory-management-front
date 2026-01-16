@@ -1,535 +1,330 @@
-<!-- filepath: /Users/rsa/lab/dormitory-management-front/src/pages/RoomTypeForm.vue -->
 <template>
-  <div v-if="error" class="mb-4 rounded border border-red-300 bg-red-100 p-2 text-red-700">
-    {{ error }}
-  </div>
-  <Navigation :title="t('Room Type Plan Editor')">
-    <form @submit.prevent="handleSubmit">
-      <!-- Room Type Name -->
-      <CInput
-        id="room-type-name"
-        v-model="roomType.name"
-        :label="t('Room Type Name')"
-        placeholder="Enter room type name"
-        required
-        :validationState="errors.name ? 'error' : ''"
-        :validationMessage="errors.name"
-      />
+  <Navigation :title="isEditing ? t('Edit Room Type') : t('Add Room Type')">
+    <div class="mx-auto max-w-2xl">
+      <h1 class="mb-6 text-2xl font-bold text-gray-900" data-testid="form-title">
+        {{ isEditing ? t("Edit Room Type") : t("Add Room Type") }}
+      </h1>
 
-      <!-- Room Type Description -->
-      <CInput
-        id="room-type-description"
-        v-model="roomType.description"
-        :label="t('Room Type Description')"
-        placeholder="Enter description"
-        required
-        :validationState="errors.description ? 'error' : ''"
-        :validationMessage="errors.description"
-      />
+      <form name="room-type-form" @submit.prevent="handleSubmit">
+        <div v-if="error" class="mb-4 rounded border border-red-300 bg-red-100 p-4 text-red-700">
+          {{ error }}
+        </div>
 
-      <!-- Room Type Capacity -->
-      <CInput
-        id="room-type-capacity"
-        v-model.number="roomType.capacity"
-        :label="t('Room Capacity')"
-        type="number"
-        placeholder="Enter room capacity"
-        min="1"
-        required
-        :validationState="errors.capacity ? 'error' : ''"
-        :validationMessage="errors.capacity"
-      />
+        <!-- Room Type Name -->
+        <CInput
+          id="room-type-name"
+          v-model="form.name"
+          type="text"
+          :label="t('Room Type Name')"
+          required
+          :placeholder="t('Enter room type name')"
+          data-testid="room-type-name"
+          :error="errors.name"
+          class="mb-4"
+        />
 
-      <!-- Room Type Price -->
-      <CInput
-        id="room-type-price"
-        v-model.number="roomType.price"
-        :label="t('Room Price')"
-        type="number"
-        placeholder="t('Enter room price')"
-        min="0"
-        step="0.01"
-        required
-        :validationState="errors.price ? 'error' : ''"
-        :validationMessage="errors.price"
-      />
-      <!-- Room Plan Image -->
-      <CFileInput
-        id="room-plan-image"
-        :label="t('Room Plan Image')"
-        :allowedExtensions="['jpg', 'jpeg', 'png']"
-        :maxFileSize="5 * 1024 * 1024"
-        @change="onRoomPlanFileChange"
-      />
+        <!-- Room Type Description -->
+        <CTextarea
+          id="room-type-description"
+          v-model="form.description"
+          :label="t('Room Type Description')"
+          rows="3"
+          :placeholder="t('Enter room type description (optional)')"
+          :error="errors.description"
+          class="mb-4"
+        />
 
-      <!-- Room Type Photos -->
-      <CFileInput
-        id="room-photos"
-        :label="t('Room Type Photos')"
-        :allowedExtensions="['jpg', 'jpeg', 'png', 'webp']"
-        :maxFileSize="5 * 1024 * 1024"
-        :multiple="true"
-        @change="onPhotosFileChange"
-        :validationState="errors.photos ? 'error' : ''"
-        :validationMessage="errors.photos"
-      />
+        <!-- Room Type Capacity -->
+        <CInput
+          id="room-type-capacity"
+          v-model="form.capacity"
+          type="number"
+          :label="t('Room Type Capacity')"
+          min="1"
+          required
+          :placeholder="t('Enter room capacity')"
+          data-testid="room-type-capacity"
+          :error="errors.capacity"
+          class="mb-4"
+        />
 
-      <!-- Display uploaded photos -->
-      <div v-if="roomType.photos.length > 0" class="mt-4">
-        <h3 class="text-primary-700 mb-2 text-lg font-medium">{{ t("Uploaded Photos") }}</h3>
-        <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-          <div v-for="(photo, index) in roomType.photos" :key="index" class="group relative">
-            <img
-              :src="photo"
-              :alt="`Room photo ${index + 1}`"
-              class="h-24 w-full rounded-lg border object-cover"
-            />
+        <!-- Daily Rate -->
+        <CInput
+          id="room-type-daily-rate"
+          v-model="form.daily_rate"
+          type="number"
+          :label="t('Daily Rate') + ` (${currencySymbol})`"
+          min="0"
+          step="0.01"
+          required
+          :placeholder="t('Enter daily rate')"
+          :error="errors.daily_rate"
+          data-testid="room-type-daily-rate"
+          name="room-type-daily-rate"
+          class="mb-4"
+        />
+
+        <!-- Semester Rate -->
+        <CInput
+          id="room-type-semester-rate"
+          v-model="form.semester_rate"
+          type="number"
+          :label="t('Semester Rate') + ` (${currencySymbol})`"
+          min="0"
+          step="0.01"
+          required
+          :placeholder="t('Enter semester rate')"
+          :error="errors.semester_rate"
+          data-testid="room-type-semester-rate"
+          name="room-type-semester-rate"
+          class="mb-6"
+        />
+
+        <!-- Room Type Photos -->
+        <div class="mb-6">
+          <label class="mb-2 block text-sm font-medium text-gray-900">
+            {{ t("Room Type Photos") }} (1-10) <span class="text-red-500">*</span>
+          </label>
+          <div class="space-y-4">
+            <div v-for="(photo, index) in photoFields" :key="index" class="flex items-start gap-2">
+              <div class="flex-grow">
+                <CFileInput
+                  :id="`room-type-photo-${index}`"
+                  :label="t('Photo') + ' ' + (index + 1)"
+                  :allowedExtensions="['jpg', 'jpeg', 'png', 'webp']"
+                  :maxFileSize="5 * 1024 * 1024"
+                  :filePath="typeof photo === 'string' ? photo : null"
+                  @change="(file) => handlePhotoChange(index, file)"
+                />
+              </div>
+              <CButton
+                v-if="photoFields.length > 1"
+                type="button"
+                class="mt-5 p-2.5"
+                @click="removePhotoField(index)"
+              >
+                <TrashIcon class="h-6 w-5" />
+              </CButton>
+            </div>
             <CButton
-              @click="removePhoto(index)"
-              size="small"
-              variant="danger"
-              class="absolute top-1 right-1 flex h-6 w-6 items-center justify-center text-xs opacity-0 transition-opacity group-hover:opacity-100"
+              v-if="photoFields.length < 10"
               type="button"
+              size="small"
+              @click="addPhotoField"
             >
-              ×
+              <PlusIcon class="mr-1 h-6 w-6" />
+              {{ t("Add Photo") }}
             </CButton>
           </div>
+          <p v-if="errors.photos" class="mt-1 text-sm text-red-600">
+            {{ errors.photos }}
+          </p>
         </div>
-      </div>
 
-      <!-- Room plan container with background image -->
-      <div
-        class="border-primary-200 bg-primary-50 relative mx-auto my-4 overflow-hidden rounded-lg border-2 shadow-md"
-        :style="roomPlanStyle"
-        ref="roomPlanRef"
-      >
-        <svg :width="stageConfig.width" :height="stageConfig.height" style="display: block">
-          <g
-            v-for="(bed, idx) in beds"
-            :key="bed.id"
-            @mousedown="startDrag(idx, $event)"
-            @dblclick="removeBed(idx)"
-            @click="selectBed(idx)"
-            style="cursor: pointer"
-          >
-            <!-- Rotated bed rectangle -->
-            <g
-              :transform="`translate(${bed.x},${bed.y}) rotate(${bed.rotation},${bedWidth / 2},${bedHeight / 2})`"
-            >
-              <rect
-                :width="bedWidth"
-                :height="bedHeight"
-                :fill="secondary500"
-                :stroke="primary700"
-                stroke-width="2"
-                rx="6"
-                :style="{ filter: selectedBedIdx === idx ? 'drop-shadow(0 0 6px #2f3459)' : '' }"
-              />
-            </g>
-            <!-- Upright bed number -->
-            <text
-              :x="bed.x + bedWidth / 2"
-              :y="bed.y + bedHeight / 2 + 6"
-              text-anchor="middle"
-              font-size="18"
-              fill="#fff"
-              font-weight="bold"
-              :font-family="fontSans"
-              pointer-events="none"
-              dominant-baseline="middle"
-            >
-              {{ bed.number }}
-            </text>
-          </g>
-        </svg>
-      </div>
-
-      <!-- Bed controls and info -->
-      <div class="mb-2 flex flex-col md:flex-row md:items-center md:gap-4">
-        <div class="text-primary-500 flex-1 text-sm">
-          {{
-            t(
-              "Double-click a bed to remove it. Drag beds to reposition. Select a bed and use the rotate buttons."
-            )
-          }}
-        </div>
-        <div v-if="selectedBedIdx !== null" class="mt-2 flex items-center gap-2 md:mt-0">
-          <span class="font-medium"
-            >{{ t("Selected Bed") }}: {{ beds[selectedBedIdx].number }}</span
-          >
-          <CButton size="sm" @click="rotateBed(-15)" type="button">
-            {{ t("Rotate Left") }}
+        <!-- Submit and Cancel Buttons -->
+        <div class="flex gap-4">
+          <CButton type="submit" :disabled="loading" variant="primary" :loading="loading">
+            {{ isEditing ? t("Update") : t("Create") }}
           </CButton>
-          <CButton size="sm" @click="rotateBed(15)" type="button">
-            {{ t("Rotate Right") }}
+          <CButton type="button" @click="goBack">
+            {{ t("Cancel") }}
           </CButton>
         </div>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="mt-6 flex flex-row items-end justify-end gap-2">
-        <CButton @click.prevent="addBed" type="button">
-          {{ t("Add Bed") }}
-        </CButton>
-        <CButton variant="primary" type="submit">
-          {{ t("Save Plan") }}
-        </CButton>
-      </div>
-    </form>
+      </form>
+    </div>
   </Navigation>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
-import { v4 as uuidv4 } from "uuid";
+import { useRouter, useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
-import { useRoute } from "vue-router";
 import Navigation from "@/components/CNavigation.vue";
+import { roomTypeService } from "@/services/api";
 import CInput from "@/components/CInput.vue";
+import CTextarea from "@/components/CTextarea.vue";
 import CButton from "@/components/CButton.vue";
+import { useSettingsStore } from "@/stores/settings";
+
+import { PaperClipIcon, PlusIcon, TrashIcon } from "@heroicons/vue/24/outline";
 import CFileInput from "@/components/CFileInput.vue";
-import { RoomType } from "@/models/RoomType";
-import { useRoomTypesStore } from "@/stores/roomTypes";
-import { useToast } from "@/composables/useToast";
-import { roomTypeService as defaultRoomTypeService } from "@/services/api";
-// Allow injection of roomTypeService for testability
-const props = defineProps({
-  roomTypeService: {
-    type: Object,
-    default: () => defaultRoomTypeService,
-  },
-});
-
-// Theme colors
-const primary700 = "#232743";
-const secondary500 = "#d69979";
-const roomTypeService = props.roomTypeService;
-
-const error = ref<string | null>(null);
-const errors = ref<any>({
-  name: "",
-  description: "",
-  photos: "",
-  capacity: "",
-  price: "",
-});
-
-// ...existing code...
-
-// Expose methods and error for testing (must be at the absolute end)
-defineExpose({
-  createOrUpdateRoomType,
-  handleSubmit,
-  validateForm,
-  error,
-  errors,
-});
 
 const { t } = useI18n();
+const router = useRouter();
 const route = useRoute();
-const roomTypeStore = useRoomTypesStore();
-const { showError, showSuccess } = useToast();
 
-// Check if we're editing (ID in route params)
-const roomTypeId = computed(() => (route.params.id ? Number(route.params.id) : null));
-const isEditing = computed(() => !!roomTypeId.value);
+const isEditing = computed(() => !!route.params.id);
 
-// Add description to RoomType instance
-const roomType = ref<any>({
-  ...new RoomType(uuidv4(), "", "", [], 1, 0, []),
+const form = ref({
+  name: "",
   description: "",
+  capacity: 1,
+  daily_rate: 0,
+  semester_rate: 0,
 });
 
-const stageConfig = { width: 600, height: 400 };
-const bedWidth = 44;
-const bedHeight = 64;
+const loading = ref(false);
+const error = ref("");
+const errors = ref<Record<string, string>>({});
+const settingsStore = useSettingsStore();
+const currencySymbol = computed(() => settingsStore.generalSettings?.currency_symbol || "$");
 
-const beds = ref<{ id: string; number: string; x: number; y: number; rotation: number }[]>([]);
-const selectedBedIdx = ref<number | null>(null);
+const photoFields = ref<(File | string | null)[]>([null]);
 
-// Room plan image as data URL
-const roomPlanUrl = ref<string | null>(null);
-const roomPlanRef = ref<HTMLDivElement | null>(null);
-
-const roomPlanStyle = computed(() => ({
-  width: `${stageConfig.width}px`,
-  height: `${stageConfig.height}px`,
-  background: roomPlanUrl.value
-    ? `url('${roomPlanUrl.value}') center/contain no-repeat`
-    : "#f3f4f9",
-  border: `2px solid ${primary700}`,
-}));
-
-// For duplicate name check (fetch from API)
-const existingNames = ref<string[]>([]);
-
-// Load existing room type names for duplicate checking
-const loadExistingNames = async () => {
-  try {
-    const response = await roomTypeService.getAll();
-    existingNames.value = response.data.data.map((roomType: any) => roomType.name);
-  } catch (error) {
-    console.error("Failed to load existing room type names:", error);
-    existingNames.value = [];
-  }
-};
-
-// Load existing names on component mount
-onMounted(() => {
-  loadExistingNames();
-});
-
-function validatePhoto(file: File) {
-  const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
-  if (!allowedTypes.includes(file.type)) {
-    errors.value.photos = "Invalid file type";
-    return false;
-  }
-  if (file.size > 5 * 1024 * 1024) {
-    errors.value.photos = "File is too large";
-    return false;
-  }
-  errors.value.photos = "";
-  return true;
-}
-
-function validateForm() {
-  let valid = true;
-  errors.value.name = "";
-  errors.value.description = "";
-  errors.value.photos = "";
-  errors.value.capacity = "";
-  errors.value.price = "";
-
-  if (!roomType.value.name) {
-    errors.value.name = "Name is required";
-    valid = false;
-  } else if (existingNames.value.includes(roomType.value.name)) {
-    errors.value.name = "Room type name already exists";
-    valid = false;
-  }
-
-  if (!roomType.value.description) {
-    errors.value.description = "Description is required";
-    valid = false;
-  }
-
-  if (!roomType.value.capacity || roomType.value.capacity < 1) {
-    errors.value.capacity = "Capacity must be at least 1";
-    valid = false;
-  }
-
-  if (!roomType.value.price || roomType.value.price < 0) {
-    errors.value.price = "Price must be at least 0";
-    valid = false;
-  }
-
-  // Optionally validate photos
-  return valid;
-}
-
-async function createOrUpdateRoomType() {
-  // Simulate API call
-  if (roomType.value.name === "fail") throw new Error("API Error");
-  return { data: { id: 1, name: roomType.value.name } };
-}
-
-async function handleSubmit() {
-  error.value = null;
-  const valid = validateForm();
-  if (!valid) return false;
-
-  // Ensure beds data is included in the submission
-  roomType.value.beds = beds.value;
-  roomType.value.minimap = JSON.stringify(beds.value);
-
-  try {
-    if (isEditing.value) {
-      await roomTypeService.update(roomTypeId.value!, roomType.value);
-    } else {
-      await roomTypeService.create(roomType.value);
-    }
-    showSuccess(t("Room type plan saved successfully!"));
-    return true;
-  } catch (e: any) {
-    error.value = e.message || "API Error";
-    showError(error.value);
-    return false;
+function addPhotoField() {
+  if (photoFields.value.length < 10) {
+    photoFields.value.push(null);
   }
 }
 
-function onRoomPlanFileChange(file: File | null) {
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      roomPlanUrl.value = e.target?.result as string;
-    };
-    reader.readAsDataURL(file);
+function removePhotoField(index: number) {
+  if (photoFields.value.length > 1) {
+    photoFields.value.splice(index, 1);
   } else {
-    roomPlanUrl.value = null;
+    photoFields.value[0] = null;
   }
 }
 
-function onPhotosFileChange(files: FileList | null) {
-  if (files && files.length > 0) {
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const dataUrl = e.target?.result as string;
-        roomType.value.photos.push(dataUrl);
-      };
-      reader.readAsDataURL(file);
-    }
+function handlePhotoChange(index: number, file: File | null) {
+  photoFields.value[index] = file;
+}
+
+onMounted(async () => {
+  await settingsStore.fetchAllSettings();
+
+  if (isEditing.value) {
+    await loadRoomType();
   }
-}
+});
 
-function removePhoto(index: number) {
-  roomType.value.photos.splice(index, 1);
-}
-
-function addBed() {
-  const nextNumber = (beds.value.length + 1).toString();
-  beds.value.push({
-    id: uuidv4(),
-    number: nextNumber,
-    x: 60 + beds.value.length * 50,
-    y: 60,
-    rotation: 0,
-  });
-}
-
-function removeBed(idx: number) {
-  beds.value.splice(idx, 1);
-  if (selectedBedIdx.value === idx) selectedBedIdx.value = null;
-}
-
-let dragInfo: { idx: number; offsetX: number; offsetY: number } | null = null;
-
-function startDrag(idx: number, event: MouseEvent) {
-  const svg = (roomPlanRef.value?.querySelector("svg") as SVGSVGElement) || null;
-  if (!svg) return;
-  const pt = svg.createSVGPoint();
-  pt.x = event.clientX;
-  pt.y = event.clientY;
-  const cursor = pt.matrixTransform(svg.getScreenCTM()?.inverse());
-  dragInfo = {
-    idx,
-    offsetX: cursor.x - beds.value[idx].x,
-    offsetY: cursor.y - beds.value[idx].y,
-  };
-  window.addEventListener("mousemove", onDrag);
-  window.addEventListener("mouseup", stopDrag);
-}
-
-function onDrag(event: MouseEvent) {
-  if (!dragInfo) return;
-  const svg = (roomPlanRef.value?.querySelector("svg") as SVGSVGElement) || null;
-  if (!svg) return;
-  const pt = svg.createSVGPoint();
-  pt.x = event.clientX;
-  pt.y = event.clientY;
-  const cursor = pt.matrixTransform(svg.getScreenCTM()?.inverse());
-  beds.value[dragInfo.idx].x = cursor.x - dragInfo.offsetX;
-  beds.value[dragInfo.idx].y = cursor.y - dragInfo.offsetY;
-}
-
-function stopDrag() {
-  window.removeEventListener("mousemove", onDrag);
-  window.removeEventListener("mouseup", stopDrag);
-  dragInfo = null;
-}
-
-function selectBed(idx: number) {
-  selectedBedIdx.value = idx;
-}
-
-function rotateBed(deg: number) {
-  if (selectedBedIdx.value !== null) {
-    beds.value[selectedBedIdx.value].rotation += deg;
-  }
-}
-
-// Load room type from API if editing
-const loadRoomType = async (id: number) => {
-  try {
-    const response = await roomTypeService.getById(id);
-    const roomTypeData = response.data;
-    // Populate form with API data
-    roomType.value = {
-      ...new RoomType(
-        roomTypeData.id || uuidv4(),
-        roomTypeData.name || "",
-        roomTypeData.minimap || "",
-        roomTypeData.photos || [],
-        roomTypeData.capacity || 1,
-        roomTypeData.price || 0,
-        roomTypeData.beds || []
-      ),
-      description: roomTypeData.description || "",
-    };
-    // Load beds if minimap exists
-    if (roomTypeData.minimap) {
-      try {
-        beds.value = JSON.parse(roomTypeData.minimap);
-      } catch (e) {
-        beds.value = [];
-      }
-    } else if (roomTypeData.beds) {
-      beds.value = roomTypeData.beds;
-    }
-  } catch (error) {
-    showError(t("Failed to load room type data"));
-  }
-};
-
-// Populate the form if editing an existing room type
+// Watch for route changes to handle navigation
 watch(
-  () => roomTypeStore.selectedRoomType,
-  (selectedRoomType: any) => {
-    if (selectedRoomType) {
-      roomType.value = {
-        ...new RoomType(
-          selectedRoomType.id || uuidv4(),
-          selectedRoomType.name || "",
-          selectedRoomType.minimap || "",
-          selectedRoomType.photos || [],
-          selectedRoomType.capacity || 1,
-          selectedRoomType.price || 0,
-          selectedRoomType.beds || []
-        ),
-        description: selectedRoomType.description || "",
-      };
-      // Load beds if minimap exists
-      if (selectedRoomType.minimap) {
-        try {
-          beds.value = JSON.parse(selectedRoomType.minimap);
-        } catch (e) {
-          beds.value = [];
-        }
-      } else if (selectedRoomType.beds) {
-        beds.value = selectedRoomType.beds;
-      }
+  () => route.params.id,
+  async (newId) => {
+    if (newId && isEditing.value && route.name === "Room Type Form") {
+      await loadRoomType();
     }
   },
   { immediate: true }
 );
 
-onMounted(async () => {
-  // First try to restore from store
-  roomTypeStore.restoreSelectedRoomType();
+async function loadRoomType() {
+  try {
+    loading.value = true;
+    const response = await roomTypeService.getById(parseInt(route.params.id as string));
+    const roomType = response.data;
 
-  // If editing and no data in store, load from API
-  if (isEditing.value && !roomTypeStore.selectedRoomType) {
-    await loadRoomType(roomTypeId.value!);
+    form.value = {
+      name: roomType.name || "",
+      description: roomType.description || "",
+      capacity: roomType.capacity || 1,
+      daily_rate: roomType.daily_rate || 0,
+      semester_rate: roomType.semester_rate || 0,
+    };
+
+    if (roomType.photos && Array.isArray(roomType.photos) && roomType.photos.length > 0) {
+      photoFields.value = [...roomType.photos];
+    } else {
+      photoFields.value = [null];
+    }
+  } catch {
+    error.value = t("Failed to load room type");
+    // console.error('Error loading room type:', err);
+  } finally {
+    loading.value = false;
   }
+}
+
+async function handleSubmit() {
+  try {
+    loading.value = true;
+    error.value = "";
+    errors.value = {};
+
+    // Basic validation
+    let hasErrors = false;
+
+    if (!form.value.name.trim()) {
+      errors.value.name = t("Name is required");
+      hasErrors = true;
+    }
+    if (form.value.capacity < 1) {
+      errors.value.capacity = t("Capacity must be at least 1");
+      hasErrors = true;
+    }
+    if (form.value.daily_rate < 0) {
+      errors.value.daily_rate = t("Daily rate must be non-negative");
+      hasErrors = true;
+    }
+    if (form.value.semester_rate < 0) {
+      errors.value.semester_rate = t("Semester rate must be non-negative");
+      hasErrors = true;
+    }
+
+    // At least one photo is mandatory
+    const hasPhoto = photoFields.value.some((p) => p !== null);
+    if (!hasPhoto) {
+      errors.value.photos = t("At least one photo is required");
+      hasErrors = true;
+    }
+
+    if (hasErrors) {
+      loading.value = false;
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("name", form.value.name);
+    formData.append("description", form.value.description || "");
+    formData.append("capacity", form.value.capacity.toString());
+    formData.append("daily_rate", form.value.daily_rate.toString());
+    formData.append("semester_rate", form.value.semester_rate.toString());
+
+    const existingPhotos: string[] = [];
+    photoFields.value.forEach((photo) => {
+      if (photo instanceof File) {
+        formData.append("photos[]", photo);
+      } else if (typeof photo === "string") {
+        existingPhotos.push(photo);
+      }
+    });
+
+    if (isEditing.value) {
+      formData.append("existing_photos", JSON.stringify(existingPhotos));
+      await roomTypeService.update(parseInt(route.params.id as string), formData);
+    } else {
+      await roomTypeService.create(formData);
+    }
+
+    // Redirect back to room types list
+    router.push("/room-types");
+  } catch (err: any) {
+    if (err.response?.data?.errors) {
+      // Handle validation errors from API
+      Object.keys(err.response.data.errors).forEach((key) => {
+        if (Array.isArray(err.response.data.errors[key])) {
+          errors.value[key] = err.response.data.errors[key][0]; // Take first error
+        } else {
+          errors.value[key] = err.response.data.errors[key];
+        }
+      });
+    } else {
+      error.value = err.response?.data?.message || t("Failed to save room type");
+    }
+    // console.error('Error saving room type:', err);
+  } finally {
+    loading.value = false;
+  }
+}
+
+function goBack() {
+  router.push("/room-types");
+}
+
+defineExpose({
+  handleSubmit,
+  loadRoomType,
+  form,
+  photoFields,
 });
 </script>
-
-<style scoped>
-.room-plan-canvas {
-  background: #f3f4f9;
-  box-shadow: 0 2px 8px 0 rgba(44, 52, 89, 0.06);
-  margin-bottom: 1.5rem;
-}
-</style>

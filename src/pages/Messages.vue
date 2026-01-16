@@ -324,7 +324,7 @@ const loadData = async () => {
     const [messagesResponse, roomsResponse] = await Promise.all([fetchMessages, fetchRooms]);
 
     // Handle Laravel paginated response structure for messages
-    if (messagesResponse && messagesResponse.data) {
+    if (messagesResponse?.data) {
       // Laravel paginated response: { data: [...], total: X, ... }
       if (messagesResponse.data.data && Array.isArray(messagesResponse.data.data)) {
         messages.value = messagesResponse.data.data;
@@ -343,7 +343,7 @@ const loadData = async () => {
     }
 
     // Handle Laravel paginated response structure for rooms
-    if (roomsResponse && roomsResponse.data) {
+    if (roomsResponse?.data) {
       if (Array.isArray(roomsResponse.data)) {
         // Direct array response (from getByDormitory)
         rooms.value = roomsResponse.data;

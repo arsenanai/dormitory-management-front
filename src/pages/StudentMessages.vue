@@ -187,7 +187,7 @@ const loadData = async () => {
     });
 
     // Handle Laravel paginated response structure for messages
-    if (messagesResponse && messagesResponse.data) {
+    if (messagesResponse?.data) {
       if (Array.isArray(messagesResponse.data)) {
         messages.value = messagesResponse.data;
         totalMessages.value = messagesResponse.data.length;

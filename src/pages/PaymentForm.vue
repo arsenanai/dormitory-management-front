@@ -241,7 +241,7 @@ const loadUsers = async (userType: "student" | "guest", ensureUserId?: number | 
         res = await service.listAll();
         users = res?.data?.data || (Array.isArray(res.data) ? res.data : []);
         studentOptions.value = users
-          .filter((u) => u && u.id)
+          .filter((u) => u?.id)
           .map((u) => ({
             value: String(u.id),
             name: `${u.name || "Unknown"}${u.email ? ` (${u.email})` : ""}`,
@@ -253,7 +253,7 @@ const loadUsers = async (userType: "student" | "guest", ensureUserId?: number | 
         res = await service.listAll();
         users = res?.data?.data || (Array.isArray(res.data) ? res.data : []);
         guestOptions.value = users
-          .filter((u) => u && u.id)
+          .filter((u) => u?.id)
           .map((u) => ({
             value: String(u.id),
             name: `${u.name || u.first_name || "Unknown"}${u.email ? ` (${u.email})` : ""}`,
@@ -263,7 +263,7 @@ const loadUsers = async (userType: "student" | "guest", ensureUserId?: number | 
 
     if (ensureUserId && !optionsRef.value.some((o) => o.value === String(ensureUserId))) {
       const u = await loadIndividual(ensureUserId, service);
-      if (u && u.id) {
+      if (u?.id) {
         // Construct name from parts if 'name' is not present
         const userName =
           u.name ||

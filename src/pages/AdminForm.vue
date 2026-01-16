@@ -237,7 +237,7 @@ const splitPhoneNumber = (phoneNumber: string): string[] => {
 const submitForm = async (): Promise<void> => {
   // Ensure we have a clean array of phone numbers (filter out empty strings)
   const cleanPhoneNumbers =
-    user.value.phone_numbers?.filter((phone) => phone && phone.trim()) || [];
+    user.value.phone_numbers?.filter((phone) => phone?.trim()) || [];
 
   if (cleanPhoneNumbers.length === 0) {
     showError(t("At least one phone number is required."));
@@ -298,7 +298,7 @@ const updateProfile = async (): Promise<void> => {
   try {
     // Ensure we have a clean array of phone numbers
     const cleanPhoneNumbers =
-      user.value.phone_numbers?.filter((phone) => phone && phone.trim()) || [];
+      user.value.phone_numbers?.filter((phone) => phone?.trim()) || [];
 
     const payload = {
       first_name: user.value.first_name,
@@ -409,7 +409,7 @@ const loadUser = async (id: number) => {
           userData.phone_numbers.length > 0
         ) {
           return userData.phone_numbers;
-        } else if (userData.phone && userData.phone.trim()) {
+        } else if (userData.phone?.trim()) {
           return [userData.phone];
         } else {
           return [""]; // Default to empty string in array
@@ -443,7 +443,7 @@ onMounted(async () => {
     const response = await dormitoryService.getAll();
 
     // Handle different response formats
-    if (response && response.data) {
+    if (response?.data) {
       if (Array.isArray(response.data)) {
         // Direct array response
         dormitories.value = response.data;

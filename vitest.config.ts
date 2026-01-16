@@ -11,6 +11,27 @@ export default defineConfig({
     exclude: ['**/e2e/**', '**/node_modules/**'],
     env: {
       VITE_API_BASE_URL: '/api'
+    },
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      exclude: [
+        'node_modules/',
+        'tests/',
+        '**/*.d.ts',
+        '**/*.config.*',
+        '**/coverage/**',
+        '**/dist/**',
+        '**/e2e/**'
+      ],
+      thresholds: {
+        global: {
+          branches: 80,
+          functions: 80,
+          lines: 80,
+          statements: 80
+        }
+      }
     }
   },
   resolve: {

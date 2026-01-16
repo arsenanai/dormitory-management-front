@@ -262,7 +262,7 @@ const loadRooms = async () => {
     ]);
 
     // Handle Laravel paginated response structure for rooms
-    if (roomsResponse && roomsResponse.data) {
+    if (roomsResponse?.data) {
       if (roomsResponse.data.data && Array.isArray(roomsResponse.data.data)) {
         // Update pagination state from API response
         currentPage.value = roomsResponse.data.current_page;
@@ -282,7 +282,7 @@ const loadRooms = async () => {
     }
 
     // Handle Laravel paginated response structure for dormitories
-    if (dormitoriesResponse && dormitoriesResponse.data) {
+    if (dormitoriesResponse?.data) {
       if (dormitoriesResponse.data.data && Array.isArray(dormitoriesResponse.data.data)) {
         dormitories.value = dormitoriesResponse.data.data;
       } else if (Array.isArray(dormitoriesResponse.data)) {
@@ -295,7 +295,7 @@ const loadRooms = async () => {
     }
 
     // Handle Laravel paginated response structure for room types
-    if (roomTypesResponse && roomTypesResponse.data) {
+    if (roomTypesResponse?.data) {
       if (roomTypesResponse.data.data && Array.isArray(roomTypesResponse.data.data)) {
         roomTypes.value = roomTypesResponse.data.data;
       } else if (Array.isArray(roomTypesResponse.data)) {

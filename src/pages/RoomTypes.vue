@@ -79,6 +79,7 @@ import { PlusIcon, PencilSquareIcon, TrashIcon } from "@heroicons/vue/24/outline
 import { roomTypeService, dormitoryService, configurationService } from "@/services/api";
 import { formatCurrency } from "@/utils/formatters";
 import { useRoomTypesStore } from "@/stores/roomTypes";
+import { useSettingsStore } from "@/stores/settings";
 import { useToast } from "@/composables/useToast";
 
 // i18n and router
@@ -87,6 +88,7 @@ const router = useRouter();
 
 // store
 const roomTypesStore = useRoomTypesStore();
+const settingsStore = useSettingsStore();
 const { showError, showSuccess, showConfirmation } = useToast();
 
 // Data
@@ -94,7 +96,7 @@ const roomTypes = ref<any[]>([]);
 const dormitories = ref<any[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
-const currencySymbol = ref("USD");
+const currencySymbol = computed(() => settingsStore.publicSettings?.currency_symbol || "USD");
 
 const columns = [
   { key: "name", label: t("Room Type Name") },
@@ -114,7 +116,7 @@ const loadData = async () => {
       dormitoryService.getAll(),
     ]);
     // Handle Laravel paginated response structure for room types
-    if (roomTypesResponse && roomTypesResponse.data) {
+    if (roomTypesResponse?.data) {
       if (roomTypesResponse.data.data && Array.isArray(roomTypesResponse.data.data)) {
         roomTypes.value = roomTypesResponse.data.data;
       } else if (Array.isArray(roomTypesResponse.data)) {
@@ -127,7 +129,7 @@ const loadData = async () => {
     }
 
     // Handle Laravel paginated response structure for dormitories
-    if (dormitoriesResponse && dormitoriesResponse.data) {
+    if (dormitoriesResponse?.data) {
       if (dormitoriesResponse.data.data && Array.isArray(dormitoriesResponse.data.data)) {
         dormitories.value = dormitoriesResponse.data.data;
       } else if (Array.isArray(dormitoriesResponse.data)) {
@@ -147,14 +149,7 @@ const loadData = async () => {
   }
 };
 
-onMounted(async () => {
-  try {
-    const currencyResponse = await configurationService.getCurrency();
-    currencySymbol.value = currencyResponse.data.currency_symbol || "USD";
-  } catch (err) {
-    console.error("Failed to load currency symbol on mount:", err);
-    currencySymbol.value = "$"; // fallback
-  }
+onMounted(() => {
   loadData();
   roomTypesStore.clearSelectedRoomType();
 });

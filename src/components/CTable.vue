@@ -165,7 +165,7 @@ function getColumnValue(row: any, column: Column): any {
   if (column.key.includes(".")) {
     return column.key
       .split(".")
-      .reduce((obj, key) => (obj && obj[key] !== undefined ? obj[key] : null), row);
+      .reduce((obj, key) => (obj?.[key] !== undefined ? obj[key] : null), row);
   } else {
     return row[column.key];
   }

@@ -613,5 +613,13 @@
   "results": "результаты",
   "showForm": "показать форму",
   "student": "студент",
-  "to": "до"
+  "to": "до",
+  "Instructions": "Инструкции",
+  "Click \"Add Bed\" to create a new bed": "Нажмите \"Добавить кровать\", чтобы создать новую кровать",
+  "Drag beds to move them": "Перетаскивайте кровати, чтобы переместить их",
+  "Double-click a bed to rotate it 90 degrees": "Дважды щелкните по кровати, чтобы повернуть ее на 90 градусов",
+  "Use \"Size +\" and \"Size -\" buttons to resize all beds": "Используйте кнопки \"Размер +\" и \"Размер -\" для изменения размера всех кроватей",
+  "Click \"Auto Arrange\" to automatically position beds": "Нажмите \"Авто расположение\", чтобы автоматически разместить кровати",
+  "Size +": "Размер +",
+  "Size -": "Размер -"
 }

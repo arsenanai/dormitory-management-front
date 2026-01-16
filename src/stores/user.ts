@@ -40,7 +40,7 @@ export const useUserStore = defineStore("userStore", {
         const response = await api.get("/users");
         this.users = response.data;
       } catch (error: any) {
-        this.error = error.response?.data?.message || "Failed to fetch users";
+        this.error = error.response?.data?.message ?? "Failed to fetch users";
         throw error;
       } finally {
         this.loading = false;
@@ -69,7 +69,7 @@ export const useUserStore = defineStore("userStore", {
         this.users.push(response.data);
         return response.data;
       } catch (error: any) {
-        this.error = error.response?.data?.message || "Failed to create user";
+        this.error = error.response?.data?.message ?? "Failed to create user";
         return null;
       } finally {
         this.loading = false;
@@ -87,7 +87,7 @@ export const useUserStore = defineStore("userStore", {
         }
         return response.data;
       } catch (error: any) {
-        this.error = error.response?.data?.message || "Failed to update user";
+        this.error = error.response?.data?.message ?? "Failed to update user";
         return null;
       } finally {
         this.loading = false;
@@ -102,7 +102,7 @@ export const useUserStore = defineStore("userStore", {
         this.users = this.users.filter((u) => u.id !== id);
         return true;
       } catch (error: any) {
-        this.error = error.response?.data?.message || "Failed to delete user";
+        this.error = error.response?.data?.message ?? "Failed to delete user";
         return false;
       } finally {
         this.loading = false;
@@ -111,7 +111,7 @@ export const useUserStore = defineStore("userStore", {
 
     // Utility methods
     getUserById(id: number) {
-      return this.users.find((u) => u.id === id) || null;
+      return this.users.find((u) => u.id === id) ?? null;
     },
 
     getUsersByRole(role: string) {
@@ -166,7 +166,7 @@ export const useUserStore = defineStore("userStore", {
     },
 
     validateUser(user: any) {
-      return !!(user && user.name && user.email && user.role);
+      return !!(user?.name && user.email && user.role);
     },
 
     clearError() {

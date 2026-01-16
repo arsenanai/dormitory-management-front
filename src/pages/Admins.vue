@@ -58,7 +58,7 @@ const loadAdmins = async () => {
     console.log("API Response:", response);
 
     // Handle Laravel paginated response structure
-    if (response && response.data) {
+    if (response?.data) {
       // Laravel paginated response: { data: [...], current_page: 1, ... }
       if (response.data.data && Array.isArray(response.data.data)) {
         admins.value = response.data.data;

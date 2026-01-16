@@ -333,7 +333,7 @@ const routes: AppRouteRecordRaw[] = [
   {
     path: "/room-type-form/:id?",
     name: "Room Type Form",
-    component: () => import("@/pages/RoomTypeBasicForm.vue"),
+    component: () => import("@/pages/RoomTypeForm.vue"),
     meta: {
       title: "Room Type Form",
       parent: "Room Types",
