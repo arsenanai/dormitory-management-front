@@ -101,7 +101,6 @@
               type="text"
               :label="t('Country')"
               placeholder="Enter Country"
-              :list="countryList"
             />
           </div>
           <!-- Region Field -->
