@@ -28,7 +28,6 @@
         :options="dormitoryOptions"
         :label="t('Dormitory')"
         placeholder="Select a dormitory"
-        required
       />
 
       <!-- Email Field -->
