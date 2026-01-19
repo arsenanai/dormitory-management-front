@@ -422,7 +422,7 @@ router.beforeEach(async (to, from, next) => {
     }
   } else {
     // Check for user profile access restrictions
-    if (to.path.includes("/admin-form/") || to.path.includes("/student-form/")) {
+    if (to.path.includes("/admin-form/")) {
       const userId = to.params.id;
       const currentUserId = authStore.user?.id;
 

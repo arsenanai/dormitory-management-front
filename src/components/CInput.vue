@@ -201,34 +201,88 @@ function onFocus(event: Event) {
 
 function onBlur(event: Event) {
   emit("blur", event);
-  validateInput();
+  validateInput(event);
 }
 
-function onEnter(event: Event) {
-  emit("enter", event);
-}
-
-function onEscape(event: Event) {
-  emit("escape", event);
-}
-
-function onClear() {
-  emit("update:modelValue", "");
-  emit("clear");
-}
-
-function validateInput() {
-  const value = props.modelValue;
+function validateInput(event: Event) {
+  const inputElement = event.target as HTMLInputElement;
+  const value = inputElement.value;
   let isValid = true;
+  let validationMessage = "";
 
-  if (props.type === "email" && value) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    isValid = emailRegex.test(String(value));
-  } else if (props.type === "number" && value) {
-    isValid = !isNaN(Number(value));
+  // 1. Check for required
+  if (props.required && (value === null || value === undefined || value === "")) {
+    isValid = false;
+    validationMessage = "This field is required.";
+  } else if (value !== null && value !== undefined && value !== "") { // Only proceed if not empty and not required
+    // 2. Check for specific patterns (like IIN)
+    if (props.pattern === '\\d{12}') {
+        isValid = new RegExp(props.pattern).test(String(value));
+        if (!isValid) {
+            validationMessage = "Please enter exactly 12 digits.";
+        }
+    }
+    // 3. Check generic pattern
+    else if (props.pattern) {
+      try {
+        isValid = new RegExp(props.pattern).test(String(value));
+        if (!isValid) {
+          validationMessage = "Invalid format.";
+        }
+      } catch (e) {
+        console.warn("Invalid regex pattern provided to CInput:", props.pattern, e);
+        isValid = inputElement.checkValidity(); // Fallback
+        if (!isValid && !validationMessage) {
+            validationMessage = "Invalid format.";
+        }
+      }
+    }
+    // 4. Check email type
+    else if (props.type === "email") {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      isValid = emailRegex.test(String(value));
+      if (!isValid) {
+        validationMessage = "Invalid email format.";
+      }
+    }
+    // 5. Check number type
+    else if (props.type === "number") {
+      isValid = !isNaN(Number(value));
+      if (!isValid) {
+        validationMessage = "Invalid number.";
+      }
+    }
+
+    // 6. Check minLength / maxLength if not already invalid and no message set
+    if (isValid) {
+        if (props.minLength !== undefined && String(value).length < Number(props.minLength)) {
+            isValid = false;
+            validationMessage = `Please enter at least ${props.minLength} characters.`;
+        } else if (props.maxLength !== undefined && String(value).length > Number(props.maxLength)) {
+            isValid = false;
+            validationMessage = `Please enter at most ${props.maxLength} characters.`;
+        }
+    }
+
+    // 7. Check min / max for numbers
+    if (isValid && props.type === "number" && value !== "") {
+        const numValue = Number(value);
+        if (props.min !== undefined && numValue < Number(props.min)) {
+            isValid = false;
+            validationMessage = `Value must be at least ${props.min}.`;
+        } else if (props.max !== undefined && numValue > Number(props.max)) {
+            isValid = false;
+            validationMessage = `Value must be at most ${props.max}.`;
+        }
+    }
   }
 
-  emit("validation", { valid: isValid, value });
+  // Final fallback if still no message but invalid
+  if (!isValid && !validationMessage) {
+    validationMessage = inputElement.validationMessage || "Invalid input.";
+  }
+
+  emit("validation", { valid: isValid, value, message: validationMessage });
 }
 
 const baseInputClass =

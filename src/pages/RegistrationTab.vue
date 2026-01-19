@@ -42,9 +42,19 @@
             type="search"
             :label="t('IIN')"
             required
+            :loading="loadingIinAvailability"
             :validationState="registrationValidationState.iin"
             :validationMessage="registrationValidationMessage.iin"
             pattern="\d{12}"
+            minlength="12"
+            maxlength="12"
+            @validation="({ valid, message }) => {
+              registrationValidationState.iin = valid ? 'success' : 'error';
+              registrationValidationMessage.iin = message;
+              if (valid && user.student_profile.iin.length === 12) {
+                debouncedCheckIinAvailability(user.student_profile.iin);
+              }
+            }"
           />
           <CInput
             id="registration-email"
@@ -55,6 +65,12 @@
             required
             :validationState="registrationValidationState.email"
             :validationMessage="registrationValidationMessage.email"
+            @validation="
+              ({ valid, message }) => {
+                registrationValidationState.email = valid ? 'success' : 'error';
+                registrationValidationMessage.email = message;
+              }
+            "
           />
           <CInput
             id="registration-password"
@@ -440,7 +456,8 @@ import { useI18n } from "vue-i18n";
 import { useAuthStore } from "@/stores/auth";
 import { useSettingsStore } from "@/stores/settings";
 import { useToast } from "@/composables/useToast";
-import { dormitoryService, resolvedBaseUrl } from "@/services/api";
+import { dormitoryService } from "@/services/api";
+import api from "@/services/api";
 import type { User } from "@/models/User";
 import CInput from "@/components/CInput.vue";
 import CButton from "@/components/CButton.vue";
@@ -454,6 +471,7 @@ import CModal from "@/components/CModal.vue";
 import CRoomTypePhotos from "@/components/CRoomTypePhotos.vue";
 import { PlusIcon, TrashIcon } from "@heroicons/vue/24/solid";
 import { getCurrencySymbol } from "@/utils/formatters";
+import { debounceHelper } from "@/utils/helpers"; // Import debounceHelper
 
 defineProps<{
   emailPlaceholder: string;
@@ -568,6 +586,59 @@ const registrationValidationMessage = ref({
 const isSubmitting = ref(false);
 const fileValidationStatus = ref<boolean[]>([true, true]);
 const currentStep = ref(0);
+const loadingEmailAvailability = ref(false);
+const loadingIinAvailability = ref(false);
+
+const checkEmailAvailability = async (email: string) => {
+  if (!email) {
+    registrationValidationState.value.email = 'error';
+    registrationValidationMessage.value.email = t("Email is required.");
+    return;
+  }
+  loadingEmailAvailability.value = true;
+  try {
+    const response = await api.get("/email/check-availability", { params: { email } });
+    if (response.data.is_available) {
+      registrationValidationState.value.email = 'success';
+      registrationValidationMessage.value.email = '';
+    } else {
+      registrationValidationState.value.email = 'error';
+      registrationValidationMessage.value.email = t("This email is already registered.");
+    }
+  } catch (error) {
+    console.error("Error checking email availability:", error);
+    registrationValidationState.value.email = 'error';
+    registrationValidationMessage.value.email = t("Could not verify email availability.");
+  } finally {
+    loadingEmailAvailability.value = false;
+  }
+};
+
+const debouncedCheckEmailAvailability = debounceHelper(checkEmailAvailability, 500);
+
+// Add after email availability check
+const checkIinAvailability = async (iin: string) => {
+  if (!iin || iin.length !== 12) return;
+  
+  loadingIinAvailability.value = true;
+  try {
+    const response = await api.get("/iin/check-availability", { params: { iin } });
+    if (response.data.is_available) {
+      registrationValidationState.value.iin = 'success';
+      registrationValidationMessage.value.iin = '';
+    } else {
+      registrationValidationState.value.iin = 'error';
+      registrationValidationMessage.value.iin = t("This IIN is already registered.");
+    }
+  } catch (error) {
+    registrationValidationState.value.iin = 'error';
+    registrationValidationMessage.value.iin = t("Could not verify IIN availability.");
+  } finally {
+    loadingIinAvailability.value = false;
+  }
+};
+
+const debouncedCheckIinAvailability = debounceHelper(checkIinAvailability, 500);
 
 const handleRegistration = async () => {
   isSubmitting.value = true;
@@ -587,8 +658,13 @@ const handleRegistration = async () => {
     hasError = true;
   };
 
-  if (!user.value.student_profile || !/^\d{12}$/.test(user.value.student_profile.iin || ""))
-    setErr("iin", t("IIN must be 12 digits"));
+  if (registrationValidationState.value.iin === 'error') {
+    hasError = true;
+  }
+  if (registrationValidationState.value.email === 'error') {
+    hasError = true;
+  }
+
   if (!user.value.first_name?.trim()) setErr("first_name", t("First name is required"));
   if (!user.value.last_name?.trim()) setErr("last_name", t("Last name is required"));
   if (!user.value.student_profile?.faculty?.trim()) setErr("faculty", t("Faculty is required"));
@@ -599,8 +675,6 @@ const handleRegistration = async () => {
   )
     setErr("enrollment_year", t("Enter 4-digit year"));
   if (!user.value.student_profile?.gender) setErr("gender", t("Gender is required"));
-  if (!/^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(user.value.email || ""))
-    setErr("email", t("Invalid email format."));
   if (!user.value.password || user.value.password.length < 6)
     setErr("password", t("Password must be at least 6 characters"));
   if (user.value.password !== user.value.password_confirmation)
@@ -871,14 +945,11 @@ const isGenderStepValid = computed(() => {
 
 // Step 2: Account
 const isAccountStepValid = computed(() => {
-  // Corrected property name
-  const iin = user.value.student_profile?.iin;
-  const { email, password, password_confirmation } = user.value;
+  const { password, password_confirmation } = user.value;
   return (
-    !!iin &&
-    /^\d{12}$/.test(iin) &&
-    !!email &&
-    /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email) &&
+    registrationValidationState.value.iin === 'success' &&
+    registrationValidationState.value.email === 'success' &&
+    !loadingEmailAvailability.value && // Ensure email check is complete
     !!password &&
     password.length >= 6 &&
     !!password_confirmation &&

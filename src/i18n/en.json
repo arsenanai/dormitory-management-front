@@ -620,5 +620,19 @@
   "Use \"Size +\" and \"Size -\" buttons to resize all beds": "Use \"Size +\" and \"Size -\" buttons to resize all beds",
   "Click \"Auto Arrange\" to automatically position beds": "Click \"Auto Arrange\" to automatically position beds",
   "Size +": "Size +",
-  "Size -": "Size -"
+  "Size -": "Size -",
+  "This field is required.": "This field is required.",
+  "Invalid format.": "Invalid format.",
+  "Please enter exactly 12 digits.": "Please enter exactly 12 digits.",
+  "Invalid email format.": "Invalid email format.",
+  "Invalid number.": "Invalid number.",
+  "Please enter at least {length} characters.": "Please enter at least {length} characters.",
+  "Please enter at most {length} characters.": "Please enter at most {length} characters.",
+  "Value must be at least {value}.": "Value must be at least {value}.",
+  "Value must be at most {value}.": "Value must be at most {value}.",
+  "Invalid input.": "Invalid input.",
+  "This email is already registered.": "This email is already registered.",
+  "Could not verify email availability.": "Could not verify email availability.",
+  "This IIN is already registered.": "This IIN is already registered.",
+  "Could not verify IIN availability.": "Could not verify IIN availability."
 }

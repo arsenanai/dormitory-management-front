@@ -621,5 +621,9 @@
   "Use \"Size +\" and \"Size -\" buttons to resize all beds": "Барлық төсек-орындардың өлшемін өзгерту үшін \"Өлшем +\" және \"Өлшем -\" батырмаларын пайдаланыңыз",
   "Click \"Auto Arrange\" to automatically position beds": "Төсек-орындарды автоматты түрде орналастыру үшін \"Авто орналастыру\" батырмасын басыңыз",
   "Size +": "Өлшем +",
-  "Size -": "Өлшем -"
+  "Size -": "Өлшем -",
+  "This email is already registered.": "Бұл электрондық пошта тіркелген.",
+  "Could not verify email availability.": "Электрондық поштаның қолжетімділігін тексеру мүмкін болмады.",
+  "This IIN is already registered.": "Бұл ЖСН тіркелген.",
+  "Could not verify IIN availability.": "ЖСН қолжетімділігін тексеру мүмкін болмады."
 }

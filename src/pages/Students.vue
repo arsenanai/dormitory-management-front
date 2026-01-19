@@ -462,7 +462,8 @@ const confirmDeleteStudent = async (studentId: number) => {
 };
 
 const navigateToAddStudent = () => {
-  router.push("/student-form");
+  studentStore.clearSelectedStudent();
+  router.push("/student-form/create");
 };
 
 const navigateToEditStudent = (studentId) => {

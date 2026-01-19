@@ -621,5 +621,9 @@
   "Use \"Size +\" and \"Size -\" buttons to resize all beds": "Используйте кнопки \"Размер +\" и \"Размер -\" для изменения размера всех кроватей",
   "Click \"Auto Arrange\" to automatically position beds": "Нажмите \"Авто расположение\", чтобы автоматически разместить кровати",
   "Size +": "Размер +",
-  "Size -": "Размер -"
+  "Size -": "Размер -",
+  "This email is already registered.": "Этот email уже зарегистрирован.",
+  "Could not verify email availability.": "Не удалось проверить доступность email.",
+  "This IIN is already registered.": "Этот ИИН уже зарегистрирован.",
+  "Could not verify IIN availability.": "Не удалось проверить доступность ИИН."
 }

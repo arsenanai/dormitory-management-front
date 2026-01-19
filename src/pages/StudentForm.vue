@@ -17,6 +17,22 @@
               :error="validationErrors['student_profile.iin']?.[0]"
               placeholder="Enter IIN"
               required
+              pattern="\d{12}"
+              minlength="12"
+              maxlength="12"
+              :loading="loadingIinAvailability"
+              @validation="
+                ({ valid, message }) => {
+                  if (valid) {
+                    delete validationErrors['student_profile.iin'];
+                    if (user.student_profile.iin && user.student_profile.iin.length === 12) {
+                      debouncedCheckIinAvailability(user.student_profile.iin);
+                    }
+                  } else {
+                    validationErrors['student_profile.iin'] = [message];
+                  }
+                }
+              "
             />
           </div>
           <!-- Name Field -->
@@ -63,6 +79,18 @@
               :error="validationErrors.email?.[0]"
               placeholder="Enter E-mail"
               required
+              pattern="[^@\s]+@[^@\s]+\.[^@\s]+"
+              :loading="loadingEmailAvailability"
+              @validation="
+                ({ valid, message }) => {
+                  if (valid) {
+                    delete validationErrors['email'];
+                    debouncedCheckEmailAvailability(user.email || '');
+                  } else {
+                    validationErrors['email'] = [message];
+                  }
+                }
+              "
             />
           </div>
           <!-- Country Field -->
@@ -496,8 +524,9 @@ import { Room } from "@/models/Room";
 import type { Bed } from "@/models/Bed";
 import { useStudentStore } from "@/stores/student";
 import { useAuthStore } from "@/stores/auth";
-import { studentService, roomService, personalDataService } from "@/services/api";
+import api, { studentService, roomService, personalDataService } from "@/services/api";
 import { useToast } from "@/composables/useToast";
+import { debounceHelper } from "@/utils/helpers";
 
 const props = defineProps<{
   embedded?: boolean;
@@ -515,6 +544,60 @@ const loadingRooms = ref(false);
 const { t } = useI18n();
 
 const validationErrors = ref<Record<string, string[]>>({});
+const loadingEmailAvailability = ref(false); // New ref for email availability loading
+const loadingIinAvailability = ref(false);
+
+const checkEmailAvailability = async (email: string) => {
+  if (!email) {
+    validationErrors.value['email'] = [t("Email is required.")];
+    return;
+  }
+  loadingEmailAvailability.value = true;
+  try {
+    const params: { email: string; ignore_user_id?: number } = { email };
+    if (isEditing.value && user.value.id) {
+      params.ignore_user_id = user.value.id;
+    }
+    const response = await api.get("/email/check-availability", { params });
+    if (response.data.is_available) {
+      delete validationErrors.value['email'];
+    } else {
+      validationErrors.value['email'] = [t("This email is already registered.")];
+    }
+  } catch (error) {
+    console.error("Error checking email availability:", error);
+    validationErrors.value['email'] = [t("Could not verify email availability.")];
+  } finally {
+    loadingEmailAvailability.value = false;
+  }
+};
+
+const debouncedCheckEmailAvailability = debounceHelper(checkEmailAvailability, 500);
+
+const checkIinAvailability = async (iin: string) => {
+  if (!iin || iin.length !== 12) return;
+
+  loadingIinAvailability.value = true;
+  try {
+    const params: { iin: string; ignore_user_id?: number } = { iin };
+    if (isEditing.value && user.value.id) {
+      params.ignore_user_id = user.value.id;
+    }
+    const response = await api.get("/iin/check-availability", { params });
+    if (response.data.is_available) {
+      delete validationErrors.value['student_profile.iin'];
+    } else {
+      validationErrors.value['student_profile.iin'] = [t("This IIN is already registered.")];
+    }
+  } catch (error) {
+    console.error("Error checking IIN availability:", error);
+    validationErrors.value['student_profile.iin'] = [t("Could not verify IIN availability.")];
+  } finally {
+    loadingIinAvailability.value = false;
+  }
+};
+
+const debouncedCheckIinAvailability = debounceHelper(checkIinAvailability, 500);
 
 onMounted(async () => {
   // Only restore from store for self-profile flows (not when editing a student by id)
@@ -833,19 +916,9 @@ const hydrateStudentFromApi = (data: StudentUserResponse, shouldNotify = true) =
 
 // Submit Form
 const submitForm = async (): Promise<void> => {
-  validationErrors.value = {}; // Clear previous errors
-
-  // Basic validation
-  if (user.value.student_profile.iin?.length !== 12) {
-    showError(t("IIN must be exactly 12 digits."));
-    return;
-  }
+  // Client-side validation for required fields
   if (!user.value.first_name || !user.value.last_name) {
     showError(t("First name and last name are required."));
-    return;
-  }
-  if (!user.value.email) {
-    showError(t("E-mail is required."));
     return;
   }
   if (!user.value.student_profile.faculty) {
@@ -856,10 +929,16 @@ const submitForm = async (): Promise<void> => {
     showError(t("Specialty is required."));
     return;
   }
-  if (
-    user.value.student_profile.enrollment_year?.toString().length !== 4
-  ) {
+  if (user.value.student_profile.enrollment_year?.toString().length !== 4) {
     showError(t("Enrollment year must be a 4-digit year."));
+    return;
+  }
+  if (!user.value.student_profile.iin || user.value.student_profile.iin.length !== 12) {
+    showError(t("IIN must be exactly 12 digits."));
+    return;
+  }
+  if (!user.value.email) {
+    showError(t("Email is required."));
     return;
   }
   if (!user.value.student_profile.deal_number) {
@@ -896,6 +975,17 @@ const submitForm = async (): Promise<void> => {
     .filter((p) => p.length > 0);
   if (!cleanedPhones.length) {
     showError(t("At least one phone number is required."));
+    return;
+  }
+
+  // Check if there are any client-side validation errors from CInput components
+  if (hasClientSideErrors.value) {
+    showError(t("Please fix the errors in the form before submitting."));
+    // Optionally, scroll to the first error
+    const firstErrorKey = Object.keys(validationErrors.value)[0];
+    document
+      .querySelector(`[id*="${firstErrorKey.replace(".", "-")}"]`)
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
     return;
   }
 
@@ -1036,4 +1126,9 @@ function formattedDate(dateString: string): string {
   }
   return "";
 }
+
+const hasClientSideErrors = computed(() => {
+  return Object.keys(validationErrors.value).length > 0;
+});
+
 </script>
