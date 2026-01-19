@@ -523,9 +523,11 @@ import { Room } from "@/models/Room";
 import type { Bed } from "@/models/Bed";
 import { useStudentStore } from "@/stores/student";
 import { useAuthStore } from "@/stores/auth";
+import { useSettingsStore } from "@/stores/settings";
 import api, { studentService, roomService, personalDataService } from "@/services/api";
 import { useToast } from "@/composables/useToast";
 import { debounceHelper } from "@/utils/helpers";
+import { getCurrencySymbol } from "@/utils/formatters";
 
 const props = defineProps<{
   embedded?: boolean;
@@ -627,6 +629,7 @@ const submitButtonLabel = computed(() => props.submitLabel || t("Submit"));
 const route = useRoute();
 const studentStore = useStudentStore();
 const authStore = useAuthStore();
+const settingsStore = useSettingsStore();
 const { showError, showSuccess } = useToast();
 
 // Check if we're editing (ID in route params)
@@ -713,6 +716,16 @@ const roomOptions = computed(() =>
 const bedOptions = computed(() => {
   const rid = user.value.room_id || user.value.room?.id;
   if (!rid) return [];
+
+  const room = rooms.value.find((r) => r.id === rid);
+  const priceValue = room?.room_type?.semester_rate;
+  const currencyCode = settingsStore.publicSettings?.currency_symbol;
+  let priceString = "";
+  if (priceValue != null) {
+    const currencySymbol = getCurrencySymbol(currencyCode);
+    priceString = ` - ${Math.round(parseFloat(priceValue))} ${currencySymbol}`;
+  }
+
   const options = allBeds.value
     .filter((b) => (b.room?.id || b.room_id) === rid) // Beds in selected room
     .filter((bed) => !bed.reserved_for_staff) // Exclude staff reserved beds
@@ -720,7 +733,7 @@ const bedOptions = computed(() => {
     .map((bed) => ({
       // Correctly map bed properties
       value: bed.id,
-      name: `${bed.room.number}-${bed.bed_number}`,
+      name: `${bed.room.number}-${bed.bed_number}${priceString}`,
     }));
 
   // Allow admins to un-assign a bed when editing

@@ -1101,19 +1101,19 @@ watch(
 
 const roomOptions = computed(() =>
   availableRooms.value.map((r) => {
-    const priceValue = r.room_type?.semester_rate;
-    const currencyCode = settingsStore.publicSettings?.currency_symbol;
-    let priceString = "";
-    if (priceValue != null) {
-      const currencySymbol = getCurrencySymbol(currencyCode);
-      priceString = ` - ${Math.round(parseFloat(priceValue))} ${currencySymbol}`;
-    }
-    return { value: r.id, name: `${r.number}${priceString}` };
+    return { value: r.id, name: r.number };
   })
 );
 const bedOptions = computed(() =>
   availableBeds.value.map((b) => {
-    return { value: b.id, name: `${selectedRoomNumber.value}-${b.bed_number}` }; //NOSONAR
+    const priceValue = selectedRoomPrice.value;
+    const currencyCode = settingsStore.publicSettings?.currency_symbol;
+    let priceString = "";
+    if (priceValue != null) {
+      const currencySymbol = getCurrencySymbol(currencyCode);
+      priceString = ` - ${Math.round(priceValue)} ${currencySymbol}`;
+    }
+    return { value: b.id, name: `${selectedRoomNumber.value}-${b.bed_number}${priceString}` }; //NOSONAR
   })
 );
 </script>
