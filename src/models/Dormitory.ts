@@ -10,6 +10,8 @@ export class Dormitory {
     public address: string = "",
     public description: string = "",
     public phone: string = "",
+    public reception_phone: string = "",
+    public medical_phone: string = "",
     // Computed fields (read-only, calculated by backend)
     public registered: number = 0,
     public freeBeds: number = 0,
@@ -28,6 +30,8 @@ export class Dormitory {
       address: this.address,
       description: this.description,
       phone: this.phone,
+      reception_phone: this.reception_phone,
+      medical_phone: this.medical_phone,
       rooms: this.rooms,
     };
   }
@@ -72,6 +76,8 @@ export class Dormitory {
       data.address || "",
       data.description || "",
       data.phone || "",
+      data.reception_phone || "",
+      data.medical_phone || "",
       // Computed fields
       data.registered || 0,
       data.freeBeds || 0,

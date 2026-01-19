@@ -96,24 +96,53 @@
           </h2>
         </div>
 
-        <div class="grid grid-cols-1 gap-6" v-if="receptionContacts">
-          <div class="space-y-3">
-            <h3 class="font-medium text-gray-900">{{ $t("guest.home.reception.mainContact") }}</h3>
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <!-- Reception Helpdesk -->
+          <div v-if="receptionContacts.reception" class="space-y-3 rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
+            <h3 class="font-medium text-gray-900">{{ t("Reception Helpdesk") }}</h3>
             <div class="space-y-2">
               <a
-                :href="receptionContacts.whatsappLink"
+                :href="`tel:${receptionContacts.reception}`"
+                class="flex items-center text-gray-600 hover:text-blue-600"
+              >
+                <PhoneIcon class="mr-2 h-4 w-4 text-gray-500" />
+                <span>{{ receptionContacts.reception }}</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Medical Doctor -->
+          <div v-if="receptionContacts.medical" class="space-y-3 rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
+            <h3 class="font-medium text-gray-900">{{ t("Medical Doctor") }}</h3>
+            <div class="space-y-2">
+              <a
+                :href="`tel:${receptionContacts.medical}`"
+                class="flex items-center text-gray-600 hover:text-blue-600"
+              >
+                <HeartIcon class="mr-2 h-4 w-4 text-red-500" />
+                <span>{{ receptionContacts.medical }}</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Admin Contact -->
+          <div v-if="receptionContacts.admin" class="space-y-3 rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
+            <h3 class="font-medium text-gray-900">{{ t("Administrator") }}</h3>
+            <div class="space-y-2">
+              <a
+                :href="receptionContacts.admin.whatsappLink"
                 target="_blank"
                 class="flex items-center text-gray-600 hover:text-blue-600"
               >
                 <PhoneIcon class="mr-2 h-4 w-4 text-gray-500" />
-                <span>{{ receptionContacts.phone }}</span>
+                <span>{{ receptionContacts.admin.phone }}</span>
               </a>
               <a
-                :href="receptionContacts.emailLink"
+                :href="receptionContacts.admin.emailLink"
                 class="flex items-center text-gray-600 hover:text-blue-600"
               >
                 <EnvelopeIcon class="mr-2 h-4 w-4 text-gray-500" />
-                <span>{{ receptionContacts.email }}</span>
+                <span>{{ receptionContacts.admin.email }}</span>
               </a>
             </div>
           </div>
@@ -208,6 +237,7 @@ import {
   ChatBubbleLeftRightIcon,
   ClockIcon,
   UserIcon,
+  HeartIcon,
 } from "@heroicons/vue/24/outline";
 import { authService, messageService } from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
@@ -260,18 +290,26 @@ const handleMessageClick = (message: Message): void => {
 
 // Reception contacts derived from admin info
 const receptionContacts = computed(() => {
-  const admin = dashboardData.value.room?.dormitory?.admin;
-  if (!admin) return null;
-
-  const phone = admin.phone_numbers?.[0] || admin.phone;
-  const email = admin.email;
-
-  return {
-    phone,
-    email,
-    whatsappLink: `https://wa.me/${phone?.replace(/[^0-9]/g, "")}`,
-    emailLink: `mailto:${email}`,
+  const dormitory = dashboardData.value.room?.dormitory;
+  const admin = dormitory?.admin;
+  
+  const contacts: any = {
+    reception: dormitory?.reception_phone || null,
+    medical: dormitory?.medical_phone || null,
+    admin: null
   };
+
+  if (admin) {
+    const phone = admin.phone_numbers?.[0] || admin.phone;
+    contacts.admin = {
+      phone,
+      email: admin.email,
+      whatsappLink: `https://wa.me/${phone?.replace(/[^0-9]/g, "")}`,
+      emailLink: `mailto:${admin.email}`,
+    };
+  }
+  
+  return contacts;
 });
 
 // Profile picture URL computed property

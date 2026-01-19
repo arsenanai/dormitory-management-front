@@ -83,6 +83,28 @@
           />
         </div>
 
+        <!-- Reception Phone -->
+        <div>
+          <CInput
+            id="dormitory-reception-phone"
+            v-model="dormitory.reception_phone"
+            type="text"
+            :label="t('Reception Phone')"
+            placeholder="Enter Reception Phone"
+          />
+        </div>
+
+        <!-- Medical Phone -->
+        <div>
+          <CInput
+            id="dormitory-medical-phone"
+            v-model="dormitory.medical_phone"
+            type="text"
+            :label="t('Medical Phone')"
+            placeholder="Enter Medical Phone"
+          />
+        </div>
+
         <!-- Computed Fields (Display-Only) -->
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -294,6 +316,8 @@ const loadDormitory = async (id: number) => {
         dormitoryData.description || "",
 
         dormitoryData.phone || "",
+        dormitoryData.reception_phone || "",
+        dormitoryData.medical_phone || "",
         dormitoryData.registered || 0,
         dormitoryData.freeBeds || 0,
         dormitoryData.rooms_count || 0,
