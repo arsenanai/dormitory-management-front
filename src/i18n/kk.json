@@ -435,6 +435,7 @@
   "Registration is closed. Student limit reached.": "Тіркеу жабық. Студенттер шегіне жетті.",
   "Registration limit reached. You have been added to the reserve list.": "Тіркеу шегіне жетті. Сіз резерв тізіміне қосылдыңыз.",
   "Registration successful": "Тіркеу сәтті аяқталды",
+  "Registration successful. Please log in and make due payments.": "Тіркеу сәтті өтті. Жүйеге кіріп, тиісті төлемдерді жасаңыз.",
   "Rejected": "Қабылданбады",
   "Remove": "Жою",
   "Remove Bed": "Төсекті жою",
@@ -629,5 +630,9 @@
   "This email is already registered.": "Бұл электрондық пошта тіркелген.",
   "Could not verify email availability.": "Электрондық поштаның қолжетімділігін тексеру мүмкін болмады.",
   "This IIN is already registered.": "Бұл ЖСН тіркелген.",
-  "Could not verify IIN availability.": "ЖСН қолжетімділігін тексеру мүмкін болмады."
+  "Could not verify IIN availability.": "ЖСН қолжетімділігін тексеру мүмкін болмады.",
+  "Passport": "Паспорт",
+  "National ID": "Жеке куәлік",
+  "Driver's License": "Жүргізуші куәлігі",
+  "Enter purpose of visit": "Сапар мақсатын енгізіңіз"
 }

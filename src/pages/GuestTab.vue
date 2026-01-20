@@ -1,103 +1,43 @@
 <template>
-  <form
-    @submit.prevent="handleGuestRegistration"
-    novalidate
-    class="flex h-full min-h-[60vh] flex-col items-stretch"
-  >
+  <form @submit.prevent="handleGuestRegistration" novalidate class="flex h-full min-h-[60vh] flex-col items-stretch">
     <CStepper v-model="currentStep" @finish="handleGuestRegistration">
       <!-- Step 1: Room Selection -->
       <CStep :title="t('Room Selection')" :validator="() => isRoomSelectionStepValid">
         <div class="grid grid-cols-1 gap-4">
-          <CSelect
-            id="guest-gender"
-            v-model="guest.gender"
-            :options="genderOptions"
-            :label="t('Gender')"
-            required
-            :validationState="validationState.gender"
-            :validationMessage="validationMessage.gender"
-          />
+          <CSelect id="guest-gender" v-model="guest.gender" :options="genderOptions" :label="t('Gender')" required
+            :validationState="validationState.gender" :validationMessage="validationMessage.gender" />
           <div class="grid grid-cols-2 gap-4">
-            <CInput
-              id="guest-check-in"
-              v-model="guest.check_in_date"
-              type="date"
-              :label="t('Check-in Date')"
-              required
-              :validationState="validationState.check_in_date"
-              :validationMessage="validationMessage.check_in_date"
-            />
-            <CInput
-              id="guest-check-out"
-              v-model="guest.check_out_date"
-              type="date"
-              :label="t('Check-out Date')"
-              :disabled="!guest.check_in_date"
-              :min="guest.check_in_date"
-              required
-              :validationState="validationState.check_out_date"
-              :validationMessage="validationMessage.check_out_date"
-            />
+            <CInput id="guest-check-in" v-model="guest.check_in_date" type="date" :label="t('Check-in Date')" required
+              :validationState="validationState.check_in_date" :validationMessage="validationMessage.check_in_date" />
+            <CInput id="guest-check-out" v-model="guest.check_out_date" type="date" :label="t('Check-out Date')"
+              :disabled="!guest.check_in_date" :min="guest.check_in_date" required
+              :validationState="validationState.check_out_date" :validationMessage="validationMessage.check_out_date" />
           </div>
-          <CSelect
-            id="guest-dormitory"
-            v-model="guest.dormitory_id"
-            :options="dormitoryOptions"
-            :label="t('Select Dormitory')"
-            required
-            :disabled="!guest.gender || !guest.check_in_date || !guest.check_out_date"
-            :placeholder="
-              dormitoryOptions.length === 0 ? t('No Dormitories available') : t('Select Dormitory')
-            "
-            :validationState="validationState.dormitory_id"
-            :validationMessage="validationMessage.dormitory_id"
-          />
+          <CSelect id="guest-dormitory" v-model="guest.dormitory_id" :options="dormitoryOptions"
+            :label="t('Select Dormitory')" required
+            :disabled="!guest.gender || !guest.check_in_date || !guest.check_out_date" :placeholder="dormitoryOptions.length === 0 ? t('No Dormitories available') : t('Select Dormitory')
+              " :validationState="validationState.dormitory_id" :validationMessage="validationMessage.dormitory_id" />
           <div class="grid grid-cols-2 gap-4">
-            <CSelect
-              id="guest-room-type"
-              v-model="guest.room_type_id"
-              :options="roomTypeOptions"
-              :label="t('Select Room Type')"
-              :disabled="!guest.dormitory_id"
-              :validationState="validationState.room_type_id"
-              :validationMessage="validationMessage.room_type_id"
-            />
-            <CSelect
-              id="guest-room"
-              v-model="guest.room_id"
-              :options="roomOptions"
-              :label="t('Select Room')"
+            <CSelect id="guest-room-type" v-model="guest.room_type_id" :options="roomTypeOptions"
+              :label="t('Select Room Type')" :disabled="!guest.dormitory_id"
+              :validationState="validationState.room_type_id" :validationMessage="validationMessage.room_type_id" />
+            <CSelect id="guest-room" v-model="guest.room_id" :options="roomOptions" :label="t('Select Room')"
               :disabled="!guest.dormitory_id || loadingRooms || !guest.room_type_id"
-              :validationState="validationState.room_id"
-              :validationMessage="validationMessage.room_id"
-              required
-            />
+              :validationState="validationState.room_id" :validationMessage="validationMessage.room_id" required />
           </div>
-          <CSelect
-            id="guest-bed"
-            v-model="guest.bed_id"
-            :options="bedOptions"
-            :label="t('Bed')"
-            :disabled="!guest.room_id || loadingBeds"
-            :validationState="validationState.bed_id"
-            :validationMessage="validationMessage.bed_id"
-            required
-          />
+          <CSelect id="guest-bed" v-model="guest.bed_id" :options="bedOptions" :label="t('Bed')"
+            :disabled="!guest.room_id || loadingBeds" :validationState="validationState.bed_id"
+            :validationMessage="validationMessage.bed_id" required />
         </div>
         <CRoomTypePhotos :photos="selectedRoom?.room_type?.photos || []" />
         <div v-if="loadingRooms || loadingBeds" class="mt-4 flex justify-center">
           <div class="border-primary-500 h-5 w-5 animate-spin rounded-full border-b-2"></div>
         </div>
-        <div
-          v-if="!loadingRooms && guest.dormitory_id && availableRooms.length === 0"
-          class="mt-2 p-4 text-center text-red-500"
-        >
+        <div v-if="!loadingRooms && guest.dormitory_id && availableRooms.length === 0"
+          class="mt-2 p-4 text-center text-red-500">
           {{ t("No rooms are available for the selected dormitory and dates.") }}
         </div>
-        <div
-          v-if="!loadingBeds && guest.room_id && bedOptions.length === 0"
-          class="mt-2 p-4 text-center text-red-500"
-        >
+        <div v-if="!loadingBeds && guest.room_id && bedOptions.length === 0" class="mt-2 p-4 text-center text-red-500">
           {{ t("No beds are available for the selected room and dates.") }}
         </div>
       </CStep>
@@ -105,96 +45,49 @@
       <!-- Step 2: Personal Information -->
       <CStep :title="t('Account Information')" :validator="() => isAccountInfoStepValid">
         <div class="grid grid-cols-1 gap-4">
-          <CInput
-            id="guest-phone"
-            v-model="guest.phone"
-            type="tel"
-            :label="t('Tel no')"
-            required
-            :validationState="validationState.phone"
-            :validationMessage="validationMessage.phone"
-          />
-          <CInput
-            id="guest-email"
-            v-model="guest.email"
-            type="email"
-            :label="t('Email')"
-            required
-            :validationState="validationState.email"
-            :validationMessage="validationMessage.email"
-          />
-          <CInput
-            v-model="guest.password"
-            type="password"
-            :label="t('Password')"
-            required
-            :validationState="validationState.password"
-            :validationMessage="validationMessage.pasword"
-          />
-          <CInput
-            v-model="guest.password_confirmation"
-            type="password"
-            :label="t('Confirm Password')"
-            :validationState="validationState.password_confirmation"
-            :validationMessage="validationMessage.pasword_confirmation"
-          />
+          <CInput id="guest-phone" v-model="guest.phone" type="tel" :label="t('Tel no')" required
+            :validationState="validationState.phone" :validationMessage="validationMessage.phone" />
+          <CInput id="guest-email" v-model="guest.email" type="email" :label="t('Email')" required
+            :loading="loadingEmailAvailability" :validationState="validationState.email"
+            :validationMessage="validationMessage.email" @validation="({ valid, message }: { valid: boolean; message: string }) => {
+              if (valid && guest.email) {
+                validationState.email = '';
+                debouncedCheckEmailAvailability(guest.email);
+              } else {
+                validationState.email = valid ? 'success' : 'error';
+                validationMessage.email = message;
+              }
+            }" />
+          <CInput id="guest-password" v-model="guest.password" type="password" :label="t('Password')" required
+            :validationState="validationState.password" :validationMessage="validationMessage.password" />
+          <CInput id="guest-confirm-password" v-model="guest.password_confirmation" type="password"
+            :label="t('Confirm Password')" :validationState="validationState.password_confirmation"
+            :validationMessage="validationMessage.password_confirmation" />
         </div>
       </CStep>
 
       <!-- Step 3: Personal Information -->
       <CStep :title="t('Personal Information')" :validator="() => isPersonalInfoStepValid">
         <div class="grid grid-cols-1 gap-4">
-          <CInput
-            id="guest-first-name"
-            v-model="guest.first_name"
-            type="text"
-            :label="t('Firstname')"
-            required
-            :validationState="validationState.first_name"
-            :validationMessage="validationMessage.first_name"
-          />
-          <CInput
-            id="guest-last-name"
-            v-model="guest.last_name"
-            type="text"
-            :label="t('Surname')"
-            required
-            :validationState="validationState.last_name"
-            :validationMessage="validationMessage.last_name"
-          />
+          <CInput id="guest-first-name" v-model="guest.first_name" type="text" :label="t('Firstname')" required
+            :validationState="validationState.first_name" :validationMessage="validationMessage.first_name" />
+          <CInput id="guest-last-name" v-model="guest.last_name" type="text" :label="t('Surname')" required
+            :validationState="validationState.last_name" :validationMessage="validationMessage.last_name" />
           <div class="lg:col-span-2">
-            <CInput
-              id="guest-purpose"
-              v-model="guest.notes"
-              type="text"
-              :label="t('guest.form.purposeOfVisit')"
-              placeholder="Enter purpose of visit"
-            />
+            <CInput id="guest-purpose" v-model="guest.notes" type="text" :label="t('guest.form.purposeOfVisit')"
+              :placeholder="t('Enter purpose of visit')" />
           </div>
         </div>
       </CStep>
       <!-- Step 3: Additional Information -->
       <CStep :title="t('Additional Information')" :validator="() => isAdditionalInfoStepValid">
         <div class="grid grid-cols-1 gap-4">
-          <CInput
-            id="guest-host-name"
-            v-model="guest.host_name"
-            type="text"
-            :label="t('guest.form.hostName')"
-          />
-          <CInput
-            id="guest-host-contact"
-            v-model="guest.host_contact"
-            type="text"
-            :label="t('guest.form.hostContact')"
-          />
+          <CInput id="guest-host-name" v-model="guest.host_name" type="text" :label="t('guest.form.hostName')" />
+          <CInput id="guest-host-contact" v-model="guest.host_contact" type="text"
+            :label="t('guest.form.hostContact')" />
           <div class="">
-            <CTextarea
-              id="guest-reminder"
-              v-model="guest.reminder"
-              :label="t('guest.form.enterInformationOrReminder')"
-              :rows="3"
-            />
+            <CTextarea id="guest-reminder" v-model="guest.reminder" :label="t('guest.form.enterInformationOrReminder')"
+              :rows="3" />
           </div>
         </div>
       </CStep>
@@ -202,79 +95,25 @@
       <!-- Step 4: Identification -->
       <CStep :title="t('Identification')" :validator="() => isIdentificationStepValid">
         <div class="grid grid-cols-1 gap-4">
-          <CSelect
-            id="guest-identification-type"
-            v-model="guest.identification_type"
-            :options="identificationOptions"
-            :label="t('guest.form.identificationType')"
-          />
-          <CInput
-            id="guest-identification-number"
-            v-model="guest.identification_number"
-            type="text"
-            :label="t('guest.form.identificationNumber')"
-          />
-          <CInput
-            id="guest-emergency-name"
-            v-model="guest.emergency_contact_name"
-            type="text"
-            :label="t('guest.form.emergencyName')"
-          />
-          <CInput
-            id="guest-emergency-phone"
-            v-model="guest.emergency_contact_phone"
-            type="tel"
-            :label="t('guest.form.emergencyPhone')"
-          />
+          <CSelect id="guest-identification-type" v-model="guest.identification_type" :options="identificationOptions"
+            :label="t('guest.form.identificationType')" />
+          <CInput id="guest-identification-number" v-model="guest.identification_number" type="text"
+            :label="t('guest.form.identificationNumber')" />
+          <CInput id="guest-emergency-name" v-model="guest.emergency_contact_name" type="text"
+            :label="t('guest.form.emergencyName')" />
+          <CInput id="guest-emergency-phone" v-model="guest.emergency_contact_phone" type="tel"
+            :label="t('guest.form.emergencyPhone')" />
         </div>
       </CStep>
 
-      <!-- Step 5: Payment -->
-      <CStep :title="t('Payment')" :validator="() => isPaymentStepValid">
-        <div class="flex flex-1 flex-col gap-2">
-          <div class="flex items-center gap-2">
-            <span class="text-sm font-medium">{{ t("Total Amount") }}</span> -
-            <span class="font-semibold text-gray-900"
-              >{{ guest.total_amount.toFixed(2) }} {{ currencySymbol }}</span
-            >
-          </div>
-          <CTextarea
-            id="dormitory-rules"
-            :label="t('Bank requisites')"
-            :model-value="settingsStore.publicSettings?.bank_requisites"
-            readonly
-            additionalClass="h-full flex-1"
-            wrapperClass="flex flex-col flex-1"
-          />
-          <CFileInput
-            id="guest-bank-paycheck"
-            :label="t('Bank Paycheck')"
-            required
-            :allowedExtensions="['jpg', 'jpeg', 'png', 'pdf']"
-            :maxFileSize="2 * 1024 * 1024"
-            :validation-message="validationMessage.bank_paycheck"
-            @change="(file) => (guest.bank_paycheck = file)"
-          />
-        </div>
-      </CStep>
       <!-- Step 6: Registration Status -->
       <CStep :title="t('Registration & Status')" :validator="() => isDormitoryRulesAccepted">
         <div class="flex h-full flex-1 flex-col gap-4">
-          <CTextarea
-            id="dormitory-rules"
-            :label="t('Dormitory Rules and Regulations')"
-            :model-value="settingsStore.publicSettings?.dormitory_rules"
-            readonly
-            additionalClass="h-full flex-1"
-            wrapperClass="flex flex-col flex-1"
-            fullscreen
-          />
-          <CCheckbox
-            id="registration-agree-rules"
-            v-model="guest.agree_to_dormitory_rules"
-            :label="t('I have read and agree to the Dormitory Rules and Regulations')"
-            required
-          />
+          <CTextarea id="dormitory-rules" :label="t('Dormitory Rules and Regulations')"
+            :model-value="settingsStore.publicSettings?.dormitory_rules" readonly additionalClass="h-full flex-1"
+            wrapperClass="flex flex-col flex-1" fullscreen />
+          <CCheckbox id="registration-agree-rules" v-model="guest.agree_to_dormitory_rules"
+            :label="t('I have read and agree to the Dormitory Rules and Regulations')" required />
         </div>
       </CStep>
     </CStepper>
@@ -288,6 +127,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useSettingsStore } from "@/stores/settings";
 import { useToast } from "@/composables/useToast";
 import { dormitoryService, roomService, resolvedBaseUrl } from "@/services/api";
+import api from "@/services/api";
 import CInput from "@/components/CInput.vue";
 import CButton from "@/components/CButton.vue";
 import CSelect from "@/components/CSelect.vue";
@@ -299,6 +139,7 @@ import CModal from "@/components/CModal.vue";
 import CRoomTypePhotos from "@/components/CRoomTypePhotos.vue";
 import CCheckbox from "@/components/CCheckbox.vue";
 import { getCurrencySymbol } from "@/utils/formatters";
+import { debounceHelper } from "@/utils/helpers";
 
 const emit = defineEmits<{
   (e: "registered", message: string): void;
@@ -310,6 +151,37 @@ const settingsStore = useSettingsStore();
 const { showError, showSuccess } = useToast();
 
 const currentStep = ref(0);
+const loadingEmailAvailability = ref(false);
+
+const checkEmailAvailability = async (email: string) => {
+  if (!email) {
+    validationState.value.email = "error";
+    validationMessage.value.email = t("Email is required.");
+    return;
+  }
+  // Prevent race condition if user changed input while debounce was waiting
+  if (email !== guest.value.email) return;
+
+  loadingEmailAvailability.value = true;
+  try {
+    const response = await api.get("/email/check-availability", { params: { email } });
+    if (response.data.is_available) {
+      validationState.value.email = "success";
+      validationMessage.value.email = "";
+    } else {
+      validationState.value.email = "error";
+      validationMessage.value.email = t("This email is already registered.");
+    }
+  } catch (error) {
+    console.error("Error checking email availability:", error);
+    validationState.value.email = "error";
+    validationMessage.value.email = t("Could not verify email availability.");
+  } finally {
+    loadingEmailAvailability.value = false;
+  }
+};
+
+const debouncedCheckEmailAvailability = debounceHelper(checkEmailAvailability, 500);
 
 const guest = ref({
   user_type: "guest",
@@ -339,10 +211,7 @@ const guest = ref({
   identification_number: "",
   emergency_contact_name: "",
   emergency_contact_phone: "",
-  // Step 6
-  total_amount: 0,
-  bank_paycheck: null as File | null,
-  // Step 7
+  // Step 6 (now 5)
   agree_to_dormitory_rules: false,
 });
 
@@ -362,15 +231,15 @@ const validationState = ref<Record<keyof typeof guest.value, ValidationState>>({
   notes: "",
   host_name: "",
   host_contact: "",
-  total_amount: "",
   reminder: "" as ValidationState,
-  bank_paycheck: "",
   identification_type: "",
   identification_number: "",
   emergency_contact_name: "",
   emergency_contact_phone: "",
   password: "",
   password_confirmation: "",
+  user_type: "",
+  agree_to_dormitory_rules: "",
 });
 const validationMessage = ref<Record<keyof typeof guest.value, string>>({
   gender: "",
@@ -387,27 +256,27 @@ const validationMessage = ref<Record<keyof typeof guest.value, string>>({
   notes: "",
   host_name: "",
   host_contact: "",
-  total_amount: "",
   reminder: "",
-  bank_paycheck: "",
   identification_type: "",
   identification_number: "",
   emergency_contact_name: "",
   emergency_contact_phone: "",
   password: "",
   password_confirmation: "",
+  user_type: "",
+  agree_to_dormitory_rules: "",
 });
 
-const genderOptions = [
-  { value: "male", name: "Male" },
-  { value: "female", name: "Female" },
-];
-const identificationOptions = [
-  { value: "passport", name: "Passport" },
-  { value: "national_id", name: "National ID" },
-  { value: "drivers_license", name: "Driver's License" },
-  { value: "other", name: "Other" },
-];
+const genderOptions = computed(() => [
+  { value: "male", name: t("Male") },
+  { value: "female", name: t("Female") },
+]);
+const identificationOptions = computed(() => [
+  { value: "passport", name: t("Passport") },
+  { value: "national_id", name: t("National ID") },
+  { value: "drivers_license", name: t("Driver's License") },
+  { value: "other", name: t("Other") },
+]);
 
 const currencySymbol = computed(() =>
   getCurrencySymbol(settingsStore.publicSettings?.currency_symbol)
@@ -427,6 +296,8 @@ const isRoomSelectionStepValid = computed(() => {
 const isAccountInfoStepValid = computed(() => {
   return (
     /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(guest.value.email) &&
+    validationState.value.email === "success" &&
+    !loadingEmailAvailability.value &&
     !!guest.value.phone.trim() &&
     !!guest.value.password &&
     guest.value.password === guest.value.password_confirmation
@@ -437,7 +308,6 @@ const isPersonalInfoStepValid = computed(() => {
 });
 const isAdditionalInfoStepValid = computed(() => true); // No required fields
 const isIdentificationStepValid = computed(() => true); // No required fields
-const isPaymentStepValid = computed(() => !!guest.value.bank_paycheck);
 const isDormitoryRulesAccepted = computed(() => !!guest.value.agree_to_dormitory_rules);
 
 // --- Data Fetching ---
@@ -465,13 +335,10 @@ const roomTypeOptions = computed(() => {
       });
     }
   });
-  return Array.from(roomTypes, ([id, { name, daily_rate }]) => {
-    const priceString =
-      daily_rate != null
-        ? ` - ${Math.round(parseFloat(daily_rate))} ${currencySymbol.value}/${t("day")}`
-        : "";
-    return { value: id, name: `${name}${priceString}` };
-  });
+  return Array.from(roomTypes, ([id, { name }]) => ({
+    value: id,
+    name: name,
+  }));
 });
 
 const roomOptions = computed(() => {
@@ -488,7 +355,12 @@ const bedOptions = computed(() => {
   const selectedRoom = availableRooms.value.find((r) => r.id === guest.value.room_id);
   if (!selectedRoom) return [];
   return availableBeds.value.map((b) => {
-    return { value: b.id, name: `${selectedRoom.number}-${b.bed_number}` };
+    const dailyRate = selectedRoom.room_type?.daily_rate;
+    const priceString =
+      dailyRate != null
+        ? ` - ${Math.round(parseFloat(dailyRate))} ${currencySymbol.value}/${t("day")}`
+        : "";
+    return { value: b.id, name: `${selectedRoom.number}-${b.bed_number}${priceString}` };
   });
 });
 
@@ -556,7 +428,6 @@ watch(
   async ([roomId, checkIn, checkOut]) => {
     guest.value.bed_id = undefined;
     availableBeds.value = [];
-    guest.value.total_amount = 0;
 
     if (!roomId || !checkIn || !checkOut || new Date(checkOut) <= new Date(checkIn)) {
       return;
@@ -579,27 +450,6 @@ watch(
   }
 );
 
-// Watch for changes that affect the total amount
-watch(
-  [() => guest.value.room_id, () => guest.value.check_in_date, () => guest.value.check_out_date],
-  ([roomId, checkIn, checkOut]) => {
-    const selectedRoom = availableRooms.value.find((room) => room.id === roomId);
-    if (
-      selectedRoom?.room_type?.daily_rate &&
-      checkIn &&
-      checkOut &&
-      new Date(checkOut) > new Date(checkIn)
-    ) {
-      const startDate = new Date(checkIn);
-      const endDate = new Date(checkOut);
-      const timeDiff = endDate.getTime() - startDate.getTime();
-      const days = Math.ceil(timeDiff / (1000 * 3600 * 24));
-      guest.value.total_amount = days > 0 ? days * selectedRoom.room_type.daily_rate : 0;
-    } else {
-      guest.value.total_amount = 0;
-    }
-  }
-);
 
 const handleGuestRegistration = async () => {
   // Reset validation
@@ -609,13 +459,19 @@ const handleGuestRegistration = async () => {
   });
 
   try {
+    if (validationState.value.email === "error") {
+      showError(t("Please fix the errors in the form before submitting."));
+      return;
+    }
+
     const formData = new FormData();
     Object.entries(guest.value).forEach(([key, value]) => {
       if (value !== null && value !== undefined) formData.append(key, value as string | Blob);
     });
     const response = await authStore.register(formData);
-    showSuccess(response?.message || t("Guest registration successful"));
-    emit("registered", response?.message || t("Guest registration successful"));
+    // t('Registration successful. Please log in and make due payments.')
+    showSuccess(response?.message ? t(response.message) : t("Guest registration successful"));
+    emit("registered", response?.message ? t(response.message) : t("Guest registration successful"));
   } catch (error: any) {
     const response = error.response;
     if (response?.status === 422 && response.data?.errors) {
@@ -627,13 +483,14 @@ const handleGuestRegistration = async () => {
         check_in_date: 0,
         check_out_date: 0,
         dormitory_id: 0,
-        room_type_id: 0,
         room_id: 0,
         bed_id: 0,
-        first_name: 1,
-        last_name: 1,
         phone: 1,
         email: 1,
+        password: 1,
+        password_confirmation: 1,
+        first_name: 2,
+        last_name: 2,
       };
 
       let firstErrorStep = -1;

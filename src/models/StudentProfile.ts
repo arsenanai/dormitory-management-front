@@ -22,7 +22,6 @@ export interface StudentProfile {
   nationality?: string;
   deal_number?: string;
   agree_to_dormitory_rules?: boolean;
-  has_meal_plan?: boolean;
   registration_limit_reached?: boolean;
   is_backup_list?: boolean;
   date_of_birth?: string;

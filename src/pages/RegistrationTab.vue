@@ -1,33 +1,21 @@
 <template>
-  <form
-    @submit.prevent="handleRegistration"
-    novalidate
-    class="flex h-full min-h-[60vh] flex-col items-stretch"
-  >
+  <form @submit.prevent="handleRegistration" novalidate class="flex h-full min-h-[60vh] flex-col items-stretch">
     <CStepper v-model="currentStep" @finish="handleRegistration">
       <!-- Step 1: Gender -->
       <CStep :title="t('Gender')" :validator="() => isGenderStepValid">
         <div class="grid grid-cols-1 gap-2">
           <div class="flex items-start gap-4">
             <div v-if="user.student_profile" class="flex-grow">
-              <CSelect
-                id="registration-gender"
-                v-model="user.student_profile.gender"
-                :options="genderOptions"
-                :label="t('Gender')"
-                required
-                :validationState="registrationValidationState.gender"
-                :validationMessage="registrationValidationMessage.gender"
-              />
+              <CSelect id="registration-gender" v-model="user.student_profile.gender" :options="genderOptions"
+                :label="t('Gender')" required :validationState="registrationValidationState.gender"
+                :validationMessage="registrationValidationMessage.gender" />
             </div>
           </div>
           <div v-if="loadingDormitories" class="mt-8 flex justify-center">
             <div class="border-primary-500 h-5 w-5 animate-spin rounded-full border-b-2"></div>
           </div>
-          <div
-            v-if="user.student_profile?.gender && !hasAvailableDormitories && !loadingDormitories"
-            class="p-4 text-center text-red-500"
-          >
+          <div v-if="user.student_profile?.gender && !hasAvailableDormitories && !loadingDormitories"
+            class="p-4 text-center text-red-500">
             {{ t("No Dormitories are available for selected gender at this time.") }}
           </div>
         </div>
@@ -36,18 +24,9 @@
       <!-- Step 2: Account -->
       <CStep :title="t('Account')" :validator="() => isAccountStepValid">
         <div v-if="user.student_profile" class="grid grid-cols-1 gap-4">
-          <CInput
-            id="registration-iin"
-            v-model="user.student_profile.iin"
-            type="search"
-            :label="t('IIN')"
-            required
-            :loading="loadingIinAvailability"
-            :validationState="registrationValidationState.iin"
-            :validationMessage="registrationValidationMessage.iin"
-            pattern="\d{12}"
-            minlength="12"
-            maxlength="12"
+          <CInput id="registration-iin" v-model="user.student_profile.iin" type="search" :label="t('IIN')" required
+            :loading="loadingIinAvailability" :validationState="registrationValidationState.iin"
+            :validationMessage="registrationValidationMessage.iin" pattern="\d{12}" minlength="12" maxlength="12"
             @validation="({ valid, message }) => {
               if (valid && user.student_profile.iin.length === 12) {
                 registrationValidationState.iin = '';
@@ -56,19 +35,11 @@
                 registrationValidationState.iin = valid ? 'success' : 'error';
                 registrationValidationMessage.iin = message;
               }
-            }"
-          />
-          <CInput
-            id="registration-email"
-            v-model="user.email"
-            type="email"
-            :label="t('Login Email')"
-            :placeholder="emailPlaceholder"
-            required
-            :loading="loadingEmailAvailability"
+            }" />
+          <CInput id="registration-email" v-model="user.email" type="email" :label="t('Login Email')"
+            :placeholder="emailPlaceholder" required :loading="loadingEmailAvailability"
             :validationState="registrationValidationState.email"
-            :validationMessage="registrationValidationMessage.email"
-            @validation="
+            :validationMessage="registrationValidationMessage.email" @validation="
               ({ valid, message }) => {
                 if (valid && user.email) {
                   registrationValidationState.email = '';
@@ -78,81 +49,31 @@
                   registrationValidationMessage.email = message;
                 }
               }
-            "
-          />
-          <CInput
-            id="registration-password"
-            v-model="user.password"
-            type="password"
-            :label="t('Password')"
-            required
+            " />
+          <CInput id="registration-password" v-model="user.password" type="password" :label="t('Password')" required
             :validationState="registrationValidationState.password"
-            :validationMessage="registrationValidationMessage.password"
-            pattern=".{6,}"
-          />
-          <CInput
-            id="registration-confirm-password"
-            v-model="user.password_confirmation"
-            type="password"
-            :label="t('Confirm Password')"
-            required
-            :validationState="registrationValidationState.confirm_password"
-            :validationMessage="registrationValidationMessage.confirm_password"
-            pattern=".{6,}"
-          />
+            :validationMessage="registrationValidationMessage.password" pattern=".{6,}" />
+          <CInput id="registration-confirm-password" v-model="user.password_confirmation" type="password"
+            :label="t('Confirm Password')" required :validationState="registrationValidationState.confirm_password"
+            :validationMessage="registrationValidationMessage.confirm_password" pattern=".{6,}" />
         </div>
       </CStep>
 
       <!-- Step 3: Personal Details -->
       <CStep :title="t('Personal Information')" :validator="() => isPersonalDetailsStepValid">
-        <div
-          v-if="user.student_profile"
-          class="grid grid-cols-1 gap-4"
-          data-testid="personal-info-step"
-        >
-          <CInput
-            id="registration-first-name"
-            v-model="user.first_name"
-            type="text"
-            :label="t('Name')"
-            :placeholder="t('Enter Name')"
-            required
-            :validationState="registrationValidationState.first_name"
-            :validationMessage="registrationValidationMessage.first_name"
-          />
-          <CInput
-            id="registration-last-name"
-            v-model="user.last_name"
-            type="text"
-            :label="t('Surname')"
-            :placeholder="t('Enter Surname')"
-            required
-            :validationState="registrationValidationState.last_name"
-            :validationMessage="registrationValidationMessage.last_name"
-          />
-          <CInput
-            id="registration-country"
-            v-model="user.student_profile.country"
-            type="text"
-            :label="t('Country')"
-            :placeholder="t('Enter Country')"
-          />
-          <CInput
-            id="registration-region"
-            v-model="user.student_profile.region"
-            type="text"
-            :label="t('Region')"
-            :placeholder="t('Enter Region')"
-            :disabled="!user.student_profile.country"
-          />
-          <CInput
-            id="registration-city"
-            v-model="user.student_profile.city"
-            type="text"
-            :label="t('City')"
-            :placeholder="t('Enter City')"
-            :disabled="!user.student_profile.region"
-          />
+        <div v-if="user.student_profile" class="grid grid-cols-1 gap-4" data-testid="personal-info-step">
+          <CInput id="registration-first-name" v-model="user.first_name" type="text" :label="t('Name')"
+            :placeholder="t('Enter Name')" required :validationState="registrationValidationState.first_name"
+            :validationMessage="registrationValidationMessage.first_name" />
+          <CInput id="registration-last-name" v-model="user.last_name" type="text" :label="t('Surname')"
+            :placeholder="t('Enter Surname')" required :validationState="registrationValidationState.last_name"
+            :validationMessage="registrationValidationMessage.last_name" />
+          <CInput id="registration-country" v-model="user.student_profile.country" type="text" :label="t('Country')"
+            :placeholder="t('Enter Country')" />
+          <CInput id="registration-region" v-model="user.student_profile.region" type="text" :label="t('Region')"
+            :placeholder="t('Enter Region')" :disabled="!user.student_profile.country" />
+          <CInput id="registration-city" v-model="user.student_profile.city" type="text" :label="t('City')"
+            :placeholder="t('Enter City')" :disabled="!user.student_profile.region" />
         </div>
       </CStep>
 
@@ -161,32 +82,15 @@
         <div class="lg:col-span-2">
           <div class="flex flex-col items-stretch gap-2 lg:flex-row lg:items-end">
             <div v-if="user.phone_numbers" class="flex flex-col items-stretch gap-2">
-              <div
-                v-for="(phone, index) in user.phone_numbers"
-                :key="index"
-                class="flex items-center gap-2"
-              >
-                <CInput
-                  :id="`phone-number-${index}`"
-                  v-model="user.phone_numbers[index]"
-                  type="tel"
-                  :placeholder="t('Enter Phone Number')"
-                  class="flex-grow"
-                />
-                <CButton
-                  type="button"
-                  v-if="user.phone_numbers.length > 1"
-                  @click="removePhoneField(index)"
-                  class="py-2.5"
-                >
+              <div v-for="(phone, index) in user.phone_numbers" :key="index" class="flex items-center gap-2">
+                <CInput :id="`phone-number-${index}`" v-model="user.phone_numbers[index]" type="tel"
+                  :placeholder="t('Enter Phone Number')" class="flex-grow" />
+                <CButton type="button" v-if="user.phone_numbers.length > 1" @click="removePhoneField(index)"
+                  class="py-2.5">
                   <TrashIcon class="h-5 w-5 text-red-600" />
                 </CButton>
-                <CButton
-                  type="button"
-                  @click="addPhoneField"
-                  class="py-2.5"
-                  v-if="index === user.phone_numbers.length - 1 && user.phone_numbers.length < 3"
-                >
+                <CButton type="button" @click="addPhoneField" class="py-2.5"
+                  v-if="index === user.phone_numbers.length - 1 && user.phone_numbers.length < 3">
                   <PlusIcon class="h-5 w-5" />
                 </CButton>
               </div>
@@ -197,117 +101,49 @@
 
       <!-- Step 5: Emergency Contact -->
       <CStep :title="t('Emergency Contact')" :validator="() => isEmergencyContactStepValid">
-        <div
-          v-if="user.student_profile"
-          class="grid grid-cols-1 gap-4"
-          data-testid="emergency-contact-step"
-        >
-          <CInput
-            id="registration-emergency-name"
-            v-model="user.student_profile.emergency_contact_name"
-            type="text"
-            :label="t('Emergency Contact Name')"
-            :placeholder="t('Enter Emergency Contact Name')"
-          />
-          <CSelect
-            id="registration-emergency-type"
-            v-model="user.student_profile.emergency_contact_type"
-            :options="emergencyContactTypeOptions"
-            :label="t('Emergency Contact Type')"
-          />
-          <CInput
-            id="registration-emergency-phone"
-            v-model="user.student_profile.emergency_contact_phone"
-            type="tel"
-            :label="t('Emergency Contact Phone')"
-            :placeholder="t('Enter Emergency Contact Phone')"
-          />
-          <CInput
-            id="registration-emergency-email"
-            v-model="user.student_profile.emergency_contact_email"
-            type="email"
-            :label="t('Emergency Contact Email')"
-            :placeholder="t('Enter Emergency Contact Email')"
-          />
-          <CSelect
-            id="registration-identification-type"
-            v-model="user.student_profile.identification_type"
-            :options="identificationOptions"
-            :label="t('Identification Type')"
-            required
-          />
-          <CInput
-            id="registration-identification-number"
-            v-model="user.student_profile.identification_number"
-            type="text"
-            :label="t('Identification Number')"
-            :placeholder="t('Enter Identification Number')"
-            required
-          />
+        <div v-if="user.student_profile" class="grid grid-cols-1 gap-4" data-testid="emergency-contact-step">
+          <CInput id="registration-emergency-name" v-model="user.student_profile.emergency_contact_name" type="text"
+            :label="t('Emergency Contact Name')" :placeholder="t('Enter Emergency Contact Name')" />
+          <CSelect id="registration-emergency-type" v-model="user.student_profile.emergency_contact_type"
+            :options="emergencyContactTypeOptions" :label="t('Emergency Contact Type')" />
+          <CInput id="registration-emergency-phone" v-model="user.student_profile.emergency_contact_phone" type="tel"
+            :label="t('Emergency Contact Phone')" :placeholder="t('Enter Emergency Contact Phone')" />
+          <CInput id="registration-emergency-email" v-model="user.student_profile.emergency_contact_email" type="email"
+            :label="t('Emergency Contact Email')" :placeholder="t('Enter Emergency Contact Email')" />
+          <CSelect id="registration-identification-type" v-model="user.student_profile.identification_type"
+            :options="identificationOptions" :label="t('Identification Type')" required />
+          <CInput id="registration-identification-number" v-model="user.student_profile.identification_number"
+            type="text" :label="t('Identification Number')" :placeholder="t('Enter Identification Number')" required />
         </div>
       </CStep>
 
       <!-- Step 6: Health Information -->
       <CStep :title="t('Health Information')" :validator="() => isHealthInfoStepValid">
         <div v-if="user.student_profile" class="grid grid-cols-1 gap-4">
-          <CSelect
-            id="registration-blood-type"
-            v-model="user.student_profile.blood_type"
-            :options="bloodTypeOptions"
-            :label="t('Blood Type')"
-          />
-          <CInput
-            id="registration-allergies"
-            v-model="user.student_profile.allergies"
-            type="text"
-            :label="t('Allergies')"
-            :placeholder="t('Enter Allergies (if any)')"
-          />
-          <CInput
-            id="registration-violations"
-            v-model="user.student_profile.violations"
-            type="text"
-            :label="t('Violations')"
-            :placeholder="t('Enter Violations (if any)')"
-          />
+          <CSelect id="registration-blood-type" v-model="user.student_profile.blood_type" :options="bloodTypeOptions"
+            :label="t('Blood Type')" />
+          <CInput id="registration-allergies" v-model="user.student_profile.allergies" type="text"
+            :label="t('Allergies')" :placeholder="t('Enter Allergies (if any)')" />
+          <CInput id="registration-violations" v-model="user.student_profile.violations" type="text"
+            :label="t('Violations')" :placeholder="t('Enter Violations (if any)')" />
         </div>
       </CStep>
 
       <!-- Step 7: Educational Information -->
       <CStep :title="t('Educational Information')" :validator="() => isEducationalInfoStepValid">
         <div class="grid grid-cols-1 gap-4">
-          <CInput
-            v-if="user.student_profile"
-            id="registration-faculty"
-            v-model="user.student_profile.faculty"
-            type="text"
-            :label="t('Faculty')"
-            :placeholder="t('Enter Faculty Name')"
-            required
+          <CInput v-if="user.student_profile" id="registration-faculty" v-model="user.student_profile.faculty"
+            type="text" :label="t('Faculty')" :placeholder="t('Enter Faculty Name')" required
             :validationState="registrationValidationState.faculty"
-            :validationMessage="registrationValidationMessage.faculty"
-          />
-          <CInput
-            v-if="user.student_profile"
-            id="registration-specialist"
-            v-model="user.student_profile.specialist"
-            type="text"
-            :label="t('Specialty')"
-            :placeholder="t('Enter Specialty/Program Name')"
-            required
+            :validationMessage="registrationValidationMessage.faculty" />
+          <CInput v-if="user.student_profile" id="registration-specialist" v-model="user.student_profile.specialist"
+            type="text" :label="t('Specialty')" :placeholder="t('Enter Specialty/Program Name')" required
             :validationState="registrationValidationState.specialist"
-            :validationMessage="registrationValidationMessage.specialist"
-          />
-          <CInput
-            v-if="user.student_profile"
-            id="registration-enrollment-year"
-            v-model="user.student_profile.enrollment_year"
-            type="number"
-            :label="t('Enrollment Year')"
-            required
+            :validationMessage="registrationValidationMessage.specialist" />
+          <CInput v-if="user.student_profile" id="registration-enrollment-year"
+            v-model="user.student_profile.enrollment_year" type="number" :label="t('Enrollment Year')" required
             :validationState="registrationValidationState.enrollment_year"
-            :validationMessage="registrationValidationMessage.enrollment_year"
-          />
+            :validationMessage="registrationValidationMessage.enrollment_year" />
         </div>
       </CStep>
 
@@ -315,44 +151,21 @@
       <CStep :title="t('Accommodation')" :validator="() => isAccommodationStepValid">
         <div class="grid grid-cols-1 gap-4">
           <div>
-            <CSelect
-              id="registration-dormitory"
-              v-model="user.dormitory_id"
-              :options="filteredDormitoryOptions"
-              :label="t('Select Dormitory')"
-              required
-              :disabled="!user.student_profile?.gender"
-              :placeholder="
-                filteredDormitoryOptions.length === 0
-                  ? t('No Dormitories are available for selected gender')
-                  : t('Select Dormitory')
-              "
-              :validationState="registrationValidationState.dormitory"
-              :validationMessage="registrationValidationMessage.dormitory"
-            />
+            <CSelect id="registration-dormitory" v-model="user.dormitory_id" :options="filteredDormitoryOptions"
+              :label="t('Select Dormitory')" required :disabled="!user.student_profile?.gender" :placeholder="filteredDormitoryOptions.length === 0
+                ? t('No Dormitories are available for selected gender')
+                : t('Select Dormitory')
+                " :validationState="registrationValidationState.dormitory"
+              :validationMessage="registrationValidationMessage.dormitory" />
           </div>
           <div class="grid grid-cols-2 gap-4">
-            <CSelect
-              id="registration-room"
-              data-testid="registration-room"
-              v-model="user.room_id"
-              :options="roomOptions"
-              :label="t('Select Room')"
-              :disabled="!user.dormitory_id || loadingRooms"
+            <CSelect id="registration-room" data-testid="registration-room" v-model="user.room_id"
+              :options="roomOptions" :label="t('Select Room')" :disabled="!user.dormitory_id || loadingRooms"
               :validationState="registrationValidationState.room"
-              :validationMessage="registrationValidationMessage.room"
-              required
-            />
-            <CSelect
-              id="registration-bed"
-              v-model="user.bed_id"
-              :options="bedOptions"
-              :label="t('Bed')"
-              :disabled="!user.room_id || loadingBeds"
-              :validationState="registrationValidationState.bed"
-              :validationMessage="registrationValidationMessage.bed"
-              required
-            />
+              :validationMessage="registrationValidationMessage.room" required />
+            <CSelect id="registration-bed" v-model="user.bed_id" :options="bedOptions" :label="t('Bed')"
+              :disabled="!user.room_id || loadingBeds" :validationState="registrationValidationState.bed"
+              :validationMessage="registrationValidationMessage.bed" required />
             <div v-if="loadingBeds" class="mt-1 flex justify-center text-sm text-gray-500">
               <span>{{ t("Loading beds...") }}</span>
             </div>
@@ -367,80 +180,27 @@
       <CStep :title="t('Documents')" :validator="() => isDocumentsStepValid">
         <div class="grid grid-cols-1 gap-4">
           <div v-for="(fileLabel, index) in registrationFileLabels" :key="index">
-            <CFileInput
-              :id="`registration-file-${index}`"
-              :name="fileLabel"
-              :label="t(fileLabel)"
-              :allowedExtensions="
-                index === 2 ? ['jpg', 'jpeg', 'png'] : ['jpg', 'jpeg', 'png', 'pdf']
-              "
-              :maxFileSize="2 * 1024 * 1024"
-              :validation-message="registrationValidationMessage.files[index]"
-              :accept="index === 2 ? 'image/*' : undefined"
-              data-testid="file-input"
+            <CFileInput :id="`registration-file-${index}`" :name="fileLabel" :label="t(fileLabel)" :allowedExtensions="index === 2 ? ['jpg', 'jpeg', 'png'] : ['jpg', 'jpeg', 'png', 'pdf']
+              " :maxFileSize="2 * 1024 * 1024" :validation-message="registrationValidationMessage.files[index]"
+              :accept="index === 2 ? 'image/*' : undefined" data-testid="file-input"
               @validation="({ valid }) => (fileValidationStatus[index] = valid)"
-              @change="(file) => updateRegistrationFileInput(index, file)"
-            />
+              @change="(file) => updateRegistrationFileInput(index, file)" />
             <p v-if="index === 2" class="mt-1 text-sm text-gray-500">
               {{ t("Please upload a 3x4 cm photo in JPG or PNG format") }}
             </p>
           </div>
-          <CCheckbox
-            v-if="user.student_profile"
-            id="registration-has-meal-plan"
-            v-model="user.student_profile.has_meal_plan"
-            :label="t('Has Meal Plan')"
-          />
         </div>
       </CStep>
 
-      <!-- Step 10: Payment -->
-      <CStep :title="t('Payment')" :validator="() => isPaymentStepValid">
-        <div class="grid grid-cols-1 gap-4">
-          <label class="font-semibold"
-            >{{ t("Total") }}: {{ selectedRoomPrice }}
-            {{ settingsStore.publicSettings?.currency_symbol }}</label
-          >
-          <CTextarea
-            id="bank-requisites"
-            :label="t('Bank requisites')"
-            :model-value="settingsStore.publicSettings?.bank_requisites"
-            readonly
-            additionalClass="h-full flex-1"
-            wrapperClass="flex flex-col flex-1"
-          />
-          <CFileInput
-            :id="`payment-file`"
-            :name="t('Bank Check')"
-            :label="t('Bank Check')"
-            :allowedExtensions="['jpg', 'jpeg', 'png', 'pdf']"
-            :maxFileSize="2 * 1024 * 1024"
-            :validation-message="registrationValidationMessage.payment_check"
-            data-testid="file-input"
-            @validation="({ valid }) => (registrationValidationState.payment_check = valid)"
-            @change="(file) => updatePaymentCheckInput(file)"
-          />
-        </div>
-      </CStep>
 
       <!-- Step 11: Registration Status -->
       <CStep :title="t('Registration & Status')" :validator="() => isRegistrationStatusStepValid">
         <div v-if="user.student_profile" class="flex h-full flex-1 flex-col gap-4">
-          <CTextarea
-            id="dormitory-rules"
-            :label="t('Dormitory Rules and Regulations')"
-            :model-value="settingsStore.publicSettings?.dormitory_rules"
-            readonly
-            additionalClass="h-full flex-1"
-            wrapperClass="flex flex-col flex-1"
-            fullscreen
-          />
-          <CCheckbox
-            id="registration-agree-rules"
-            v-model="user.student_profile.agree_to_dormitory_rules"
-            :label="t('I have read and agree to the Dormitory Rules and Regulations')"
-            required
-          />
+          <CTextarea id="dormitory-rules" :label="t('Dormitory Rules and Regulations')"
+            :model-value="settingsStore.publicSettings?.dormitory_rules" readonly additionalClass="h-full flex-1"
+            wrapperClass="flex flex-col flex-1" fullscreen />
+          <CCheckbox id="registration-agree-rules" v-model="user.student_profile.agree_to_dormitory_rules"
+            :label="t('I have read and agree to the Dormitory Rules and Regulations')" required />
         </div>
       </CStep>
     </CStepper>
@@ -514,13 +274,9 @@ const user = ref<Partial<User>>({
     identification_type: "",
     identification_number: "",
     agree_to_dormitory_rules: false,
-    has_meal_plan: false,
     allergies: "",
     violations: "",
     files: [null, null, null], // Files belong to the profile (063 Form, 075 Form, Profile Picture)
-  },
-  payment: {
-    payment_check: null,
   },
 });
 
@@ -618,7 +374,7 @@ const debouncedCheckEmailAvailability = debounceHelper(checkEmailAvailability, 5
 // Add after email availability check
 const checkIinAvailability = async (iin: string) => {
   if (!iin || iin.length !== 12) return;
-  
+
   // Prevent race condition if user changed input while debounce was waiting
   if (iin !== user.value.student_profile?.iin) return;
 
@@ -651,7 +407,6 @@ const handleRegistration = async () => {
     (key) => (registrationValidationMessage.value[key] = "")
   );
   registrationValidationMessage.value.files = [];
-  registrationValidationMessage.value.payment_check = "";
 
   let hasError = !isRegistrationStatusStepValid.value;
   const setErr = (field: keyof typeof registrationValidationState.value, msg: string) => {
@@ -747,7 +502,8 @@ const handleRegistration = async () => {
         t("Registration limit reached. You have been added to the reserve list.")
       );
     } else {
-      emit("registered", response?.message || t("Registration successful"));
+      // t('Registration successful. Please log in and make due payments.')
+      emit("registered", response?.message ? t(response.message) : t("Registration successful"));
     }
   } catch (error: unknown) {
     //NOSONAR
@@ -789,7 +545,6 @@ const handleRegistration = async () => {
         bed_id: 6,
         "student_profile.files": 7,
         "student_profile.agree_to_dormitory_rules": 8,
-        "payment.payment_check": 9,
       };
 
       let firstErrorStep = -1;
@@ -804,15 +559,6 @@ const handleRegistration = async () => {
             registrationValidationMessage.value.files[index] = message;
           }
           const step = fieldToStepMap["student_profile.files"];
-          if (step !== undefined && (firstErrorStep === -1 || step < firstErrorStep)) {
-            firstErrorStep = step;
-          }
-          // Handle single file input error: "payment.payment_check"
-        } else if (serverKey === "payment.payment_check") {
-          if (registrationValidationMessage.value.payment) {
-            registrationValidationMessage.value.payment.payment_check = message;
-          }
-          const step = fieldToStepMap["payment.payment_check"] ?? fieldToStepMap["payment"];
           if (step !== undefined && (firstErrorStep === -1 || step < firstErrorStep)) {
             firstErrorStep = step;
           }
@@ -860,31 +606,22 @@ const updateRegistrationFileInput = (index: number, fileOrEvent: File | Event | 
   }
 };
 
-const updatePaymentCheckInput = (fileOrEvent: File | Event | null) => {
-  const file =
-    fileOrEvent instanceof File
-      ? fileOrEvent
-      : ((fileOrEvent as Event)?.target as HTMLInputElement)?.files?.[0] || null;
-  if (user.value.payment) {
-    user.value.payment.payment_check = file;
-  }
-};
 
-const genderOptions = [
-  { value: "male", name: "Male" },
-  { value: "female", name: "Female" },
-];
+const genderOptions = computed(() => [
+  { value: "male", name: t("Male") },
+  { value: "female", name: t("Female") },
+]);
 const emergencyContactTypeOptions = [
   { value: "parent", name: t("Parent") },
   { value: "guardian", name: t("Guardian") },
   { value: "other", name: t("Other") },
 ];
-const identificationOptions = [
-  { value: "passport", name: "Passport" },
-  { value: "national_id", name: "National ID" },
-  { value: "drivers_license", name: "Driver's License" },
-  { value: "other", name: "Other" },
-];
+const identificationOptions = computed(() => [
+  { value: "passport", name: t("Passport") },
+  { value: "national_id", name: t("National ID") },
+  { value: "drivers_license", name: t("Driver's License") },
+  { value: "other", name: t("Other") },
+]);
 const bloodTypeOptions = [
   { value: "A+", name: "A+" },
   { value: "A-", name: "A-" },
@@ -1005,20 +742,6 @@ const isDocumentsStepValid = computed(() => {
   return fileValidationStatus.value.every((isValid) => isValid);
 });
 
-// Step 10: Payment Check
-const isPaymentStepValid = computed(() => {
-  // validate file input here
-  if (!user.value.payment) return false;
-  if (!user.value.payment.payment_check) return false;
-  if (!(user.value.payment.payment_check instanceof File)) return false;
-  if (user.value.payment.payment_check.size === 0) return false;
-  if (user.value.payment.payment_check.size > 2 * 1024 * 1024) return false;
-  const allowedExtensions = ["jpg", "jpeg", "png", "pdf"];
-  const fileExtension = user.value.payment.payment_check.name.split(".").pop()?.toLowerCase();
-
-  if (!allowedExtensions.includes(fileExtension)) return false;
-  return true;
-});
 // Step 11: Registration & Status
 const isRegistrationStatusStepValid = computed(() => {
   return !!user.value.student_profile?.agree_to_dormitory_rules;

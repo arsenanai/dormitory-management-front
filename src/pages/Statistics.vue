@@ -5,37 +5,20 @@
       {{ dashboardStore.error }}
     </div>
     <div v-else class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-      <div
-        v-for="(card, index) in visibleCards"
-        :key="index"
-        :class="
-          card.bgClass +
-          ' flex flex-row justify-between gap-2 rounded-lg p-2 text-center shadow lg:flex-col lg:justify-center lg:gap-4 lg:p-6'
-        "
-      >
+      <div v-for="(card, index) in visibleCards" :key="index" :class="card.bgClass +
+        ' flex flex-row justify-between gap-2 rounded-lg p-2 text-center shadow lg:flex-col lg:justify-center lg:gap-4 lg:p-6'
+        ">
         <div class="flex flex-col items-center justify-center">
-          <div
-            :class="card.iconBgClass + ' flex items-center justify-center rounded-full p-2 lg:p-4'"
-          >
-            <component
-              :is="card.icon"
-              class="h-4 w-4 lg:h-8 lg:w-8 xl:h-12 xl:w-12"
-              :class="card.iconTextClass"
-            />
+          <div :class="card.iconBgClass + ' flex items-center justify-center rounded-full p-2 lg:p-4'">
+            <component :is="card.icon" class="h-4 w-4 lg:h-8 lg:w-8 xl:h-12 xl:w-12" :class="card.iconTextClass" />
           </div>
         </div>
-        <div
-          class="flex flex-1 flex-row items-center justify-between gap-2 lg:flex-none lg:flex-col lg:gap-4"
-        >
-          <h3
-            :class="card.textClass"
-            class="xl:text-xxl order-2 text-base font-semibold lg:order-1 lg:text-xl lg:font-extrabold"
-          >
+        <div class="flex flex-1 flex-row items-center justify-between gap-2 lg:flex-none lg:flex-col lg:gap-4">
+          <h3 :class="card.textClass"
+            class="xl:text-xxl order-2 text-base font-semibold lg:order-1 lg:text-xl lg:font-extrabold">
             {{ card.value }}
           </h3>
-          <p
-            class="lg:text-md order-1 truncate text-sm font-medium text-blue-950 lg:order-2 xl:text-lg"
-          >
+          <p class="lg:text-md order-1 truncate text-sm font-medium text-blue-950 lg:order-2 xl:text-lg">
             {{ card.description }}
           </p>
         </div>
@@ -132,6 +115,7 @@ const cards = computed(() => [
     iconBgClass: "bg-purple-100",
     iconTextClass: "text-purple-600",
   },
+  // TODO: meal calculation will change
   {
     value: dashboardStore.stats.mealPaying || 0,
     description: t("Meal paying students"),

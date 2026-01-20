@@ -433,6 +433,7 @@
   "Registration is closed. Student limit reached.": "Registration is closed. Student limit reached.",
   "Registration limit reached. You have been added to the reserve list.": "Registration limit reached. You have been added to the reserve list.",
   "Registration successful": "Registration successful",
+  "Registration successful. Please log in and make due payments.": "Registration successful. Please log in and make due payments.",
   "Rejected": "Rejected",
   "Remove": "Remove",
   "Remove Bed": "Remove Bed",
@@ -628,7 +629,6 @@
   "This field is required.": "This field is required.",
   "Invalid format.": "Invalid format.",
   "Please enter exactly 12 digits.": "Please enter exactly 12 digits.",
-  "Invalid email format.": "Invalid email format.",
   "Invalid number.": "Invalid number.",
   "Please enter at least {length} characters.": "Please enter at least {length} characters.",
   "Please enter at most {length} characters.": "Please enter at most {length} characters.",
@@ -638,5 +638,10 @@
   "This email is already registered.": "This email is already registered.",
   "Could not verify email availability.": "Could not verify email availability.",
   "This IIN is already registered.": "This IIN is already registered.",
-  "Could not verify IIN availability.": "Could not verify IIN availability."
+  "Could not verify IIN availability.": "Could not verify IIN availability.",
+  "Passport": "Passport",
+  "National ID": "National ID",
+  "Driver's License": "Driver's License",
+  "Enter purpose of visit": "Enter purpose of visit",
+  "The number has already been taken.": "The number has already been taken."
 }

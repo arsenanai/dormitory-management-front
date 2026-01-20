@@ -435,6 +435,7 @@
   "Registration is closed. Student limit reached.": "Регистрация закрыта. Достигнут лимит студентов.",
   "Registration limit reached. You have been added to the reserve list.": "Достигнут лимит регистрации. Вы добавлены в резервный список.",
   "Registration successful": "Регистрация успешно завершена!",
+  "Registration successful. Please log in and make due payments.": "Регистрация прошла успешно. Пожалуйста, войдите в систему и произведите необходимые платежи.",
   "Rejected": "Отклонено",
   "Remove": "Удалить",
   "Remove Bed": "Удалить кровать",
@@ -629,5 +630,9 @@
   "This email is already registered.": "Этот email уже зарегистрирован.",
   "Could not verify email availability.": "Не удалось проверить доступность email.",
   "This IIN is already registered.": "Этот ИИН уже зарегистрирован.",
-  "Could not verify IIN availability.": "Не удалось проверить доступность ИИН."
+  "Could not verify IIN availability.": "Не удалось проверить доступность ИИН.",
+  "Passport": "Паспорт",
+  "National ID": "Удостоверение личности",
+  "Driver's License": "Водительское удостоверение",
+  "Enter purpose of visit": "Введите цель визита"
 }

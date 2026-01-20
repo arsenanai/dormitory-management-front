@@ -9,19 +9,9 @@
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <!-- IIN Field -->
           <div>
-            <CInput
-              id="student-profile-iin"
-              v-model="user.student_profile.iin"
-              type="search"
-              :label="t('IIN')"
-              :error="validationErrors['student_profile.iin']?.[0]"
-              placeholder="Enter IIN"
-              required
-              pattern="\d{12}"
-              minlength="12"
-              maxlength="12"
-              :loading="loadingIinAvailability"
-              @validation="
+            <CInput id="student-profile-iin" v-model="user.student_profile.iin" type="search" :label="t('IIN')"
+              :error="validationErrors['student_profile.iin']?.[0]" placeholder="Enter IIN" required pattern="\d{12}"
+              minlength="12" maxlength="12" :loading="loadingIinAvailability" @validation="
                 ({ valid, message }) => {
                   if (valid) {
                     delete validationErrors['student_profile.iin'];
@@ -32,56 +22,28 @@
                     validationErrors['student_profile.iin'] = [message];
                   }
                 }
-              "
-            />
+              " />
           </div>
           <!-- Name Field -->
           <div>
-            <CInput
-              id="student-name"
-              v-model="user.first_name"
-              type="text"
-              :label="t('Name')"
-              :error="validationErrors.first_name?.[0]"
-              placeholder="Enter Name"
-              required
-            />
+            <CInput id="student-name" v-model="user.first_name" type="text" :label="t('Name')"
+              :error="validationErrors.first_name?.[0]" placeholder="Enter Name" required />
           </div>
           <!-- Surname Field -->
           <div>
-            <CInput
-              id="student-surname"
-              v-model="user.last_name"
-              type="text"
-              :label="t('Surname')"
-              :error="validationErrors.last_name?.[0]"
-              placeholder="Enter Surname"
-              required
-            />
+            <CInput id="student-surname" v-model="user.last_name" type="text" :label="t('Surname')"
+              :error="validationErrors.last_name?.[0]" placeholder="Enter Surname" required />
           </div>
           <!-- Gender Field -->
           <div>
-            <CSelect
-              id="student-gender"
-              v-model="user.student_profile.gender"
-              :options="filteredGenderOptions"
-              :label="t('Gender')"
-              required
-            />
+            <CSelect id="student-gender" v-model="user.student_profile.gender" :options="filteredGenderOptions"
+              :label="t('Gender')" required />
           </div>
           <!-- Email Field -->
           <div>
-            <CInput
-              id="student-email"
-              v-model="user.email"
-              type="email"
-              :label="t('E-mail')"
-              :error="validationErrors.email?.[0]"
-              placeholder="Enter E-mail"
-              required
-              pattern="[^@\s]+@[^@\s]+\.[^@\s]+"
-              :loading="loadingEmailAvailability"
-              @validation="
+            <CInput id="student-email" v-model="user.email" type="email" :label="t('E-mail')"
+              :error="validationErrors.email?.[0]" placeholder="Enter E-mail" required
+              pattern="[^@\s]+@[^@\s]+\.[^@\s]+" :loading="loadingEmailAvailability" @validation="
                 ({ valid, message }) => {
                   if (valid) {
                     delete validationErrors['email'];
@@ -90,78 +52,41 @@
                     validationErrors['email'] = [message];
                   }
                 }
-              "
-            />
+              " />
           </div>
           <!-- Country Field -->
           <div>
-            <CInput
-              id="student-country"
-              v-model="user.student_profile.country"
-              type="text"
-              :label="t('Country')"
-              placeholder="Enter Country"
-            />
+            <CInput id="student-country" v-model="user.student_profile.country" type="text" :label="t('Country')"
+              placeholder="Enter Country" />
           </div>
           <!-- Region Field -->
           <div>
-            <CInput
-              id="student-region"
-              v-model="user.student_profile.region"
-              type="text"
-              :label="t('Region')"
-              placeholder="Enter Region"
-              :disabled="!user.student_profile.country"
-            />
+            <CInput id="student-region" v-model="user.student_profile.region" type="text" :label="t('Region')"
+              placeholder="Enter Region" :disabled="!user.student_profile.country" />
           </div>
           <!-- City Field -->
           <div>
-            <CInput
-              id="student-city"
-              v-model="user.student_profile.city"
-              type="text"
-              :label="t('City')"
-              placeholder="Enter City"
-              :disabled="!user.student_profile.region"
-            />
+            <CInput id="student-city" v-model="user.student_profile.city" type="text" :label="t('City')"
+              placeholder="Enter City" :disabled="!user.student_profile.region" />
           </div>
           <div v-if="props.embedded !== true">
-            <CInput
-              id="student-password"
-              v-model="user.password"
-              type="password"
-              :label="t('Password')"
-              :error="validationErrors.password?.[0]"
-              :placeholder="t('Password')"
-              :required="isEditing ? false : true"
-            />
+            <CInput id="student-password" v-model="user.password" type="password" :label="t('Password')"
+              :error="validationErrors.password?.[0]" :placeholder="t('Password')"
+              :required="isEditing ? false : true" />
           </div>
           <div v-if="props.embedded !== true">
-            <CInput
-              id="student-password-repeat"
-              v-model="user.password_confirmation"
-              type="password"
-              :error="validationErrors.password_confirmation?.[0]"
-              :label="t('Password Confirmation')"
-              :placeholder="t('Password Confirmation')"
-              :required="isEditing ? false : true"
-            />
+            <CInput id="student-password-repeat" v-model="user.password_confirmation" type="password"
+              :error="validationErrors.password_confirmation?.[0]" :label="t('Password Confirmation')"
+              :placeholder="t('Password Confirmation')" :required="isEditing ? false : true" />
           </div>
           <!-- Student Photo Field -->
           <div class="lg:col-span-2">
-            <CFileInput
-              id="student-profile-photo"
-              :label="t('Student Photo (3x4)')"
-              :file-path="
-                typeof user.student_profile.files?.[2] === 'string'
-                  ? user.student_profile.files[2]
-                  : null
-              "
-              :allowed-extensions="['jpg', 'jpeg', 'png']"
+            <CFileInput id="student-profile-photo" :label="t('Student Photo (3x4)')" :file-path="typeof user.student_profile.files?.[2] === 'string'
+              ? user.student_profile.files[2]
+              : null
+              " :allowed-extensions="['jpg', 'jpeg', 'png']"
               :validation-message="validationErrors['student_profile.files.2']?.[0]"
-              @change="(newFile) => handleFileChange(2, newFile)"
-              accept="image/*"
-            />
+              @change="(newFile) => handleFileChange(2, newFile)" accept="image/*" />
             <p class="mt-1 text-sm text-gray-500">
               {{ t("Please upload a 3x4 cm photo in JPG or PNG format") }}
             </p>
@@ -173,32 +98,15 @@
             </label>
             <div class="flex flex-col items-stretch gap-2 lg:flex-row lg:items-end">
               <div class="flex flex-col items-stretch gap-2">
-                <div
-                  v-for="(phone, index) in user.phone_numbers"
-                  :key="index"
-                  class="flex items-center gap-2"
-                >
-                  <CInput
-                    :id="'phone-number-' + index"
-                    v-model="user.phone_numbers[index]"
-                    type="tel"
-                    :error="validationErrors[`phone_numbers.${index}`]?.[0]"
-                    placeholder="Enter Phone Number"
-                    wrapperClass="flex-grow"
-                  />
-                  <CButton
-                    v-if="user.phone_numbers.length > 1"
-                    @click="removePhoneField(index)"
-                    class="py-2.5"
-                  >
+                <div v-for="(phone, index) in user.phone_numbers" :key="index" class="flex items-center gap-2">
+                  <CInput :id="'phone-number-' + index" v-model="user.phone_numbers[index]" type="tel"
+                    :error="validationErrors[`phone_numbers.${index}`]?.[0]" placeholder="Enter Phone Number"
+                    wrapperClass="flex-grow" />
+                  <CButton v-if="user.phone_numbers.length > 1" @click="removePhoneField(index)" class="py-2.5">
                     <TrashIcon class="h-5 w-5 text-red-600" />
                   </CButton>
-                  <CButton
-                    type="button"
-                    @click="addPhoneField"
-                    class="py-2.5"
-                    v-if="index === user.phone_numbers.length - 1 && user.phone_numbers.length < 3"
-                  >
+                  <CButton type="button" @click="addPhoneField" class="py-2.5"
+                    v-if="index === user.phone_numbers.length - 1 && user.phone_numbers.length < 3">
                     <PlusIcon class="h-5 w-5" />
                   </CButton>
                   <div v-else class="h-[42px] w-[54px]"></div>
@@ -217,34 +125,19 @@
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <!-- Blood Type Field -->
           <div>
-            <CSelect
-              id="student-blood-type"
-              v-model="user.student_profile.blood_type"
-              :options="bloodTypeOptions"
-              :label="t('Blood Type')"
-            />
+            <CSelect id="student-blood-type" v-model="user.student_profile.blood_type" :options="bloodTypeOptions"
+              :label="t('Blood Type')" />
           </div>
           <!-- Allergies Field -->
           <div>
-            <CInput
-              id="student-allergies"
-              v-model="user.student_profile.allergies"
-              type="text"
-              :label="t('Allergies')"
-              :error="validationErrors['student_profile.allergies']?.[0]"
-              placeholder="Enter Allergies (if any)"
-            />
+            <CInput id="student-allergies" v-model="user.student_profile.allergies" type="text" :label="t('Allergies')"
+              :error="validationErrors['student_profile.allergies']?.[0]" placeholder="Enter Allergies (if any)" />
           </div>
           <!-- Violations Field -->
           <div>
-            <CInput
-              id="student-violations"
-              v-model="user.student_profile.violations"
-              type="text"
-              :error="validationErrors['student_profile.violations']?.[0]"
-              :label="t('Violations')"
-              placeholder="Enter Violations (if any)"
-            />
+            <CInput id="student-violations" v-model="user.student_profile.violations" type="text"
+              :error="validationErrors['student_profile.violations']?.[0]" :label="t('Violations')"
+              placeholder="Enter Violations (if any)" />
           </div>
         </div>
       </fieldset>
@@ -257,69 +150,39 @@
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <!-- Emergency Contact Name Field -->
           <div>
-            <CInput
-              id="student-emergency-name"
-              v-model="user.student_profile.emergency_contact_name"
-              type="text"
+            <CInput id="student-emergency-name" v-model="user.student_profile.emergency_contact_name" type="text"
               :error="validationErrors['student_profile.emergency_contact_name']?.[0]"
-              :label="t('Emergency Contact Name')"
-              placeholder="Enter Emergency Contact Name"
-            />
+              :label="t('Emergency Contact Name')" placeholder="Enter Emergency Contact Name" />
           </div>
           <!-- Emergency Contact Type Field -->
           <div>
-            <CSelect
-              id="student-emergency-type"
-              v-model="user.student_profile.emergency_contact_type"
-              :options="emergencyContactTypeOptions"
-              :label="t('Emergency Contact Type')"
-              :error="validationErrors['student_profile.emergency_contact_type']?.[0]"
-            />
+            <CSelect id="student-emergency-type" v-model="user.student_profile.emergency_contact_type"
+              :options="emergencyContactTypeOptions" :label="t('Emergency Contact Type')"
+              :error="validationErrors['student_profile.emergency_contact_type']?.[0]" />
           </div>
           <!-- Emergency Contact Phone Field -->
           <div>
-            <CInput
-              id="student-emergency-phone"
-              v-model="user.student_profile.emergency_contact_phone"
-              type="tel"
+            <CInput id="student-emergency-phone" v-model="user.student_profile.emergency_contact_phone" type="tel"
               :error="validationErrors['student_profile.emergency_contact_phone']?.[0]"
-              :label="t('Emergency Contact Phone')"
-              placeholder="Enter Emergency Contact Phone"
-            />
+              :label="t('Emergency Contact Phone')" placeholder="Enter Emergency Contact Phone" />
           </div>
           <!-- Emergency Contact Email Field -->
           <div>
-            <CInput
-              id="student-emergency-email"
-              v-model="user.student_profile.emergency_contact_email"
-              type="email"
+            <CInput id="student-emergency-email" v-model="user.student_profile.emergency_contact_email" type="email"
               :error="validationErrors['student_profile.emergency_contact_email']?.[0]"
-              :label="t('Emergency Contact Email')"
-              placeholder="Enter Emergency Contact Email"
-            />
+              :label="t('Emergency Contact Email')" placeholder="Enter Emergency Contact Email" />
           </div>
           <!-- Identification Type Field -->
           <div>
-            <CSelect
-              id="student-identification-type"
-              v-model="user.student_profile.identification_type"
-              :options="identificationOptions"
-              :label="t('Identification Type')"
-              :error="validationErrors['student_profile.identification_type']?.[0]"
-              required
-            />
+            <CSelect id="student-identification-type" v-model="user.student_profile.identification_type"
+              :options="identificationOptions" :label="t('Identification Type')"
+              :error="validationErrors['student_profile.identification_type']?.[0]" required />
           </div>
           <!-- Identification Number Field -->
           <div>
-            <CInput
-              id="student-identification-number"
-              v-model="user.student_profile.identification_number"
-              type="text"
+            <CInput id="student-identification-number" v-model="user.student_profile.identification_number" type="text"
               :error="validationErrors['student_profile.identification_number']?.[0]"
-              :label="t('Identification Number')"
-              placeholder="Enter Identification Number"
-              required
-            />
+              :label="t('Identification Number')" placeholder="Enter Identification Number" required />
           </div>
         </div>
       </fieldset>
@@ -332,42 +195,18 @@
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <!-- Status Field -->
           <div>
-            <CSelect
-              id="student-status"
-              v-model="user.status"
-              :options="statusOptions"
-              :label="t('Status')"
-              required
-            />
+            <CSelect id="student-status" v-model="user.status" :options="statusOptions" :label="t('Status')" required />
           </div>
           <!-- Registration Date Field -->
           <div>
-            <CInput
-              id="student-registration-date"
-              v-model="user.created_at"
-              type="date"
-              :label="t('Registration Date')"
-              v-if="isEditing"
-              :disabled="isEditing"
-            />
+            <CInput id="student-registration-date" v-model="user.created_at" type="date" :label="t('Registration Date')"
+              v-if="isEditing" :disabled="isEditing" />
           </div>
           <!-- Agree to Dormitory Rules Field -->
           <div>
-            <CCheckbox
-              id="student-agree-rules"
-              v-model="user.student_profile.agree_to_dormitory_rules"
-              :label="t('Agree to Dormitory Rules')"
-              :disabled="isEditing"
-              :aria-disabled="isEditing ? 'true' : 'false'"
-            />
-          </div>
-          <!-- Has Meal Plan Field -->
-          <div>
-            <CCheckbox
-              id="student-meal-plan"
-              v-model="user.student_profile.has_meal_plan"
-              :label="t('Has Meal Plan')"
-            />
+            <CCheckbox id="student-agree-rules" v-model="user.student_profile.agree_to_dormitory_rules"
+              :label="t('Agree to Dormitory Rules')" :disabled="isEditing"
+              :aria-disabled="isEditing ? 'true' : 'false'" />
           </div>
         </div>
       </fieldset>
@@ -380,87 +219,46 @@
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <!-- Faculty Field -->
           <div>
-            <CInput
-              id="student-faculty"
-              v-model="user.student_profile.faculty"
-              type="text"
-              :label="t('Faculty')"
-              :error="validationErrors['student_profile.faculty']?.[0]"
-              :placeholder="t('Enter Faculty Name')"
-              required
-            />
+            <CInput id="student-faculty" v-model="user.student_profile.faculty" type="text" :label="t('Faculty')"
+              :error="validationErrors['student_profile.faculty']?.[0]" :placeholder="t('Enter Faculty Name')"
+              required />
           </div>
           <!-- Specialist Field -->
           <div>
-            <CInput
-              id="student-specialist"
-              v-model="user.student_profile.specialist"
-              type="text"
-              :error="validationErrors['student_profile.specialist']?.[0]"
-              :label="t('Specialist')"
-              :placeholder="t('Enter Specialty/Program Name')"
-              required
-            />
+            <CInput id="student-specialist" v-model="user.student_profile.specialist" type="text"
+              :error="validationErrors['student_profile.specialist']?.[0]" :label="t('Specialist')"
+              :placeholder="t('Enter Specialty/Program Name')" required />
           </div>
           <!-- Enrollment Year Field -->
           <div>
-            <CInput
-              id="student-enrollment-year"
-              v-model="user.student_profile.enrollment_year"
-              type="number"
-              :error="validationErrors['student_profile.enrollment_year']?.[0]"
-              :label="t('Enrollment Year')"
-              placeholder="Enter Enrollment Year"
-              required
-            />
+            <CInput id="student-enrollment-year" v-model="user.student_profile.enrollment_year" type="number"
+              :error="validationErrors['student_profile.enrollment_year']?.[0]" :label="t('Enrollment Year')"
+              placeholder="Enter Enrollment Year" required />
           </div>
           <!-- Deal Number Field -->
           <div v-if="isEditing">
-            <CInput
-              id="student-deal-number"
-              v-model="user.student_profile.deal_number"
-              type="text"
-              :error="validationErrors['student_profile.deal_number']?.[0]"
-              :label="t('Deal Number')"
-              placeholder="Enter Deal Number"
-              required
-              readonly
-            />
+            <CInput id="student-deal-number" v-model="user.student_profile.deal_number" type="text"
+              :error="validationErrors['student_profile.deal_number']?.[0]" :label="t('Deal Number')"
+              placeholder="Enter Deal Number" required readonly />
           </div>
           <!-- Room Field - Only visible after dormitory selection -->
           <div>
-            <CSelect
-              id="student-room"
-              v-model="user.room_id"
-              :options="roomOptions"
-              :label="t('Room')"
+            <CSelect id="student-room" v-model="user.room_id" :options="roomOptions" :label="t('Room')"
               :validation-message="validationErrors.room_id?.[0]"
               :validation-state="validationErrors.room_id ? 'error' : ''"
-              :disabled="loadingRooms || roomOptions.length === 0"
-              required
-            />
+              :disabled="loadingRooms || roomOptions.length === 0" required />
             <div v-if="loadingRooms" class="mt-1 text-sm text-gray-500">
               {{ t("Loading rooms...") }}
             </div>
-            <div
-              v-else-if="!loadingRooms && roomOptions.length === 0"
-              class="mt-1 text-sm text-red-500"
-            >
+            <div v-else-if="!loadingRooms && roomOptions.length === 0" class="mt-1 text-sm text-red-500">
               {{ t("No rooms available in this dormitory") }}
             </div>
           </div>
           <!-- Bed Field - Only visible after room selection -->
           <div v-if="user.room_id">
-            <CSelect
-              id="student-bed"
-              v-model="user.bed_id"
-              :options="bedOptions"
-              :label="t('Bed')"
+            <CSelect id="student-bed" v-model="user.bed_id" :options="bedOptions" :label="t('Bed')"
               :validation-message="validationErrors.bed_id?.[0]"
-              :validation-state="validationErrors.bed_id ? 'error' : ''"
-              :disabled="bedOptions.length === 0"
-              required
-            />
+              :validation-state="validationErrors.bed_id ? 'error' : ''" :disabled="bedOptions.length === 0" required />
             <div v-if="bedOptions.length === 0" class="mt-1 text-sm text-red-500">
               {{ t("No beds available in this room") }}
             </div>
@@ -477,18 +275,11 @@
       <fieldset class="border-primary-200 rounded border p-4">
         <legend class="text-primary-700 px-2 text-lg font-semibold">{{ t("Documents") }}</legend>
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2" data-testid="document-uploads">
-          <div
-            v-for="(file, index) in (user.student_profile.files || []).slice(0, 2)"
-            :key="`file-${index}`"
-          >
-            <CFileInput
-              :id="`student-file-${index}`"
-              :label="registrationFileLabels[index]"
-              :file-path="typeof file === 'string' ? file : null"
-              :allowed-extensions="['jpg', 'jpeg', 'png', 'pdf']"
+          <div v-for="(file, index) in (user.student_profile.files || []).slice(0, 2)" :key="`file-${index}`">
+            <CFileInput :id="`student-file-${index}`" :label="registrationFileLabels[index]"
+              :file-path="typeof file === 'string' ? file : null" :allowed-extensions="['jpg', 'jpeg', 'png', 'pdf']"
               :validation-message="validationErrors[`student_profile.files.${index}`]?.[0]"
-              @change="(newFile) => handleFileChange(index, newFile)"
-            />
+              @change="(newFile) => handleFileChange(index, newFile)" />
           </div>
           <!-- payment_check removed from the form -->
         </div>
@@ -677,7 +468,6 @@ const user = ref<Partial<User>>({
     faculty: "",
     files: [null, null, null], // 063 Form, 075 Form, Student Photo
     gender: "",
-    has_meal_plan: false,
     iin: "",
     region: "",
     registration_date: "",

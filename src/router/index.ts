@@ -183,19 +183,19 @@ const routes: AppRouteRecordRaw[] = [
       roles: ["guest"],
     },
   },
-  // {
-  //   path: '/guest-my-payments',
-  //   name: 'Guest Payments',
-  //   component: () => import('@/pages/Payments.vue'),
-  //   meta: {
-  //     title: 'My Payments',
-  //     requiresAuth: true,
-  //     sidebar: true,
-  //     icon: ClipboardDocumentListIcon,
-  //     roles: ['guest'],
-  //     myPayments: true,
-  //   } as any,
-  // },
+  {
+    path: "/guest-my-payments",
+    name: "Guest Payments",
+    component: () => import("@/pages/Payments.vue"),
+    meta: {
+      title: "My Payments",
+      requiresAuth: true,
+      sidebar: true,
+      icon: ClipboardDocumentListIcon,
+      roles: ["guest"],
+      myPayments: true,
+    } as any,
+  },
   {
     path: "/messages",
     name: "Messages",
