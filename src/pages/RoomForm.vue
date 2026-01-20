@@ -138,6 +138,20 @@
             </div>
           </div>
         </div>
+        <!-- Maintenance Status -->
+        <div>
+          <label class="block text-sm font-medium text-gray-900 dark:text-white">
+            {{ t("Room Status") }}
+          </label>
+          <div class="mt-2 flex items-center">
+            <CCheckbox
+              id="room-is-maintenance"
+              v-model="room.is_maintenance"
+              :label="t('In Maintenance')"
+              data-testid="is-maintenance-checkbox"
+            />
+          </div>
+        </div>
       </div>
       <!-- Submit Button -->
       <div class="mt-4 flex flex-row items-end justify-end gap-2">
@@ -285,6 +299,7 @@ async function submitRoom() {
       room_type_id: room.value.roomType?.id || null,
       dormitory_id: room.value.dormitory_id || room.value.dormitory?.id || null,
       occupant_type: room.value.occupant_type,
+      is_maintenance: !!room.value.is_maintenance,
     } as any;
 
     // If editing, also update bed reservations
@@ -375,6 +390,7 @@ const loadRoom = async (id: number) => {
       dormitory: roomData.dormitory || null,
       dormitory_id: roomData.dormitory?.id || null,
       occupant_type: roomData.occupant_type || "student",
+      is_maintenance: !!roomData.is_maintenance,
     } as Room;
 
     // Update beds preview after loading room data

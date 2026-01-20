@@ -10,15 +10,19 @@ export class Room {
   room_type: RoomType | null; // Many-to-one
   beds: Bed[]; // One-to-many
   quota: number | null; // Room quota
+  is_maintenance: boolean;
+  occupant_type: "student" | "guest";
 
   constructor(
     number = "",
     floor: number | null = null,
     notes = "",
-    dormitory: Dormitory | null = null,
+    dormitory: any | null = null,
     room_type: RoomType | null = null,
     beds: Bed[] = [],
-    quota: number | null = null
+    quota: number | null = null,
+    is_maintenance = false,
+    occupant_type: "student" | "guest" = "student"
   ) {
     this.number = number;
     this.floor = floor;
@@ -27,5 +31,7 @@ export class Room {
     this.room_type = room_type;
     this.beds = beds;
     this.quota = quota;
+    this.is_maintenance = is_maintenance;
+    this.occupant_type = occupant_type;
   }
 }

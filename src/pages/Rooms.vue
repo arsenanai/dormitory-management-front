@@ -79,6 +79,26 @@
           <template #cell-notes="{ row }">
             {{ row.notes || "-" }}
           </template>
+          <template #cell-status="{ row }">
+            <span
+              v-if="row.is_maintenance"
+              class="rounded bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
+            >
+              {{ t("Maintenance") }}
+            </span>
+            <span
+              v-else-if="getFreeBeds(row) > 0"
+              class="rounded bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-300"
+            >
+              {{ t("Available") }}
+            </span>
+            <span
+              v-else
+              class="rounded bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800 dark:bg-red-900 dark:text-red-300"
+            >
+              {{ t("Occupied") }}
+            </span>
+          </template>
           <template #cell-actions="{ row }">
             <div class="flex justify-end gap-2">
               <CButton @click="navigateToEditRoom(row.id)" data-testid="edit-room-button">
@@ -205,6 +225,7 @@ const tableColumns = [
   { key: "beds", label: t("Beds") },
   { key: "free_beds", label: t("Free beds") },
   { key: "notes", label: t("Notes") },
+  { key: "status", label: t("Status") },
   { key: "actions", label: t("Action"), class: "text-right" },
 ];
 const dormitoryFilter = ref<number | "">("");
@@ -399,17 +420,25 @@ watch(
 // We can use it directly in the template.
 const paginatedRooms = computed(() => rooms.value);
 
-// Occupancy stats
 const occupancyStats = computed(() => {
-  const totalRooms = rooms.value.length;
-  const availableRooms = rooms.value.filter((r) => r.status === "available").length;
-  const occupiedRooms = rooms.value.filter((r) => r.status === "occupied").length;
-  const occupancyRate = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
+  const totalRoomsCount = rooms.value.length;
+  const maintenanceRooms = rooms.value.filter((r) => r.is_maintenance).length;
+  const availableRooms = rooms.value.filter(
+    (r) => !r.is_maintenance && getFreeBeds(r) > 0
+  ).length;
+  const occupiedRooms = rooms.value.filter(
+    (r) => !r.is_maintenance && getFreeBeds(r) === 0
+  ).length;
+  const occupancyRate =
+    totalRoomsCount > maintenanceRooms
+      ? Math.round((occupiedRooms / (totalRoomsCount - maintenanceRooms)) * 100)
+      : 0;
 
   return {
-    totalRooms,
+    totalRooms: totalRoomsCount,
     availableRooms,
     occupiedRooms,
+    maintenanceRooms,
     occupancyRate,
   };
 });
