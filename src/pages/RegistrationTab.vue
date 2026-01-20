@@ -49,10 +49,12 @@
             minlength="12"
             maxlength="12"
             @validation="({ valid, message }) => {
-              registrationValidationState.iin = valid ? 'success' : 'error';
-              registrationValidationMessage.iin = message;
               if (valid && user.student_profile.iin.length === 12) {
+                registrationValidationState.iin = '';
                 debouncedCheckIinAvailability(user.student_profile.iin);
+              } else {
+                registrationValidationState.iin = valid ? 'success' : 'error';
+                registrationValidationMessage.iin = message;
               }
             }"
           />
@@ -63,12 +65,18 @@
             :label="t('Login Email')"
             :placeholder="emailPlaceholder"
             required
+            :loading="loadingEmailAvailability"
             :validationState="registrationValidationState.email"
             :validationMessage="registrationValidationMessage.email"
             @validation="
               ({ valid, message }) => {
-                registrationValidationState.email = valid ? 'success' : 'error';
-                registrationValidationMessage.email = message;
+                if (valid && user.email) {
+                  registrationValidationState.email = '';
+                  debouncedCheckEmailAvailability(user.email);
+                } else {
+                  registrationValidationState.email = valid ? 'success' : 'error';
+                  registrationValidationMessage.email = message;
+                }
               }
             "
           />
@@ -290,27 +298,16 @@
             :validationState="registrationValidationState.specialist"
             :validationMessage="registrationValidationMessage.specialist"
           />
-          <div class="grid grid-cols-2 gap-4">
-            <CInput
-              v-if="user.student_profile"
-              id="registration-enrollment-year"
-              v-model="user.student_profile.enrollment_year"
-              type="number"
-              :label="t('Enrollment Year')"
-              required
-              :validationState="registrationValidationState.enrollment_year"
-              :validationMessage="registrationValidationMessage.enrollment_year"
-            />
-            <CInput
-              v-if="user.student_profile"
-              id="registration-deal-number"
-              v-model="user.student_profile.deal_number"
-              type="text"
-              :label="t('Deal Number')"
-              :placeholder="t('Enter Deal Number')"
-              required
-            />
-          </div>
+          <CInput
+            v-if="user.student_profile"
+            id="registration-enrollment-year"
+            v-model="user.student_profile.enrollment_year"
+            type="number"
+            :label="t('Enrollment Year')"
+            required
+            :validationState="registrationValidationState.enrollment_year"
+            :validationMessage="registrationValidationMessage.enrollment_year"
+          />
         </div>
       </CStep>
 
@@ -516,7 +513,6 @@ const user = ref<Partial<User>>({
     emergency_contact_email: "",
     identification_type: "",
     identification_number: "",
-    deal_number: "",
     agree_to_dormitory_rules: false,
     has_meal_plan: false,
     allergies: "",
@@ -595,6 +591,9 @@ const checkEmailAvailability = async (email: string) => {
     registrationValidationMessage.value.email = t("Email is required.");
     return;
   }
+  // Prevent race condition if user changed input while debounce was waiting
+  if (email !== user.value.email) return;
+
   loadingEmailAvailability.value = true;
   try {
     const response = await api.get("/email/check-availability", { params: { email } });
@@ -620,6 +619,9 @@ const debouncedCheckEmailAvailability = debounceHelper(checkEmailAvailability, 5
 const checkIinAvailability = async (iin: string) => {
   if (!iin || iin.length !== 12) return;
   
+  // Prevent race condition if user changed input while debounce was waiting
+  if (iin !== user.value.student_profile?.iin) return;
+
   loadingIinAvailability.value = true;
   try {
     const response = await api.get("/iin/check-availability", { params: { iin } });
@@ -782,7 +784,6 @@ const handleRegistration = async () => {
         "student_profile.faculty": 6,
         "student_profile.specialist": 7,
         "student_profile.enrollment_year": 6,
-        "student_profile.deal_number": 6,
         dormitory_id: 6,
         room_id: 6,
         bed_id: 6,
@@ -950,6 +951,7 @@ const isAccountStepValid = computed(() => {
     registrationValidationState.value.iin === 'success' &&
     registrationValidationState.value.email === 'success' &&
     !loadingEmailAvailability.value && // Ensure email check is complete
+    !loadingIinAvailability.value && // Ensure IIN check is complete
     !!password &&
     password.length >= 6 &&
     !!password_confirmation &&
@@ -984,11 +986,10 @@ const isHealthInfoStepValid = computed(() => {
 
 // Step 7: Educational Information
 const isEducationalInfoStepValid = computed(() => {
-  const { faculty, specialist, enrollment_year, deal_number } = user.value.student_profile ?? {};
+  const { faculty, specialist, enrollment_year } = user.value.student_profile ?? {};
   return (
     !!faculty?.trim() &&
     !!specialist?.trim() &&
-    !!deal_number?.trim() &&
     !!enrollment_year &&
     enrollment_year.toString().length === 4
   );

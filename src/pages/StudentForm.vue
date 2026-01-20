@@ -415,7 +415,7 @@
             />
           </div>
           <!-- Deal Number Field -->
-          <div>
+          <div v-if="isEditing">
             <CInput
               id="student-deal-number"
               v-model="user.student_profile.deal_number"
@@ -424,6 +424,7 @@
               :label="t('Deal Number')"
               placeholder="Enter Deal Number"
               required
+              readonly
             />
           </div>
           <!-- Room Field - Only visible after dormitory selection -->
