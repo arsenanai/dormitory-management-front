@@ -4,6 +4,7 @@ export class Payment {
   id: number;
   user_id: number;
   amount: number;
+  payment_type?: string;
   date_from: string;
   date_to: string;
   deal_number?: string;

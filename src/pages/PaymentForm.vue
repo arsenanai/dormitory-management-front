@@ -1,88 +1,48 @@
 <template>
-  <CModal
-    :model-value="isVisible"
-    @update:model-value="closeModal"
-    :title="selectedPayment ? t('Update Payment') : t('Create Payment')"
-  >
+  <CModal :model-value="isVisible" @update:model-value="closeModal"
+    :title="selectedPayment ? t('Update Payment') : t('Create Payment')">
     <form @submit.prevent="handleFormSubmit">
       <div class="space-y-4">
         <!-- User Type Selection (admin-only) -->
-        <!-- <CSelect v-if="!props.selfService" id="user-type-select" v-model="formData.user_type" :label="t('Role')"
-          :options="userTypeOptions" required /> -->
-        <CSelect
-          id="user-type-select"
-          v-model="formData.user_type"
-          :label="t('Role')"
-          :options="userTypeOptions"
-          required
-        />
+        <CSelect v-if="!isRestrictedUser" id="user-type-select" v-model="formData.user_type" :label="t('Role')"
+          :options="userTypeOptions" required />
 
         <!-- User Selection (admin-only, for both student and guest) -->
-        <!-- <CSelect v-if="!props.selfService" id="student-select" data-testid="payment-student-select"
+        <CSelect v-if="!isRestrictedUser" id="student-select" data-testid="payment-student-select"
           v-model="formData.user_id" :label="t('User')" :options="userOptions" :disabled="loadingUsers"
-          :placeholder="loadingUsers ? t('Loading users...') : t('Select a user')" required /> -->
-        <CSelect
-          id="student-select"
-          data-testid="payment-student-select"
-          v-model="formData.user_id"
-          :label="t('User')"
-          :options="userOptions"
-          :disabled="loadingUsers"
-          :placeholder="loadingUsers ? t('Loading users...') : t('Select a user')"
-          required
-        />
+          :placeholder="loadingUsers ? t('Loading users...') : t('Select a user')" required />
 
-        <CInput v-model="formData.date_from" type="date" :label="t('From Date')" />
-        <CInput v-model="formData.date_to" type="date" :label="t('To Date')" />
+        <div class="grid grid-cols-2 gap-4">
+          <CInput v-model="formData.date_from" type="date" :label="t('From Date')" />
+          <CInput v-model="formData.date_to" type="date" :label="t('To Date')" />
+        </div>
 
         <!-- Common Fields -->
-        <CInput
-          v-model="formData.deal_number"
-          :label="t('Deal Number')"
-          :placeholder="t('Enter Deal Number')"
-        />
-        <CInput v-model="formData.deal_date" type="date" :label="t('Deal Date')" />
+        <div class="grid grid-cols-2 gap-4">
+          <CInput v-model="formData.deal_number" :label="t('Deal Number')" :placeholder="t('Enter Deal Number')" />
+          <CInput v-model="formData.deal_date" type="date" :label="t('Deal Date')" />
+        </div>
 
-        <!-- Amount with Currency -->
-        <CInput
-          v-model="formData.amount"
-          data-testid="payment-amount-input"
-          :label="`${t('Amount')} (${currencySymbol})`"
-          type="number"
-          step="0.01"
-          min="0"
-          required
-        />
-        <CTextarea
-          id="dormitory-rules"
-          :label="t('Bank requisites')"
-          :model-value="settingsStore.publicSettings?.bank_requisites"
-          readonly
-          additionalClass="h-full flex-1"
-          wrapperClass="flex flex-col flex-1"
-        />
-        <!-- <CFileInput id="payment-check-upload" :label="t('Payment Check')" :required="props.selfService"
+        <div class="grid grid-cols-2 gap-4">
+          <CSelect id="payment-type-select" v-model="formData.payment_type" :label="t('Payment Type')"
+            :options="paymentTypeOptions" :placeholder="t('Select Payment Type')" />
+          <!-- Amount with Currency -->
+          <CInput v-model="formData.amount" data-testid="payment-amount-input"
+            :label="`${t('Amount')} (${currencySymbol})`" type="number" step="0.01" min="0" required />
+        </div>
+        <CTextarea id="dormitory-rules" :label="t('Bank requisites')"
+          :model-value="settingsStore.publicSettings?.bank_requisites" readonly additionalClass="h-full flex-1"
+          wrapperClass="flex flex-col flex-1" />
+        <CFileInput id="payment-check-upload" :label="t('Payment Check')" :required="isRestrictedUser"
           :allowed-extensions="['jpg', 'jpeg', 'png', 'pdf']" @change="handleFileChange"
-          :file-path="formData.payment_check" /> -->
-        <CFileInput
-          id="payment-check-upload"
-          :label="t('Payment Check')"
-          :allowed-extensions="['jpg', 'jpeg', 'png', 'pdf']"
-          @change="handleFileChange"
-          :file-path="formData.payment_check"
-        />
+          :file-path="formData.payment_check" />
       </div>
 
       <div class="mt-6 flex justify-end gap-2">
         <CButton @click="closeModal">
           {{ t("Cancel") }}
         </CButton>
-        <CButton
-          type="submit"
-          variant="primary"
-          data-testid="payment-submit-button"
-          :loading="loading"
-        >
+        <CButton type="submit" variant="primary" data-testid="payment-submit-button" :loading="loading">
           {{ selectedPayment ? t("Update") : t("Submit") }}
         </CButton>
       </div>
@@ -94,9 +54,10 @@
 import { ref, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useSettingsStore } from "@/stores/settings";
-import { paymentService, studentService } from "@/services/api";
+import { paymentService, studentService, guestService } from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
 import { useToast } from "@/composables/useToast";
+import { usePaymentTypesStore } from "@/stores/paymentTypes";
 import CModal from "@/components/CModal.vue";
 import CInput from "@/components/CInput.vue";
 import CSelect from "@/components/CSelect.vue";
@@ -109,11 +70,6 @@ const props = defineProps<{
   modelValue: boolean;
   selectedPayment?: any | null;
   currencySymbol: string;
-  // When true, the form behaves in "self-service" mode for students/guests:
-  // - hides role/user selection
-  // - sends requests to /my-payments
-  // - restricts creation to the authenticated user
-  // selfService?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -124,11 +80,12 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const { showSuccess, showError } = useToast();
 const settingsStore = useSettingsStore();
+const paymentTypesStore = usePaymentTypesStore();
 const authStore = useAuthStore();
 
 const loading = ref(false);
 const loadingUsers = ref(false);
-const targetUser = ref(ref<User | null>(null));
+const targetUser = ref<User | null>(null);
 const studentOptions = ref<Array<{ value: string; name: string }>>([]);
 const guestOptions = ref<Array<{ value: string; name: string }>>([]);
 
@@ -141,11 +98,24 @@ const formData = ref({
   deal_date: "",
   date_from: "",
   date_to: "",
+  payment_type: "",
   payment_check: "",
-} as { payment_check: string | File | null; [key: string]: any });
+} as { payment_check: string | File | null;[key: string]: any });
+
+const paymentTypeOptions = computed(() => {
+  return paymentTypesStore.paymentTypes.map((t) => ({
+    value: t.name,
+    name: t.name,
+  }));
+});
 
 const userOptions = computed(() => {
   return formData.value.user_type === "student" ? studentOptions.value : guestOptions.value;
+});
+
+const isRestrictedUser = computed(() => {
+  const role = authStore.userRole;
+  return role === "student" || role === "guest";
 });
 
 const userTypeOptions = [
@@ -219,11 +189,16 @@ const resetForm = () => {
     deal_date: "",
     date_from: "",
     date_to: "",
+    payment_type: "",
     payment_check: null,
   };
 };
 
 const loadUsers = async (userType: "student" | "guest", ensureUserId?: number | string) => {
+  if (isRestrictedUser.value && !ensureUserId) {
+    return;
+  }
+
   const optionsRef = userType === "student" ? studentOptions : guestOptions;
   if (optionsRef.value.length > 0 && !ensureUserId) {
     return; // Already loaded
@@ -248,7 +223,7 @@ const loadUsers = async (userType: "student" | "guest", ensureUserId?: number | 
           }));
       }
     } else {
-      service = (await import("@/services/api")).guestService;
+      service = guestService;
       if (guestOptions.value.length === 0) {
         res = await service.listAll();
         users = res?.data?.data || (Array.isArray(res.data) ? res.data : []);
@@ -282,6 +257,12 @@ const loadUsers = async (userType: "student" | "guest", ensureUserId?: number | 
 };
 
 const loadIndividual = async (id: string | number, service: any) => {
+  // If the requested ID matches the currently authenticated user, use the cached user data
+  const currentUser = authStore.user;
+  if (currentUser && Number(id) === currentUser.id) {
+    return currentUser;
+  }
+  // Otherwise, fetch via the service (admin or other users)
   try {
     const one: any = await service.getById(Number(id));
     return one?.data;
@@ -292,8 +273,8 @@ const loadIndividual = async (id: string | number, service: any) => {
 };
 
 const handleFormSubmit = async () => {
-  // In self-service mode, enforce that a payment check is attached before submitting
-  if (/*props.selfService &&*/ !formData.value.payment_check) {
+  // Enforce payment check for restricted users (Student/Guest)
+  if (isRestrictedUser.value && !formData.value.payment_check) {
     showError(t("Payment check is required"));
     return;
   }
@@ -301,13 +282,13 @@ const handleFormSubmit = async () => {
   loading.value = true;
   try {
     const submissionData = new FormData();
-    // For self-service submissions, backend determines user_id from auth token.
-    // if (!props.selfService) {
     submissionData.append("user_id", formData.value.user_id);
-    //}
     submissionData.append("amount", formData.value.amount);
     submissionData.append("date_from", formData.value.date_from);
     submissionData.append("date_to", formData.value.date_to);
+    if (formData.value.payment_type) {
+      submissionData.append("payment_type", formData.value.payment_type);
+    }
 
     if (formData.value.payment_check instanceof File) {
       // 1. New file is uploaded
@@ -319,7 +300,6 @@ const handleFormSubmit = async () => {
     } else if (formData.value.payment_check === null) {
       // 2. File is marked for deletion, send an empty string.
       submissionData.append("payment_check", "");
-      console.log("payment check as empty string");
     }
     submissionData.append("deal_number", formData.value.deal_number);
     submissionData.append("deal_date", formData.value.deal_date);
@@ -337,9 +317,10 @@ const handleFormSubmit = async () => {
         formData.value.payment_check = response.data.data.paymentCheck;
       }
     } else {
-      const response = // props.selfService
-        /*? await paymentService.createForSelf(submissionData)
-        :*/ await paymentService.create(submissionData);
+      const response = isRestrictedUser.value
+        ? await paymentService.createMyPayment(submissionData)
+        : await paymentService.create(submissionData);
+
       showSuccess(t("Payment created successfully"));
       // After creating, update payment_check with the path from response to prevent File object issues
       if (response.data?.data?.paymentCheck) {
@@ -392,7 +373,7 @@ watch(
     // formData.value.amount = '0';
     const service =
       formData.value.user_type === "guest"
-        ? (await import("@/services/api")).guestService
+        ? guestService
         : studentService;
     targetUser.value = await loadIndividual(newUserId, service);
   }
@@ -433,15 +414,14 @@ watch(
   () => props.modelValue,
   async (newValue) => {
     if (newValue) {
+      paymentTypesStore.fetchPaymentTypes();
       const payment = props.selectedPayment;
       if (payment) {
         let userType: "student" | "guest" = "student"; // Default
         if (payment.user?.role) {
           if (typeof payment.user.role === "object" && payment.user.role.name) {
             userType = payment.user.role.name === "guest" ? "guest" : "student";
-          } // else if (typeof payment.user.role === 'string') {
-          //   userType = payment.user.role === 'guest' ? 'guest' : 'student';
-          // }
+          }
         }
 
         // Set user_type first to prevent the watcher from re-triggering loadUsers
@@ -469,12 +449,29 @@ watch(
           deal_date: payment.dealDate ? payment.dealDate.split("T")[0] : "",
           date_from: paymentDateFrom,
           date_to: paymentDateTo,
+          payment_type: payment.paymentType || "",
           semester: detectedSemester,
           payment_check: paymentCheckValue,
         };
       } else {
-        resetForm();
-        await loadUsers(formData.value.user_type as "student" | "guest");
+        // Logic for creating a new payment
+        if (isRestrictedUser.value) {
+          // Auto-populate for restricted users
+          const role = authStore.userRole;
+          // ensure valid role for form
+          const userType = role === 'guest' ? 'guest' : 'student';
+
+          resetForm(); // Reset first
+          formData.value.user_type = userType;
+          // User ID is string in formData
+          if (authStore.user?.id) {
+            formData.value.user_id = String(authStore.user.id);
+          }
+        } else {
+          // Admin logic
+          resetForm();
+          await loadUsers(formData.value.user_type as "student" | "guest");
+        }
       }
     }
   }

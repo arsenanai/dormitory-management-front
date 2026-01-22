@@ -20,10 +20,7 @@
         </div>
 
         <!-- Error State -->
-        <div
-          v-else-if="error"
-          class="mb-6 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700"
-        >
+        <div v-else-if="error" class="mb-6 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
           {{ error }}
         </div>
 
@@ -49,13 +46,13 @@
                   <span class="text-gray-600">{{ $t("guest.home.livingRoom.dormitory") }}:</span>
                   <span class="font-medium">{{
                     guestInfo.room.dormitory?.name || $t("common.notAvailable")
-                  }}</span>
+                    }}</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-gray-600">{{ $t("guest.home.livingRoom.floor") }}:</span>
                   <span class="font-medium">{{
                     guestInfo.room.floor || $t("common.notAvailable")
-                  }}</span>
+                    }}</span>
                 </div>
               </div>
               <div v-else class="text-gray-500 italic">
@@ -77,19 +74,19 @@
                   <span class="text-gray-600">{{ $t("guest.home.rental.dailyRate") }}:</span>
                   <span class="font-medium">{{
                     formatCurrency(parseFloat(guestInfo.guest_profile.daily_rate || 0))
-                  }}</span>
+                    }}</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-gray-600">{{ $t("guest.home.rental.checkInDate") }}:</span>
                   <span class="font-medium">{{
                     formatDate(guestInfo.guest_profile?.visit_start_date)
-                  }}</span>
+                    }}</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-gray-600">{{ $t("guest.home.rental.checkOutDate") }}:</span>
                   <span class="font-medium">{{
                     formatDate(guestInfo.guest_profile?.visit_end_date)
-                  }}</span>
+                    }}</span>
                 </div>
                 <div v-if="totalDays" class="flex justify-between">
                   <span class="text-gray-600">{{ $t("guest.home.rental.totalDays") }}:</span>
@@ -100,9 +97,7 @@
                   <span class="font-medium">{{ totalDays }}</span>
                 </div>
                 <div v-if="totalAmount" class="flex justify-between border-t pt-2">
-                  <span class="font-semibold text-gray-900"
-                    >{{ $t("guest.home.rental.totalAmount") }}:</span
-                  >
+                  <span class="font-semibold text-gray-900">{{ $t("guest.home.rental.totalAmount") }}:</span>
                   <span class="text-secondary-600 text-lg font-bold">
                     {{ formatCurrency(totalAmount) }}
                   </span>
@@ -120,32 +115,54 @@
               </h2>
             </div>
 
-            <div class="grid grid-cols-1 gap-6 md:grid-cols-2" v-if="receptionContacts">
-              <div class="space-y-3">
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <!-- Reception Helpdesk -->
+              <div v-if="receptionContacts.reception"
+                class="space-y-3 rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
+                <h3 class="font-medium text-gray-900">{{ t("Reception Helpdesk") }}</h3>
+                <div class="space-y-2">
+                  <a :href="`tel:${receptionContacts.reception}`"
+                    class="flex items-center text-gray-600 hover:text-blue-600">
+                    <PhoneIcon class="mr-2 h-4 w-4 text-gray-500" />
+                    <span>{{ receptionContacts.reception }}</span>
+                  </a>
+                </div>
+              </div>
+
+              <!-- Medical Doctor -->
+              <div v-if="receptionContacts.medical"
+                class="space-y-3 rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
+                <h3 class="font-medium text-gray-900">{{ t("Medical Doctor") }}</h3>
+                <div class="space-y-2">
+                  <a :href="`tel:${receptionContacts.medical}`"
+                    class="flex items-center text-gray-600 hover:text-blue-600">
+                    <HeartIcon class="mr-2 h-4 w-4 text-red-500" />
+                    <span>{{ receptionContacts.medical }}</span>
+                  </a>
+                </div>
+              </div>
+
+              <!-- Admin Contact -->
+              <div v-if="receptionContacts.admin"
+                class="space-y-3 rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
                 <h3 class="font-medium text-gray-900">
                   {{ $t("guest.home.reception.mainContact") }}
                 </h3>
                 <div class="space-y-2">
-                  <a
-                    :href="receptionContacts.whatsappLink"
-                    target="_blank"
+                  <a :href="receptionContacts.admin.whatsappLink" target="_blank"
                     class="flex items-center text-gray-600 hover:text-blue-600"
-                  >
+                    v-if="receptionContacts.admin.phone">
                     <PhoneIcon class="mr-2 h-4 w-4 text-gray-500" />
-                    <span>{{ receptionContacts.phone }}</span>
+                    <span>{{ receptionContacts.admin.phone }}</span>
                   </a>
-                  <a
-                    :href="receptionContacts.emailLink"
+                  <a :href="receptionContacts.admin.emailLink"
                     class="flex items-center text-gray-600 hover:text-blue-600"
-                  >
+                    v-if="receptionContacts.admin.emailLink">
                     <EnvelopeIcon class="mr-2 h-4 w-4 text-gray-500" />
-                    <span>{{ receptionContacts.email }}</span>
+                    <span>{{ receptionContacts.admin.email }}</span>
                   </a>
                 </div>
               </div>
-            </div>
-            <div v-else class="text-gray-500 italic">
-              {{ $t("guest.home.reception.noContact") }}
             </div>
           </div>
         </div>
@@ -169,6 +186,7 @@ import {
   BoltIcon,
   ChatBubbleLeftRightIcon,
   UserIcon,
+  HeartIcon,
 } from "@heroicons/vue/24/outline";
 import { authService } from "@/services/api";
 import { useSettingsStore } from "@/stores/settings";
@@ -187,22 +205,37 @@ const appName = import.meta.env.VITE_APP_NAME || "Dormitory CRM";
 
 // Reception contacts derived from admin info
 const receptionContacts = computed(() => {
-  const admin = guestInfo.value.room?.dormitory?.admin;
-  if (!admin) return null;
+  const dormitory = guestInfo.value.room?.dormitory;
+  const admin = dormitory?.admin;
 
-  const phone = admin.phone_numbers?.[0] || admin.phone;
-  const email = admin.email;
-
-  const messageBody = encodeURIComponent(t("guest.home.reception.prefilledMessage", { appName }));
-
-  return {
-    phone,
-    email,
-    whatsappLink: phone ? `https://wa.me/${phone.replace(/\D/g, "")}?text=${messageBody}` : "#",
-    emailLink: email
-      ? `mailto:${email}?subject=${encodeURIComponent(t("guest.home.reception.prefilledSubject"))}&body=${messageBody}`
-      : "#",
+  const contacts: any = {
+    reception: dormitory?.reception_phone || null,
+    medical: dormitory?.medical_phone || null,
+    admin: null,
   };
+
+  if (admin) {
+    const phone = admin.phone_numbers?.[0] || admin.phone;
+    const email = admin.email;
+    const messageBody = encodeURIComponent(
+      t("guest.home.reception.prefilledMessage", { appName })
+    );
+
+    contacts.admin = {
+      phone,
+      email,
+      whatsappLink: phone
+        ? `https://wa.me/${phone.replace(/\D/g, "")}?text=${messageBody}`
+        : "#",
+      emailLink: email
+        ? `mailto:${email}?subject=${encodeURIComponent(
+          t("guest.home.reception.prefilledSubject")
+        )}&body=${messageBody}`
+        : "#",
+    };
+  }
+
+  return contacts;
 });
 
 const totalDays = computed(() => {

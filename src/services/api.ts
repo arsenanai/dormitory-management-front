@@ -11,198 +11,7 @@ import type { Bed } from "@/models/Bed";
 import type { StudentProfile } from "@/models/StudentProfile";
 import type { Configuration } from "@/models/Configuration";
 import type { PublicSettings } from "@/models/PublicSettings";
-
-/*
-// Define proper interfaces for all API types
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  phone_numbers: string[];
-  role: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface UserRegistration {
-  iin: string;
-  name: string;
-  faculty: string;
-  specialist: string;
-  enrollmentYear: string;
-  gender: string;
-  email: string;
-  phoneNumbers: string[];
-  room: string | null;
-  password: string;
-  confirmPassword: string;
-  dealNumber: string;
-  city: string | null;
-  files: (File | null)[];
-  agreeToDormitoryRules: boolean;
-  status: string;
-  roles: string[];
-}
-
-interface UserProfile {
-  id: number;
-  user_id: number;
-  name: string;
-  email: string;
-  phone_numbers: string[];
-  [key: string]: unknown;
-}
-
-interface Student {
-  id: number;
-  name: string;
-  email: string;
-  faculty: string;
-  specialist: string;
-  enrollment_year: string;
-  gender: string;
-  room_id?: number;
-  status: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface StudentProfile {
-  id: number;
-  user_id: number;
-  faculty: string;
-  specialist: string;
-  enrollment_year: string;
-  gender: string;
-  [key: string]: unknown;
-}
-
-interface Admin {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-  dormitory_id?: number;
-  created_at: string;
-  updated_at: string;
-}
-
-interface AdminProfile {
-  id: number;
-  user_id: number;
-  department: string;
-  position: string;
-  [key: string]: unknown;
-}
-
-interface Guest {
-  id?: number;
-  first_name?: string;
-  last_name?: string;
-  name: string;
-  email?: string;
-  phone?: string;
-  room_id?: number;
-  check_in_date: string;
-  check_out_date?: string;
-  payment_status?: string;
-  total_amount: number;
-  notes?: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-interface GuestProfile {
-  id: number;
-  user_id: number;
-  purpose_of_visit: string;
-  host_name: string;
-  daily_rate: number;
-  [key: string]: unknown;
-}
-
-interface Message {
-  id: number;
-  sender_id: number;
-  receiver_id?: number;
-  subject: string;
-  content: string;
-  type: string;
-  status: string;
-  sent_at: string;
-  read_at?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface Payment {
-  id: number;
-  user_id: number;
-  amount: number;
-  payment_type: string;
-  payment_date: string;
-  status: string;
-  description?: string;
-  semester?: string;
-  year?: number;
-  semester_type?: string;
-  due_date?: string;
-  payment_notes?: string;
-  dormitory_notes?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface Room {
-  id: number;
-  number: string;
-  floor: number | null;
-  dormitory_id: number;
-  dormitory?: Dormitory;
-  room_type_id?: number;
-  roomType?: RoomType;
-  is_occupied: boolean;
-  notes?: string;
-  quota?: number;
-  created_at: string;
-  updated_at: string;
-  beds?: Bed[];
-  occupant_type?: 'student' | 'guest';
-}
-
-interface RoomType {
-  id: number;
-  name: string;
-  description?: string;
-  capacity: number;
-  price: number;
-  created_at: string;
-  updated_at: string;
-}
-
-interface Dormitory {
-  id: number;
-  name: string;
-  address: string;
-  capacity: number;
-  gender: string;
-  admin_id?: number;
-  created_at: string;
-  updated_at: string;
-}
-
-interface Bed {
-  id: number;
-  room_id: number;
-  number: string;
-  is_occupied: boolean;
-  reserved_for_staff: boolean;
-  user_id?: number;
-  created_at: string;
-  updated_at: string;
-}
-*/
+import type { PaymentType } from "@/models/PaymentType";
 
 interface ApiResponse<T> {
   success: boolean;
@@ -410,7 +219,7 @@ export const paymentService = {
       headers: { "Content-Type": "multipart/form-data" },
     }),
 
-  createForSelf: (data: FormData): Promise<ApiResponse<Payment>> =>
+  createMyPayment: (data: FormData): Promise<ApiResponse<Payment>> =>
     api.post("/my-payments", data, {
       headers: { "Content-Type": "multipart/form-data" },
     }),
@@ -429,6 +238,20 @@ export const paymentService = {
 
   getStats: (params?: FilterParams): Promise<ApiResponse<Record<string, unknown>>> =>
     api.get("/payments/stats", { params }),
+};
+
+// PaymentType service
+export const paymentTypeService = {
+  getAll: (): Promise<ApiResponse<PaymentType[]>> => api.get("/payment-types"),
+
+  create: (data: Partial<PaymentType>): Promise<ApiResponse<PaymentType>> =>
+    api.post("/payment-types", data),
+
+  update: (id: number, data: Partial<PaymentType>): Promise<ApiResponse<PaymentType>> =>
+    api.put(`/payment-types/${id}`, data),
+
+  delete: (id: number): Promise<ApiResponse<{ message: string }>> =>
+    api.delete(`/payment-types/${id}`),
 };
 
 // Room service

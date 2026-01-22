@@ -208,6 +208,18 @@ const routes: AppRouteRecordRaw[] = [
       roles: ["admin"],
     },
   },
+  // {
+  //   path: "/accounting",
+  //   name: "Accounting",
+  //   component: () => import("@/pages/Accounting.vue"),
+  //   meta: {
+  //     title: "Accounting",
+  //     requiresAuth: true,
+  //     sidebar: true,
+  //     icon: ClipboardDocumentListIcon,
+  //     roles: ["sudo", "admin"],
+  //   },
+  // },
   {
     path: "/payments",
     name: "Payments",
@@ -226,7 +238,7 @@ const routes: AppRouteRecordRaw[] = [
     component: () => import("@/pages/PaymentForm.vue"),
     meta: {
       title: "Payment Form",
-      parent: "Payments",
+      parent: "Accounting",
       requiresAuth: true,
       sidebar: true,
       icon: PencilSquareIcon,
@@ -254,6 +266,18 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: Cog6ToothIcon,
+      roles: ["sudo"],
+    },
+  },
+  {
+    path: "/payment-types",
+    name: "Payment Types",
+    component: () => import("@/pages/PaymentTypes.vue"),
+    meta: {
+      title: "Payment Types",
+      requiresAuth: true,
+      sidebar: true,
+      icon: ClipboardDocumentListIcon,
       roles: ["sudo"],
     },
   },

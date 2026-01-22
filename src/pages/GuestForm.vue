@@ -176,7 +176,7 @@ import CTextarea from "@/components/CTextarea.vue";
 import CModal from "@/components/CModal.vue";
 import CRoomTypePhotos from "@/components/CRoomTypePhotos.vue";
 import { useToast } from "@/composables/useToast";
-import { guestService, roomService, personalDataService } from "@/services/api";
+import { guestService, roomService, personalDataService, authService } from "@/services/api";
 import { useSettingsStore } from "@/stores/settings";
 import { getCurrencySymbol } from "@/utils/formatters";
 import type { User } from "@/models/User";
@@ -259,7 +259,7 @@ const allRoomsData = ref<any[]>([]); // To store full room data for rate lookup
 const bedOptions = ref<{ value: string; name: string }[]>([]);
 const loadingRooms = ref(false);
 
-const fetchAvailableRooms = async () => {
+const fetchAvailableRooms = async (currentRoom?: any) => {
   if (!guestProfile.value.visit_start_date || !guestProfile.value.visit_end_date) {
     roomOptions.value = [];
     allRoomsData.value = [];
@@ -281,15 +281,30 @@ const fetchAvailableRooms = async () => {
       params.guest_id = guestId.value;
     }
     const availableRoomsResponse = await roomService.getAvailable(params);
-    let allRooms = availableRoomsResponse.data || [];
+    const allRooms = availableRoomsResponse.data || [];
     allRoomsData.value = allRooms;
 
-    // If editing, ensure the guest's current room is in the list
-    if (isEditing.value && guestId.value && user.value.room_id) {
-      const guestResponse = await guestService.getById(guestId.value);
-      const currentRoom = guestResponse.data.room;
-      if (currentRoom && !allRooms.some((room: any) => room.id === currentRoom.id)) {
+    // If we have a current room passed in (e.g. from profile fetch), use it
+    if (currentRoom) {
+      if (!allRooms.some((room: any) => room.id === currentRoom.id)) {
         allRooms.push(currentRoom);
+      }
+    }
+    // Otherwise if editing and we have an ID but no currentRoom passed, we might need to fetch it
+    // BUT if we are embedded, we should have passed it in.
+    else if (isEditing.value && guestId.value && user.value.room_id) {
+      // Only fetch if NOT embedded, or if we really need to (fallback)
+      // The user complained about /guests/{id} calls when embedded, so we skip this block if embedded
+      if (!props.embedded) {
+        try {
+          const guestResponse = await guestService.getById(guestId.value);
+          const fetchedRoom = guestResponse.data.room;
+          if (fetchedRoom && !allRooms.some((room: any) => room.id === fetchedRoom.id)) {
+            allRooms.push(fetchedRoom);
+          }
+        } catch (e) {
+          // ignore, maybe no access
+        }
       }
     }
 
@@ -410,7 +425,7 @@ const hydrateGuestFromApi = async (guestData: User): Promise<void> => {
     reminder: guestData.guest_profile?.reminder || "",
   };
 
-  await fetchAvailableRooms();
+  await fetchAvailableRooms(guestData.room);
   updateBedOptions(user.value.room_id);
 };
 
@@ -425,7 +440,7 @@ const loadGuest = async (id: number): Promise<void> => {
 
 const loadSelfGuest = async (): Promise<void> => {
   try {
-    const response = await personalDataService.get();
+    const response = await authService.getProfile();
     await hydrateGuestFromApi(response.data);
   } catch (error) {
     showError(t("Failed to load guest data"));

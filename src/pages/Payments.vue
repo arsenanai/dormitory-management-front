@@ -6,12 +6,7 @@
         <!-- Filter Section - Organized in rows for better responsive layout -->
         <div class="flex flex-col gap-2 sm:flex-row sm:gap-4">
           <div class="flex-1">
-            <CInput
-              id="search"
-              v-model="searchTerm"
-              :label="t('Search')"
-              :placeholder="t('Search payments...')"
-            />
+            <CInput id="search" v-model="searchTerm" :label="t('Search')" :placeholder="t('Search payments...')" />
           </div>
 
           <!-- Date filters for admin users (when not filtering students) -->
@@ -26,38 +21,30 @@
 
           <!-- Semester selector for students or admin filtering students -->
           <div class="flex-1" v-if="showSemesterFilter">
-            <CSelect
-              id="semester-filter"
-              v-model="selectedSemester"
-              :options="semesterOptions"
-              :label="t('Semester')"
-            />
+            <CSelect id="semester-filter" v-model="selectedSemester" :options="semesterOptions"
+              :label="t('Semester')" />
+          </div>
+
+          <!-- Payment Type filter -->
+          <div class="flex-1">
+            <CSelect id="payment-type-filter" v-model="selectedPaymentType" :options="paymentTypeOptions"
+              :label="t('Payment Type')" />
           </div>
 
           <!-- <div v-if="!isMyPayments" class="flex-1"> -->
           <div class="flex-1" v-if="isAdmin">
-            <CSelect
-              id="role-filter"
-              v-model="selectedRole"
-              :options="roleOptions"
-              :label="t('Role')"
-            />
+            <CSelect id="role-filter" v-model="selectedRole" :options="roleOptions" :label="t('Role')" />
           </div>
         </div>
         <!-- Action Buttons Section -->
         <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
-          <CButton @click="showPaymentForm" data-testid="add-payment-button" :disabled="loading">
+          <CButton v-if="isAdmin" @click="showPaymentForm" data-testid="add-payment-button" :disabled="loading">
             <PencilSquareIcon class="h-5 w-5" />
             {{ t("Add Payment") }}
           </CButton>
           <!-- <CButton v-if="!isMyPayments" @click="exportPayments" data-testid="export-payments-button"
             :disabled="loading"> -->
-          <CButton
-            @click="exportPayments"
-            data-testid="export-payments-button"
-            :disabled="loading"
-            v-if="isAdmin"
-          >
+          <CButton @click="exportPayments" data-testid="export-payments-button" :disabled="loading" v-if="isAdmin">
             <ArrowDownTrayIcon class="h-5 w-5" />
             {{ t("Download") }}
           </CButton>
@@ -70,13 +57,8 @@
       </div>
 
       <!-- Payments Table -->
-      <CTable
-        v-if="!error"
-        :columns="tableColumns"
-        :data="paginatedPayments"
-        :loading="loading"
-        data-testid="payments-table"
-      >
+      <CTable v-if="!error" :columns="tableColumns" :data="paginatedPayments" :loading="loading"
+        data-testid="payments-table">
         <template #cell-user="{ row: payment }">
           <div class="flex flex-col gap-2">
             <span>
@@ -94,6 +76,9 @@
         </template>
         <template #cell-amount="{ row: payment }">
           {{ formatPrice(parseFloat(payment.amount || "0")) }}
+        </template>
+        <template #cell-payment_type="{ row: payment }">
+          <span class="capitalize">{{ payment.paymentType || "-" }}</span>
         </template>
         <template #cell-role="{ row: payment }">
           <span class="capitalize">{{ payment.user?.role?.name || "-" }}</span>
@@ -118,11 +103,8 @@
       </CTable>
 
       <!-- Pagination -->
-      <div
-        v-if="totalPages > 1"
-        class="flex flex-col items-center justify-between gap-4 md:flex-row"
-        data-testid="pagination"
-      >
+      <div v-if="totalPages > 1" class="flex flex-col items-center justify-between gap-4 md:flex-row"
+        data-testid="pagination">
         <div class="text-sm text-gray-700">
           <span v-if="total > 0">
             <span class="font-medium">{{ fromPayment }}</span> -
@@ -134,34 +116,18 @@
           </span>
         </div>
         <div class="flex items-center gap-2">
-          <CButton
-            :disabled="currentPage === 1"
-            @click="currentPage--"
-            :aria-label="t('Previous page')"
-            class="h-10"
-          >
+          <CButton :disabled="currentPage === 1" @click="currentPage--" :aria-label="t('Previous page')" class="h-10">
             <ChevronLeftIcon class="h-5 w-5" />
           </CButton>
           <div class="flex items-center gap-1 text-sm">
             <div class="w-20">
-              <CInput
-                id="page-input"
-                v-model.number="pageInput"
-                type="number"
-                :min="1"
-                :max="totalPages"
-                class="h-10 text-center"
-                @keyup.enter="goToPage"
-              />
+              <CInput id="page-input" v-model.number="pageInput" type="number" :min="1" :max="totalPages"
+                class="h-10 text-center" @keyup.enter="goToPage" />
             </div>
             <span>/ {{ totalPages }}</span>
           </div>
-          <CButton
-            :disabled="currentPage === totalPages"
-            @click="currentPage++"
-            :aria-label="t('Next page')"
-            class="h-10"
-          >
+          <CButton :disabled="currentPage === totalPages" @click="currentPage++" :aria-label="t('Next page')"
+            class="h-10">
             <ChevronRightIcon class="h-5 w-5" />
           </CButton>
         </div>
@@ -173,23 +139,13 @@
       :message="t('Are you sure? This change is not recoverable')" :title="t('Delete Payment')"
       :confirm-text="t('Delete')" :cancel-text="t('Cancel')" @confirm="deletePayment"
       @cancel="showDeleteConfirmation = false" /> -->
-    <CConfirmationModal
-      v-if="showDeleteConfirmation"
-      :message="t('Are you sure? This change is not recoverable')"
-      :title="t('Delete Payment')"
-      :confirm-text="t('Delete')"
-      :cancel-text="t('Cancel')"
-      @confirm="deletePayment"
-      @cancel="showDeleteConfirmation = false"
-    />
+    <CConfirmationModal v-if="showDeleteConfirmation" :message="t('Are you sure? This change is not recoverable')"
+      :title="t('Delete Payment')" :confirm-text="t('Delete')" :cancel-text="t('Cancel')" @confirm="deletePayment"
+      @cancel="showDeleteConfirmation = false" />
     <!-- <PaymentForm v-model="showForm" :selected-payment="isMyPayments ? null : selectedPayment"
       :currency-symbol="currencySymbol" :self-service="isMyPayments" @submit="handleFormSubmission" /> -->
-    <PaymentForm
-      v-model="showForm"
-      :selected-payment="selectedPayment"
-      :currency-symbol="currencySymbol"
-      @submit="handleFormSubmission"
-    />
+    <PaymentForm v-model="showForm" :selected-payment="selectedPayment" :currency-symbol="currencySymbol"
+      @submit="handleFormSubmission" />
   </Navigation>
 </template>
 
@@ -215,6 +171,7 @@ import {
 } from "@heroicons/vue/24/outline";
 import { paymentService, configurationService } from "@/services/api";
 import { usePaymentsStore } from "@/stores/payments";
+import { usePaymentTypesStore } from "@/stores/paymentTypes";
 import { useToast } from "@/composables/useToast";
 import { formatCurrency } from "@/utils/formatters";
 
@@ -232,6 +189,7 @@ const route = useRoute();
 
 // store
 const paymentsStore = usePaymentsStore();
+const paymentTypesStore = usePaymentTypesStore();
 const settingsStore = useSettingsStore();
 const { showError, showSuccess } = useToast();
 
@@ -245,6 +203,7 @@ const endDate = ref<string>("");
 const searchTerm = ref<string>("");
 const selectedRole = ref<string>("");
 const selectedSemester = ref<string>("");
+const selectedPaymentType = ref<string>("");
 const currentPage = ref<number>(1);
 const itemsPerPage = ref<number>(10);
 const pageInput = ref(1);
@@ -271,10 +230,21 @@ const roleOptions = [
   { value: "guest", name: t("Guest") },
 ];
 
+// Payment Type options
+const paymentTypeOptions = computed(() => {
+  return [
+    { value: "", name: t("All Payment Types") },
+    ...paymentTypesStore.paymentTypes.map((t) => ({
+      value: t.name,
+      name: t.name,
+    })),
+  ];
+});
+
 // Generate semester options for the current and past few years
 const semesterOptions = computed(() => {
   const currentYear = new Date().getFullYear();
-  const options = [{ value: "", name: t("All Semesters") }];
+  const options = [{ value: "", name: t("All Semesters"), startDate: "", endDate: "" }];
 
   // Generate semesters for current year and past 3 years
   for (let year = currentYear; year >= currentYear - 3; year--) {
@@ -323,6 +293,7 @@ const tableColumns = computed(() => {
   const base = [
     { key: "user", label: t("User"), class: "whitespace-nowrap" },
     { key: "amount", label: t("Amount") },
+    { key: "payment_type", label: t("Type") },
     { key: "deal_number", label: t("Deal Number") },
     { key: "period", label: t("Period") },
   ];
@@ -357,6 +328,7 @@ const loadPayments = async () => {
     if (searchTerm.value) params.search = searchTerm.value;
     if (startDate.value) params.date_from = startDate.value;
     if (endDate.value) params.date_to = endDate.value;
+    if (selectedPaymentType.value) params.payment_type = selectedPaymentType.value;
     if (selectedRole.value && !isMyPayments.value) params.role = selectedRole.value;
 
     // Handle semester selection for students or admin filtering students
@@ -404,12 +376,13 @@ const loadPayments = async () => {
 
 onMounted(async () => {
   loadPayments();
+  paymentTypesStore.fetchPaymentTypes();
   pageInput.value = currentPage.value;
   paymentsStore.clearSelectedPayment();
 });
 
 // Watch filters and reload payments
-watch([searchTerm, startDate, endDate, selectedRole, selectedSemester], () => {
+watch([searchTerm, startDate, endDate, selectedRole, selectedSemester, selectedPaymentType], () => {
   currentPage.value = 1;
   pageInput.value = 1;
   loadPayments();
@@ -467,6 +440,8 @@ async function exportPayments() {
     if (searchTerm.value) filters.search = searchTerm.value;
     if (startDate.value) filters.date_from = startDate.value;
     if (endDate.value) filters.date_to = endDate.value;
+    if (selectedPaymentType.value) filters.payment_type = selectedPaymentType.value;
+    if (selectedRole.value && !isMyPayments.value) filters.role = selectedRole.value;
 
     // Handle semester selection for students or admin filtering students
     if (showSemesterFilter.value && selectedSemester.value) {
