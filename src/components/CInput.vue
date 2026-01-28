@@ -214,13 +214,14 @@ function validateInput(event: Event) {
   if (props.required && (value === null || value === undefined || value === "")) {
     isValid = false;
     validationMessage = "This field is required.";
-  } else if (value !== null && value !== undefined && value !== "") { // Only proceed if not empty and not required
+  } else if (value !== null && value !== undefined && value !== "") {
+    // Only proceed if not empty and not required
     // 2. Check for specific patterns (like IIN)
-    if (props.pattern === '\\d{12}') {
-        isValid = new RegExp(props.pattern).test(String(value));
-        if (!isValid) {
-            validationMessage = "Please enter exactly 12 digits.";
-        }
+    if (props.pattern === "\\d{12}") {
+      isValid = new RegExp(props.pattern).test(String(value));
+      if (!isValid) {
+        validationMessage = "Please enter exactly 12 digits.";
+      }
     }
     // 3. Check generic pattern
     else if (props.pattern) {
@@ -233,7 +234,7 @@ function validateInput(event: Event) {
         console.warn("Invalid regex pattern provided to CInput:", props.pattern, e);
         isValid = inputElement.checkValidity(); // Fallback
         if (!isValid && !validationMessage) {
-            validationMessage = "Invalid format.";
+          validationMessage = "Invalid format.";
         }
       }
     }
@@ -255,25 +256,25 @@ function validateInput(event: Event) {
 
     // 6. Check minLength / maxLength if not already invalid and no message set
     if (isValid) {
-        if (props.minLength !== undefined && String(value).length < Number(props.minLength)) {
-            isValid = false;
-            validationMessage = `Please enter at least ${props.minLength} characters.`;
-        } else if (props.maxLength !== undefined && String(value).length > Number(props.maxLength)) {
-            isValid = false;
-            validationMessage = `Please enter at most ${props.maxLength} characters.`;
-        }
+      if (props.minLength !== undefined && String(value).length < Number(props.minLength)) {
+        isValid = false;
+        validationMessage = `Please enter at least ${props.minLength} characters.`;
+      } else if (props.maxLength !== undefined && String(value).length > Number(props.maxLength)) {
+        isValid = false;
+        validationMessage = `Please enter at most ${props.maxLength} characters.`;
+      }
     }
 
     // 7. Check min / max for numbers
     if (isValid && props.type === "number" && value !== "") {
-        const numValue = Number(value);
-        if (props.min !== undefined && numValue < Number(props.min)) {
-            isValid = false;
-            validationMessage = `Value must be at least ${props.min}.`;
-        } else if (props.max !== undefined && numValue > Number(props.max)) {
-            isValid = false;
-            validationMessage = `Value must be at most ${props.max}.`;
-        }
+      const numValue = Number(value);
+      if (props.min !== undefined && numValue < Number(props.min)) {
+        isValid = false;
+        validationMessage = `Value must be at least ${props.min}.`;
+      } else if (props.max !== undefined && numValue > Number(props.max)) {
+        isValid = false;
+        validationMessage = `Value must be at most ${props.max}.`;
+      }
     }
   }
 

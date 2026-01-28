@@ -3,74 +3,127 @@
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <!-- Guest First Name -->
       <div>
-        <CInput id="guest-first-name" v-model="user.first_name" type="text" :label="t('Firstname')"
-          placeholder="Enter Firstname" required v-bind="{
+        <CInput
+          id="guest-first-name"
+          v-model="user.first_name"
+          type="text"
+          :label="t('Firstname')"
+          placeholder="Enter Firstname"
+          required
+          v-bind="{
             validationMessage: fieldErrors['first_name'],
             validationState: fieldErrors['first_name'] ? 'error' : '',
-          }" />
+          }"
+        />
       </div>
 
       <!-- Guest Last Name -->
       <div>
-        <CInput id="guest-last-name" v-model="user.last_name" type="text" :label="t('Surname')"
-          placeholder="Enter Surname" required v-bind="{
+        <CInput
+          id="guest-last-name"
+          v-model="user.last_name"
+          type="text"
+          :label="t('Surname')"
+          placeholder="Enter Surname"
+          required
+          v-bind="{
             validationMessage: fieldErrors['last_name'],
             validationState: fieldErrors['last_name'] ? 'error' : '',
-          }" />
+          }"
+        />
       </div>
 
       <!-- Phone -->
       <div>
-        <CInput id="guest-phone" v-model="phoneNumber" type="tel" :label="t('Tel no')" placeholder="+7(___)_______"
-          required v-bind="{
+        <CInput
+          id="guest-phone"
+          v-model="phoneNumber"
+          type="tel"
+          :label="t('Tel no')"
+          placeholder="+7(___)_______"
+          required
+          v-bind="{
             validationMessage: fieldErrors['phone'],
             validationState: fieldErrors['phone'] ? 'error' : '',
-          }" />
+          }"
+        />
       </div>
 
       <!-- Email -->
       <div>
-        <CInput id="guest-email" v-model="user.email" type="email" :label="t('Email')" placeholder="Enter Email"
-          required v-bind="{
+        <CInput
+          id="guest-email"
+          v-model="user.email"
+          type="email"
+          :label="t('Email')"
+          placeholder="Enter Email"
+          required
+          v-bind="{
             validationMessage: fieldErrors['email'],
             validationState: fieldErrors['email'] ? 'error' : '',
-          }" />
+          }"
+        />
       </div>
 
       <!-- Enter Date -->
       <div>
-        <CInput id="guest-enter-date" v-model="guestProfile.visit_start_date" type="date" :label="t('Enter date')"
-          required v-bind="{
+        <CInput
+          id="guest-enter-date"
+          v-model="guestProfile.visit_start_date"
+          type="date"
+          :label="t('Enter date')"
+          required
+          v-bind="{
             validationMessage: fieldErrors['check_in_date'],
             validationState: fieldErrors['check_in_date'] ? 'error' : '',
-          }" />
+          }"
+        />
       </div>
 
       <!-- Exit Date -->
       <div>
-        <CInput id="guest-exit-date" v-model="guestProfile.visit_end_date" type="date" :label="t('Exit date')" required
+        <CInput
+          id="guest-exit-date"
+          v-model="guestProfile.visit_end_date"
+          type="date"
+          :label="t('Exit date')"
+          required
           v-bind="{
             validationMessage: fieldErrors['check_out_date'],
             validationState: fieldErrors['check_out_date'] ? 'error' : '',
-          }" />
+          }"
+        />
       </div>
 
       <!-- Room Selection -->
       <div>
-        <CSelect id="guest-room" v-model="user.room_id" :options="roomOptions" :label="t('Select room')" required
+        <CSelect
+          id="guest-room"
+          v-model="user.room_id"
+          :options="roomOptions"
+          :label="t('Select room')"
+          required
           v-bind="{
             validationMessage: fieldErrors['room_id'],
             validationState: fieldErrors['room_id'] ? 'error' : '',
-          }" />
+          }"
+        />
       </div>
 
       <!-- Bed Selection -->
       <div>
-        <CSelect id="guest-bed" v-model="guestProfile.bed_id" :options="bedOptions" :label="t('Select bed')"
-          :disabled="!user.room_id" required v-bind="{
+        <CSelect
+          id="guest-bed"
+          v-model="guestProfile.bed_id"
+          :options="bedOptions"
+          :label="t('Select bed')"
+          :disabled="!user.room_id"
+          required
+          v-bind="{
             validationMessage: fieldErrors['bed_id'],
             validationState: fieldErrors['bed_id'] ? 'error' : '',
-          }" />
+          }"
+        />
       </div>
 
       <!-- Room Photos Display -->
@@ -80,76 +133,137 @@
 
       <!-- Purpose of Visit -->
       <div>
-        <CInput id="guest-purpose" v-model="guestProfile.purpose_of_visit" type="text"
-          :label="t('guest.form.purposeOfVisit')" placeholder="Enter purpose of visit" required v-bind="{
+        <CInput
+          id="guest-purpose"
+          v-model="guestProfile.purpose_of_visit"
+          type="text"
+          :label="t('guest.form.purposeOfVisit')"
+          placeholder="Enter purpose of visit"
+          required
+          v-bind="{
             validationMessage: fieldErrors['notes'],
             validationState: fieldErrors['notes'] ? 'error' : '',
-          }" />
+          }"
+        />
       </div>
 
       <!-- Host Name -->
       <div>
-        <CInput id="guest-host-name" v-model="guestProfile.host_name" type="text" :label="t('guest.form.hostName')"
-          placeholder="Enter host name" v-bind="{
+        <CInput
+          id="guest-host-name"
+          v-model="guestProfile.host_name"
+          type="text"
+          :label="t('guest.form.hostName')"
+          placeholder="Enter host name"
+          v-bind="{
             validationMessage: fieldErrors['host_name'],
             validationState: fieldErrors['host_name'] ? 'error' : '',
-          }" />
+          }"
+        />
       </div>
 
       <!-- Host Contact -->
       <div>
-        <CInput id="guest-host-contact" v-model="guestProfile.host_contact" type="text"
-          :label="t('guest.form.hostContact')" placeholder="Enter host contact" v-bind="{
+        <CInput
+          id="guest-host-contact"
+          v-model="guestProfile.host_contact"
+          type="text"
+          :label="t('guest.form.hostContact')"
+          placeholder="Enter host contact"
+          v-bind="{
             validationMessage: fieldErrors['host_contact'],
             validationState: fieldErrors['host_contact'] ? 'error' : '',
-          }" />
+          }"
+        />
       </div>
 
       <!-- Identification Type -->
       <div>
-        <CSelect id="guest-identification-type" v-model="guestProfile.identification_type"
-          :options="identificationOptions" :label="t('guest.form.identificationType')"
-          placeholder="Select identification type" v-bind="{
+        <CSelect
+          id="guest-identification-type"
+          v-model="guestProfile.identification_type"
+          :options="identificationOptions"
+          :label="t('guest.form.identificationType')"
+          placeholder="Select identification type"
+          v-bind="{
             validationMessage: fieldErrors['identification_type'],
             validationState: fieldErrors['identification_type'] ? 'error' : '',
-          }" />
+          }"
+        />
       </div>
 
       <!-- Identification Number -->
       <div>
-        <CInput id="guest-identification-number" v-model="guestProfile.identification_number" type="text"
-          :label="t('guest.form.identificationNumber')" placeholder="Enter identification number" v-bind="{
+        <CInput
+          id="guest-identification-number"
+          v-model="guestProfile.identification_number"
+          type="text"
+          :label="t('guest.form.identificationNumber')"
+          placeholder="Enter identification number"
+          v-bind="{
             validationMessage: fieldErrors['identification_number'],
             validationState: fieldErrors['identification_number'] ? 'error' : '',
-          }" />
+          }"
+        />
       </div>
 
       <!-- Emergency Contact Name -->
       <div>
-        <CInput id="guest-emergency-name" v-model="guestProfile.emergency_contact_name" type="text"
-          :label="t('guest.form.emergencyName')" placeholder="Enter emergency contact name" v-bind="{
+        <CInput
+          id="guest-emergency-name"
+          v-model="guestProfile.emergency_contact_name"
+          type="text"
+          :label="t('guest.form.emergencyName')"
+          placeholder="Enter emergency contact name"
+          v-bind="{
             validationMessage: fieldErrors['emergency_contact_name'],
             validationState: fieldErrors['emergency_contact_name'] ? 'error' : '',
-          }" />
+          }"
+        />
       </div>
 
       <!-- Emergency Contact Phone -->
       <div>
-        <CInput id="guest-emergency-phone" v-model="guestProfile.emergency_contact_phone" type="tel"
-          :label="t('guest.form.emergencyPhone')" placeholder="Enter emergency contact phone" v-bind="{
+        <CInput
+          id="guest-emergency-phone"
+          v-model="guestProfile.emergency_contact_phone"
+          type="tel"
+          :label="t('guest.form.emergencyPhone')"
+          placeholder="Enter emergency contact phone"
+          v-bind="{
             validationMessage: fieldErrors['emergency_contact_phone'],
             validationState: fieldErrors['emergency_contact_phone'] ? 'error' : '',
-          }" />
+          }"
+        />
       </div>
 
       <!-- Information / Reminder -->
       <div class="col-span-1 lg:col-span-2">
-        <CTextarea id="guest-reminder" v-model="guestProfile.reminder"
-          :label="t('guest.form.enterInformationOrReminder')" :placeholder="t('guest.form.enterInformationOrReminder')"
-          :rows="3" v-bind="{
+        <CTextarea
+          id="guest-reminder"
+          v-model="guestProfile.reminder"
+          :label="t('guest.form.enterInformationOrReminder')"
+          :placeholder="t('guest.form.enterInformationOrReminder')"
+          :rows="3"
+          v-bind="{
             validationMessage: fieldErrors['reminder'],
             validationState: fieldErrors['reminder'] ? 'error' : '',
-          }" />
+          }"
+        />
+      </div>
+
+      <!-- Status (Admin only) -->
+      <div v-if="!props.embedded">
+        <CSelect
+          id="guest-status"
+          v-model="user.status"
+          :options="statusOptions"
+          :label="t('Status')"
+          v-bind="{
+            validationMessage: fieldErrors['status'],
+            validationState: fieldErrors['status'] ? 'error' : '',
+          }"
+        />
       </div>
     </div>
 
@@ -165,7 +279,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted, watch, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import Navigation from "@/components/CNavigation.vue";
@@ -192,7 +306,7 @@ const props = defineProps<{
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
-const { showError, showSuccess } = useToast();
+const { showError, showSuccess, showWarning } = useToast();
 // Field-level validation messages returned by backend
 const fieldErrors = ref<Record<string, string>>({});
 const settingsStore = useSettingsStore();
@@ -220,6 +334,7 @@ const user = ref<Partial<User>>({
   password: "",
   room_id: null,
   confirmPassword: "",
+  status: "active",
 });
 
 // Computed property for phone number to handle v-model binding
@@ -328,6 +443,13 @@ const identificationOptions = computed(() => [
   { value: "other", name: t("Other") },
 ]);
 
+// Status Options
+const statusOptions = computed(() => [
+  { value: "active", name: t("Active") },
+  { value: "pending", name: t("Pending") },
+  { value: "passive", name: t("Passive") },
+]);
+
 // Submit Form
 const submitForm = async (): Promise<void> => {
   // clear previous errors
@@ -339,8 +461,9 @@ const submitForm = async (): Promise<void> => {
       last_name: `${user.value.last_name}`.trim(),
       email: user.value.email,
       phone: phoneNumber.value,
-      room_id: user.value.room_id,
-      bed_id: guestProfile.value.bed_id,
+      // CSelect uses string IDs; backend expects integers
+      room_id: user.value.room_id ? Number(user.value.room_id) : null,
+      bed_id: guestProfile.value.bed_id ? Number(guestProfile.value.bed_id) : null,
       check_in_date: guestProfile.value.visit_start_date,
       check_out_date: guestProfile.value.visit_end_date,
       notes: guestProfile.value.purpose_of_visit || undefined, // Send purpose as notes
@@ -350,11 +473,14 @@ const submitForm = async (): Promise<void> => {
       identification_number: guestProfile.value.identification_number || undefined,
       emergency_contact_name: guestProfile.value.emergency_contact_name || undefined,
       emergency_contact_phone: guestProfile.value.emergency_contact_phone || undefined,
+      reminder: guestProfile.value.reminder || undefined,
+      status: user.value.status || undefined, // Include status for admin editing
     };
 
     if (props.embedded) {
-      await personalDataService.update(payload);
+      const res = await personalDataService.update(payload);
       showSuccess(t("Guest information updated successfully!"));
+      if (res?.data?.warning) showWarning(res.data.warning);
       if (shouldRedirect.value) {
         await loadSelfGuest();
       }
@@ -362,8 +488,9 @@ const submitForm = async (): Promise<void> => {
     }
 
     if (isEditing.value) {
-      await guestService.update(guestId.value!, payload);
+      const res = await guestService.update(guestId.value!, payload);
       showSuccess(t("Guest information updated successfully!"));
+      if (res?.data?.warning) showWarning(res.data.warning);
       if (shouldRedirect.value) {
         router.push("/guest-house");
       }
@@ -408,7 +535,9 @@ const hydrateGuestFromApi = async (guestData: User): Promise<void> => {
       : guestData.phone
         ? [guestData.phone]
         : [""],
-    room_id: guestData.room_id,
+    // Normalize to string to match <option :value="..."> (string) in CSelect
+    room_id: guestData.room_id ? String(guestData.room_id) : null,
+    status: guestData.status || "active",
   };
 
   guestProfile.value = {
@@ -421,12 +550,34 @@ const hydrateGuestFromApi = async (guestData: User): Promise<void> => {
     identification_number: guestData.guest_profile?.identification_number || "",
     emergency_contact_name: guestData.guest_profile?.emergency_contact_name || "",
     emergency_contact_phone: guestData.guest_profile?.emergency_contact_phone || "",
-    bed_id: guestData.guest_profile?.bed_id ? guestData.guest_profile?.bed_id.toString() : null,
+    bed_id: guestData.guest_profile?.bed_id ? String(guestData.guest_profile?.bed_id) : null,
     reminder: guestData.guest_profile?.reminder || "",
   };
 
   await fetchAvailableRooms(guestData.room);
   updateBedOptions(user.value.room_id);
+
+  // Use nextTick to ensure bed options are populated before setting bed_id
+  await nextTick();
+
+  // Ensure bed_id is set as a string after bed options are populated
+  // This ensures the select component can match the value
+  if (guestProfile.value.bed_id) {
+    const bedIdString = guestProfile.value.bed_id.toString();
+    // Verify the bed exists in the bed options before setting
+    const bedExists = bedOptions.value.some((bed) => bed.value === bedIdString);
+    if (bedExists) {
+      guestProfile.value.bed_id = bedIdString;
+    } else {
+      // If bed doesn't exist in options, it might be from a different room
+      // Try to find it in all rooms' beds
+      const allBeds = allRoomsData.value.flatMap((room: any) => room.beds || []);
+      const bedFound = allBeds.find((bed: any) => bed.id.toString() === bedIdString);
+      if (bedFound) {
+        guestProfile.value.bed_id = bedIdString;
+      }
+    }
+  }
 };
 
 const loadGuest = async (id: number): Promise<void> => {
@@ -454,7 +605,9 @@ const updateBedOptions = (roomId: number | string | null) => {
     const dailyRate = selectedRoom.room_type?.daily_rate;
     const currencySymbol = getCurrencySymbol(settingsStore.publicSettings?.currency_symbol);
     const priceString =
-      dailyRate != null ? ` - ${Math.round(parseFloat(dailyRate))} ${currencySymbol}/${t("day")}` : "";
+      dailyRate != null
+        ? ` - ${Math.round(parseFloat(dailyRate))} ${currencySymbol}/${t("day")}`
+        : "";
 
     bedOptions.value = selectedRoom.beds.map((bed: any) => ({
       value: bed.id.toString(), // Ensure value is a string for consistency
@@ -597,6 +750,12 @@ watch(
   () => guestProfile.value.reminder,
   () => {
     delete fieldErrors.value["reminder"];
+  }
+);
+watch(
+  () => user.value.status,
+  () => {
+    delete fieldErrors.value["status"];
   }
 );
 </script>

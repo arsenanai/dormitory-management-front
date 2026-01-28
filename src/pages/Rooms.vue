@@ -423,12 +423,8 @@ const paginatedRooms = computed(() => rooms.value);
 const occupancyStats = computed(() => {
   const totalRoomsCount = rooms.value.length;
   const maintenanceRooms = rooms.value.filter((r) => r.is_maintenance).length;
-  const availableRooms = rooms.value.filter(
-    (r) => !r.is_maintenance && getFreeBeds(r) > 0
-  ).length;
-  const occupiedRooms = rooms.value.filter(
-    (r) => !r.is_maintenance && getFreeBeds(r) === 0
-  ).length;
+  const availableRooms = rooms.value.filter((r) => !r.is_maintenance && getFreeBeds(r) > 0).length;
+  const occupiedRooms = rooms.value.filter((r) => !r.is_maintenance && getFreeBeds(r) === 0).length;
   const occupancyRate =
     totalRoomsCount > maintenanceRooms
       ? Math.round((occupiedRooms / (totalRoomsCount - maintenanceRooms)) * 100)

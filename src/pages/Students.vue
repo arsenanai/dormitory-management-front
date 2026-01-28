@@ -114,12 +114,12 @@
         <template #cell-faculty="{ row }">
           {{ row.student_profile?.faculty || row.faculty || "-" }}
         </template>
-        <template #cell-deal_number="{ row }">
-          {{ row.student_profile?.deal_number || "-" }}
+        <template #cell-iin="{ row }">
+          {{ row.student_profile?.iin || "-" }}
         </template>
         <template #cell-bed="{ row }">
-          <span v-if="row.room && row.student_bed" class="whitespace-nowrap">
-            {{ row.room.number }}-{{ row.student_bed.bed_number }}
+          <span v-if="row.room && (row.student_bed || row.studentBed)" class="whitespace-nowrap">
+            {{ row.room.number }}-{{ (row.student_bed || row.studentBed)?.bed_number }}
           </span>
           <span v-else>-</span>
         </template>
@@ -266,7 +266,7 @@ const { showSuccess, showError, showConfirmation } = useToast();
 const filters = ref({
   faculty: "",
   room: "",
-  status: "pending",
+  status: "",
   showDormitoryStudents: false,
 });
 const students = ref([]);
@@ -285,7 +285,7 @@ const tableColumns = [
   { key: "status", label: t("STATUS") },
   { key: "enrollment_year", label: t("ENROLMENT YEAR") },
   { key: "faculty", label: t("FACULTY") },
-  { key: "deal_number", label: t("DEAL NUMBER") },
+  { key: "iin", label: t("IIN") },
   { key: "bed", label: t("BED") },
   { key: "telephone", label: t("TELEPHONE") },
   { key: "registration_date", label: t("REGISTRATION DATE") },
@@ -424,7 +424,7 @@ const exportStudents = async () => {
       room_id: filters.value.room,
       status: filters.value.status,
       my_dormitory_only: filters.value.showDormitoryStudents,
-      columns: "name,status,enrollment_year,faculty,deal_number,dormitory,bed,phone,created_at", // Only columns in the table
+      columns: "name,status,enrollment_year,faculty,iin,dormitory,bed,phone,created_at", // Only columns in the table
     };
 
     const response = await studentService.export(apiParams);

@@ -235,8 +235,7 @@ const splitPhoneNumber = (phoneNumber: string): string[] => {
 // Submit the form
 const submitForm = async (): Promise<void> => {
   // Ensure we have a clean array of phone numbers (filter out empty strings)
-  const cleanPhoneNumbers =
-    user.value.phone_numbers?.filter((phone) => phone?.trim()) || [];
+  const cleanPhoneNumbers = user.value.phone_numbers?.filter((phone) => phone?.trim()) || [];
 
   if (cleanPhoneNumbers.length === 0) {
     showError(t("At least one phone number is required."));
@@ -296,8 +295,7 @@ const submitForm = async (): Promise<void> => {
 const updateProfile = async (): Promise<void> => {
   try {
     // Ensure we have a clean array of phone numbers
-    const cleanPhoneNumbers =
-      user.value.phone_numbers?.filter((phone) => phone?.trim()) || [];
+    const cleanPhoneNumbers = user.value.phone_numbers?.filter((phone) => phone?.trim()) || [];
 
     const payload = {
       first_name: user.value.first_name,

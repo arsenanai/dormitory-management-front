@@ -5,9 +5,102 @@
         <h1>{{ t("Website Settings") }}</h1>
       </div>
 
+      <!-- Payment Configuration Section -->
+      <section>
+        <h2 class="text-primary-700 mb-4 text-lg font-semibold">
+          {{ t("Payment Configuration") }}
+        </h2>
+        <p class="text-primary-600 mb-4 text-sm">
+          {{
+            t(
+              "Payment types (renting, catering, guest stay, etc.) are managed in Configuration → Payment Types."
+            )
+          }}
+        </p>
+
+        <!-- Semester Configuration -->
+        <div class="mb-6 rounded-lg border border-gray-200 p-4">
+          <h3 class="text-md text-primary-600 mb-3 font-medium">
+            {{ t("Semester Configuration") }}
+          </h3>
+          <div class="space-y-4">
+            <div
+              v-for="(semester, semesterName) in paymentConfigForm.semester_config"
+              :key="semesterName"
+              class="rounded-lg border border-gray-100 p-4"
+            >
+              <h4 class="mb-3 text-sm font-medium text-gray-800 capitalize">
+                {{ t(semesterName) }} {{ t("Semester") }}
+              </h4>
+              <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div class="grid grid-cols-2 gap-2">
+                  <CInput
+                    :id="`${semesterName}-start-month`"
+                    v-model.number="semester.start_month"
+                    :label="t('Start Month')"
+                    type="number"
+                    min="1"
+                    max="12"
+                    required
+                  />
+                  <CInput
+                    :id="`${semesterName}-start-day`"
+                    v-model.number="semester.start_day"
+                    :label="t('Start Day')"
+                    type="number"
+                    min="1"
+                    max="31"
+                    required
+                  />
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <CInput
+                    :id="`${semesterName}-end-month`"
+                    v-model.number="semester.end_month"
+                    :label="t('End Month')"
+                    type="number"
+                    min="1"
+                    max="12"
+                    required
+                  />
+                  <CInput
+                    :id="`${semesterName}-end-day`"
+                    v-model.number="semester.end_day"
+                    :label="t('End Day')"
+                    type="number"
+                    min="1"
+                    max="31"
+                    required
+                  />
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <CInput
+                    :id="`${semesterName}-deadline-month`"
+                    v-model.number="semester.payment_deadline_month"
+                    :label="t('Deadline Month')"
+                    type="number"
+                    min="1"
+                    max="12"
+                    required
+                  />
+                  <CInput
+                    :id="`${semesterName}-deadline-day`"
+                    v-model.number="semester.payment_deadline_day"
+                    :label="t('Deadline Day')"
+                    type="number"
+                    min="1"
+                    max="31"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- Feature Toggles Section -->
       <section>
-        <h2 class="text-primary-700 mb-4 text-lg font-semibold">{{ t("Feature Toggles") }}</h2>
         <form @submit.prevent="saveAllSettings" class="space-y-6">
           <!-- General Settings -->
           <div class="rounded-lg border border-gray-200 p-4">
@@ -48,6 +141,7 @@
             />
           </div>
 
+          <h2 class="text-primary-700 mb-4 text-lg font-semibold">{{ t("Feature Toggles") }}</h2>
           <!-- 1C Integration Toggle -->
           <div class="rounded-lg border border-gray-200 p-4">
             <h3 class="text-md text-primary-600 mb-3 font-medium">{{ t("1C Integration") }}</h3>
@@ -159,7 +253,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from "vue";
+import { computed, onMounted, reactive } from "vue";
 import { useI18n } from "vue-i18n";
 import Navigation from "@/components/CNavigation.vue";
 import CButton from "@/components/CButton.vue";
@@ -172,6 +266,7 @@ import { currencySymbolMap } from "@/utils/formatters";
 import { CardReaderSettings } from "@/models/CardReaderSettings";
 import { OneCSettings } from "@/models/OneCSettings";
 import { KaspiSettings } from "@/models/KaspiSettings";
+import type { PaymentSettings } from "@/models/PaymentSettings";
 import { useToast } from "@/composables/useToast";
 
 const { t } = useI18n();
@@ -205,6 +300,35 @@ const dormitorySettingsForm = reactive({
   bank_requisites: "",
 });
 
+const paymentConfigForm = reactive<{ semester_config: PaymentSettings["semester_config"] }>({
+  semester_config: {
+    fall: {
+      start_month: 9,
+      start_day: 1,
+      end_month: 12,
+      end_day: 31,
+      payment_deadline_month: 8,
+      payment_deadline_day: 22,
+    },
+    spring: {
+      start_month: 1,
+      start_day: 1,
+      end_month: 5,
+      end_day: 31,
+      payment_deadline_month: 12,
+      payment_deadline_day: 22,
+    },
+    summer: {
+      start_month: 6,
+      start_day: 1,
+      end_month: 8,
+      end_day: 31,
+      payment_deadline_month: 5,
+      payment_deadline_day: 22,
+    },
+  },
+});
+
 const currencyOptions = computed(() =>
   Object.keys(currencySymbolMap).map((key) => ({
     value: key,
@@ -220,7 +344,7 @@ const loadSettings = async () => {
     settingsStore.fetchOnecSettings(),
     settingsStore.fetchKaspiSettings(),
     settingsStore.fetchPublicSettings(),
-    settingsStore.fetchPublicSettings(),
+    settingsStore.fetchPaymentSettings(),
   ]);
 
   if (settingsStore.cardReaderSettings)
@@ -229,10 +353,11 @@ const loadSettings = async () => {
   if (settingsStore.kaspiSettings) Object.assign(kaspiForm, settingsStore.kaspiSettings);
   if (settingsStore.publicSettings)
     Object.assign(dormitorySettingsForm, settingsStore.publicSettings);
-  // if (settingsStore.publicSettings) {
-  //     dormitorySettingsForm.currency_symbol = settingsStore.publicSettings?.currency_symbol || 'KZT';
-  //     dormitorySettingsForm.dormitory_rules = settingsStore.publicSettings?.dormitory_rules || '';
-  // }
+  if (settingsStore.paymentSettings?.semester_config) {
+    paymentConfigForm.semester_config = JSON.parse(
+      JSON.stringify(settingsStore.paymentSettings.semester_config)
+    );
+  }
 };
 
 const saveAllSettings = async () => {
@@ -264,13 +389,16 @@ const saveAllSettings = async () => {
       kaspi_webhook_url: kaspiForm.kaspi_webhook_url ?? null,
     };
 
+    const paymentConfigPayload = { semester_config: paymentConfigForm.semester_config };
+
     await Promise.all([
-      settingsStore.updateCardReaderSettings(cardReaderPayload as any),
-      settingsStore.updateOnecSettings(onecPayload as any),
-      settingsStore.updateKaspiSettings(kaspiPayload as any),
+      settingsStore.updateCardReaderSettings(cardReaderPayload as CardReaderSettings),
+      settingsStore.updateOnecSettings(onecPayload as OneCSettings),
+      settingsStore.updateKaspiSettings(kaspiPayload as KaspiSettings),
       settingsStore.updateDormitoryRules(dormitorySettingsForm.dormitory_rules),
       settingsStore.updateCurrencySettings(dormitorySettingsForm.currency_symbol),
       settingsStore.updateBankRequisites(dormitorySettingsForm.bank_requisites),
+      settingsStore.updatePaymentSettings(paymentConfigPayload),
     ]);
 
     showSuccess(t("All settings saved successfully!"));

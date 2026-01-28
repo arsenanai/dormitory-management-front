@@ -6,7 +6,12 @@
         <!-- Filter Section - Organized in rows for better responsive layout -->
         <div class="flex flex-col gap-2 sm:flex-row sm:gap-4">
           <div class="flex-1">
-            <CInput id="search" v-model="searchTerm" :label="t('Search')" :placeholder="t('Search payments...')" />
+            <CInput
+              id="search"
+              v-model="searchTerm"
+              :label="t('Search')"
+              :placeholder="t('Search payments...')"
+            />
           </div>
 
           <!-- Date filters for admin users (when not filtering students) -->
@@ -21,30 +26,63 @@
 
           <!-- Semester selector for students or admin filtering students -->
           <div class="flex-1" v-if="showSemesterFilter">
-            <CSelect id="semester-filter" v-model="selectedSemester" :options="semesterOptions"
-              :label="t('Semester')" />
+            <CSelect
+              id="semester-filter"
+              v-model="selectedSemester"
+              :options="semesterOptions"
+              :label="t('Semester')"
+            />
           </div>
 
           <!-- Payment Type filter -->
           <div class="flex-1">
-            <CSelect id="payment-type-filter" v-model="selectedPaymentType" :options="paymentTypeOptions"
-              :label="t('Payment Type')" />
+            <CSelect
+              id="payment-type-filter"
+              v-model="selectedPaymentType"
+              :options="paymentTypeOptions"
+              :label="t('Payment Type')"
+            />
+          </div>
+
+          <!-- Status filter -->
+          <div class="flex-1">
+            <CSelect
+              id="status-filter"
+              v-model="selectedStatus"
+              :options="statusOptions"
+              :label="t('Status')"
+            />
           </div>
 
           <!-- <div v-if="!isMyPayments" class="flex-1"> -->
           <div class="flex-1" v-if="isAdmin">
-            <CSelect id="role-filter" v-model="selectedRole" :options="roleOptions" :label="t('Role')" />
+            <CSelect
+              id="role-filter"
+              v-model="selectedRole"
+              :options="roleOptions"
+              :label="t('Role')"
+            />
           </div>
         </div>
         <!-- Action Buttons Section -->
         <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
-          <CButton v-if="isAdmin" @click="showPaymentForm" data-testid="add-payment-button" :disabled="loading">
+          <CButton
+            v-if="isAdmin"
+            @click="showPaymentForm"
+            data-testid="add-payment-button"
+            :disabled="loading"
+          >
             <PencilSquareIcon class="h-5 w-5" />
             {{ t("Add Payment") }}
           </CButton>
           <!-- <CButton v-if="!isMyPayments" @click="exportPayments" data-testid="export-payments-button"
             :disabled="loading"> -->
-          <CButton @click="exportPayments" data-testid="export-payments-button" :disabled="loading" v-if="isAdmin">
+          <CButton
+            @click="exportPayments"
+            data-testid="export-payments-button"
+            :disabled="loading"
+            v-if="isAdmin"
+          >
             <ArrowDownTrayIcon class="h-5 w-5" />
             {{ t("Download") }}
           </CButton>
@@ -57,8 +95,13 @@
       </div>
 
       <!-- Payments Table -->
-      <CTable v-if="!error" :columns="tableColumns" :data="paginatedPayments" :loading="loading"
-        data-testid="payments-table">
+      <CTable
+        v-if="!error"
+        :columns="tableColumns"
+        :data="paginatedPayments"
+        :loading="loading"
+        data-testid="payments-table"
+      >
         <template #cell-user="{ row: payment }">
           <div class="flex flex-col gap-2">
             <span>
@@ -72,39 +115,114 @@
                 {{ phone }}
               </span>
             </span>
+            <span v-if="payment.user?.room?.number" class="text-sm text-gray-600">
+              {{ payment.user.room.number
+              }}{{
+                payment.user.room.room_type?.name ? ` (${payment.user.room.room_type.name})` : ""
+              }}
+            </span>
           </div>
         </template>
         <template #cell-amount="{ row: payment }">
           {{ formatPrice(parseFloat(payment.amount || "0")) }}
         </template>
         <template #cell-payment_type="{ row: payment }">
-          <span class="capitalize">{{ payment.paymentType || "-" }}</span>
+          <span>{{ formatPaymentType(payment.paymentType) }}</span>
         </template>
         <template #cell-role="{ row: payment }">
           <span class="capitalize">{{ payment.user?.role?.name || "-" }}</span>
         </template>
-        <template #cell-deal_number="{ row: payment }">
-          {{ payment.dealNumber || "-" }}
+        <template #cell-id="{ row: payment }">
+          <span
+            v-if="
+              payment.user?.role?.name === 'student' &&
+              payment.user?.student_profile?.iin &&
+              payment.user.student_profile.iin.trim()
+            "
+          >
+            {{ payment.user.student_profile.iin }} (IIN)
+          </span>
+          <span
+            v-else-if="
+              payment.user?.role?.name === 'guest' &&
+              payment.user?.guest_profile?.identification_number &&
+              payment.user.guest_profile.identification_number.trim()
+            "
+          >
+            {{ payment.user.guest_profile.identification_number }}
+            <span v-if="payment.user.guest_profile.identification_type === 'national_id'">
+              (Nat. ID)</span
+            >
+            <span v-else-if="payment.user.guest_profile.identification_type === 'passport'">
+              (Pas. ID)</span
+            >
+            <span v-else-if="payment.user.guest_profile.identification_type">
+              ({{ payment.user.guest_profile.identification_type }})</span
+            >
+          </span>
+          <span v-else>-</span>
         </template>
         <template #cell-period="{ row: payment }">
           <span class="whitespace-nowrap">{{ payment.dateFrom?.split("T")[0] }}</span> -
           <span class="whitespace-nowrap">{{ payment.dateTo?.split("T")[0] }}</span>
         </template>
+        <template #cell-status="{ row: payment }">
+          <span
+            :class="{
+              'bg-yellow-100 text-yellow-800': payment.status === 'pending',
+              'bg-blue-100 text-blue-800': payment.status === 'processing',
+              'bg-green-100 text-green-800': payment.status === 'completed',
+              'bg-red-100 text-red-800':
+                payment.status === 'failed' || payment.status === 'cancelled',
+              'bg-gray-100 text-gray-800':
+                payment.status === 'expired' || payment.status === 'refunded',
+            }"
+            class="inline-flex rounded-full px-2 py-1 text-xs font-semibold capitalize"
+          >
+            {{ formatStatus(payment.status) }}
+          </span>
+        </template>
         <template #cell-actions="{ row: payment }">
           <div class="flex justify-end gap-2">
-            <CButton @click="editPayment(payment)" :disabled="loading">
-              <PencilSquareIcon class="h-5 w-5" />
-            </CButton>
-            <CButton variant="danger" @click="confirmDeletePayment(payment.id)" :disabled="loading">
-              <TrashIcon class="h-5 w-5" />
-            </CButton>
+            <!-- For students/guests: show Pay button only for pending payments -->
+            <template
+              v-if="
+                isMyPayments || (!isAdmin && (isStudent || authStore.user?.role?.name === 'guest'))
+              "
+            >
+              <CButton
+                v-if="payment.status === 'pending'"
+                @click="openPaymentForm(payment)"
+                :disabled="loading"
+                size="sm"
+              >
+                <CreditCardIcon class="h-4 w-4" />
+                {{ t("Pay") }}
+              </CButton>
+            </template>
+            <!-- For admins: show edit and delete -->
+            <template v-else>
+              <CButton @click="editPayment(payment)" :disabled="loading">
+                <PencilSquareIcon class="h-5 w-5" />
+              </CButton>
+              <CButton
+                variant="danger"
+                @click="confirmDeletePayment(payment.id)"
+                :disabled="loading"
+              >
+                <TrashIcon class="h-5 w-5" />
+              </CButton>
+            </template>
           </div>
         </template>
       </CTable>
 
       <!-- Pagination -->
-      <div v-if="totalPages > 1" class="flex flex-col items-center justify-between gap-4 md:flex-row"
-        data-testid="pagination">
+      <div
+        v-if="totalPages > 1"
+        class="flex flex-col items-center justify-between gap-4 md:flex-row"
+        data-testid="pagination"
+      >
         <div class="text-sm text-gray-700">
           <span v-if="total > 0">
             <span class="font-medium">{{ fromPayment }}</span> -
@@ -116,18 +234,34 @@
           </span>
         </div>
         <div class="flex items-center gap-2">
-          <CButton :disabled="currentPage === 1" @click="currentPage--" :aria-label="t('Previous page')" class="h-10">
+          <CButton
+            :disabled="currentPage === 1"
+            @click="currentPage--"
+            :aria-label="t('Previous page')"
+            class="h-10"
+          >
             <ChevronLeftIcon class="h-5 w-5" />
           </CButton>
           <div class="flex items-center gap-1 text-sm">
             <div class="w-20">
-              <CInput id="page-input" v-model.number="pageInput" type="number" :min="1" :max="totalPages"
-                class="h-10 text-center" @keyup.enter="goToPage" />
+              <CInput
+                id="page-input"
+                v-model.number="pageInput"
+                type="number"
+                :min="1"
+                :max="totalPages"
+                class="h-10 text-center"
+                @keyup.enter="goToPage"
+              />
             </div>
             <span>/ {{ totalPages }}</span>
           </div>
-          <CButton :disabled="currentPage === totalPages" @click="currentPage++" :aria-label="t('Next page')"
-            class="h-10">
+          <CButton
+            :disabled="currentPage === totalPages"
+            @click="currentPage++"
+            :aria-label="t('Next page')"
+            class="h-10"
+          >
             <ChevronRightIcon class="h-5 w-5" />
           </CButton>
         </div>
@@ -139,13 +273,23 @@
       :message="t('Are you sure? This change is not recoverable')" :title="t('Delete Payment')"
       :confirm-text="t('Delete')" :cancel-text="t('Cancel')" @confirm="deletePayment"
       @cancel="showDeleteConfirmation = false" /> -->
-    <CConfirmationModal v-if="showDeleteConfirmation" :message="t('Are you sure? This change is not recoverable')"
-      :title="t('Delete Payment')" :confirm-text="t('Delete')" :cancel-text="t('Cancel')" @confirm="deletePayment"
-      @cancel="showDeleteConfirmation = false" />
+    <CConfirmationModal
+      v-if="showDeleteConfirmation"
+      :message="t('Are you sure? This change is not recoverable')"
+      :title="t('Delete Payment')"
+      :confirm-text="t('Delete')"
+      :cancel-text="t('Cancel')"
+      @confirm="deletePayment"
+      @cancel="showDeleteConfirmation = false"
+    />
     <!-- <PaymentForm v-model="showForm" :selected-payment="isMyPayments ? null : selectedPayment"
       :currency-symbol="currencySymbol" :self-service="isMyPayments" @submit="handleFormSubmission" /> -->
-    <PaymentForm v-model="showForm" :selected-payment="selectedPayment" :currency-symbol="currencySymbol"
-      @submit="handleFormSubmission" />
+    <PaymentForm
+      v-model="showForm"
+      :selected-payment="selectedPayment"
+      :currency-symbol="currencySymbol"
+      @submit="handleFormSubmission"
+    />
   </Navigation>
 </template>
 
@@ -168,11 +312,13 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   TrashIcon,
+  CreditCardIcon,
 } from "@heroicons/vue/24/outline";
 import { paymentService, configurationService } from "@/services/api";
 import { usePaymentsStore } from "@/stores/payments";
 import { usePaymentTypesStore } from "@/stores/paymentTypes";
 import { useToast } from "@/composables/useToast";
+import { useUserOptions } from "@/composables/useUserOptions";
 import { formatCurrency } from "@/utils/formatters";
 
 const authStore = useAuthStore();
@@ -191,7 +337,7 @@ const route = useRoute();
 const paymentsStore = usePaymentsStore();
 const paymentTypesStore = usePaymentTypesStore();
 const settingsStore = useSettingsStore();
-const { showError, showSuccess } = useToast();
+const { showError, showSuccess, showWarning } = useToast();
 
 // State
 const payments = ref<any[]>([]);
@@ -204,6 +350,7 @@ const searchTerm = ref<string>("");
 const selectedRole = ref<string>("");
 const selectedSemester = ref<string>("");
 const selectedPaymentType = ref<string>("");
+const selectedStatus = ref<string>("");
 const currentPage = ref<number>(1);
 const itemsPerPage = ref<number>(10);
 const pageInput = ref(1);
@@ -216,7 +363,23 @@ const paymentToDelete = ref<number | null>(null);
 const currencySymbol = computed(() => settingsStore.publicSettings?.currency_symbol || "$");
 
 // Determine if this page is used as "My Payments" for students/guests
-const isMyPayments = computed(() => route.meta && (route.meta as any).myPayments === true);
+const isMyPayments = computed(() => {
+  // Check user role first - if student or guest, they should see "My Payments" view
+  const userRole = authStore.user?.role?.name || authStore.user?.role;
+  const isStudentOrGuest = userRole === "student" || userRole === "guest";
+
+  // If user is student/guest and not admin, always show "My Payments" view
+  if (isStudentOrGuest && !isAdmin.value) {
+    return true;
+  }
+
+  // Otherwise, check route path and meta
+  const path = route.path;
+  const isMyPaymentsRoute = path === "/student-my-payments" || path === "/guest-my-payments";
+  const metaMyPayments = route.meta && (route.meta as any).myPayments === true;
+
+  return isMyPaymentsRoute || metaMyPayments;
+});
 
 // Determine if semester filtering should be shown
 const showSemesterFilter = computed(() => {
@@ -230,13 +393,25 @@ const roleOptions = [
   { value: "guest", name: t("Guest") },
 ];
 
-// Payment Type options
+// Status filter options
+const statusOptions = [
+  { value: "", name: t("All Statuses") },
+  { value: "pending", name: t("Pending") },
+  { value: "processing", name: t("Processing") },
+  { value: "completed", name: t("Completed") },
+  { value: "failed", name: t("Failed") },
+  { value: "cancelled", name: t("Cancelled") },
+  { value: "refunded", name: t("Refunded") },
+  { value: "expired", name: t("Expired") },
+];
+
+// Payment Type options - show human-readable names
 const paymentTypeOptions = computed(() => {
   return [
     { value: "", name: t("All Payment Types") },
-    ...paymentTypesStore.paymentTypes.map((t) => ({
-      value: t.name,
-      name: t.name,
+    ...paymentTypesStore.paymentTypes.map((type) => ({
+      value: type.name,
+      name: formatPaymentType(type.name),
     })),
   ];
 });
@@ -294,12 +469,16 @@ const tableColumns = computed(() => {
     { key: "user", label: t("User"), class: "whitespace-nowrap" },
     { key: "amount", label: t("Amount") },
     { key: "payment_type", label: t("Type") },
-    { key: "deal_number", label: t("Deal Number") },
+    { key: "status", label: t("Status") },
+    { key: "id", label: t("ID") },
     { key: "period", label: t("Period") },
   ];
 
   if (!isMyPayments.value) {
     base.splice(1, 0, { key: "role", label: t("Role") } as any);
+    base.push({ key: "actions", label: t("Actions"), class: "text-right" } as any);
+  } else {
+    // For students/guests, add actions column for uploading bank check
     base.push({ key: "actions", label: t("Actions"), class: "text-right" } as any);
   }
 
@@ -329,6 +508,7 @@ const loadPayments = async () => {
     if (startDate.value) params.date_from = startDate.value;
     if (endDate.value) params.date_to = endDate.value;
     if (selectedPaymentType.value) params.payment_type = selectedPaymentType.value;
+    if (selectedStatus.value) params.status = selectedStatus.value;
     if (selectedRole.value && !isMyPayments.value) params.role = selectedRole.value;
 
     // Handle semester selection for students or admin filtering students
@@ -344,6 +524,7 @@ const loadPayments = async () => {
 
     if (response.data?.meta) {
       // Check for the new paginated structure
+      // Create new array to ensure Vue reactivity detects changes
       payments.value = response.data.data.map((payment: any) => {
         if (payment.user && typeof payment.user.phoneNumbers === "string") {
           try {
@@ -352,7 +533,16 @@ const loadPayments = async () => {
             console.error("Failed to parse phoneNumbers", e);
           }
         }
-        return payment;
+        // Return a new object to ensure reactivity
+        // Ensure payment_check is always a string or null, never a File object
+        const cleanPayment = { ...payment };
+        if (cleanPayment.paymentCheck && typeof cleanPayment.paymentCheck !== "string") {
+          cleanPayment.paymentCheck = null;
+        }
+        if (cleanPayment.payment_check && typeof cleanPayment.payment_check !== "string") {
+          cleanPayment.payment_check = null;
+        }
+        return cleanPayment;
       });
       currentPage.value = response.data.meta.current_page;
       total.value = response.data.meta.total || 0;
@@ -375,18 +565,56 @@ const loadPayments = async () => {
 };
 
 onMounted(async () => {
+  // Default status filter is "All Statuses" (empty string) for all users
+  selectedStatus.value = "";
+
   loadPayments();
-  paymentTypesStore.fetchPaymentTypes();
+
+  // Pre-load payment types for filters (students/guests can access this)
+  try {
+    await paymentTypesStore.fetchPaymentTypes();
+  } catch (err) {
+    console.error("Failed to pre-load payment types:", err);
+    // Continue - payment types will be loaded when form opens
+  }
+
+  // Pre-load user options for admin users (needed for editing payments)
+  // This ensures the edit form opens quickly with user options already available
+  if (isAdmin.value) {
+    const { loadUsers } = useUserOptions();
+    try {
+      // Load both students and guests in parallel (non-blocking)
+      Promise.all([loadUsers("student"), loadUsers("guest")]).catch((err) => {
+        console.error("Failed to pre-load user options:", err);
+        // Continue - options will be loaded when form opens
+      });
+    } catch (err) {
+      console.error("Failed to pre-load user options:", err);
+      // Continue - options will be loaded when form opens
+    }
+  }
+
   pageInput.value = currentPage.value;
   paymentsStore.clearSelectedPayment();
 });
 
 // Watch filters and reload payments
-watch([searchTerm, startDate, endDate, selectedRole, selectedSemester, selectedPaymentType], () => {
-  currentPage.value = 1;
-  pageInput.value = 1;
-  loadPayments();
-});
+watch(
+  [
+    searchTerm,
+    startDate,
+    endDate,
+    selectedRole,
+    selectedSemester,
+    selectedPaymentType,
+    selectedStatus,
+  ],
+  () => {
+    currentPage.value = 1;
+    pageInput.value = 1;
+    loadPayments();
+  }
+);
 
 // Reset semester selection when role changes
 watch(selectedRole, (newRole) => {
@@ -412,6 +640,42 @@ watch(currentPage, (newPage, oldPage) => {
 });
 
 const formatPrice = (price: number): string => formatCurrency(price, currencySymbol.value, "USD");
+
+const formatStatus = (status: string): string => {
+  const statusMap: Record<string, string> = {
+    pending: t("Pending"),
+    processing: t("Processing"),
+    completed: t("Completed"),
+    failed: t("Failed"),
+    cancelled: t("Cancelled"),
+    refunded: t("Refunded"),
+    expired: t("Expired"),
+  };
+  return statusMap[status] || status;
+};
+
+const formatPaymentType = (paymentType: string | null | undefined): string => {
+  if (!paymentType) return "-";
+
+  // Map payment types to human-readable format
+  const typeMap: Record<string, string> = {
+    renting: t("Renting"),
+    renting_semester: t("Renting"),
+    catering: t("Catering"),
+    catering_monthly: t("Catering"),
+    "all-inclusive": t("All-Inclusive"),
+    guest_stay: t("Guest Stay"),
+  };
+
+  // Return mapped value or capitalize the original
+  return (
+    typeMap[paymentType] ||
+    paymentType
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ")
+  );
+};
 
 const confirmDeletePayment = (id: number) => {
   paymentToDelete.value = id;
@@ -441,6 +705,7 @@ async function exportPayments() {
     if (startDate.value) filters.date_from = startDate.value;
     if (endDate.value) filters.date_to = endDate.value;
     if (selectedPaymentType.value) filters.payment_type = selectedPaymentType.value;
+    if (selectedStatus.value) filters.status = selectedStatus.value;
     if (selectedRole.value && !isMyPayments.value) filters.role = selectedRole.value;
 
     // Handle semester selection for students or admin filtering students
@@ -477,13 +742,41 @@ const showPaymentForm = async () => {
   showForm.value = true;
 };
 
+const openPaymentForm = async (payment: any) => {
+  // For students: open payment form to upload bank check
+  // Only allow opening form for pending payments
+  if (payment.status !== "pending") {
+    return;
+  }
+
+  // Prevent opening if form is already open
+  if (showForm.value) {
+    return;
+  }
+
+  // Create a fresh copy of the payment object, ensuring payment_check is a string or null
+  const cleanPayment = { ...payment };
+  if (cleanPayment.paymentCheck && typeof cleanPayment.paymentCheck !== "string") {
+    cleanPayment.paymentCheck = cleanPayment.paymentCheck || null;
+  }
+  if (cleanPayment.payment_check && typeof cleanPayment.payment_check !== "string") {
+    cleanPayment.payment_check = cleanPayment.payment_check || null;
+  }
+
+  selectedPayment.value = cleanPayment;
+  await nextTick();
+  showForm.value = true;
+};
+
 const closePaymentForm = () => {
-  showForm.value = false;
+  // Clear selected payment first
   selectedPayment.value = null;
+  // Then close form to prevent watchers from firing
+  showForm.value = false;
 };
 
 const editPayment = async (payment: any) => {
-  // Clear selection first to ensure prop change is detected by the form
+  // For admins: edit payment
   selectedPayment.value = null;
   await nextTick();
   selectedPayment.value = payment;
@@ -491,9 +784,15 @@ const editPayment = async (payment: any) => {
   showForm.value = true;
 };
 
-const handleFormSubmission = () => {
-  loadPayments();
+const handleFormSubmission = async () => {
+  // Close form first to prevent multiple submissions
   closePaymentForm();
+  await nextTick();
+  // Clear selected payment to ensure clean state
+  selectedPayment.value = null;
+  await nextTick();
+  // Reload payments to get fresh data
+  await loadPayments();
 };
 
 // Pagination handlers

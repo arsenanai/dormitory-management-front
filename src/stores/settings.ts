@@ -9,6 +9,7 @@ import type { CardReaderSettings } from "@/models/CardReaderSettings";
 import type { OneCSettings } from "@/models/OneCSettings";
 import type { KaspiSettings } from "@/models/KaspiSettings";
 import type { SystemLog } from "@/models/SystemLog";
+import type { PaymentSettings } from "@/models/PaymentSettings";
 
 // export interface SmtpSettings {
 //   smtp_host: string;
@@ -69,6 +70,7 @@ export const useSettingsStore = defineStore("settings", () => {
   const onecSettings = ref<OneCSettings | null>(null);
   const kaspiSettings = ref<KaspiSettings | null>(null);
   const publicSettings = ref<PublicSettings | null>(null);
+  const paymentSettings = ref<PaymentSettings | null>(null);
   const installedLanguages = ref<string[]>([]);
   const systemLogs = ref<SystemLog[]>([]);
   const loading = ref(false);
@@ -393,6 +395,43 @@ export const useSettingsStore = defineStore("settings", () => {
     return publicSettingsPromise;
   };
 
+  // Payment Settings
+  const fetchPaymentSettings = async () => {
+    try {
+      loading.value = true;
+      error.value = null;
+      const response = await api.get("/configurations/payment-settings");
+      paymentSettings.value = response.data;
+      error.value = null;
+    } catch (err: unknown) {
+      error.value = err as Error;
+      const errorMessage =
+        (err as any).response?.data?.message ?? "Failed to fetch payment settings";
+      showError(errorMessage);
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const updatePaymentSettings = async (settings: PaymentSettings) => {
+    try {
+      loading.value = true;
+      error.value = null;
+      const response = await api.put("/configurations/payment-settings", settings);
+      paymentSettings.value = response.data;
+      error.value = null;
+      return response.data;
+    } catch (err: unknown) {
+      error.value = err as Error;
+      const errorMessage =
+        (err as any).response?.data?.message ?? "Failed to update payment settings";
+      showError(errorMessage);
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
   return {
     // State
     smtpSettings,
@@ -400,6 +439,7 @@ export const useSettingsStore = defineStore("settings", () => {
     onecSettings,
     kaspiSettings,
     publicSettings,
+    paymentSettings,
     installedLanguages,
     systemLogs,
     loading,
@@ -430,5 +470,7 @@ export const useSettingsStore = defineStore("settings", () => {
     initializeDefaults,
     fetchAllSettings,
     fetchPublicSettings,
+    fetchPaymentSettings,
+    updatePaymentSettings,
   };
 });

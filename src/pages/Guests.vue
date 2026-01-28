@@ -71,6 +71,20 @@
       <template #cell-room="{ row }">
         {{ row.room?.number || row.room || "-" }}
       </template>
+      <template #cell-status="{ row }">
+        <span
+          :class="{
+            'rounded px-2 py-1 text-xs font-medium': true,
+            'bg-green-100 text-green-800': row.status === 'active',
+            'bg-yellow-100 text-yellow-800': row.status === 'pending',
+            'bg-red-100 text-red-800': row.status === 'passive',
+            'bg-gray-100 text-gray-800':
+              !row.status || !['active', 'pending', 'passive'].includes(row.status),
+          }"
+        >
+          {{ formatStatus(row.status) }}
+        </span>
+      </template>
       <template #cell-payment="{ row }">
         {{ formatPayment(row.payment_status, row.total_amount) }}
       </template>
@@ -176,6 +190,7 @@ const searchQuery = ref<string>("");
 const tableColumns = computed(() => [
   { key: "guest", label: t("Guest") },
   { key: "room", label: t("Room") },
+  { key: "status", label: t("Status") },
   { key: "date_range", label: t("Date Range") },
   { key: "purpose", label: t("Purpose") },
   // { key: 'payment', label: t("Payment") },
@@ -272,6 +287,16 @@ const formatDate = (dateString: string) => {
 
 const formatPayment = (status: string, amount: number) => {
   return status === "paid" ? formatCurrency(amount, currencySymbol.value) : status || "-";
+};
+
+const formatStatus = (status: string | null | undefined): string => {
+  if (!status) return "-";
+  const statusMap: Record<string, string> = {
+    active: t("Active"),
+    pending: t("Pending"),
+    passive: t("Passive"),
+  };
+  return statusMap[status] || status;
 };
 
 // Navigate to Add Guest form

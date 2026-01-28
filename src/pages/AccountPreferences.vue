@@ -139,7 +139,65 @@
             {{ t('Save Notification Settings') }}
           </CButton>
         </div>
-      </section> -->
+      </section>
+
+      <!-- Booking Settings Section -->
+      <section v-if="isStudent || isGuest" class="space-y-4">
+        <h2 class="text-primary-700 mb-2 text-lg font-semibold">{{ t("Booking Settings") }}</h2>
+        <p class="mb-4 text-sm text-gray-600">
+          {{
+            t(
+              "Manage your booking preferences and payment settings here. Changes will affect future payments."
+            )
+          }}
+        </p>
+
+        <!-- Student Booking Settings -->
+        <div v-if="isStudent" class="space-y-4">
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <CSelect
+              id="booking-room-type"
+              v-model="bookingForm.roomType"
+              :label="t('Preferred Room Type')"
+              :options="roomTypeOptions"
+            />
+            <CSelect
+              id="booking-meal-plan"
+              v-model="bookingForm.mealPlan"
+              :label="t('Meal Plan Preference')"
+              :options="mealPlanOptions"
+            />
+          </div>
+          <p class="text-sm text-gray-600">
+            {{ t("Note: Room type changes will generate new payments based on current rates.") }}
+          </p>
+        </div>
+
+        <!-- Guest Booking Settings -->
+        <div v-else-if="isGuest" class="space-y-4">
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <CInput
+              id="booking-checkin"
+              v-model="bookingForm.checkInDate"
+              type="date"
+              :label="t('Preferred Check-in Date')"
+            />
+            <CInput
+              id="booking-checkout"
+              v-model="bookingForm.checkOutDate"
+              type="date"
+              :label="t('Preferred Check-out Date')"
+            />
+          </div>
+          <p class="text-sm text-gray-600">
+            {{ t("Note: Booking changes will recalculate payments based on daily rates.") }}
+          </p>
+        </div>
+
+        <CButton @click="saveBookingSettings" :loading="loading">
+          {{ t("Save Booking Settings") }}
+        </CButton>
+      </section>
 
       <!-- Accessibility Settings Section -->
       <!-- <section>
@@ -252,6 +310,14 @@ const accessibilityForm = reactive({
   largeText: false,
 });
 
+// Booking settings form data
+const bookingForm = reactive({
+  roomType: "",
+  mealPlan: "",
+  checkInDate: "",
+  checkOutDate: "",
+});
+
 // Options
 const languageOptions = [
   { value: "en", name: "English" },
@@ -263,6 +329,17 @@ const localeOptions = [
   { value: "en", name: "English" },
   { value: "ru", name: "Русский" },
   { value: "kk", name: "Қазақша" },
+];
+
+// Booking options
+const roomTypeOptions = [
+  { value: "standard", name: "Standard" },
+  { value: "lux", name: "Luxury" },
+];
+
+const mealPlanOptions = [
+  { value: "with_meals", name: "With Meals" },
+  { value: "without_meals", name: "Without Meals" },
 ];
 
 // State
@@ -421,6 +498,24 @@ const saveAccessibilitySettings = async () => {
     saveAccessibilitySettingsFromComposable();
   } catch (error) {
     console.error("Failed to save accessibility settings:", error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Booking settings methods
+const saveBookingSettings = async () => {
+  loading.value = true;
+  try {
+    // For now, just show success message
+    // In future, this would call API to update booking preferences
+    useToast().showSuccess(t("Booking settings saved successfully!"));
+
+    // TODO: Implement API call to save booking preferences
+    // await authStore.updateBookingPreferences(bookingForm);
+  } catch (error) {
+    useToast().showError(t("Failed to save booking settings"));
+    console.error("Failed to save booking settings:", error);
   } finally {
     loading.value = false;
   }

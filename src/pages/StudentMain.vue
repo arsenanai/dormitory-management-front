@@ -37,6 +37,18 @@
             <p class="text-sm text-gray-500">
               {{ t("Student ID") }}: {{ dashboardData.student_profile?.student_id || "-" }}
             </p>
+            <p class="text-sm text-gray-500">
+              {{ t("Status") }}:
+              <span
+                :class="{
+                  'font-medium text-yellow-600': studentStatus === 'pending',
+                  'font-medium text-green-600': studentStatus === 'active',
+                  'font-medium text-red-600': studentStatus === 'suspended',
+                }"
+              >
+                {{ formatStudentStatus(studentStatus) }}
+              </span>
+            </p>
           </div>
         </div>
       </div>
@@ -98,7 +110,10 @@
 
         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           <!-- Reception Helpdesk -->
-          <div v-if="receptionContacts.reception" class="space-y-3 rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
+          <div
+            v-if="receptionContacts.reception"
+            class="space-y-3 rounded-lg border border-gray-100 bg-white p-4 shadow-sm"
+          >
             <h3 class="font-medium text-gray-900">{{ t("Reception Helpdesk") }}</h3>
             <div class="space-y-2">
               <a
@@ -112,7 +127,10 @@
           </div>
 
           <!-- Medical Doctor -->
-          <div v-if="receptionContacts.medical" class="space-y-3 rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
+          <div
+            v-if="receptionContacts.medical"
+            class="space-y-3 rounded-lg border border-gray-100 bg-white p-4 shadow-sm"
+          >
             <h3 class="font-medium text-gray-900">{{ t("Medical Doctor") }}</h3>
             <div class="space-y-2">
               <a
@@ -126,7 +144,10 @@
           </div>
 
           <!-- Admin Contact -->
-          <div v-if="receptionContacts.admin" class="space-y-3 rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
+          <div
+            v-if="receptionContacts.admin"
+            class="space-y-3 rounded-lg border border-gray-100 bg-white p-4 shadow-sm"
+          >
             <h3 class="font-medium text-gray-900">{{ t("Administrator") }}</h3>
             <div class="space-y-2">
               <a
@@ -247,6 +268,15 @@ import CButton from "@/components/CButton.vue";
 const { t } = useI18n();
 const authStore = useAuthStore();
 
+const formatStudentStatus = (status: string): string => {
+  const statusMap: Record<string, string> = {
+    pending: t("Pending"),
+    active: t("Active"),
+    suspended: t("Suspended"),
+  };
+  return statusMap[status] || status;
+};
+
 // Message table columns
 const messageColumns = [
   { key: "from", label: t("FROM") },
@@ -292,11 +322,11 @@ const handleMessageClick = (message: Message): void => {
 const receptionContacts = computed(() => {
   const dormitory = dashboardData.value.room?.dormitory;
   const admin = dormitory?.admin;
-  
+
   const contacts: any = {
     reception: dormitory?.reception_phone || null,
     medical: dormitory?.medical_phone || null,
-    admin: null
+    admin: null,
   };
 
   if (admin) {
@@ -308,7 +338,7 @@ const receptionContacts = computed(() => {
       emailLink: `mailto:${admin.email}`,
     };
   }
-  
+
   return contacts;
 });
 
@@ -332,6 +362,10 @@ const fetchDashboardData = async () => {
     // Use authService to get the full profile, including nested admin data
     const response = await authService.getProfile();
     dashboardData.value = response.data;
+    // Update student status from dashboard data if available
+    if (response.data.status) {
+      studentStatus.value = response.data.status;
+    }
     roomInfo.value = response.data.room_info || {
       room_number: response.data.room?.number,
       floor: response.data.room?.floor,

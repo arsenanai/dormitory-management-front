@@ -231,6 +231,11 @@ export const paymentService = {
     });
   },
 
+  updateMyPayment: (id: number, data: FormData): Promise<ApiResponse<Payment>> =>
+    api.put(`/my-payments/${id}`, data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+
   delete: (id: number): Promise<ApiResponse<{ message: string }>> => api.delete(`/payments/${id}`),
 
   export: (params?: FilterParams): Promise<Blob> =>
