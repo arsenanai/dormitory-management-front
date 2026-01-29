@@ -441,10 +441,9 @@ import { PlusIcon, TrashIcon } from "@heroicons/vue/24/solid";
 import { getCurrencySymbol } from "@/utils/formatters";
 import { debounceHelper } from "@/utils/helpers"; // Import debounceHelper
 
-const props = withDefaults(
-  defineProps<{ emailPlaceholder: string; uiLocale?: string }>(),
-  { uiLocale: "" }
-);
+const props = withDefaults(defineProps<{ emailPlaceholder: string; uiLocale?: string }>(), {
+  uiLocale: "",
+});
 
 const emit = defineEmits<{
   registered: (message: string) => void;
@@ -705,7 +704,7 @@ const handleRegistration = async () => {
     formData.append("user_type", "student");
     let localeToSend = (props.uiLocale || unref(locale) || "en").trim().toLowerCase();
     if (localeToSend === "kz") localeToSend = "kk";
-    formData.append("locale", [ "en", "kk", "ru" ].includes(localeToSend) ? localeToSend : "en");
+    formData.append("locale", ["en", "kk", "ru"].includes(localeToSend) ? localeToSend : "en");
     // Recursively build the rest of the payload from the user object
     buildFormData(formData, user.value);
 

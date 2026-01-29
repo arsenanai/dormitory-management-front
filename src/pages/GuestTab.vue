@@ -1,9 +1,5 @@
 <template>
-  <form
-    @submit.prevent
-    novalidate
-    class="flex h-full min-h-[60vh] flex-col items-stretch"
-  >
+  <form @submit.prevent novalidate class="flex h-full min-h-[60vh] flex-col items-stretch">
     <CStepper v-model="currentStep" @finish="handleGuestRegistration">
       <!-- Step 1: Room Selection -->
       <CStep :title="t('Room Selection')" :validator="() => isRoomSelectionStepValid">
@@ -288,10 +284,7 @@ import CCheckbox from "@/components/CCheckbox.vue";
 import { getCurrencySymbol } from "@/utils/formatters";
 import { debounceHelper } from "@/utils/helpers";
 
-const props = withDefaults(
-  defineProps<{ uiLocale?: string }>(),
-  { uiLocale: "" }
-);
+const props = withDefaults(defineProps<{ uiLocale?: string }>(), { uiLocale: "" });
 
 const emit = defineEmits<{
   (e: "registered", message: string): void;
@@ -625,7 +618,7 @@ const handleGuestRegistration = async () => {
     });
     let localeToSend = (props.uiLocale || unref(locale) || "en").trim().toLowerCase();
     if (localeToSend === "kz") localeToSend = "kk";
-    formData.append("locale", [ "en", "kk", "ru" ].includes(localeToSend) ? localeToSend : "en");
+    formData.append("locale", ["en", "kk", "ru"].includes(localeToSend) ? localeToSend : "en");
     const response = await authStore.register(formData);
     // t('Registration successful. Please log in and make due payments.')
     emit(
