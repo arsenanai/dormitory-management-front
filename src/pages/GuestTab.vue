@@ -1,6 +1,6 @@
 <template>
   <form
-    @submit.prevent="handleGuestRegistration"
+    @submit.prevent
     novalidate
     class="flex h-full min-h-[60vh] flex-col items-stretch"
   >
@@ -268,7 +268,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, unref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useAuthStore } from "@/stores/auth";
 import { useSettingsStore } from "@/stores/settings";
@@ -288,17 +288,23 @@ import CCheckbox from "@/components/CCheckbox.vue";
 import { getCurrencySymbol } from "@/utils/formatters";
 import { debounceHelper } from "@/utils/helpers";
 
+const props = withDefaults(
+  defineProps<{ uiLocale?: string }>(),
+  { uiLocale: "" }
+);
+
 const emit = defineEmits<{
   (e: "registered", message: string): void;
 }>();
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const authStore = useAuthStore();
 const settingsStore = useSettingsStore();
-const { showError, showSuccess } = useToast();
+const { showError } = useToast();
 
 const currentStep = ref(0);
 const loadingEmailAvailability = ref(false);
+const isSubmitting = ref(false);
 
 const checkEmailAvailability = async (email: string) => {
   if (!email) {
@@ -598,6 +604,8 @@ watch(
 );
 
 const handleGuestRegistration = async () => {
+  if (isSubmitting.value) return;
+  isSubmitting.value = true;
   // Reset validation
   (Object.keys(validationState.value) as Array<keyof typeof guest.value>).forEach((key) => {
     validationState.value[key] = "";
@@ -607,6 +615,7 @@ const handleGuestRegistration = async () => {
   try {
     if (validationState.value.email === "error") {
       showError(t("Please fix the errors in the form before submitting."));
+      isSubmitting.value = false;
       return;
     }
 
@@ -614,9 +623,11 @@ const handleGuestRegistration = async () => {
     Object.entries(guest.value).forEach(([key, value]) => {
       if (value !== null && value !== undefined) formData.append(key, value as string | Blob);
     });
+    let localeToSend = (props.uiLocale || unref(locale) || "en").trim().toLowerCase();
+    if (localeToSend === "kz") localeToSend = "kk";
+    formData.append("locale", [ "en", "kk", "ru" ].includes(localeToSend) ? localeToSend : "en");
     const response = await authStore.register(formData);
     // t('Registration successful. Please log in and make due payments.')
-    showSuccess(response?.message ? t(response.message) : t("Guest registration successful"));
     emit(
       "registered",
       response?.message ? t(response.message) : t("Guest registration successful")
@@ -663,6 +674,8 @@ const handleGuestRegistration = async () => {
     } else {
       showError(response?.data?.message || t("Registration failed"));
     }
+  } finally {
+    isSubmitting.value = false;
   }
 };
 </script>

@@ -419,7 +419,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, computed, watch, onMounted, unref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useAuthStore } from "@/stores/auth";
 import { useSettingsStore } from "@/stores/settings";
@@ -441,9 +441,10 @@ import { PlusIcon, TrashIcon } from "@heroicons/vue/24/solid";
 import { getCurrencySymbol } from "@/utils/formatters";
 import { debounceHelper } from "@/utils/helpers"; // Import debounceHelper
 
-defineProps<{
-  emailPlaceholder: string;
-}>();
+const props = withDefaults(
+  defineProps<{ emailPlaceholder: string; uiLocale?: string }>(),
+  { uiLocale: "" }
+);
 
 const emit = defineEmits<{
   registered: (message: string) => void;
@@ -451,7 +452,7 @@ const emit = defineEmits<{
   "registration-closed": () => void;
 }>();
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const authStore = useAuthStore();
 const settingsStore = useSettingsStore();
 const { showError } = useToast();
@@ -610,6 +611,7 @@ const checkIinAvailability = async (iin: string) => {
 const debouncedCheckIinAvailability = debounceHelper(checkIinAvailability, 500);
 
 const handleRegistration = async () => {
+  if (isSubmitting.value) return;
   isSubmitting.value = true;
   Object.keys(registrationValidationState.value).forEach(
     (key) => (registrationValidationState.value[key] = "")
@@ -701,6 +703,9 @@ const handleRegistration = async () => {
     const formData = new FormData();
     // Add user_type at the root level as expected by the backend
     formData.append("user_type", "student");
+    let localeToSend = (props.uiLocale || unref(locale) || "en").trim().toLowerCase();
+    if (localeToSend === "kz") localeToSend = "kk";
+    formData.append("locale", [ "en", "kk", "ru" ].includes(localeToSend) ? localeToSend : "en");
     // Recursively build the rest of the payload from the user object
     buildFormData(formData, user.value);
 
@@ -862,8 +867,7 @@ watch(
     loadingDormitories.value = true;
     user.value.dormitory_id = null; // Reset dormitory on gender change
     try {
-      const response = await dormitoryService.getAll();
-      // The response.data is already the array of dormitories
+      const response = await dormitoryService.getForRegistration();
       dormitoryOptions.value = response.data || [];
     } catch {
       showError(t("Failed to load dormitories. Please try again."));

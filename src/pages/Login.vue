@@ -26,17 +26,18 @@
             </CTab>
 
             <!-- Registration Tab -->
-            <CTab name="registration" :title="t('Registration')" data-testid="registration-tab">
+            <CTab name="registration" :title="t('New Student')" data-testid="registration-tab">
               <RegistrationTab
                 :email-placeholder="emailPlaceholder"
+                :ui-locale="selectedLanguage"
                 @registered="onRegistered"
                 @added-to-reserve-list="onAddedToReserveList"
                 @registration-closed="onRegistrationClosed"
               />
             </CTab>
 
-            <CTab name="guests" :title="t('Guests')">
-              <GuestTab @registered="onRegistered" />
+            <CTab name="guests" :title="t('New Guest')">
+              <GuestTab :ui-locale="selectedLanguage" @registered="onRegistered" />
             </CTab>
           </CTabs>
         </div>
@@ -64,7 +65,7 @@ import RegistrationTab from "@/pages/RegistrationTab.vue";
 import GuestTab from "@/pages/GuestTab.vue";
 
 const { t } = useI18n();
-const { showSuccess, showError } = useToast();
+const { showError } = useToast();
 
 const registrationClosed = ref(false);
 const reserveListMessage = ref("");
@@ -80,13 +81,11 @@ const languageOptions = [
 
 const onRegistered = (message: string) => {
   successMessage.value = message;
-  showSuccess(message);
   activeTab.value = "login";
 };
 
 const onAddedToReserveList = (message: string) => {
   reserveListMessage.value = message;
-  showSuccess(message);
   activeTab.value = "login";
 };
 

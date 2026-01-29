@@ -499,7 +499,6 @@
   "Region": "Region",
   "Registered Students": "Registered Students",
   "Registered students": "Registered students",
-  "Registration": "Registration",
   "Registration & Status": "Registration & Status",
   "Registration Date": "Registration Date",
   "Registration failed": "Registration failed",
@@ -627,6 +626,7 @@
   "The number has already been taken.": "The number has already been taken.",
   "This IIN is already registered.": "This IIN is already registered.",
   "This email is already registered.": "This email is already registered.",
+  "This field cannot be empty.": "This field cannot be empty.",
   "This is a test modal using CModal component.": "This is a test modal using CModal component.",
   "Timeout (seconds)": "Timeout (seconds)",
   "Title": "Title",
@@ -645,9 +645,11 @@
   "Webhook URL": "Webhook URL",
   "Website Settings": "Website Settings",
   "When enabled, removes black borders and uses shadows for focus indicators instead.": "When enabled, removes black borders and uses shadows for focus indicators instead.",
+  "Write your thoughts here...": "Write your thoughts here...",
   "You have access to the dormitory.": "You have access to the dormitory.",
   "Your account is inactive.": "Your account is inactive.",
   "Your account is pending approval.": "Your account is pending approval.",
+  "Your message": "Your message",
   "Your password has been reset successfully!": "Your password has been reset successfully!",
   "auth.invalid_credentials": "Invalid credentials",
   "auth.not_approved": "Account not approved",
@@ -691,5 +693,7 @@
   "results": "results",
   "showForm": "showForm",
   "student": "student",
-  "to": "to"
+  "to": "to",
+  "New Student": "New Student",
+  "New Guest": "New Guest"
 }

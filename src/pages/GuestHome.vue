@@ -311,7 +311,7 @@ const fetchGuestData = async () => {
 };
 
 const formatCurrency = (amount: number) => {
-  const currencyCode = settingsStore.publicSettings?.currency || "KZT";
+  const currencyCode = settingsStore.publicSettings?.currency_symbol || "USD";
   const locale = navigator.language;
   return formatCurrencyUtil(amount, currencyCode, locale);
 };
@@ -333,7 +333,7 @@ const formatGuestStatus = (status: string): string => {
 // Lifecycle
 onMounted(() => {
   // Derive status from auth store initially
-  guestStatus.value = (authStore.user?.status as string) || "active";
+  guestStatus.value = (authStore.user?.status as string) || "pending";
   fetchGuestData();
 });
 </script>

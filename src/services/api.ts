@@ -65,9 +65,8 @@ export const authService = {
     password: string;
   }): Promise<ApiResponse<{ user: User; token: string }>> => api.post("/login", credentials),
 
-  register: (userData: any): Promise<ApiResponse<{ user: User; message?: string }>> => {
-    return api.post("/register", userData, { headers: { "Content-Type": "multipart/form-data" } });
-  },
+  register: (userData: any): Promise<ApiResponse<{ user: User; message?: string }>> =>
+    api.post("/register", userData),
 
   logout: (): Promise<ApiResponse<{ message: string }>> => api.post("/logout"),
 
@@ -364,6 +363,15 @@ export const dormitoryService = {
 
   getRegistrationData: (dormitoryId: number): Promise<ApiResponse<any>> =>
     api.get(`/dormitories/${dormitoryId}/registration`),
+
+  /**
+   * Dormitories for student registration. Uses /dormitories/public so freeBeds
+   * counts only student rooms; use this for gender-step availability checks.
+   */
+  getForRegistration: (): Promise<ApiResponse<Dormitory[]>> =>
+    api.get("/dormitories/public", {
+      headers: { "Cache-Control": "no-cache" },
+    }),
 };
 
 // Guest service

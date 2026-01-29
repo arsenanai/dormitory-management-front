@@ -616,6 +616,7 @@
   "The number has already been taken.": "Этот номер уже занят.",
   "This IIN is already registered.": "Этот ИИН уже зарегистрирован.",
   "This email is already registered.": "Этот email уже зарегистрирован.",
+  "This field cannot be empty.": "Это поле не может быть пустым.",
   "This is a test modal using CModal component.": "Это тестовое модальное окно, использующее компонент CModal.",
   "Timeout (seconds)": "Таймаут (секунды)",
   "Title": "Заголовок",
@@ -634,9 +635,11 @@
   "Webhook URL": "URL веб-хука",
   "Website Settings": "Настройки веб-сайта",
   "When enabled, removes black borders and uses shadows for focus indicators instead.": "При включении убирает черные рамки и использует тени для индикаторов фокуса.",
+  "Write your thoughts here...": "Напишите здесь...",
   "You have access to the dormitory.": "У вас есть доступ в общежитие.",
   "Your account is inactive.": "Ваша учетная запись неактивна.",
   "Your account is pending approval.": "Ваша учетная запись ожидает подтверждения.",
+  "Your message": "Ваше сообщение",
   "Your password has been reset successfully!": "Ваш пароль успешно сброшен!",
   "auth.invalid_credentials": "Неверные учетные данные",
   "auth.not_approved": "Учетная запись не подтверждена",
@@ -680,5 +683,7 @@
   "results": "результаты",
   "showForm": "показать форму",
   "student": "студент",
-  "to": "до"
+  "to": "до",
+  "New Student": "Новый Студент",
+  "New Guest": "Новый Гость"
 }

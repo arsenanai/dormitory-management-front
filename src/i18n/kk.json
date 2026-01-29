@@ -616,6 +616,7 @@
   "The number has already been taken.": "Бұл нөмір бос емес.",
   "This IIN is already registered.": "Бұл ЖСН тіркелген.",
   "This email is already registered.": "Бұл электрондық пошта тіркелген.",
+  "This field cannot be empty.": "Бұл өріс бос болмауы керек.",
   "This is a test modal using CModal component.": "Бұл CModal компонентін пайдаланатын тесттік модальды терезе.",
   "Timeout (seconds)": "Уақыт шегі (секунд)",
   "Title": "Тақырып",
@@ -634,9 +635,11 @@
   "Webhook URL": "Webhook URL мекенжайы",
   "Website Settings": "Веб-сайт баптаулары",
   "When enabled, removes black borders and uses shadows for focus indicators instead.": "Қосылған кезде, қара жиектерді жояды және оның орнына фокус индикаторлары үшін көлеңкелерді пайдаланады.",
+  "Write your thoughts here...": "Ойларыңызды осында жазыңыз...",
   "You have access to the dormitory.": "Сіздің жатақханаға кіруге рұқсатыңыз бар.",
   "Your account is inactive.": "Сіздің есептік жазбаңыз белсенді емес.",
   "Your account is pending approval.": "Сіздің есептік жазбаңыз растауды күтуде.",
+  "Your message": "Сіздің хабарламаңыз",
   "Your password has been reset successfully!": "Құпия сөзіңіз сәтті қалпына келтірілді!",
   "auth.invalid_credentials": "Кіру деректері қате",
   "auth.not_approved": "Есептік жазба мақұлданбаған",
@@ -680,5 +683,7 @@
   "results": "нәтижелер",
   "showForm": "форманы көрсету",
   "student": "студент",
-  "to": "дейін"
+  "to": "дейін",
+  "New Student": "Жаңа Студент",
+  "New Guest": "Жаңа Қонақ"
 }

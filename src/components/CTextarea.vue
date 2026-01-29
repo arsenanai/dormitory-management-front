@@ -2,7 +2,7 @@
   <div :class="[wrapperClass]">
     <div class="flex items-center justify-between">
       <label :for="id" class="block text-sm font-medium text-gray-900 dark:text-white">
-        {{ label }}
+        {{ label || t('Your message') }}
       </label>
       <button
         v-if="fullscreen"
@@ -17,7 +17,7 @@
     <textarea
       :id="id"
       :rows="rows"
-      :placeholder="placeholder"
+      :placeholder="placeholder || t('Write your thoughts here...')"
       :value="modelValue"
       @input="updateValue(($event.target as HTMLTextAreaElement).value)"
       :class="[
@@ -38,7 +38,7 @@
       @focus="onFocus"
     ></textarea>
     <p v-if="!isValid" class="mt-1 text-sm text-red-600 dark:text-red-500">
-      {{ validationMessage }}
+      {{ validationMessage || t('This field cannot be empty.') }}
     </p>
     <!-- Fullscreen Overlay -->
     <div v-if="isFullScreen" class="fixed inset-0 z-50 flex flex-col bg-white p-4 dark:bg-gray-900">
@@ -46,7 +46,7 @@
         <label
           :for="`${id}-fullscreen`"
           class="block text-lg font-medium text-gray-900 dark:text-white"
-          >{{ label }}</label
+          >{{ label || t('Your message') }}</label
         >
         <button
           @click="toggleFullScreen"
@@ -58,7 +58,7 @@
       </div>
       <textarea
         :id="`${id}-fullscreen`"
-        :placeholder="placeholder"
+        :placeholder="placeholder || t('Write your thoughts here...')"
         :value="modelValue"
         @input="updateValue(($event.target as HTMLTextAreaElement).value)"
         :class="[baseTextareaClass, validationClass, 'flex-grow']"
@@ -96,7 +96,7 @@ const {
   },
   label: {
     type: String,
-    default: "Your message",
+    default: "",
   },
   rows: {
     type: Number,
@@ -104,11 +104,11 @@ const {
   },
   placeholder: {
     type: String,
-    default: "Write your thoughts here...",
+    default: "",
   },
   validationMessage: {
     type: String,
-    default: "This field cannot be empty.",
+    default: "",
   },
   readonly: {
     type: Boolean,
