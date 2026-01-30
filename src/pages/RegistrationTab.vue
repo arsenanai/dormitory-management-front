@@ -672,8 +672,15 @@ const handleRegistration = async () => {
 
       if (value instanceof File) {
         formData.append(formKey, value, value.name);
+      } else if (key === "files" && Array.isArray(value) && formKey === "student_profile[files]") {
+        // Append student profile files with explicit indices 0, 1, 2 so backend receives avatar at index 2
+        for (let i = 0; i < 3; i++) {
+          const file = value[i];
+          if (file instanceof File) {
+            formData.append(`${formKey}[${i}]`, file, file.name);
+          }
+        }
       } else if (key === "files" && Array.isArray(value)) {
-        // Handle the files array specifically to match backend expectation (e.g., student_profile[files][0])
         value.forEach((file, index) => {
           if (file instanceof File) {
             formData.append(`${formKey}[${index}]`, file, file.name);

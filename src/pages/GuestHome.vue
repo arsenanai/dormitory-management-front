@@ -132,6 +132,17 @@
             </div>
           </div>
 
+          <!-- Book Another Stay Button -->
+          <div class="mb-6 flex justify-end">
+            <CButton
+              @click="showBookingModal = true"
+              variant="primary"
+              data-testid="book-another-stay-btn"
+            >
+              {{ t("Book Another Stay") }}
+            </CButton>
+          </div>
+
           <!-- Reception Contacts -->
           <div class="mb-6">
             <div class="mb-4 flex items-center" data-testid="reception-contacts">
@@ -207,11 +218,86 @@
         </div>
       </div>
     </div>
+
+    <!-- Book Another Stay Modal -->
+    <CModal v-model="showBookingModal" :title="t('Book Another Stay')">
+      <form @submit.prevent="handleNewBooking" class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <CInput
+            id="new-check-in"
+            v-model="newBooking.check_in_date"
+            type="date"
+            :label="t('Check-in Date')"
+            required
+            :min="minCheckInDate"
+            :validationState="bookingValidationState.check_in_date"
+            :validationMessage="bookingValidationMessage.check_in_date"
+          />
+          <CInput
+            id="new-check-out"
+            v-model="newBooking.check_out_date"
+            type="date"
+            :label="t('Check-out Date')"
+            :disabled="!newBooking.check_in_date"
+            :min="newBooking.check_in_date"
+            required
+            :validationState="bookingValidationState.check_out_date"
+            :validationMessage="bookingValidationMessage.check_out_date"
+          />
+        </div>
+        <CSelect
+          id="new-room-type"
+          v-model="newBooking.room_type_id"
+          :options="roomTypeOptions"
+          :label="t('Select Room Type')"
+          :disabled="!newBooking.check_in_date || !newBooking.check_out_date || loadingRooms"
+          :validationState="bookingValidationState.room_type_id"
+          :validationMessage="bookingValidationMessage.room_type_id"
+        />
+        <CSelect
+          id="new-room"
+          v-model="newBooking.room_id"
+          :options="roomOptions"
+          :label="t('Select Room')"
+          :disabled="!newBooking.room_type_id || loadingRooms"
+          :validationState="bookingValidationState.room_id"
+          :validationMessage="bookingValidationMessage.room_id"
+          required
+        />
+        <CSelect
+          id="new-bed"
+          v-model="newBooking.bed_id"
+          :options="bedOptions"
+          :label="t('Bed')"
+          :disabled="!newBooking.room_id || loadingBeds"
+          :validationState="bookingValidationState.bed_id"
+          :validationMessage="bookingValidationMessage.bed_id"
+          required
+        />
+        <div v-if="loadingRooms || loadingBeds" class="flex justify-center py-4">
+          <div class="border-primary-500 h-5 w-5 animate-spin rounded-full border-b-2"></div>
+        </div>
+        <div
+          v-if="!loadingRooms && newBooking.room_type_id && availableRooms.length === 0"
+          class="p-4 text-center text-red-500"
+        >
+          {{ t("No rooms are available for the selected dates.") }}
+        </div>
+        <div class="flex justify-end gap-3 pt-4">
+          <CButton @click="showBookingModal = false" type="button">
+            {{ t("Cancel") }}
+          </CButton>
+          <CButton type="submit" variant="primary" :disabled="isSubmittingBooking">
+            {{ isSubmittingBooking ? t("Booking...") : t("Book Stay") }}
+          </CButton>
+        </div>
+      </form>
+    </CModal>
   </Navigation>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import Navigation from "@/components/CNavigation.vue";
@@ -226,21 +312,64 @@ import {
   ChatBubbleLeftRightIcon,
   HeartIcon,
 } from "@heroicons/vue/24/outline";
-import { authService } from "@/services/api";
+import { authService, personalDataService, guestService } from "@/services/api";
 import { useSettingsStore } from "@/stores/settings";
 import { useAuthStore } from "@/stores/auth";
 import { formatCurrency as formatCurrencyUtil } from "@/utils/formatters";
+import CModal from "@/components/CModal.vue";
+import CButton from "@/components/CButton.vue";
+import CInput from "@/components/CInput.vue";
+import CSelect from "@/components/CSelect.vue";
+import { useToast } from "@/composables/useToast";
 
 const { t } = useI18n();
 const router = useRouter();
 const settingsStore = useSettingsStore();
 const authStore = useAuthStore();
+const { showSuccess, showError } = useToast();
 
 // Reactive data
 const loading = ref(true);
 const error = ref<string | null>(null);
 const guestInfo = ref<any>({});
 const guestStatus = ref<string>("active");
+
+// Book Another Stay Modal
+const showBookingModal = ref(false);
+const isSubmittingBooking = ref(false);
+const loadingRooms = ref(false);
+const loadingBeds = ref(false);
+const newBooking = ref({
+  check_in_date: "",
+  check_out_date: "",
+  room_type_id: undefined as number | undefined,
+  room_id: undefined as number | undefined,
+  bed_id: undefined as number | undefined,
+});
+const bookingValidationState = ref({
+  check_in_date: "" as "success" | "error" | "",
+  check_out_date: "" as "success" | "error" | "",
+  room_type_id: "" as "success" | "error" | "",
+  room_id: "" as "success" | "error" | "",
+  bed_id: "" as "success" | "error" | "",
+});
+const bookingValidationMessage = ref({
+  check_in_date: "",
+  check_out_date: "",
+  room_type_id: "",
+  room_id: "",
+  bed_id: "",
+});
+const availableRooms = ref<any[]>([]);
+const roomTypeOptions = ref<Array<{ value: number; name: string }>>([]);
+const roomOptions = ref<Array<{ value: number; name: string }>>([]);
+const bedOptions = ref<Array<{ value: number; name: string }>>([]);
+
+const minCheckInDate = computed(() => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today.toISOString().split("T")[0];
+});
 
 const appName = import.meta.env.VITE_APP_NAME || "Dormitory CRM";
 
@@ -328,6 +457,176 @@ const formatGuestStatus = (status: string): string => {
     passive: t("Passive"),
   };
   return statusMap[status] || status;
+};
+
+// Load available rooms when dates and room type are selected
+const loadAvailableRooms = async () => {
+  if (!newBooking.value.check_in_date || !newBooking.value.check_out_date) {
+    availableRooms.value = [];
+    roomOptions.value = [];
+    bedOptions.value = [];
+    return;
+  }
+
+  loadingRooms.value = true;
+  try {
+    const params: any = {
+      start_date: newBooking.value.check_in_date,
+      end_date: newBooking.value.check_out_date,
+    };
+
+    // Add room_type_id filter if backend supports it via query params
+    // Note: The backend filters by room_type_id in RoomService, but we'll filter client-side for now
+    const response = await guestService.getAvailableRooms(params);
+
+    availableRooms.value = response.data || [];
+
+    // Extract unique room types
+    const roomTypesMap = new Map<number, string>();
+    availableRooms.value.forEach((room: any) => {
+      if (room.room_type && !roomTypesMap.has(room.room_type.id)) {
+        roomTypesMap.set(room.room_type.id, room.room_type.name);
+      }
+    });
+    roomTypeOptions.value = Array.from(roomTypesMap.entries()).map(([id, name]) => ({
+      value: id,
+      name: name,
+    }));
+
+    // Filter rooms by selected room type
+    if (newBooking.value.room_type_id) {
+      const filteredRooms = availableRooms.value.filter(
+        (room: any) => room.room_type?.id === newBooking.value.room_type_id
+      );
+      roomOptions.value = filteredRooms.map((room: any) => ({
+        value: room.id,
+        name: `${room.number}${room.floor ? ` (${t("Floor")} ${room.floor})` : ""}`,
+      }));
+    } else {
+      roomOptions.value = availableRooms.value.map((room: any) => ({
+        value: room.id,
+        name: `${room.number}${room.floor ? ` (${t("Floor")} ${room.floor})` : ""}`,
+      }));
+    }
+  } catch (err: any) {
+    console.error("Failed to load available rooms:", err);
+    showError(err.response?.data?.message || t("Failed to load available rooms"));
+  } finally {
+    loadingRooms.value = false;
+  }
+};
+
+// Load available beds when room is selected
+const loadAvailableBeds = async () => {
+  if (!newBooking.value.room_id) {
+    bedOptions.value = [];
+    return;
+  }
+
+  loadingBeds.value = true;
+  try {
+    const room = availableRooms.value.find((r: any) => r.id === newBooking.value.room_id);
+    if (room && room.beds) {
+      const availableBeds = room.beds.filter((bed: any) => !bed.is_occupied);
+      bedOptions.value = availableBeds.map((bed: any) => ({
+        value: bed.id,
+        name: `${t("Bed")} ${bed.number || bed.id}`,
+      }));
+    } else {
+      bedOptions.value = [];
+    }
+  } catch (err: any) {
+    console.error("Failed to load available beds:", err);
+    showError(err.response?.data?.message || t("Failed to load available beds"));
+  } finally {
+    loadingBeds.value = false;
+  }
+};
+
+// Watch for changes to trigger room/bed loading
+watch(
+  () => [
+    newBooking.value.check_in_date,
+    newBooking.value.check_out_date,
+    newBooking.value.room_type_id,
+  ],
+  () => {
+    if (newBooking.value.check_in_date && newBooking.value.check_out_date) {
+      loadAvailableRooms();
+    }
+  }
+);
+
+watch(
+  () => newBooking.value.room_id,
+  () => {
+    if (newBooking.value.room_id) {
+      loadAvailableBeds();
+    } else {
+      bedOptions.value = [];
+      newBooking.value.bed_id = undefined;
+    }
+  }
+);
+
+watch(
+  () => newBooking.value.room_type_id,
+  () => {
+    newBooking.value.room_id = undefined;
+    newBooking.value.bed_id = undefined;
+    if (newBooking.value.check_in_date && newBooking.value.check_out_date) {
+      loadAvailableRooms();
+    }
+  }
+);
+
+// Handle new booking submission
+const handleNewBooking = async () => {
+  // Validation
+  if (!newBooking.value.check_in_date) {
+    bookingValidationState.value.check_in_date = "error";
+    bookingValidationMessage.value.check_in_date = t("Check-in date is required");
+    return;
+  }
+  if (!newBooking.value.check_out_date) {
+    bookingValidationState.value.check_out_date = "error";
+    bookingValidationMessage.value.check_out_date = t("Check-out date is required");
+    return;
+  }
+  if (!newBooking.value.bed_id) {
+    bookingValidationState.value.bed_id = "error";
+    bookingValidationMessage.value.bed_id = t("Bed selection is required");
+    return;
+  }
+
+  isSubmittingBooking.value = true;
+  try {
+    await personalDataService.update({
+      check_in_date: newBooking.value.check_in_date,
+      check_out_date: newBooking.value.check_out_date,
+      bed_id: newBooking.value.bed_id,
+    });
+
+    showSuccess(t("New booking created successfully. Payment will be generated."));
+    showBookingModal.value = false;
+
+    // Reset form
+    newBooking.value = {
+      check_in_date: "",
+      check_out_date: "",
+      room_type_id: undefined,
+      room_id: undefined,
+      bed_id: undefined,
+    };
+
+    // Refresh guest data
+    await fetchGuestData();
+  } catch (err: any) {
+    console.error("Failed to create new booking:", err);
+    showError(err.response?.data?.message || t("Failed to create new booking"));
+  } finally {
+    isSubmittingBooking.value = false;
+  }
 };
 
 // Lifecycle

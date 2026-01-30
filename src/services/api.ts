@@ -55,6 +55,10 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // Send multipart/form-data for FormData (e.g. registration with files); omit Content-Type so axios sets boundary
+  if (config.data instanceof FormData) {
+    delete config.headers["Content-Type"];
+  }
   return config;
 });
 
@@ -65,8 +69,14 @@ export const authService = {
     password: string;
   }): Promise<ApiResponse<{ user: User; token: string }>> => api.post("/login", credentials),
 
-  register: (userData: any): Promise<ApiResponse<{ user: User; message?: string }>> =>
-    api.post("/register", userData),
+  register: (
+    userData: FormData | Record<string, unknown>
+  ): Promise<ApiResponse<{ user: User; message?: string }>> =>
+    api.post(
+      "/register",
+      userData,
+      userData instanceof FormData ? { headers: { "Content-Type": undefined } } : undefined
+    ),
 
   logout: (): Promise<ApiResponse<{ message: string }>> => api.post("/logout"),
 
