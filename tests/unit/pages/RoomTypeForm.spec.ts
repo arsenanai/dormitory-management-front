@@ -26,7 +26,7 @@ vi.mock('@/composables/useToast', () => ({
 
 vi.mock('@/stores/settings', () => ({
   useSettingsStore: () => ({
-    generalSettings: {
+    publicSettings: {
       currency_symbol: '$',
     },
     fetchAllSettings: vi.fn(),

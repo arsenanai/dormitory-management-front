@@ -11,6 +11,7 @@ import {
   ClipboardDocumentListIcon,
   Cog6ToothIcon,
   UserGroupIcon,
+  EnvelopeIcon,
 } from "@heroicons/vue/24/outline";
 
 // Define meta fields for routes
@@ -266,6 +267,31 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: Cog6ToothIcon,
+      roles: ["sudo"],
+    },
+  },
+  {
+    path: "/mails",
+    name: "Mails",
+    component: () => import("@/pages/Mails.vue"),
+    meta: {
+      title: "Mails",
+      requiresAuth: true,
+      sidebar: true,
+      icon: EnvelopeIcon,
+      roles: ["sudo"],
+    },
+  },
+  {
+    path: "/mails/edit/:type",
+    name: "Mail Template Edit",
+    component: () => import("@/pages/MailTemplateEdit.vue"),
+    meta: {
+      title: "Edit Mail Template",
+      requiresAuth: true,
+      sidebar: true,
+      icon: PencilSquareIcon,
+      parent: "Mails",
       roles: ["sudo"],
     },
   },

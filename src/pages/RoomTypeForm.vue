@@ -167,7 +167,7 @@ const loading = ref(false);
 const error = ref("");
 const errors = ref<Record<string, string>>({});
 const settingsStore = useSettingsStore();
-const currencySymbol = computed(() => settingsStore.generalSettings?.currency_symbol || "$");
+const currencySymbol = computed(() => settingsStore.publicSettings?.currency_symbol || "$");
 
 const photoFields = ref<(File | string | null)[]>([null]);
 

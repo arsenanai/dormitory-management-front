@@ -486,6 +486,40 @@ export const configurationService = {
     api.put("/configurations/dormitory", settings),
 };
 
+// Mail templates service (sudo only)
+export interface MailTemplateLocale {
+  subject: string;
+  body: string;
+}
+
+export interface MailTemplateListItem {
+  type: string;
+  name: string;
+  locales: Record<string, MailTemplateLocale>;
+}
+
+export interface MailTemplateDetail {
+  type: string;
+  name: string;
+  locales: Record<string, MailTemplateLocale>;
+  placeholders: Record<string, string>;
+}
+
+export const mailTemplateService = {
+  getList: (): Promise<
+    ApiResponse<MailTemplateListItem[]>
+  > => api.get("/mail-templates"),
+
+  getByType: (type: string): Promise<ApiResponse<MailTemplateDetail>> =>
+    api.get(`/mail-templates/${type}`),
+
+  update: (
+    type: string,
+    locales: Record<string, MailTemplateLocale>
+  ): Promise<ApiResponse<{ message: string }>> =>
+    api.put(`/mail-templates/${type}`, { locales }),
+};
+
 // Dashboard service
 export const dashboardService = {
   getStats: (): Promise<ApiResponse<Record<string, unknown>>> => api.get("/dashboard"),
