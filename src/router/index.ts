@@ -12,6 +12,7 @@ import {
   Cog6ToothIcon,
   UserGroupIcon,
   EnvelopeIcon,
+  DocumentTextIcon,
 } from "@heroicons/vue/24/outline";
 
 // Define meta fields for routes
@@ -279,6 +280,18 @@ const routes: AppRouteRecordRaw[] = [
       requiresAuth: true,
       sidebar: true,
       icon: EnvelopeIcon,
+      roles: ["sudo"],
+    },
+  },
+  {
+    path: "/dormitory-rules",
+    name: "Dormitory Rules",
+    component: () => import("@/pages/DormitoryRulesSettings.vue"),
+    meta: {
+      title: "Dormitory Rules",
+      requiresAuth: true,
+      sidebar: true,
+      icon: DocumentTextIcon,
       roles: ["sudo"],
     },
   },

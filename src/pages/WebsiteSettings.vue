@@ -115,25 +115,13 @@
             />
           </div>
 
-          <!-- Dormitory Settings -->
-          <div class="rounded-lg border border-gray-200 p-4">
-            <h3 class="text-md text-primary-600 mb-3 font-medium">{{ t("Dormitory Settings") }}</h3>
-            <CTextarea
-              id="dormitory-rules"
-              v-model="dormitorySettingsForm.dormitory_rules"
-              :label="t('Dormitory Rules and Regulations')"
-              class="mb-4"
-              rows="10"
-            />
-          </div>
-
           <!-- Dormitory Bank requisites/payment instructions -->
           <div class="rounded-lg border border-gray-200 p-4">
             <h3 class="text-md text-primary-600 mb-3 font-medium">
               {{ t("Bank requisites / payment instructions") }}
             </h3>
             <CTextarea
-              id="dormitory-rules"
+              id="bank-requisites"
               v-model="dormitorySettingsForm.bank_requisites"
               :label="t('Dormitory Bank requisites / payment instructions')"
               class="mb-4"
@@ -296,7 +284,6 @@ const onecForm = reactive<OneCSettings>({
 });
 const dormitorySettingsForm = reactive({
   currency_symbol: "USD",
-  dormitory_rules: "",
   bank_requisites: "",
 });
 
@@ -395,7 +382,6 @@ const saveAllSettings = async () => {
       settingsStore.updateCardReaderSettings(cardReaderPayload as CardReaderSettings),
       settingsStore.updateOnecSettings(onecPayload as OneCSettings),
       settingsStore.updateKaspiSettings(kaspiPayload as KaspiSettings),
-      settingsStore.updateDormitoryRules(dormitorySettingsForm.dormitory_rules),
       settingsStore.updateCurrencySettings(dormitorySettingsForm.currency_symbol),
       settingsStore.updateBankRequisites(dormitorySettingsForm.bank_requisites),
       settingsStore.updatePaymentSettings(paymentConfigPayload),

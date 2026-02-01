@@ -99,7 +99,7 @@
           :placeholder="formData.status || t('Select Status')"
         />
         <CTextarea
-          id="dormitory-rules"
+          id="bank-requisites"
           :label="t('Bank requisites')"
           :model-value="settingsStore.publicSettings?.bank_requisites"
           readonly

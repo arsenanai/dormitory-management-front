@@ -473,17 +473,21 @@ export const configurationService = {
 
   getPublicSettings: (): Promise<PublicSettings> =>
     api.get<PublicSettings>("/configurations/public").then((res) => res.data),
+};
 
-  updateDormitoryRules: (rules: string): Promise<ApiResponse<Record<string, unknown>>> =>
-    api.put("/configurations/dormitory-rules", { dormitory_rules: rules }),
+// Dormitory rules service (sudo only)
+export interface DormitoryRulesLocales {
+  en: string;
+  kk: string;
+  ru: string;
+}
 
-  updateBankRequisites: (value: string): Promise<ApiResponse<Record<string, unknown>>> =>
-    api.put("/configurations/bank-requisites", { bank_requisites: value }),
+export const dormitoryRulesService = {
+  get: (): Promise<ApiResponse<{ locales: DormitoryRulesLocales }>> =>
+    api.get("/dormitory-rules"),
 
-  updateDormitorySettings: (
-    settings: Record<string, unknown>
-  ): Promise<ApiResponse<Record<string, unknown>>> =>
-    api.put("/configurations/dormitory", settings),
+  update: (locales: DormitoryRulesLocales): Promise<ApiResponse<{ message: string }>> =>
+    api.put("/dormitory-rules", { locales }),
 };
 
 // Mail templates service (sudo only)

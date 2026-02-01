@@ -397,13 +397,13 @@
       <!-- Step 11: Registration Status -->
       <CStep :title="t('Registration & Status')" :validator="() => isRegistrationStatusStepValid">
         <div v-if="user.student_profile" class="flex h-full flex-1 flex-col gap-4">
-          <CTextarea
+          <CHtmlView
             id="dormitory-rules"
             :label="t('Dormitory Rules and Regulations')"
-            :model-value="settingsStore.publicSettings?.dormitory_rules"
-            readonly
-            additionalClass="h-full flex-1"
-            wrapperClass="flex flex-col flex-1"
+            :html="dormitoryRulesHtml"
+            :fallback-text="t('No dormitory rules have been configured.')"
+            wrapperClass="flex flex-col flex-1 min-h-0"
+            additionalClass="h-full flex-1 min-h-[200px]"
             fullscreen
           />
           <CCheckbox
@@ -434,7 +434,7 @@ import CCheckbox from "@/components/CCheckbox.vue";
 import CStepper from "@/components/CStepper.vue";
 import CStep from "@/components/CStep.vue";
 import CFileInput from "@/components/CFileInput.vue";
-import CTextarea from "@/components/CTextarea.vue";
+import CHtmlView from "@/components/CHtmlView.vue";
 import CModal from "@/components/CModal.vue";
 import CRoomTypePhotos from "@/components/CRoomTypePhotos.vue";
 import { PlusIcon, TrashIcon } from "@heroicons/vue/24/solid";
@@ -961,6 +961,14 @@ const isDocumentsStepValid = computed(() => {
 });
 
 // Step 11: Registration & Status
+const dormitoryRulesHtml = computed(() => {
+  const rules = settingsStore.publicSettings?.dormitory_rules;
+  if (!rules) return "";
+  if (typeof rules === "string") return rules;
+  const loc = (props.uiLocale || locale.value || "en").toString().split("-")[0];
+  return rules[loc] || rules.en || "";
+});
+
 const isRegistrationStatusStepValid = computed(() => {
   return !!user.value.student_profile?.agree_to_dormitory_rules;
 });

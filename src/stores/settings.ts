@@ -234,25 +234,6 @@ export const useSettingsStore = defineStore("settings", () => {
     }
   };
 
-  const updateDormitoryRules = async (rules: string) => {
-    try {
-      loading.value = true;
-      error.value = null;
-      const response = await api.put("/configurations/dormitory-rules", { dormitory_rules: rules });
-      if (publicSettings.value) {
-        publicSettings.value.dormitory_rules = rules;
-      }
-      // showSuccess('Dormitory rules updated successfully');
-      return response.data;
-    } catch (err: any) {
-      error.value = err;
-      showError(err.response?.data?.message || "Failed to update dormitory rules");
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  };
-
   const updateBankRequisites = async (value: string) => {
     try {
       loading.value = true;
@@ -460,7 +441,6 @@ export const useSettingsStore = defineStore("settings", () => {
     updateOnecSettings,
     fetchKaspiSettings,
     updateKaspiSettings,
-    updateDormitoryRules,
     updateBankRequisites,
     updateCurrencySettings,
     fetchInstalledLanguages,

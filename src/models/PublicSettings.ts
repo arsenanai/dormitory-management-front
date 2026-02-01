@@ -1,5 +1,5 @@
 export interface PublicSettings {
-  dormitory_rules: string;
+  dormitory_rules: Record<string, string> | string;
   currency_symbol: string;
   max_students_per_dormitory?: number;
   registration_enabled?: boolean;
