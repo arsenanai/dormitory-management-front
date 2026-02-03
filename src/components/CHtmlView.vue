@@ -14,30 +14,21 @@
         <ArrowsPointingOutIcon class="h-5 w-5" />
       </button>
     </div>
-    <div
-      :id="id"
-      :class="[
-        baseContentClass,
-        additionalClass,
-      ]"
-    >
+    <div :id="id" :class="[baseContentClass, additionalClass]">
       <div
         v-if="displayHtml"
-        class="prose prose-sm max-w-none dark:prose-invert"
+        class="prose prose-sm dark:prose-invert max-w-none"
         v-html="displayHtml"
       />
       <div
         v-else
-        class="prose prose-sm max-w-none dark:prose-invert text-gray-500 dark:text-gray-400 italic"
+        class="prose prose-sm dark:prose-invert max-w-none text-gray-500 italic dark:text-gray-400"
       >
         {{ effectiveFallbackText }}
       </div>
     </div>
     <!-- Fullscreen Overlay -->
-    <div
-      v-if="isFullScreen"
-      class="fixed inset-0 z-50 flex flex-col bg-white p-4 dark:bg-gray-900"
-    >
+    <div v-if="isFullScreen" class="fixed inset-0 z-50 flex flex-col bg-white p-4 dark:bg-gray-900">
       <div class="flex items-center justify-between pb-2">
         <label
           :for="`${id}-fullscreen`"
@@ -55,16 +46,16 @@
       </div>
       <div
         :id="`${id}-fullscreen`"
-        class="overflow-auto flex-1 min-h-0 rounded-lg border border-gray-300 bg-gray-50 p-4 dark:border-gray-600 dark:bg-gray-800"
+        class="min-h-0 flex-1 overflow-auto rounded-lg border border-gray-300 bg-gray-50 p-4 dark:border-gray-600 dark:bg-gray-800"
       >
         <div
           v-if="displayHtml"
-          class="prose prose-sm max-w-none dark:prose-invert"
+          class="prose prose-sm dark:prose-invert max-w-none"
           v-html="displayHtml"
         />
         <div
           v-else
-          class="prose prose-sm max-w-none dark:prose-invert text-gray-500 dark:text-gray-400 italic"
+          class="prose prose-sm dark:prose-invert max-w-none text-gray-500 italic dark:text-gray-400"
         >
           {{ effectiveFallbackText }}
         </div>
@@ -106,9 +97,7 @@ const displayHtml = computed(() => props.html?.trim() || "");
 
 const defaultFallbackText = t("No content available.");
 
-const effectiveFallbackText = computed(
-  () => props.fallbackText || defaultFallbackText
-);
+const effectiveFallbackText = computed(() => props.fallbackText || defaultFallbackText);
 
 const toggleFullScreen = () => {
   isFullScreen.value = !isFullScreen.value;

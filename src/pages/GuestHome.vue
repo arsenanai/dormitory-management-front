@@ -526,7 +526,7 @@ const loadAvailableBeds = async () => {
   loadingBeds.value = true;
   try {
     const room = availableRooms.value.find((r: any) => r.id === newBooking.value.room_id);
-    if (room && room.beds) {
+    if (room?.beds) {
       const availableBeds = room.beds.filter((bed: any) => !bed.is_occupied);
       bedOptions.value = availableBeds.map((bed: any) => ({
         value: bed.id,

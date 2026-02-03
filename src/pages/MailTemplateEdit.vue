@@ -7,12 +7,7 @@
         <h1 class="text-primary-700 text-xl font-semibold">{{ templateName }}</h1>
 
         <CTabs v-model="activeLanguageTab">
-          <CTab
-            v-for="loc in supportedLocales"
-            :key="loc.code"
-            :name="loc.code"
-            :title="loc.label"
-          >
+          <CTab v-for="loc in supportedLocales" :key="loc.code" :name="loc.code" :title="loc.label">
             <div class="space-y-4 rounded-lg border border-gray-200 p-4">
               <CInput
                 :id="`subject-${loc.code}`"
@@ -54,7 +49,7 @@
                   class="rounded-lg border border-gray-300 bg-white p-4 dark:border-gray-600 dark:bg-gray-800"
                 >
                   <div
-                    class="prose prose-sm max-w-none dark:prose-invert"
+                    class="prose prose-sm dark:prose-invert max-w-none"
                     data-testid="preview-html"
                     v-html="formByLocale[loc.code].body || t('(empty)')"
                   />
@@ -64,8 +59,13 @@
           </CTab>
         </CTabs>
 
-        <div v-if="Object.keys(placeholders).length > 0" class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-          <h3 class="text-primary-600 mb-2 text-sm font-medium">{{ t("Available placeholders") }}</h3>
+        <div
+          v-if="Object.keys(placeholders).length > 0"
+          class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800"
+        >
+          <h3 class="text-primary-600 mb-2 text-sm font-medium">
+            {{ t("Available placeholders") }}
+          </h3>
           <p class="mb-2 text-xs text-gray-600 dark:text-gray-400">
             {{ t("Use these in subject or body (e.g. app_name, user_name).") }}
           </p>

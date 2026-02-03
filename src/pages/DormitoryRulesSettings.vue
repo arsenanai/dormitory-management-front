@@ -9,12 +9,7 @@
         </h1>
 
         <CTabs v-model="activeLanguageTab">
-          <CTab
-            v-for="loc in supportedLocales"
-            :key="loc.code"
-            :name="loc.code"
-            :title="loc.label"
-          >
+          <CTab v-for="loc in supportedLocales" :key="loc.code" :name="loc.code" :title="loc.label">
             <div class="space-y-4 rounded-lg border border-gray-200 p-4">
               <div>
                 <div class="mb-2 flex items-center justify-between">
@@ -49,7 +44,7 @@
                   class="rounded-lg border border-gray-300 bg-white p-4 dark:border-gray-600 dark:bg-gray-800"
                 >
                   <div
-                    class="prose prose-sm max-w-none dark:prose-invert"
+                    class="prose prose-sm dark:prose-invert max-w-none"
                     data-testid="preview-html"
                     v-html="formByLocale[loc.code] || t('(empty)')"
                   />
