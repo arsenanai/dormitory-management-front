@@ -272,6 +272,18 @@ const routes: AppRouteRecordRaw[] = [
     },
   },
   {
+    path: "/settings/iin-integration",
+    name: "IinIntegrationSettings",
+    component: () => import("@/pages/IinIntegrationSettings.vue"),
+    meta: {
+      title: "IIN Integration",
+      requiresAuth: true,
+      sidebar: true,
+      icon: Cog6ToothIcon,
+      roles: ["sudo"],
+    },
+  },
+  {
     path: "/mails",
     name: "Mails",
     component: () => import("@/pages/Mails.vue"),

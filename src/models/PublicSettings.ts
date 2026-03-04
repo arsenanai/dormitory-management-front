@@ -6,4 +6,6 @@ export interface PublicSettings {
   backup_list_enabled?: boolean;
   payment_deadline_days?: number;
   bank_requisites?: string;
+  sdu_enabled?: boolean;
+  iin_integration_enabled?: boolean;
 }

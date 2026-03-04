@@ -172,6 +172,25 @@
             </div>
           </div>
 
+          <!-- SDU Integration Toggle -->
+          <div class="rounded-lg border border-gray-200 p-4">
+            <h3 class="text-md text-primary-600 mb-3 font-medium">{{ t("SDU API Integration") }}</h3>
+            <CCheckbox
+              id="sdu-enabled"
+              v-model="sduForm.sdu_enabled"
+              :label="t('Enable SDU API Integration')"
+            />
+            <div v-if="sduForm.sdu_enabled" class="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <CInput v-model="sduForm.sdu_api_url" :label="t('SDU API URL')" required />
+              <CInput
+                v-model="sduForm.sdu_api_secret"
+                :label="t('SDU API Secret')"
+                type="password"
+                required
+              />
+            </div>
+          </div>
+
           <!-- Card Security Toggle -->
           <div class="rounded-lg border border-gray-200 p-4">
             <h3 class="text-md text-primary-600 mb-3 font-medium">{{ t("Card Security") }}</h3>
@@ -254,6 +273,7 @@ import { currencySymbolMap } from "@/utils/formatters";
 import { CardReaderSettings } from "@/models/CardReaderSettings";
 import { OneCSettings } from "@/models/OneCSettings";
 import { KaspiSettings } from "@/models/KaspiSettings";
+import { SduSettings } from "@/models/SduSettings";
 import type { PaymentSettings } from "@/models/PaymentSettings";
 import { useToast } from "@/composables/useToast";
 
@@ -266,6 +286,11 @@ const kaspiForm = reactive<KaspiSettings>({
   kaspi_api_key: null,
   kaspi_merchant_id: null,
   kaspi_webhook_url: null,
+});
+const sduForm = reactive<SduSettings>({
+  sdu_enabled: false,
+  sdu_api_url: "",
+  sdu_api_secret: "",
 });
 const cardReaderForm = reactive<CardReaderSettings>({
   card_reader_enabled: false,
@@ -332,12 +357,14 @@ const loadSettings = async () => {
     settingsStore.fetchKaspiSettings(),
     settingsStore.fetchPublicSettings(),
     settingsStore.fetchPaymentSettings(),
+    settingsStore.fetchSduSettings(),
   ]);
 
   if (settingsStore.cardReaderSettings)
     Object.assign(cardReaderForm, settingsStore.cardReaderSettings);
   if (settingsStore.onecSettings) Object.assign(onecForm, settingsStore.onecSettings);
   if (settingsStore.kaspiSettings) Object.assign(kaspiForm, settingsStore.kaspiSettings);
+  if (settingsStore.sduSettings) Object.assign(sduForm, settingsStore.sduSettings);
   if (settingsStore.publicSettings)
     Object.assign(dormitorySettingsForm, settingsStore.publicSettings);
   if (settingsStore.paymentSettings?.semester_config) {
@@ -376,6 +403,12 @@ const saveAllSettings = async () => {
       kaspi_webhook_url: kaspiForm.kaspi_webhook_url ?? null,
     };
 
+    const sduPayload = {
+      sdu_enabled: !!sduForm.sdu_enabled,
+      sdu_api_url: sduForm.sdu_api_url,
+      sdu_api_secret: sduForm.sdu_api_secret,
+    };
+
     const paymentConfigPayload = { semester_config: paymentConfigForm.semester_config };
 
     await Promise.all([
@@ -385,6 +418,7 @@ const saveAllSettings = async () => {
       settingsStore.updateCurrencySettings(dormitorySettingsForm.currency_symbol),
       settingsStore.updateBankRequisites(dormitorySettingsForm.bank_requisites),
       settingsStore.updatePaymentSettings(paymentConfigPayload),
+      settingsStore.updateSduSettings(sduPayload),
     ]);
 
     showSuccess(t("All settings saved successfully!"));

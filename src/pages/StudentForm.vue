@@ -7,6 +7,32 @@
           {{ t("Personal Information") }}
         </legend>
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <!-- Student ID Field -->
+          <div class="lg:col-span-2">
+            <div class="flex gap-2">
+              <CInput
+                v-if="settingsStore.publicSettings?.sdu_enabled"
+                id="student-profile-id"
+                v-model="user.student_profile.student_id"
+                type="text"
+                :label="t('Student ID')"
+                :error="validationErrors['student_profile.student_id']?.[0]"
+                placeholder="Enter Student ID"
+                required
+                :loading="loadingStudentData"
+                class="flex-grow"
+                @validation="handleStudentIdValidation"
+              />
+              <CButton
+                v-if="!isEditing && isAdmin"
+                variant="secondary"
+                :class="settingsStore.publicSettings?.sdu_enabled ? 'mt-6' : ''"
+                @click="showIinModal = true"
+              >
+                {{ t("Import") }}
+              </CButton>
+            </div>
+          </div>
           <!-- IIN Field -->
           <div>
             <CInput
@@ -21,18 +47,7 @@
               minlength="12"
               maxlength="12"
               :loading="loadingIinAvailability"
-              @validation="
-                ({ valid, message }) => {
-                  if (valid) {
-                    delete validationErrors['student_profile.iin'];
-                    if (user.student_profile.iin && user.student_profile.iin.length === 12) {
-                      debouncedCheckIinAvailability(user.student_profile.iin);
-                    }
-                  } else {
-                    validationErrors['student_profile.iin'] = [message];
-                  }
-                }
-              "
+              @validation="handleIinValidation"
             />
           </div>
           <!-- Name Field -->
@@ -81,16 +96,7 @@
               required
               pattern="[^@\s]+@[^@\s]+\.[^@\s]+"
               :loading="loadingEmailAvailability"
-              @validation="
-                ({ valid, message }) => {
-                  if (valid) {
-                    delete validationErrors['email'];
-                    debouncedCheckEmailAvailability(user.email || '');
-                  } else {
-                    validationErrors['email'] = [message];
-                  }
-                }
-              "
+              @validation="handleEmailValidation"
             />
           </div>
           <!-- Country Field -->
@@ -159,7 +165,7 @@
               "
               :allowed-extensions="['jpg', 'jpeg', 'png']"
               :validation-message="validationErrors['student_profile.files.2']?.[0]"
-              @change="(newFile) => handleFileChange(2, newFile)"
+              @change="(newFile: any) => handleFileChange(2, newFile)"
               accept="image/*"
             />
             <p class="mt-1 text-sm text-gray-500">
@@ -479,7 +485,7 @@
               :file-path="typeof file === 'string' ? file : null"
               :allowed-extensions="['jpg', 'jpeg', 'png', 'pdf']"
               :validation-message="validationErrors[`student_profile.files.${index}`]?.[0]"
-              @change="(newFile) => handleFileChange(index, newFile)"
+              @change="(newFile: any) => handleFileChange(index, newFile)"
             />
           </div>
           <!-- payment_check removed from the form -->
@@ -495,6 +501,12 @@
         </CButton>
       </div>
     </form>
+    <CIinImportModal
+      v-if="showIinModal"
+      :student-id="user.student_profile?.student_id"
+      @close="showIinModal = false"
+      @data-fetched="handleIinData"
+    />
   </component>
 </template>
 
@@ -509,9 +521,11 @@ import CButton from "@/components/CButton.vue";
 import CCheckbox from "@/components/CCheckbox.vue";
 import CFileInput from "@/components/CFileInput.vue";
 import CModal from "@/components/CModal.vue";
+import CIinImportModal from "@/components/CIinImportModal.vue";
 import CRoomTypePhotos from "@/components/CRoomTypePhotos.vue";
 import { PlusIcon, PrinterIcon, TrashIcon } from "@heroicons/vue/24/outline";
 import type { User } from "@/models/User";
+import type { StudentProfile } from "@/models/StudentProfile";
 import { Room } from "@/models/Room";
 import type { Bed } from "@/models/Bed";
 import { useStudentStore } from "@/stores/student";
@@ -592,6 +606,94 @@ const checkIinAvailability = async (iin: string) => {
 };
 
 const debouncedCheckIinAvailability = debounceHelper(checkIinAvailability, 500);
+
+const handleIinValidation = ({ valid, message }: { valid: boolean; message: string }) => {
+  if (valid) {
+    delete validationErrors.value["student_profile.iin"];
+    if (
+      user.value.student_profile &&
+      user.value.student_profile.iin &&
+      user.value.student_profile.iin.length === 12
+    ) {
+      debouncedCheckIinAvailability(user.value.student_profile.iin);
+    }
+  } else {
+    validationErrors.value["student_profile.iin"] = [message];
+  }
+};
+
+const handleEmailValidation = ({ valid, message }: { valid: boolean; message: string }) => {
+  if (valid) {
+    delete validationErrors.value["email"];
+    debouncedCheckEmailAvailability(user.value.email || "");
+  } else {
+    validationErrors.value["email"] = [message];
+  }
+};
+
+const loadingStudentData = ref(false);
+
+const fetchStudentData = async (studentId: string) => {
+  if (!studentId || !settingsStore.publicSettings?.sdu_enabled) return;
+
+  // If editing and student ID hasn't changed from loaded, maybe skip? 
+  // But here we rely on user input change.
+
+  loadingStudentData.value = true;
+  try {
+    const response = await api.get("/student/autocomplete", { params: { student_id: studentId } });
+    const data = response.data;
+    if (data) {
+      if (data.first_name) user.value.first_name = data.first_name;
+      if (data.last_name) user.value.last_name = data.last_name;
+      if (user.value.student_profile) {
+        if (data.iin) user.value.student_profile.iin = data.iin;
+        if (data.faculty) user.value.student_profile.faculty = data.faculty;
+        if (data.specialty) user.value.student_profile.specialist = data.specialty;
+        if (data.enrollment_year) user.value.student_profile.enrollment_year = data.enrollment_year;
+        if (data.gender) user.value.student_profile.gender = data.gender;
+        if (data.course) user.value.student_profile.course = data.course;
+      }
+      delete validationErrors.value["student_profile.student_id"];
+    }
+  } catch (error) {
+    console.error("Error fetching student data:", error);
+  } finally {
+    loadingStudentData.value = false;
+  }
+};
+
+const debouncedFetchStudentData = debounceHelper(fetchStudentData, 500);
+
+const handleStudentIdValidation = ({ valid, message }: { valid: boolean; message: string }) => {
+  if (valid && user.value.student_profile?.student_id) {
+    delete validationErrors.value["student_profile.student_id"];
+    debouncedFetchStudentData(user.value.student_profile.student_id);
+  } else {
+    validationErrors.value["student_profile.student_id"] = [message];
+  }
+};
+
+const showIinModal = ref(false);
+
+const handleIinData = (data: any) => {
+  if (data.firstName) user.value.first_name = data.firstName;
+  if (data.lastName) user.value.last_name = data.lastName;
+  if (user.value.student_profile) {
+    if (data.iin) user.value.student_profile.iin = data.iin;
+    if (data.passportNumber) user.value.student_profile.identification_number = data.passportNumber;
+    if (data.studentId) user.value.student_profile.student_id = data.studentId;
+
+    // Handle photo path from IIN integration
+    if (data.photoPath) {
+      if (!user.value.student_profile.files) {
+        user.value.student_profile.files = [null, null, null];
+      }
+      user.value.student_profile.files[2] = data.photoPath;
+    }
+  }
+  showSuccess(t("Student data imported successfully."));
+};
 
 onMounted(async () => {
   // Only restore from store for self-profile flows (not when editing a student by id)
@@ -674,6 +776,7 @@ const user = ref<Partial<User>>({
     registration_date: "",
     specialist: "",
     violations: "",
+    student_id: "",
   },
 });
 
@@ -684,8 +787,8 @@ const fetchRooms = async () => {
     // Try public rooms endpoint first to avoid 403 with role-protected endpoints
     const roomsResponse = await roomService.getAvailable({ occupant_type: "student" });
     rooms.value = Array.isArray(roomsResponse.data) ? roomsResponse.data : [];
-    allBeds.value = rooms.value.flatMap((room) =>
-      (room.beds || []).map((bed) => ({ ...bed, room }))
+    allBeds.value = rooms.value.flatMap((room: Room) =>
+      (room.beds || []).map((bed: Bed) => ({ ...bed, room }))
     );
   } catch (e) {
     console.error("Failed to fetch rooms:", e);
@@ -700,8 +803,8 @@ fetchRooms();
 
 const roomOptions = computed(() =>
   rooms.value
-    .filter((r) => r.occupant_type === "student")
-    .map((r) => ({ value: r.id, name: r.number }))
+    .filter((r: Room) => r.occupant_type === "student")
+    .map((r: Room) => ({ value: r.id, name: r.number }))
 );
 
 // Bed options for selected room
@@ -709,7 +812,7 @@ const bedOptions = computed(() => {
   const rid = user.value.room_id || user.value.room?.id;
   if (!rid) return [];
 
-  const room = rooms.value.find((r) => r.id === rid);
+  const room = rooms.value.find((r: Room) => r.id === rid);
   const priceValue = room?.room_type?.semester_rate;
   const currencyCode = settingsStore.publicSettings?.currency_symbol;
   let priceString = "";
@@ -719,10 +822,10 @@ const bedOptions = computed(() => {
   }
 
   const options = allBeds.value
-    .filter((b) => (b.room?.id || b.room_id) === rid) // Beds in selected room
-    .filter((bed) => !bed.reserved_for_staff) // Exclude staff reserved beds
-    .filter((bed) => !bed.is_occupied || bed.user_id === user.value.id) // Exclude occupied beds, unless it's the current student's
-    .map((bed) => ({
+    .filter((b: any) => (b.room?.id || b.room_id) === rid) // Beds in selected room
+    .filter((bed: Bed) => !bed.reserved_for_staff) // Exclude staff reserved beds
+    .filter((bed: Bed) => !bed.is_occupied || bed.user_id === user.value.id) // Exclude occupied beds, unless it's the current student's
+    .map((bed: Bed) => ({
       // Correctly map bed properties
       value: bed.id,
       name: `${bed.room.number}-${bed.bed_number}${priceString}`,
@@ -738,7 +841,7 @@ const bedOptions = computed(() => {
 
 // Selected room computed property
 const selectedRoom = computed(() => {
-  return rooms.value.find((r) => r.id === user.value.room_id);
+  return rooms.value.find((r: Room) => r.id === user.value.room_id);
 });
 
 // Watch for changes to room and reset bed if needed
@@ -772,7 +875,7 @@ const genderOptions = [
 const filteredGenderOptions = computed(() => {
   let dormGenderPolicy: string | undefined;
   try {
-    dormGenderPolicy = rooms.value[0].dormitory.gender;
+    dormGenderPolicy = rooms.value[0]?.dormitory?.gender;
     if (dormGenderPolicy && dormGenderPolicy !== "mixed") {
       return genderOptions.filter((opt) => opt.value === dormGenderPolicy);
     }
@@ -975,8 +1078,8 @@ const submitForm = async (): Promise<void> => {
   }
 
   const cleanedPhones = (user.value.phone_numbers || [])
-    .map((p) => (p ?? "").toString().trim())
-    .filter((p) => p.length > 0);
+    .map((p: string | null | undefined) => (p ?? "").toString().trim())
+    .filter((p: string) => p.length > 0);
   if (!cleanedPhones.length) {
     showError(t("At least one phone number is required."));
     return;
@@ -994,7 +1097,7 @@ const submitForm = async (): Promise<void> => {
   }
 
   // Check if selected bed is staff reserved
-  const selectedBed = allBeds.value.find((b) => b.id === user.value.bed_id);
+  const selectedBed = allBeds.value.find((b: Bed) => b.id === user.value.bed_id);
   if (selectedBed?.reserved_for_staff) {
     showError(t("Staff reserved beds cannot be selected for students."));
     return;
@@ -1018,7 +1121,7 @@ const submitForm = async (): Promise<void> => {
 
   try {
     const formData = new FormData();
-    buildFormData(formData, user.value);
+    buildFormData(formData, user.value as unknown as Record<string, unknown>);
     if (props.embedded) {
       const res = await personalDataService.update(formData);
       showSuccess(t("Student profile updated successfully!"));
@@ -1066,6 +1169,9 @@ const buildFormData = (formData: FormData, data: Record<string, unknown>, parent
     const value = data[key];
     const formKey = parentKey ? `${parentKey}[${key}]` : key;
 
+    if (value === null || value === undefined) return;
+    if (key === "student_id") return; // Keep student_id ephemeral, don't store on project
+
     // If the value is a File, append directly (covers payment.payment_check and similar)
     if (value instanceof File) {
       formData.append(formKey, value, (value as File).name);
@@ -1087,14 +1193,14 @@ const buildFormData = (formData: FormData, data: Record<string, unknown>, parent
       value.forEach((item, index) => {
         const arrayKey = `${formKey}[${index}]`;
         if (typeof item === "object" && item !== null && !(item instanceof File)) {
-          buildFormData(formData, item, arrayKey);
+          buildFormData(formData, item as Record<string, unknown>, arrayKey);
         } else if (item !== null && item !== undefined && item !== "") {
           formData.append(arrayKey, item as string);
         }
       });
     } else if (typeof value === "object" && value !== null) {
       // This will handle student_profile and other nested objects
-      buildFormData(formData, value, formKey);
+      buildFormData(formData, value as Record<string, unknown>, formKey);
     } else if (typeof value === "boolean") {
       formData.append(formKey, value ? "1" : "0");
     } else if (value !== null && value !== undefined) {

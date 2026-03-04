@@ -10,6 +10,8 @@ import type { OneCSettings } from "@/models/OneCSettings";
 import type { KaspiSettings } from "@/models/KaspiSettings";
 import type { SystemLog } from "@/models/SystemLog";
 import type { PaymentSettings } from "@/models/PaymentSettings";
+import type { SduSettings } from "@/models/SduSettings";
+import type { IinSettings } from "@/models/IinSettings";
 
 // export interface SmtpSettings {
 //   smtp_host: string;
@@ -71,7 +73,9 @@ export const useSettingsStore = defineStore("settings", () => {
   const kaspiSettings = ref<KaspiSettings | null>(null);
   const publicSettings = ref<PublicSettings | null>(null);
   const paymentSettings = ref<PaymentSettings | null>(null);
+  const sduSettings = ref<SduSettings | null>(null);
   const installedLanguages = ref<string[]>([]);
+  const iinSettings = ref<IinSettings | null>(null);
   const systemLogs = ref<SystemLog[]>([]);
   const loading = ref(false);
   const error = ref<Error | null>(null);
@@ -81,6 +85,8 @@ export const useSettingsStore = defineStore("settings", () => {
   const hasCardReaderSettings = computed(() => cardReaderSettings.value !== null);
   const hasOnecSettings = computed(() => onecSettings.value !== null);
   const hasPublicSettings = computed(() => publicSettings.value !== null);
+  const hasSduSettings = computed(() => sduSettings.value !== null);
+  const hasIinSettings = computed(() => iinSettings.value !== null);
 
   // Actions
   const fetchSmtpSettings = async () => {
@@ -209,6 +215,72 @@ export const useSettingsStore = defineStore("settings", () => {
     } catch (err: any) {
       error.value = err;
       showError(err.response?.data?.message || "Failed to update Kaspi settings");
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  // SDU settings
+  const fetchSduSettings = async () => {
+    try {
+      loading.value = true;
+      error.value = null;
+      const response = await api.get("/configurations/sdu");
+      sduSettings.value = response.data;
+      error.value = null;
+    } catch (err: any) {
+      error.value = err;
+      showError(err.response?.data?.message || "Failed to fetch SDU settings");
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const updateSduSettings = async (settings: SduSettings) => {
+    try {
+      loading.value = true;
+      error.value = null;
+      const response = await api.put("/configurations/sdu", settings);
+      sduSettings.value = response.data;
+      error.value = null;
+      // showSuccess('SDU settings updated successfully');
+      return response.data;
+    } catch (err: any) {
+      error.value = err;
+      showError(err.response?.data?.message || "Failed to update SDU settings");
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const fetchIinSettings = async () => {
+    try {
+      loading.value = true;
+      error.value = null;
+      const response = await api.get("/configurations/iin");
+      iinSettings.value = response.data;
+      error.value = null;
+    } catch (err: any) {
+      error.value = err;
+      showError(err.response?.data?.message || "Failed to fetch IIN settings");
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const updateIinSettings = async (settings: IinSettings) => {
+    try {
+      loading.value = true;
+      error.value = null;
+      const response = await api.put("/configurations/iin", settings);
+      iinSettings.value = response.data;
+      error.value = null;
+      return response.data;
+    } catch (err: any) {
+      error.value = err;
+      showError(err.response?.data?.message || "Failed to update IIN settings");
       throw err;
     } finally {
       loading.value = false;
@@ -348,6 +420,7 @@ export const useSettingsStore = defineStore("settings", () => {
       fetchCardReaderSettings(),
       fetchOnecSettings(),
       fetchKaspiSettings(),
+      fetchSduSettings(),
       fetchPublicSettings(),
     ]);
   };
@@ -419,6 +492,7 @@ export const useSettingsStore = defineStore("settings", () => {
     cardReaderSettings,
     onecSettings,
     kaspiSettings,
+    sduSettings,
     publicSettings,
     paymentSettings,
     installedLanguages,
@@ -431,6 +505,7 @@ export const useSettingsStore = defineStore("settings", () => {
     hasCardReaderSettings,
     hasOnecSettings,
     hasPublicSettings,
+    hasSduSettings,
 
     // Actions
     fetchSmtpSettings,
@@ -441,6 +516,8 @@ export const useSettingsStore = defineStore("settings", () => {
     updateOnecSettings,
     fetchKaspiSettings,
     updateKaspiSettings,
+    fetchSduSettings,
+    updateSduSettings,
     updateBankRequisites,
     updateCurrencySettings,
     fetchInstalledLanguages,
@@ -452,5 +529,9 @@ export const useSettingsStore = defineStore("settings", () => {
     fetchPublicSettings,
     fetchPaymentSettings,
     updatePaymentSettings,
+    iinSettings,
+    hasIinSettings,
+    fetchIinSettings,
+    updateIinSettings,
   };
 });

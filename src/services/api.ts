@@ -614,4 +614,24 @@ export const dormitoryAccessService = {
     api.get("/dormitory-access/logs", { params }),
 };
 
+// IIN Integration service
+export const iinService = {
+  sendOtp: (studentId: string): Promise<ApiResponse<{ message: string; identifier?: string }>> =>
+    api.post("/iin/send-otp", { student_id: studentId }),
+
+  verifyOtp: (
+    studentId: string,
+    otp: string
+  ): Promise<
+    ApiResponse<{
+      firstName: string;
+      lastName: string;
+      iin: string;
+      passportNumber: string;
+      studentId: string;
+      photoPath?: string;
+    }>
+  > => api.post("/iin/verify-otp", { student_id: studentId, otp }),
+};
+
 export default api;

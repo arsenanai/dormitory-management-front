@@ -5,7 +5,52 @@
     class="flex h-full min-h-[60vh] flex-col items-stretch"
   >
     <CStepper v-model="currentStep" @finish="handleRegistration">
-      <!-- Step 1: Gender -->
+      <!-- Step 1: Identification -->
+      <CStep :title="t('Identification')" :validator="() => isIdentificationStepValid">
+        <div v-if="user.student_profile" class="grid grid-cols-1 gap-4">
+          <div class="flex items-end gap-2">
+            <CInput
+              v-if="settingsStore.publicSettings?.sdu_enabled"
+              id="registration-student-id"
+              v-model="user.student_profile.student_id"
+              type="text"
+              :label="t('Student ID')"
+              class="flex-grow"
+              required
+              :loading="loadingStudentData"
+              :validationState="registrationValidationState.student_id"
+              :validationMessage="registrationValidationMessage.student_id"
+              @validation="handleStudentIdValidation"
+            />
+            <CButton
+              v-if="settingsStore.publicSettings?.iin_integration_enabled"
+              type="button"
+              variant="secondary"
+              class="mb-0.5"
+              :disabled="!user.student_profile?.student_id || loadingOtp"
+              @click="sendOtp"
+            >
+              {{ t("Verify") }}
+            </CButton>
+          </div>
+          <CInput
+            id="registration-iin"
+            v-model="user.student_profile.iin"
+            type="search"
+            :label="t('IIN')"
+            required
+            :loading="loadingIinAvailability"
+            :validationState="registrationValidationState.iin"
+            :validationMessage="registrationValidationMessage.iin"
+            pattern="\d{12}"
+            minlength="12"
+            maxlength="12"
+            @validation="handleIinValidation"
+          />
+        </div>
+      </CStep>
+
+      <!-- Step 2: Gender -->
       <CStep :title="t('Gender')" :validator="() => isGenderStepValid">
         <div class="grid grid-cols-1 gap-2">
           <div class="flex items-start gap-4">
@@ -33,33 +78,9 @@
         </div>
       </CStep>
 
-      <!-- Step 2: Account -->
+      <!-- Step 3: Account -->
       <CStep :title="t('Account')" :validator="() => isAccountStepValid">
         <div v-if="user.student_profile" class="grid grid-cols-1 gap-4">
-          <CInput
-            id="registration-iin"
-            v-model="user.student_profile.iin"
-            type="search"
-            :label="t('IIN')"
-            required
-            :loading="loadingIinAvailability"
-            :validationState="registrationValidationState.iin"
-            :validationMessage="registrationValidationMessage.iin"
-            pattern="\d{12}"
-            minlength="12"
-            maxlength="12"
-            @validation="
-              ({ valid, message }) => {
-                if (valid && user.student_profile.iin.length === 12) {
-                  registrationValidationState.iin = '';
-                  debouncedCheckIinAvailability(user.student_profile.iin);
-                } else {
-                  registrationValidationState.iin = valid ? 'success' : 'error';
-                  registrationValidationMessage.iin = message;
-                }
-              }
-            "
-          />
           <CInput
             id="registration-email"
             v-model="user.email"
@@ -70,17 +91,7 @@
             :loading="loadingEmailAvailability"
             :validationState="registrationValidationState.email"
             :validationMessage="registrationValidationMessage.email"
-            @validation="
-              ({ valid, message }) => {
-                if (valid && user.email) {
-                  registrationValidationState.email = '';
-                  debouncedCheckEmailAvailability(user.email);
-                } else {
-                  registrationValidationState.email = valid ? 'success' : 'error';
-                  registrationValidationMessage.email = message;
-                }
-              }
-            "
+            @validation="handleEmailValidation"
           />
           <CInput
             id="registration-password"
@@ -384,8 +395,8 @@
               :validation-message="registrationValidationMessage.files[index]"
               :accept="index === 2 ? 'image/*' : undefined"
               data-testid="file-input"
-              @validation="({ valid }) => (fileValidationStatus[index] = valid)"
-              @change="(file) => updateRegistrationFileInput(index, file)"
+              @validation="({ valid }: { valid: boolean }) => (fileValidationStatus[index] = valid)"
+              @change="(file: any) => updateRegistrationFileInput(index, file)"
             />
             <p v-if="index === 2" class="mt-1 text-sm text-gray-500">
               {{ t("Please upload a 3x4 cm photo in JPG or PNG format") }}
@@ -416,6 +427,13 @@
       </CStep>
     </CStepper>
   </form>
+
+  <CIinImportModal
+    v-if="settingsStore.publicSettings?.iin_integration_enabled && showOtpModal"
+    :student-id="user.student_profile?.student_id || ''"
+    @close="showOtpModal = false"
+    @data-fetched="handleIinData"
+  />
 </template>
 
 <script setup lang="ts">
@@ -427,6 +445,9 @@ import { useToast } from "@/composables/useToast";
 import { dormitoryService } from "@/services/api";
 import api from "@/services/api";
 import type { User } from "@/models/User";
+import type { Room } from "@/models/Room";
+import type { Bed } from "@/models/Bed";
+import type { Dormitory } from "@/models/Dormitory";
 import CInput from "@/components/CInput.vue";
 import CButton from "@/components/CButton.vue";
 import CSelect from "@/components/CSelect.vue";
@@ -436,7 +457,9 @@ import CStep from "@/components/CStep.vue";
 import CFileInput from "@/components/CFileInput.vue";
 import CHtmlView from "@/components/CHtmlView.vue";
 import CModal from "@/components/CModal.vue";
+import CIinImportModal from "@/components/CIinImportModal.vue";
 import CRoomTypePhotos from "@/components/CRoomTypePhotos.vue";
+import { iinService } from "@/services/api";
 import { PlusIcon, TrashIcon } from "@heroicons/vue/24/solid";
 import { getCurrencySymbol } from "@/utils/formatters";
 import { debounceHelper } from "@/utils/helpers"; // Import debounceHelper
@@ -446,15 +469,15 @@ const props = withDefaults(defineProps<{ emailPlaceholder: string; uiLocale?: st
 });
 
 const emit = defineEmits<{
-  registered: (message: string) => void;
-  "added-to-reserve-list": (message: string) => void;
-  "registration-closed": () => void;
+  (e: "registered", message: string): void;
+  (e: "added-to-reserve-list", message: string): void;
+  (e: "registration-closed"): void;
 }>();
 
 const { t, locale } = useI18n();
 const authStore = useAuthStore();
 const settingsStore = useSettingsStore();
-const { showError } = useToast();
+const { showError, showSuccess, showWarning } = useToast();
 
 const user = ref<Partial<User>>({
   first_name: "",
@@ -466,8 +489,9 @@ const user = ref<Partial<User>>({
   dormitory_id: null,
   room_id: null,
   bed_id: null,
+
   student_profile: {
-    student_id: "0", // Will be set by backend
+    student_id: "", // User input
     user_id: 0, // Will be set by backend
     iin: "",
     faculty: "",
@@ -495,6 +519,7 @@ type ValidationState = "success" | "error" | "";
 
 const registrationFileLabels = [t("063 Form"), t("075 Form"), t("Student Photo (3x4)")];
 const registrationValidationState = ref<{
+  student_id: ValidationState;
   iin: ValidationState;
   first_name: ValidationState;
   last_name: ValidationState;
@@ -512,6 +537,7 @@ const registrationValidationState = ref<{
   payment_check: ValidationState;
   [key: string]: ValidationState | ValidationState[];
 }>({
+  student_id: "",
   iin: "",
   first_name: "",
   last_name: "",
@@ -529,7 +555,26 @@ const registrationValidationState = ref<{
   payment_check: "",
 });
 
-const registrationValidationMessage = ref({
+const registrationValidationMessage = ref<{
+  student_id: string;
+  iin: string;
+  first_name: string;
+  last_name: string;
+  faculty: string;
+  specialist: string;
+  enrollment_year: string;
+  gender: string;
+  email: string;
+  password: string;
+  confirm_password: string;
+  dormitory: string;
+  room: string;
+  bed: string;
+  files: string[];
+  payment_check: string;
+  [key: string]: string | string[];
+}>({
+  student_id: "",
   iin: "",
   first_name: "",
   last_name: "",
@@ -551,6 +596,84 @@ const fileValidationStatus = ref<boolean[]>([true, true]);
 const currentStep = ref(0);
 const loadingEmailAvailability = ref(false);
 const loadingIinAvailability = ref(false);
+const loadingStudentData = ref(false);
+const loadingOtp = ref(false);
+const showOtpModal = ref(false);
+const otpIdentifier = ref("");
+
+const sendOtp = () => {
+  const sid = user.value.student_profile?.student_id;
+  if (!sid) return;
+  showOtpModal.value = true;
+};
+
+const handleIinData = (data: any) => {
+  showOtpModal.value = false;
+  if (data) {
+    if (data.firstName) user.value.first_name = data.firstName;
+    if (data.lastName) user.value.last_name = data.lastName;
+    if (user.value.student_profile) {
+      if (data.iin) user.value.student_profile.iin = data.iin;
+      if (data.passportNumber) user.value.student_profile.identification_number = data.passportNumber;
+      if (data.studentId) user.value.student_profile.student_id = data.studentId;
+
+      // Handle photo path from IIN integration
+      if (data.photoPath) {
+        // Index 2 is Student Photo (3x4)
+        if (!user.value.student_profile.files) {
+          user.value.student_profile.files = [null, null, null];
+        }
+        // Store the path as a string. StudentService.storeNewFiles will preserve it.
+        user.value.student_profile.files[2] = data.photoPath;
+      }
+    }
+    showSuccess(t("Form autofilled with student data"));
+  }
+};
+
+const fetchStudentData = async (studentId: string) => {
+  if (!studentId || !settingsStore.publicSettings?.sdu_enabled) return;
+
+  loadingStudentData.value = true;
+  try {
+    const response = await api.get("/student/autocomplete", { params: { student_id: studentId } });
+    const data = response.data;
+    if (data) {
+      if (data.first_name) user.value.first_name = data.first_name;
+      if (data.last_name) user.value.last_name = data.last_name;
+      if (user.value.student_profile) {
+        if (data.iin) user.value.student_profile.iin = data.iin;
+        if (data.faculty) user.value.student_profile.faculty = data.faculty;
+        if (data.specialty) user.value.student_profile.specialist = data.specialty;
+        if (data.enrollment_year) user.value.student_profile.enrollment_year = data.enrollment_year;
+        if (data.gender) user.value.student_profile.gender = data.gender;
+        if (data.course) user.value.student_profile.course = data.course; // Assuming course field exists or mapped in normalize
+      }
+      registrationValidationState.value.student_id = "success";
+      registrationValidationMessage.value.student_id = "";
+    }
+  } catch (error) {
+    console.error("Error fetching student data:", error);
+    // Don't error out necessarily, maybe just no autocomplete found
+    // If we want to show error:
+    // registrationValidationState.value.student_id = 'error';
+    // registrationValidationMessage.value.student_id = t('Student not found');
+  } finally {
+    loadingStudentData.value = false;
+  }
+};
+
+const debouncedFetchStudentData = debounceHelper(fetchStudentData, 500);
+
+const handleStudentIdValidation = ({ valid, message }: { valid: boolean; message: string }) => {
+  if (valid && user.value.student_profile?.student_id) {
+    registrationValidationState.value.student_id = "";
+    debouncedFetchStudentData(user.value.student_profile.student_id);
+  } else {
+    registrationValidationState.value.student_id = valid ? "success" : "error";
+    registrationValidationMessage.value.student_id = message;
+  }
+};
 
 const checkEmailAvailability = async (email: string) => {
   if (!email) {
@@ -582,6 +705,16 @@ const checkEmailAvailability = async (email: string) => {
 
 const debouncedCheckEmailAvailability = debounceHelper(checkEmailAvailability, 500);
 
+const handleEmailValidation = ({ valid, message }: { valid: boolean; message: string }) => {
+  if (valid && user.value.email) {
+    registrationValidationState.value.email = "";
+    debouncedCheckEmailAvailability(user.value.email);
+  } else {
+    registrationValidationState.value.email = valid ? "success" : "error";
+    registrationValidationMessage.value.email = message;
+  }
+};
+
 // Add after email availability check
 const checkIinAvailability = async (iin: string) => {
   if (iin?.length !== 12) return;
@@ -609,6 +742,21 @@ const checkIinAvailability = async (iin: string) => {
 
 const debouncedCheckIinAvailability = debounceHelper(checkIinAvailability, 500);
 
+const handleIinValidation = ({ valid, message }: { valid: boolean; message: string }) => {
+  if (
+    valid &&
+    user.value.student_profile &&
+    user.value.student_profile.iin &&
+    user.value.student_profile.iin.length === 12
+  ) {
+    registrationValidationState.value.iin = "";
+    debouncedCheckIinAvailability(user.value.student_profile.iin);
+  } else {
+    registrationValidationState.value.iin = valid ? "success" : "error";
+    registrationValidationMessage.value.iin = message;
+  }
+};
+
 const handleRegistration = async () => {
   if (isSubmitting.value) return;
   isSubmitting.value = true;
@@ -621,9 +769,9 @@ const handleRegistration = async () => {
   registrationValidationMessage.value.files = [];
 
   let hasError = !isRegistrationStatusStepValid.value;
-  const setErr = (field: keyof typeof registrationValidationState.value, msg: string) => {
-    registrationValidationState.value[field] = "error";
-    registrationValidationMessage.value[field] = msg;
+  const setErr = (field: string, msg: string) => {
+    (registrationValidationState.value as Record<string, any>)[field] = "error";
+    (registrationValidationMessage.value as Record<string, any>)[field] = msg;
     hasError = true;
   };
 
@@ -667,7 +815,7 @@ const handleRegistration = async () => {
     }
 
     Object.keys(data).forEach((key) => {
-      const value = data[key];
+      const value = data[key] as any;
       const formKey = parentKey ? `${parentKey}[${key}]` : key;
 
       if (value instanceof File) {
@@ -713,7 +861,7 @@ const handleRegistration = async () => {
     if (localeToSend === "kz") localeToSend = "kk";
     formData.append("locale", ["en", "kk", "ru"].includes(localeToSend) ? localeToSend : "en");
     // Recursively build the rest of the payload from the user object
-    buildFormData(formData, user.value);
+    buildFormData(formData, user.value as unknown as Record<string, unknown>);
 
     const response = await authStore.register(formData);
     if (response?.message?.includes("reserve list")) {
@@ -785,7 +933,7 @@ const handleRegistration = async () => {
         } else {
           const baseKey = serverKey.split(".")[0]; // e.g., 'student_profile' or 'email'
           const frontendKey = serverKey.replace("student_profile.", "");
-          setErr(frontendKey as keyof typeof registrationValidationState.value, message);
+          setErr(frontendKey, message);
           const step = fieldToStepMap[serverKey] ?? fieldToStepMap[baseKey];
           if (step !== undefined && (firstErrorStep === -1 || step < firstErrorStep)) {
             firstErrorStep = step;
@@ -796,7 +944,7 @@ const handleRegistration = async () => {
         currentStep.value = firstErrorStep;
       }
     } else {
-      showError(error.response?.data?.message || t("Registration failed"));
+      showError((error as any).response?.data?.message || t("Registration failed"));
     }
   } finally {
     isSubmitting.value = false;
@@ -851,13 +999,13 @@ const bloodTypeOptions = [
   { value: "O+", name: "O+" },
   { value: "O-", name: "O-" },
 ];
-const dormitoryOptions = ref([]);
+const dormitoryOptions = ref<Dormitory[]>([]);
 const loadingDormitories = ref(false);
 
 const hasAvailableDormitories = computed(() => {
   if (!user.value.student_profile?.gender) return true; // Don't block if gender isn't selected yet
   return dormitoryOptions.value.some(
-    (dorm) =>
+    (dorm: Dormitory) =>
       (dorm.gender === "mixed" || dorm.gender === user.value.student_profile?.gender) &&
       dorm.freeBeds > 0
   );
@@ -889,7 +1037,16 @@ onMounted(async () => {
 
 // --- Step Validators ---
 
-// Step 1: Gender
+// Step 1: Identification
+const isIdentificationStepValid = computed(() => {
+  const iinValid = registrationValidationState.value.iin === "success";
+  const sidValid = settingsStore.publicSettings?.sdu_enabled
+    ? registrationValidationState.value.student_id === "success"
+    : true;
+  return iinValid && sidValid;
+});
+
+// Step 2: Gender
 const isGenderStepValid = computed(() => {
   // Ensure gender is selected and dormitories are available (or not loading)
   return (
@@ -899,14 +1056,12 @@ const isGenderStepValid = computed(() => {
   );
 });
 
-// Step 2: Account
+// Step 3: Account
 const isAccountStepValid = computed(() => {
   const { password, password_confirmation } = user.value;
   return (
-    registrationValidationState.value.iin === "success" &&
     registrationValidationState.value.email === "success" &&
     !loadingEmailAvailability.value && // Ensure email check is complete
-    !loadingIinAvailability.value && // Ensure IIN check is complete
     !!password &&
     password.length >= 6 &&
     !!password_confirmation &&
@@ -923,7 +1078,7 @@ const isPersonalDetailsStepValid = computed(() => {
 
 // Step 4: Phone Numbers
 const isPhoneNumbersStepValid = computed(() => {
-  return !!user.value.phone_numbers?.some((phone) => phone && phone.trim() !== "");
+  return !!user.value.phone_numbers?.some((phone: string) => phone && phone.trim() !== "");
 });
 
 // Step 5: Emergency Contact
@@ -984,12 +1139,12 @@ const filteredDormitoryOptions = computed(() => {
   const gender = user.value.student_profile?.gender;
   if (!gender) return dormitoryOptions.value;
   return (dormitoryOptions.value || [])
-    .filter((dorm) => (dorm.gender === "mixed" || dorm.gender === gender) && dorm.freeBeds > 0)
-    .map((dorm) => ({ value: dorm.id.toString(), name: dorm.name }));
+    .filter((dorm: Dormitory) => (dorm.gender === "mixed" || dorm.gender === gender) && dorm.freeBeds > 0)
+    .map((dorm: Dormitory) => ({ value: dorm.id.toString(), name: dorm.name }));
 });
 
 const selectedRoom = computed(() => {
-  return availableRooms.value.find((r) => r.id === user.value.room_id);
+  return availableRooms.value.find((r: Room) => r.id === user.value.room_id);
 });
 
 watch(
@@ -1028,14 +1183,14 @@ watch(
     }
     loadingBeds.value = true;
     try {
-      const room = availableRooms.value.find((r) => r.id === roomId);
+      const room = availableRooms.value.find((r: Room) => r.id === roomId);
       if (room?.beds) {
         selectedRoomNumber.value = room.number;
         selectedRoomPrice.value = room.room_type?.semester_rate
           ? parseFloat(room.room_type.semester_rate)
           : null;
         availableBeds.value = room.beds.filter(
-          (bed) => !bed.is_occupied && !bed.reserved_for_staff
+          (bed: Bed) => !bed.is_occupied && !bed.reserved_for_staff
         );
       } else {
         availableBeds.value = [];
@@ -1050,12 +1205,12 @@ watch(
 );
 
 const roomOptions = computed(() =>
-  availableRooms.value.map((r) => {
+  availableRooms.value.map((r: Room) => {
     return { value: r.id, name: r.number };
   })
 );
 const bedOptions = computed(() =>
-  availableBeds.value.map((b) => {
+  availableBeds.value.map((b: Bed) => {
     const priceValue = selectedRoomPrice.value;
     const currencyCode = settingsStore.publicSettings?.currency_symbol;
     let priceString = "";
