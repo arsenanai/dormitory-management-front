@@ -123,136 +123,145 @@ export const useSettingsStore = defineStore("settings", () => {
   };
 
   const fetchCardReaderSettings = async () => {
-    try {
-      loading.value = true;
-      error.value = null;
-      const response = await api.get("/configurations/card-reader");
-      cardReaderSettings.value = response.data;
-      error.value = null;
-    } catch (err: any) {
-      error.value = err;
-      showError(err.response?.data?.message || "Failed to fetch card reader settings");
-    } finally {
-      loading.value = false;
-    }
+    // Commented out - feature toggle disabled
+    // try {
+    //   loading.value = true;
+    //   error.value = null;
+    //   const response = await api.get("/configurations/card-reader");
+    //   cardReaderSettings.value = response.data;
+    //   error.value = null;
+    // } catch (err: any) {
+    //   error.value = err;
+    //   showError(err.response?.data?.message || "Failed to fetch card reader settings");
+    // } finally {
+    //   loading.value = false;
+    // }
   };
 
   const updateCardReaderSettings = async (settings: CardReaderSettings) => {
-    try {
-      loading.value = true;
-      error.value = null;
-      const response = await api.put("/configurations/card-reader", settings);
-      cardReaderSettings.value = response.data;
-      error.value = null;
-      // showSuccess('Card reader settings updated successfully');
-      return response.data;
-    } catch (err: any) {
-      error.value = err;
-      showError(err.response?.data?.message || "Failed to update card reader settings");
-      throw err;
-    } finally {
-      loading.value = false;
-    }
+    // Commented out - feature toggle disabled
+    // try {
+    //   loading.value = true;
+    //   error.value = null;
+    //   const response = await api.put("/configurations/card-reader", settings);
+    //   cardReaderSettings.value = response.data;
+    //   error.value = null;
+    //   // showSuccess('Card reader settings updated successfully');
+    //   return response.data;
+    // } catch (err: any) {
+    //   error.value = err;
+    //   showError(err.response?.data?.message || "Failed to update card reader settings");
+    //   throw err;
+    // } finally {
+    //   loading.value = false;
+    // }
   };
 
   const fetchOnecSettings = async () => {
-    try {
-      loading.value = true;
-      error.value = null;
-      const response = await api.get("/configurations/onec");
-      onecSettings.value = response.data;
-      error.value = null;
-    } catch (err: any) {
-      error.value = err;
-      showError(err.response?.data?.message || "Failed to fetch 1C settings");
-    } finally {
-      loading.value = false;
-    }
+    // Commented out - feature toggle disabled
+    // try {
+    //   loading.value = true;
+    //   error.value = null;
+    //   const response = await api.get("/configurations/onec");
+    //   onecSettings.value = response.data;
+    //   error.value = null;
+    // } catch (err: any) {
+    //   error.value = err;
+    //   showError(err.response?.data?.message || "Failed to fetch 1C settings");
+    // } finally {
+    //   loading.value = false;
+    // }
   };
 
   const updateOnecSettings = async (settings: OneCSettings) => {
-    try {
-      loading.value = true;
-      error.value = null;
-      const response = await api.put("/configurations/onec", settings);
-      onecSettings.value = response.data;
-      error.value = null;
-      // showSuccess('1C settings updated successfully');
-      return response.data;
-    } catch (err: any) {
-      error.value = err;
-      showError(err.response?.data?.message || "Failed to update 1C settings");
-    } finally {
-      loading.value = false;
-    }
+    // Commented out - feature toggle disabled
+    // try {
+    //   loading.value = true;
+    //   error.value = null;
+    //   const response = await api.put("/configurations/onec", settings);
+    //   onecSettings.value = response.data;
+    //   error.value = null;
+    //   // showSuccess('1C settings updated successfully');
+    //   return response.data;
+    // } catch (err: any) {
+    //   error.value = err;
+    //   showError(err.response?.data?.message || "Failed to update 1C settings");
+    //   throw err;
+    // } finally {
+    //   loading.value = false;
+    // }
   };
 
   // Kaspi settings
   const fetchKaspiSettings = async () => {
-    try {
-      loading.value = true;
-      error.value = null;
-      const response = await api.get("/configurations/kaspi");
-      kaspiSettings.value = response.data;
-      error.value = null;
-    } catch (err: any) {
-      error.value = err;
-      showError(err.response?.data?.message || "Failed to fetch Kaspi settings");
-    } finally {
-      loading.value = false;
-    }
+    // Commented out - feature toggle disabled
+    // try {
+    //   loading.value = true;
+    //   error.value = null;
+    //   const response = await api.get("/configurations/kaspi");
+    //   kaspiSettings.value = response.data;
+    //   error.value = null;
+    // } catch (err: any) {
+    //   error.value = err;
+    //   showError(err.response?.data?.message || "Failed to fetch Kaspi settings");
+    // } finally {
+    //   loading.value = false;
+    // }
   };
 
   const updateKaspiSettings = async (settings: KaspiSettings) => {
-    try {
-      loading.value = true;
-      error.value = null;
-      const response = await api.put("/configurations/kaspi", settings);
-      kaspiSettings.value = response.data;
-      error.value = null;
-      // showSuccess('Kaspi settings updated successfully');
-      return response.data;
-    } catch (err: any) {
-      error.value = err;
-      showError(err.response?.data?.message || "Failed to update Kaspi settings");
-      throw err;
-    } finally {
-      loading.value = false;
-    }
+    // Commented out - feature toggle disabled
+    // try {
+    //   loading.value = true;
+    //   error.value = null;
+    //   const response = await api.put("/configurations/kaspi", settings);
+    //   kaspiSettings.value = response.data;
+    //   error.value = null;
+    //   // showSuccess('Kaspi settings updated successfully');
+    //   return response.data;
+    // } catch (err: any) {
+    //   error.value = err;
+    //   showError(err.response?.data?.message || "Failed to update Kaspi settings");
+    //   throw err;
+    // } finally {
+    //   loading.value = false;
+    // }
   };
 
   // SDU settings
   const fetchSduSettings = async () => {
-    try {
-      loading.value = true;
-      error.value = null;
-      const response = await api.get("/configurations/sdu");
-      sduSettings.value = response.data;
-      error.value = null;
-    } catch (err: any) {
-      error.value = err;
-      showError(err.response?.data?.message || "Failed to fetch SDU settings");
-    } finally {
-      loading.value = false;
-    }
+    // Commented out - feature toggle disabled
+    // try {
+    //   loading.value = true;
+    //   error.value = null;
+    //   const response = await api.get("/configurations/sdu");
+    //   sduSettings.value = response.data;
+    //   error.value = null;
+    // } catch (err: any) {
+    //   error.value = err;
+    //   showError(err.response?.data?.message || "Failed to fetch SDU settings");
+    // } finally {
+    //   loading.value = false;
+    // }
   };
 
   const updateSduSettings = async (settings: SduSettings) => {
-    try {
-      loading.value = true;
-      error.value = null;
-      const response = await api.put("/configurations/sdu", settings);
-      sduSettings.value = response.data;
-      error.value = null;
-      // showSuccess('SDU settings updated successfully');
-      return response.data;
-    } catch (err: any) {
-      error.value = err;
-      showError(err.response?.data?.message || "Failed to update SDU settings");
-      throw err;
-    } finally {
-      loading.value = false;
-    }
+    // Commented out - feature toggle disabled
+    // try {
+    //   loading.value = true;
+    //   error.value = null;
+    //   const response = await api.put("/configurations/sdu", settings);
+    //   sduSettings.value = response.data;
+    //   error.value = null;
+    //   // showSuccess('SDU settings updated successfully');
+    //   return response.data;
+    // } catch (err: any) {
+    //   error.value = err;
+    //   showError(err.response?.data?.message || "Failed to update SDU settings");
+    //   throw err;
+    // } finally {
+    //   loading.value = false;
+    // }
   };
 
   const fetchIinSettings = async () => {
@@ -417,10 +426,10 @@ export const useSettingsStore = defineStore("settings", () => {
 
   const fetchAllSettings = async () => {
     await Promise.all([
-      fetchCardReaderSettings(),
-      fetchOnecSettings(),
-      fetchKaspiSettings(),
-      fetchSduSettings(),
+      // fetchCardReaderSettings(), // Commented out - feature toggle disabled
+      // fetchOnecSettings(), // Commented out - feature toggle disabled
+      // fetchKaspiSettings(), // Commented out - feature toggle disabled
+      // fetchSduSettings(), // Commented out - feature toggle disabled
       fetchPublicSettings(),
     ]);
   };

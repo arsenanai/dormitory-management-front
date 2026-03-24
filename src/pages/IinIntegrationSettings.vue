@@ -13,11 +13,6 @@
             </h3>
             <div class="space-y-4">
               <CCheckbox
-                id="sdu-enabled"
-                v-model="form.student_id_autocomplete_enabled"
-                :label="t('Enable Student ID Autocompletion')"
-              />
-              <CCheckbox
                 id="iin-enabled"
                 v-model="form.iin_integration_enabled"
                 :label="t('Enable IIN Integration (OTP Flow)')"
@@ -33,7 +28,7 @@
               <CInput
                 v-model="form.iin_encryption_key"
                 :label="t('Encryption Key')"
-                type="password"
+                type="text"
                 placeholder="Enter encryption key"
                 required
               />
@@ -66,7 +61,6 @@ export interface IinSettings {
   iin_integration_enabled: boolean;
   iin_base_url: string;
   iin_encryption_key: string;
-  student_id_autocomplete_enabled: boolean;
 }
 
 const { t } = useI18n();
@@ -77,7 +71,6 @@ const form = reactive<IinSettings>({
   iin_integration_enabled: false,
   iin_base_url: "",
   iin_encryption_key: "",
-  student_id_autocomplete_enabled: false,
 });
 
 const loading = computed(() => settingsStore.loading);
@@ -94,7 +87,6 @@ const saveSettings = async () => {
     iin_integration_enabled: !!form.iin_integration_enabled,
     iin_base_url: form.iin_base_url,
     iin_encryption_key: form.iin_encryption_key,
-    student_id_autocomplete_enabled: !!form.student_id_autocomplete_enabled,
   });
   showSuccess(t("IIN settings saved successfully!"));
 };
