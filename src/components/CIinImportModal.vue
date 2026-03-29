@@ -1,18 +1,16 @@
 <template>
-  <CModal :show="true" :title="t('Import from IIN Service')" @close="$emit('close')">
+  <CModal v-model="modalOpen" :title="t('Import from IIN Service')">
     <div class="space-y-4">
-      <!-- Step 1: Input Student ID -->
+      <!-- Step 1: Sending OTP -->
       <div v-if="step === 'input_id'">
-        <p class="mb-4 text-sm text-gray-600">
-          {{ t("Enter the Student ID to send a verification code.") }}
+        <p v-if="!error" class="mb-4 text-sm text-gray-600">
+          {{ t("Sending verification code...") }}
         </p>
-        <CInput
-          v-model="localStudentId"
-          :label="t('Student ID')"
-          placeholder="Enter Student ID"
-          required
-          :error="error"
-        />
+        <p v-else class="text-sm text-red-600">{{ error }}</p>
+        <details v-if="debugInfo" class="mt-2">
+          <summary class="text-xs text-gray-500 cursor-pointer">Debug Info</summary>
+          <pre class="mt-1 text-xs bg-gray-100 rounded p-2 overflow-auto max-h-48">{{ JSON.stringify(debugInfo, null, 2) }}</pre>
+        </details>
       </div>
 
       <!-- Step 2: Input OTP -->
@@ -35,29 +33,29 @@
               class="w-10 h-12 text-center text-xl font-bold border rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
               @input="handleOtpInput(i - 1)"
               @keydown.backspace="handleOtpBackspace(i - 1)"
+              @keydown.enter="handleEnterKey"
+              @paste.prevent="handlePaste"
             />
           </div>
           <p v-if="error" class="text-sm text-red-600 mt-1">{{ error }}</p>
         </div>
       </div>
-    </div>
 
-    <template #footer>
-      <div class="flex justify-end gap-2">
-        <CButton variant="secondary" @click="$emit('close')">
+      <!-- Footer -->
+      <div class="flex justify-end gap-2 pt-2">
+        <CButton @click="close">
           {{ t("Cancel") }}
         </CButton>
         <CButton
-          v-if="step === 'input_id'"
+          v-if="step === 'input_id' && error"
           variant="primary"
           :loading="loading"
           @click="sendOtp"
-          :disabled="!localStudentId"
         >
-          {{ t("Send Code") }}
+          {{ t("Retry") }}
         </CButton>
         <CButton
-          v-else
+          v-if="step === 'input_otp'"
           variant="primary"
           :loading="loading"
           @click="verifyOtp"
@@ -66,12 +64,12 @@
           {{ t("Verify & Import") }}
         </CButton>
       </div>
-    </template>
+    </div>
   </CModal>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick } from "vue";
+import { ref, computed, nextTick, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import CModal from "@/components/CModal.vue";
 import CInput from "@/components/CInput.vue";
@@ -79,19 +77,35 @@ import CButton from "@/components/CButton.vue";
 import { iinService } from "@/services/api";
 
 const props = defineProps<{
-  studentId?: string;
+  studentId: string;
 }>();
 
 const emit = defineEmits(["close", "data-fetched"]);
 
 const { t } = useI18n();
 
+const modalOpen = ref(true);
+
+const close = () => {
+  modalOpen.value = false;
+  emit("close");
+};
+
+watch(modalOpen, (val) => {
+  if (!val) emit("close");
+});
+
 const step = ref<"input_id" | "input_otp">("input_id");
-const localStudentId = ref(props.studentId || "");
+const localStudentId = ref(props.studentId);
+
+onMounted(() => {
+  sendOtp();
+});
 const otpParts = ref<string[]>(new Array(6).fill(""));
 const maskedIdentifier = ref("");
 const loading = ref(false);
 const error = ref("");
+const debugInfo = ref<any>(null);
 
 const isOtpComplete = computed(() => {
   return otpParts.value.every((p) => p.length === 1);
@@ -111,6 +125,32 @@ const handleOtpBackspace = (index: number) => {
   }
 };
 
+const handleEnterKey = () => {
+  if (isOtpComplete.value) {
+    verifyOtp();
+  }
+};
+
+const handlePaste = (event: ClipboardEvent) => {
+  const pastedData = event.clipboardData?.getData("text") || "";
+
+  // Take only first 6 characters and ignore the rest
+  const otpDigits = pastedData.trim().slice(0, 6).split("");
+
+  // Fill the otp parts array
+  otpDigits.forEach((digit, i) => {
+    if (i < 6) {
+      otpParts.value[i] = digit;
+    }
+  });
+
+  // Focus the last filled input or the next empty one
+  const lastFilledIndex = Math.min(otpDigits.length - 1, 5);
+  setTimeout(() => {
+    document.getElementById(`otp-input-${lastFilledIndex}`)?.focus();
+  }, 10);
+};
+
 const sendOtp = async () => {
   if (!localStudentId.value) return;
   
@@ -127,6 +167,7 @@ const sendOtp = async () => {
   } catch (err: any) {
     console.error(err);
     error.value = err.response?.data?.message || t("Failed to send OTP.");
+    debugInfo.value = err.response?.data?.debug || null;
   } finally {
     loading.value = false;
   }
@@ -146,6 +187,7 @@ const verifyOtp = async () => {
   } catch (err: any) {
     console.error(err);
     error.value = err.response?.data?.message || t("Verification failed.");
+    debugInfo.value = err.response?.data?.debug || null;
   } finally {
     loading.value = false;
   }

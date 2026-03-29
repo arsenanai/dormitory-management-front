@@ -19,6 +19,8 @@
             class="w-10 h-12 text-center text-xl font-bold border rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
             @input="handleInput(i - 1)"
             @keydown.backspace="handleBackspace(i - 1)"
+            @keydown.enter="handleEnterKey"
+            @paste.prevent="handlePaste"
           />
         </div>
       </div>
@@ -76,6 +78,32 @@ const handleBackspace = (index: number) => {
     const prevInput = document.getElementById(`otp-input-${index - 1}`);
     prevInput?.focus();
   }
+};
+
+const handleEnterKey = (event: KeyboardEvent) => {
+  if (isOtpComplete.value) {
+    verifyOtp();
+  }
+};
+
+const handlePaste = (event: ClipboardEvent) => {
+  const pastedData = event.clipboardData?.getData('text') || '';
+  
+  // Take only first 6 characters and ignore the rest
+  const otpDigits = pastedData.slice(0, 6).split('');
+  
+  // Fill the otp parts array
+  otpDigits.forEach((digit, i) => {
+    if (i < 6) {
+      otpParts.value[i] = digit;
+    }
+  });
+  
+  // Focus the last filled input or the next empty one
+  const lastFilledIndex = Math.min(otpDigits.length - 1, 5);
+  setTimeout(() => {
+    document.getElementById(`otp-input-${lastFilledIndex}`)?.focus();
+  }, 10);
 };
 
 const verifyOtp = async () => {

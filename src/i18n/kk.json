@@ -675,6 +675,10 @@
   "auth.invalid_credentials": "Кіру деректері қате",
   "auth.not_approved": "Есептік жазба мақұлданбаған",
   "auth.not_assigned_admin": "Әкімші есептік жазбасы жатақханаға бекітілмеген",
+  "Sending verification code...": "Растау кодын жіберу...",
+  "A verification code has been sent to your registered contact:": "Растау коды сіздің тіркелген байланысыңызға жіберілді:",
+  "One-Time Password (OTP)": "Бір реттік құпия сөз (OTP)",
+  "Verify": "Тексеру",
   "browse": "шолу",
   "common.notAvailable": "Қолжетімді емес",
   "day": "күн",
@@ -716,5 +720,9 @@
   "student": "студент",
   "to": "дейін",
   "New Student": "Жаңа Студент",
-  "New Guest": "Жаңа Қонақ"
+  "New Guest": "Жаңа Қонақ",
+  "Student information imported successfully": "Студенттің мәліметтері сәтті импортталды",
+  "Your information imported successfully, related fields are automatically populated": "Сіздің мәліметтеріңіз сәтті импортталды, қатысты өрістер автоматты түрде толтырылды",
+  "Provide at least one phone number": "Кемінде бір телефон нөмірін енгізіңіз",
+  "Driver's License": "Жүргізуші куәлігі"
 }

@@ -8,9 +8,9 @@
       <!-- Step 1: Identification -->
       <CStep :title="t('Identification')" :validator="() => isIdentificationStepValid">
         <div v-if="user.student_profile" class="grid grid-cols-1 gap-4">
-          <div class="flex items-end gap-2">
+          <div class="flex items-start gap-2">
             <CInput
-              v-if="settingsStore.publicSettings?.sdu_enabled"
+              v-if="settingsStore.publicSettings?.sdu_enabled || settingsStore.publicSettings?.iin_integration_enabled"
               id="registration-student-id"
               v-model="user.student_profile.student_id"
               type="text"
@@ -25,8 +25,7 @@
             <CButton
               v-if="settingsStore.publicSettings?.iin_integration_enabled"
               type="button"
-              variant="secondary"
-              class="mb-0.5"
+              class="h-[42px] mt-5"
               :disabled="!user.student_profile?.student_id || loadingOtp"
               @click="sendOtp"
             >
@@ -614,8 +613,39 @@ const handleIinData = (data: any) => {
     if (data.lastName) user.value.last_name = data.lastName;
     if (user.value.student_profile) {
       if (data.iin) user.value.student_profile.iin = data.iin;
-      if (data.passportNumber) user.value.student_profile.identification_number = data.passportNumber;
+      if (data.passportNumber) {
+        user.value.student_profile.identification_number = data.passportNumber;
+        user.value.student_profile.identification_type = 'passport';
+      }
       if (data.studentId) user.value.student_profile.student_id = data.studentId;
+      if (data.gender) user.value.student_profile.gender = data.gender.toLowerCase();
+      if (data.email) user.value.email = data.email;
+      if (data.phones && Array.isArray(data.phones)) {
+        // If phones array is empty, keep at least one empty input field
+        user.value.phone_numbers = data.phones.length > 0 ? data.phones : [""];
+      }
+      if (data.country) user.value.student_profile.country = data.country;
+      if (data.region) user.value.student_profile.region = data.region;
+      if (data.city) user.value.student_profile.city = data.city;
+      if (data.specialist) user.value.student_profile.specialist = data.specialist;
+      if (data.enrollmentYear) user.value.student_profile.enrollment_year = data.enrollmentYear;
+      
+      // Emergency contact mapping
+      if (data.emergencyContactName) user.value.student_profile.emergency_contact_name = data.emergencyContactName;
+      if (data.emergencyContactPhone) user.value.student_profile.emergency_contact_phone = data.emergencyContactPhone;
+      if (data.emergencyContactType) {
+        // Normalize "Father" and "Mother" to "Parent"
+        const normalizedType = data.emergencyContactType.toLowerCase();
+        if (normalizedType === 'father' || normalizedType === 'mother') {
+          user.value.student_profile.emergency_contact_type = "parent";
+        } else {
+          user.value.student_profile.emergency_contact_type = normalizedType;
+        }
+      } else if (data.emergencyContactPhone || data.emergencyContactEmail) {
+        // Assign "Other" as default type when phone or email exists but no type is specified
+        user.value.student_profile.emergency_contact_type = "other";
+      }
+      if (data.emergencyContactEmail) user.value.student_profile.emergency_contact_email = data.emergencyContactEmail;
 
       // Handle photo path from IIN integration
       if (data.photoPath) {
@@ -627,7 +657,15 @@ const handleIinData = (data: any) => {
         user.value.student_profile.files[2] = data.photoPath;
       }
     }
-    showSuccess(t("Form autofilled with student data"));
+    // Auto-trigger availability checks for IIN and email
+    if (data.iin && user.value.student_profile?.iin) {
+      debouncedCheckIinAvailability(data.iin);
+    }
+    if (data.email && user.value.email) {
+      debouncedCheckEmailAvailability(data.email);
+    }
+
+    showSuccess(t("Your information imported successfully, related fields are automatically populated"));
   }
 };
 
@@ -668,6 +706,7 @@ const debouncedFetchStudentData = debounceHelper(fetchStudentData, 500);
 const handleStudentIdValidation = ({ valid, message }: { valid: boolean; message: string }) => {
   if (valid && user.value.student_profile?.student_id) {
     registrationValidationState.value.student_id = "";
+    registrationValidationMessage.value.student_id = "";
     debouncedFetchStudentData(user.value.student_profile.student_id);
   } else {
     registrationValidationState.value.student_id = valid ? "success" : "error";

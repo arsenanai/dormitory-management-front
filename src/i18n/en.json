@@ -687,6 +687,10 @@
   "auth.invalid_credentials": "Invalid credentials",
   "auth.not_approved": "Account not approved",
   "auth.not_assigned_admin": "Admin account not assigned to dormitory",
+  "Sending verification code...": "Sending verification code...",
+  "A verification code has been sent to your registered contact:": "A verification code has been sent to your registered contact:",
+  "One-Time Password (OTP)": "One-Time Password (OTP)",
+  "Verify": "Verify",
   "browse": "browse",
   "common.notAvailable": "Not Available",
   "day": "day",
@@ -728,5 +732,9 @@
   "student": "student",
   "to": "to",
   "New Student": "New Student",
-  "New Guest": "New Guest"
+  "New Guest": "New Guest",
+  "Student information imported successfully": "Student information imported successfully",
+  "Your information imported successfully, related fields are automatically populated": "Your information imported successfully, related fields are automatically populated",
+  "Provide at least one phone number": "Provide at least one phone number",
+  "Driver's License": "Driver's License"
 }

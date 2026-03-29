@@ -281,6 +281,7 @@ import CStep from "@/components/CStep.vue";
 import CModal from "@/components/CModal.vue";
 import CRoomTypePhotos from "@/components/CRoomTypePhotos.vue";
 import CCheckbox from "@/components/CCheckbox.vue";
+import CTextarea from "@/components/CTextarea.vue";
 import { getCurrencySymbol } from "@/utils/formatters";
 import { debounceHelper } from "@/utils/helpers";
 

@@ -676,6 +676,10 @@
   "auth.invalid_credentials": "Неверные учетные данные",
   "auth.not_approved": "Учетная запись не подтверждена",
   "auth.not_assigned_admin": "Учетная запись администратора не присвоена общежитию",
+  "Sending verification code...": "Отправка кода подтверждения...",
+  "A verification code has been sent to your registered contact:": "Код подтверждения был отправлен на ваш зарегистрированный контакт:",
+  "One-Time Password (OTP)": "Одноразовый пароль (OTP)",
+  "Verify": "Проверить",
   "browse": "просмотр",
   "common.notAvailable": "Недоступно",
   "day": "день",
@@ -717,5 +721,9 @@
   "student": "студент",
   "to": "до",
   "New Student": "Новый Студент",
-  "New Guest": "Новый Гость"
+  "New Guest": "Новый Гость",
+  "Student information imported successfully": "Данные студента успешно импортированы",
+  "Your information imported successfully, related fields are automatically populated": "Ваши данные успешно импортированы, связанные поля заполнены автоматически",
+  "Provide at least one phone number": "Укажите хотя бы один номер телефона",
+  "Driver's License": "Водительское удостоверение"
 }

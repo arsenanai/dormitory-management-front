@@ -630,6 +630,18 @@ export const iinService = {
       passportNumber: string;
       studentId: string;
       photoPath?: string;
+      gender: string;
+      email: string;
+      phones: string[];
+      country: string;
+      region: string;
+      city: string;
+      specialist: string;
+      enrollmentYear: number;
+      emergencyContactName: string;
+      emergencyContactPhone: string;
+      emergencyContactType: string;
+      emergencyContactEmail: string;
     }>
   > => api.post("/iin/verify-otp", { student_id: studentId, otp }),
 };
