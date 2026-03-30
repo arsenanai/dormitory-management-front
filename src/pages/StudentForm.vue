@@ -9,7 +9,7 @@
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <!-- Student ID Field -->
           <div class="lg:col-span-2">
-            <div class="flex items-end gap-2">
+            <div class="flex items-start gap-2">
               <CInput
                 v-if="settingsStore.publicSettings?.sdu_enabled || settingsStore.publicSettings?.iin_integration_enabled"
                 id="student-profile-id"
@@ -25,7 +25,7 @@
               />
               <CButton
                 v-if="!isEditing && isAdmin && settingsStore.publicSettings?.iin_integration_enabled"
-                class="h-[42px]"
+                class="h-[42px] mt-5"
                 @click="showIinModal = true"
               >
                 {{ t("Import") }}
