@@ -610,9 +610,7 @@ const handleIinValidation = ({ valid, message }: { valid: boolean; message: stri
   if (valid) {
     delete validationErrors.value["student_profile.iin"];
     if (
-      user.value.student_profile &&
-      user.value.student_profile.iin &&
-      user.value.student_profile.iin.length === 12
+      user.value.student_profile?.iin?.length === 12
     ) {
       debouncedCheckIinAvailability(user.value.student_profile.iin);
     }

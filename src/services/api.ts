@@ -4,6 +4,7 @@ import type { AdminProfile } from "@/models/AdminProfile";
 import type { GuestProfile } from "@/models/GuestProfile";
 import type { Message } from "@/models/Message";
 import type { Payment } from "@/models/Payment";
+import type { Transaction } from "@/models/Transaction";
 import type { Room } from "@/models/Room";
 import type { RoomType } from "@/models/RoomType";
 import type { Dormitory } from "@/models/Dormitory";
@@ -116,6 +117,12 @@ export const personalDataService = {
 
 // User service
 export const userService = {
+  search: (
+    q: string,
+    role?: string
+  ): Promise<{ data: { id: number; name: string; email: string; role: string }[] }> =>
+    api.get("/users/search", { params: { q, role } }),
+
   getAll: (params?: FilterParams): Promise<ApiResponse<PaginatedResponse<User>>> =>
     api.get("/users", { params }),
 
@@ -266,6 +273,42 @@ export const paymentTypeService = {
 
   delete: (id: number): Promise<ApiResponse<{ message: string }>> =>
     api.delete(`/payment-types/${id}`),
+};
+
+// Transaction service
+export const transactionService = {
+  getAll: (params?: FilterParams): Promise<ApiResponse<PaginatedResponse<Transaction>>> =>
+    api.get("/transactions", { params }),
+
+  getMyTransactions: (params?: FilterParams): Promise<ApiResponse<PaginatedResponse<Transaction>>> =>
+    api.get("/my-transactions", { params }),
+
+  getById: (id: number): Promise<ApiResponse<Transaction>> => api.get(`/transactions/${id}`),
+
+  create: (data: FormData): Promise<ApiResponse<Transaction>> =>
+    api.post("/transactions", data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+
+  createMyTransaction: (data: FormData): Promise<ApiResponse<Transaction>> =>
+    api.post("/my-transactions", data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+
+  update: (id: number, data: FormData): Promise<ApiResponse<Transaction>> =>
+    api.post(`/transactions/${id}`, data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+
+  updateMyTransaction: (id: number, data: FormData): Promise<ApiResponse<Transaction>> =>
+    api.put(`/my-transactions/${id}`, data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+
+  delete: (id: number): Promise<ApiResponse<{ message: string }>> => api.delete(`/transactions/${id}`),
+
+  export: (params?: FilterParams): Promise<Blob> =>
+    api.get("/transactions/export", { params, responseType: "blob" }),
 };
 
 // Room service

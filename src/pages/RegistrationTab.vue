@@ -784,9 +784,7 @@ const debouncedCheckIinAvailability = debounceHelper(checkIinAvailability, 500);
 const handleIinValidation = ({ valid, message }: { valid: boolean; message: string }) => {
   if (
     valid &&
-    user.value.student_profile &&
-    user.value.student_profile.iin &&
-    user.value.student_profile.iin.length === 12
+    user.value.student_profile?.iin?.length === 12
   ) {
     registrationValidationState.value.iin = "";
     debouncedCheckIinAvailability(user.value.student_profile.iin);

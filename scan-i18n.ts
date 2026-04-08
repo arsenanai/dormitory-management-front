@@ -15,9 +15,14 @@ const outFilterIdx = process.argv.findIndex(a => a === '--out')
 const outFilePath = outFilterIdx >= 0 ? process.argv[outFilterIdx + 1] : undefined
 
 // Regex patterns to find different usages of t() or $t()
+// Each pattern matches one quote style so inner apostrophes (e.g. "Driver's License") are not cut off
 const patterns = [
-  /\$t(?:\?\.)?\(\s*['"`]([^'"`]+)['"`]\s*(?:,|\))/g,
-  /(?<![\w$])t\(\s*['"`]([^'"`]+)['"`]\s*(?:,|\))/g,
+  /\$t(?:\?\.)?\(\s*'([^']+)'\s*(?:,|\))/g,
+  /\$t(?:\?\.)?\(\s*"([^"]+)"\s*(?:,|\))/g,
+  /\$t(?:\?\.)?\(\s*`([^`]+)`\s*(?:,|\))/g,
+  /(?<![\w$])t\(\s*'([^']+)'\s*(?:,|\))/g,
+  /(?<![\w$])t\(\s*"([^"]+)"\s*(?:,|\))/g,
+  /(?<![\w$])t\(\s*`([^`]+)`\s*(?:,|\))/g,
 ]
 
 for (const file of vueFiles) {

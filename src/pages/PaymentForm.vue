@@ -21,14 +21,14 @@
             :options="userTypeOptions"
             required
           />
-          <CSelect
+          <CUserAutocomplete
             id="student-select"
             data-testid="payment-student-select"
-            v-model="formData.user_id"
+            :model-value="formData.user_id ? Number(formData.user_id) : null"
+            @update:model-value="formData.user_id = $event ? String($event) : ''"
             :label="t('User')"
-            :options="userOptions"
-            :disabled="loadingUsers"
-            :placeholder="loadingUsers ? t('Loading users...') : t('Select a user')"
+            :role="formData.user_type"
+            :initial-label="initialUserLabel"
             required
           />
         </div>
@@ -106,14 +106,9 @@
           additionalClass="h-full flex-1"
           wrapperClass="flex flex-col flex-1"
         />
-        <CFileInput
-          id="payment-check-upload"
-          :label="t('Payment Check')"
-          :required="isRestrictedUser && props.selectedPayment"
-          :allowed-extensions="['jpg', 'jpeg', 'png', 'pdf']"
-          @change="handleFileChange"
-          :file-path="typeof formData.payment_check === 'string' ? formData.payment_check : null"
-        />
+        <div class="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
+          <strong>{{ t('Note') }}:</strong> {{ t('To make a payment, please go to the Transactions page and create a new transaction.') }}
+        </div>
       </div>
 
       <div class="mt-6 flex justify-end gap-2">
@@ -128,15 +123,6 @@
           :loading="loading"
         >
           {{ selectedPayment ? t("Update") : t("Submit") }}
-        </CButton>
-        <CButton
-          v-if="!!(isRestrictedUser && props.selectedPayment)"
-          type="submit"
-          variant="primary"
-          data-testid="payment-submit-button"
-          :loading="loading"
-        >
-          {{ t("Upload Bank Check") }}
         </CButton>
       </div>
     </form>
@@ -157,7 +143,7 @@ import CInput from "@/components/CInput.vue";
 import CSelect from "@/components/CSelect.vue";
 import CTextarea from "@/components/CTextarea.vue";
 import CButton from "@/components/CButton.vue";
-import CFileInput from "@/components/CFileInput.vue";
+import CUserAutocomplete from "@/components/CUserAutocomplete.vue";
 import { User } from "@/models/User";
 
 const props = defineProps<{
@@ -207,9 +193,8 @@ const formData = ref({
   date_from: "",
   date_to: "",
   payment_type: "",
-  payment_check: "",
   status: "",
-} as { payment_check: string | File | null; [key: string]: any });
+} as { [key: string]: any });
 
 const paymentTypeOptions = computed(() => {
   const options = paymentTypesStore.paymentTypes.map((t) => ({
@@ -240,6 +225,12 @@ const userOptions = computed(() => {
   return formData.value.user_type === "student" ? studentOptions.value : guestOptions.value;
 });
 
+const initialUserLabel = computed(() => {
+  if (props.selectedPayment?.user?.name) return props.selectedPayment.user.name;
+  if (targetUser.value?.name) return targetUser.value.name;
+  return undefined;
+});
+
 const isRestrictedUser = computed(() => {
   const role = authStore.userRole;
   return role === "student" || role === "guest";
@@ -258,23 +249,11 @@ const userTypeOptions = [
 // Status options for admin
 const statusOptions = [
   { value: "pending", name: t("Pending") },
-  { value: "processing", name: t("Processing") },
+  { value: "partially_paid", name: t("Partially Paid") },
   { value: "completed", name: t("Completed") },
-  { value: "failed", name: t("Failed") },
   { value: "cancelled", name: t("Cancelled") },
-  { value: "refunded", name: t("Refunded") },
   { value: "expired", name: t("Expired") },
 ];
-
-const handleFileChange = (file: File | null | string) => {
-  // Only accept File objects or null, never strings (strings are for display only)
-  if (file instanceof File) {
-    formData.value.payment_check = file;
-  } else if (file === null) {
-    formData.value.payment_check = null;
-  }
-  // Ignore string values - they're for display only
-};
 
 const isVisible = computed({
   get: () => props.modelValue,
@@ -282,8 +261,6 @@ const isVisible = computed({
 });
 
 const closeModal = () => {
-  // Reset form data when closing to prevent stale File objects
-  formData.value.payment_check = null;
   isVisible.value = false;
 };
 
@@ -364,38 +341,9 @@ const loadIndividual = async (id: string | number, service: any) => {
 };
 
 const handleFormSubmit = async () => {
-  // For students/guests with selectedPayment: only allow bank check upload
+  // Students/guests should use the Transactions page to make payments
   if (isRestrictedUser.value && props.selectedPayment) {
-    if (!formData.value.payment_check || !(formData.value.payment_check instanceof File)) {
-      showError(t("Please select a bank check file to upload"));
-      return;
-    }
-
-    loading.value = true;
-    try {
-      const formDataToSend = new FormData();
-      formDataToSend.append(
-        "payment_check",
-        formData.value.payment_check,
-        formData.value.payment_check.name
-      );
-
-      const response = await paymentService.updateMyPayment(
-        props.selectedPayment.id,
-        formDataToSend
-      );
-      const message = response?.data?.message || response?.message;
-      showSuccess(t("Bank check uploaded successfully"));
-      showWarning(message || t("Payment will be validated soon"));
-      // Reset payment_check to prevent File object from persisting
-      formData.value.payment_check = null;
-      emit("submit");
-      closeModal();
-    } catch (err: any) {
-      showError(err.response?.data?.message || t("Failed to upload bank check"));
-    } finally {
-      loading.value = false;
-    }
+    showError(t("To make a payment, please go to the Transactions page and create a new transaction."));
     return;
   }
 

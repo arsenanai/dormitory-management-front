@@ -106,6 +106,10 @@ interface Props {
   multiple?: boolean; // Support multiple files
   filePath?: string | null; // Prop to show an existing file path
   validationMessage?: string | null; // External validation message
+  modelValue?: File | string | null; // v-model support
+  required?: boolean;
+  helpText?: string;
+  accept?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -117,6 +121,7 @@ const props = withDefaults(defineProps<Props>(), {
 // Define emits
 const emit = defineEmits<{
   (e: "change", value: File | FileList | null | string): void;
+  (e: "update:modelValue", value: File | string | null): void;
   (e: "validation", payload: { valid: boolean }): void;
 }>();
 
@@ -239,6 +244,7 @@ const handleFileChange = (event: Event) => {
     const file = files?.[0] || null;
     validateFile(file);
     emit("change", file);
+    emit("update:modelValue", file ?? null);
   }
 };
 
@@ -254,6 +260,7 @@ const clearFile = () => {
   }
   selectedFile.value = null;
   emit("change", null); // Emit null to signify removal
+  emit("update:modelValue", null);
 };
 
 const handleDragOver = (): void => {
@@ -280,6 +287,7 @@ const handleDrop = (event: DragEvent) => {
     const file = files?.[0] || null;
     validateFile(file);
     emit("change", file);
+    emit("update:modelValue", file ?? null);
   }
 };
 

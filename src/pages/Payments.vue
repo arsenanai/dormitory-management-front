@@ -126,6 +126,16 @@
         <template #cell-amount="{ row: payment }">
           {{ formatPrice(parseFloat(payment.amount || "0")) }}
         </template>
+        <template #cell-paid_amount="{ row: payment }">
+          {{ formatPrice(parseFloat(payment.paidAmount || "0")) }}
+        </template>
+        <template #cell-remaining_amount="{ row: payment }">
+          <span
+            :class="payment.remainingAmount > 0 ? 'font-medium text-red-600' : 'text-green-600'"
+          >
+            {{ formatPrice(parseFloat(payment.remainingAmount?.toString() || "0")) }}
+          </span>
+        </template>
         <template #cell-payment_type="{ row: payment }">
           <span>{{ formatPaymentType(payment.paymentType) }}</span>
         </template>
@@ -170,12 +180,10 @@
           <span
             :class="{
               'bg-yellow-100 text-yellow-800': payment.status === 'pending',
-              'bg-blue-100 text-blue-800': payment.status === 'processing',
+              'bg-orange-100 text-orange-800': payment.status === 'partially_paid',
               'bg-green-100 text-green-800': payment.status === 'completed',
-              'bg-red-100 text-red-800':
-                payment.status === 'failed' || payment.status === 'cancelled',
-              'bg-gray-100 text-gray-800':
-                payment.status === 'expired' || payment.status === 'refunded',
+              'bg-red-100 text-red-800': payment.status === 'cancelled',
+              'bg-gray-100 text-gray-800': payment.status === 'expired',
             }"
             class="inline-flex rounded-full px-2 py-1 text-xs font-semibold capitalize"
           >
@@ -184,17 +192,17 @@
         </template>
         <template #cell-actions="{ row: payment }">
           <div class="flex justify-end gap-2">
-            <!-- For students/guests: show Pay button only for pending payments -->
+            <!-- For students/guests: show Create Transaction button for pending/partially_paid payments -->
             <template
               v-if="
                 isMyPayments || (!isAdmin && (isStudent || authStore.user?.role?.name === 'guest'))
               "
             >
               <CButton
-                v-if="payment.status === 'pending'"
-                @click="openPaymentForm(payment)"
+                v-if="payment.status === 'pending' || payment.status === 'partially_paid'"
+                @click="createTransactionForPayment(payment)"
                 :disabled="loading"
-                size="sm"
+                size="small"
               >
                 <CreditCardIcon class="h-4 w-4" />
                 {{ t("Pay") }}
@@ -314,12 +322,14 @@ import {
   TrashIcon,
   CreditCardIcon,
 } from "@heroicons/vue/24/outline";
-import { paymentService, configurationService } from "@/services/api";
+import { paymentService } from "@/services/api";
 import { usePaymentsStore } from "@/stores/payments";
 import { usePaymentTypesStore } from "@/stores/paymentTypes";
 import { useToast } from "@/composables/useToast";
 import { useUserOptions } from "@/composables/useUserOptions";
 import { formatCurrency } from "@/utils/formatters";
+import type { PaymentType } from "@/models/PaymentType";
+import type { Payment } from "@/models/Payment";
 
 const authStore = useAuthStore();
 const isAdmin = computed(
@@ -337,10 +347,10 @@ const route = useRoute();
 const paymentsStore = usePaymentsStore();
 const paymentTypesStore = usePaymentTypesStore();
 const settingsStore = useSettingsStore();
-const { showError, showSuccess, showWarning } = useToast();
+const { showError, showSuccess } = useToast();
 
 // State
-const payments = ref<any[]>([]);
+const payments = ref<Payment[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
 const total = ref<number>(0);
@@ -357,15 +367,15 @@ const pageInput = ref(1);
 const fromPayment = ref(0);
 const toPayment = ref(0);
 const showForm = ref<boolean>(false);
-const selectedPayment = ref<any>(null);
+const selectedPayment = ref<Payment | null>(null);
 const showDeleteConfirmation = ref<boolean>(false);
 const paymentToDelete = ref<number | null>(null);
-const currencySymbol = computed(() => settingsStore.publicSettings?.currency_symbol || "$");
+const currencySymbol = computed(() => settingsStore.publicSettings?.currency_symbol ?? "$");
 
 // Determine if this page is used as "My Payments" for students/guests
 const isMyPayments = computed(() => {
   // Check user role first - if student or guest, they should see "My Payments" view
-  const userRole = authStore.user?.role?.name || authStore.user?.role;
+  const userRole = authStore.user?.role?.name ?? authStore.user?.role;
   const isStudentOrGuest = userRole === "student" || userRole === "guest";
 
   // If user is student/guest and not admin, always show "My Payments" view
@@ -376,7 +386,7 @@ const isMyPayments = computed(() => {
   // Otherwise, check route path and meta
   const path = route.path;
   const isMyPaymentsRoute = path === "/student-my-payments" || path === "/guest-my-payments";
-  const metaMyPayments = route.meta && (route.meta as any).myPayments === true;
+  const metaMyPayments = !!(route.meta as Record<string, unknown>)?.myPayments;
 
   return isMyPaymentsRoute || metaMyPayments;
 });
@@ -409,7 +419,7 @@ const statusOptions = [
 const paymentTypeOptions = computed(() => {
   return [
     { value: "", name: t("All Payment Types") },
-    ...paymentTypesStore.paymentTypes.map((type) => ({
+    ...paymentTypesStore.paymentTypes.map((type: PaymentType) => ({
       value: type.name,
       name: formatPaymentType(type.name),
     })),
@@ -467,7 +477,9 @@ const getSemesterDateRange = (semesterValue: string) => {
 const tableColumns = computed(() => {
   const base = [
     { key: "user", label: t("User"), class: "whitespace-nowrap" },
-    { key: "amount", label: t("Amount") },
+    { key: "amount", label: t("Debt Amount") },
+    { key: "paid_amount", label: t("Paid Amount") },
+    { key: "remaining_amount", label: t("Remaining Amount") },
     { key: "payment_type", label: t("Type") },
     { key: "status", label: t("Status") },
     { key: "id", label: t("ID") },
@@ -475,11 +487,11 @@ const tableColumns = computed(() => {
   ];
 
   if (!isMyPayments.value) {
-    base.splice(1, 0, { key: "role", label: t("Role") } as any);
-    base.push({ key: "actions", label: t("Actions"), class: "text-right" } as any);
+    base.splice(1, 0, { key: "role", label: t("Role") });
+    base.push({ key: "actions", label: t("Actions"), class: "text-right" });
   } else {
-    // For students/guests, add actions column for uploading bank check
-    base.push({ key: "actions", label: t("Actions"), class: "text-right" } as any);
+    // For students/guests, add actions column for creating transactions
+    base.push({ key: "actions", label: t("Actions"), class: "text-right" });
   }
 
   return base;
@@ -491,7 +503,7 @@ const loadPayments = async () => {
   error.value = null;
   try {
     // Check if user is authenticated
-    const token = localStorage.getItem("token");
+    const token = globalThis.localStorage.getItem("token");
     if (!token) {
       error.value = "Authentication required";
       payments.value = [];
@@ -499,7 +511,7 @@ const loadPayments = async () => {
       return;
     }
 
-    const params: any = {
+    const params: Record<string, unknown> = {
       page: currentPage.value,
       per_page: itemsPerPage.value,
     };
@@ -525,7 +537,7 @@ const loadPayments = async () => {
     if (response.data?.meta) {
       // Check for the new paginated structure
       // Create new array to ensure Vue reactivity detects changes
-      payments.value = response.data.data.map((payment: any) => {
+      payments.value = response.data.data.map((payment: Payment) => {
         if (payment.user && typeof payment.user.phoneNumbers === "string") {
           try {
             payment.user.phoneNumbers = JSON.parse(payment.user.phoneNumbers);
@@ -533,21 +545,12 @@ const loadPayments = async () => {
             console.error("Failed to parse phoneNumbers", e);
           }
         }
-        // Return a new object to ensure reactivity
-        // Ensure payment_check is always a string or null, never a File object
-        const cleanPayment = { ...payment };
-        if (cleanPayment.paymentCheck && typeof cleanPayment.paymentCheck !== "string") {
-          cleanPayment.paymentCheck = null;
-        }
-        if (cleanPayment.payment_check && typeof cleanPayment.payment_check !== "string") {
-          cleanPayment.payment_check = null;
-        }
-        return cleanPayment;
+        return { ...payment };
       });
       currentPage.value = response.data.meta.current_page;
-      total.value = response.data.meta.total || 0;
-      fromPayment.value = response.data.meta.from || 0;
-      toPayment.value = response.data.meta.to || 0;
+      total.value = response.data.meta.total ?? 0;
+      fromPayment.value = response.data.meta.from ?? 0;
+      toPayment.value = response.data.meta.to ?? 0;
       itemsPerPage.value = response.data.meta.per_page;
     } else {
       payments.value = [];
@@ -617,7 +620,7 @@ watch(
 );
 
 // Reset semester selection when role changes
-watch(selectedRole, (newRole) => {
+watch(selectedRole, () => {
   if (!showSemesterFilter.value) {
     selectedSemester.value = "";
   }
@@ -687,7 +690,7 @@ const deletePayment = async () => {
 
   try {
     await paymentService.delete(paymentToDelete.value);
-    payments.value = payments.value.filter((p) => p.id !== paymentToDelete.value);
+    payments.value = payments.value.filter((p: Payment) => p.id !== paymentToDelete.value);
     showSuccess(t("Payment deleted successfully"));
   } catch (err) {
     showError(t("Failed to delete payment"));
@@ -700,7 +703,7 @@ const deletePayment = async () => {
 
 async function exportPayments() {
   try {
-    const filters: any = {};
+    const filters: Record<string, unknown> = {};
     if (searchTerm.value) filters.search = searchTerm.value;
     if (startDate.value) filters.date_from = startDate.value;
     if (endDate.value) filters.date_to = endDate.value;
@@ -716,18 +719,20 @@ async function exportPayments() {
     }
 
     const response = await paymentService.export(filters);
-    const blob = new Blob(
-      [response && (response as any).data ? (response as any).data : response],
-      { type: "text/csv" }
-    ); // Changed to text/csv
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
+    const blobData = response as { data?: BlobPart } | BlobPart;
+    const blobContent: BlobPart =
+      blobData && typeof blobData === "object" && "data" in blobData && blobData.data != null
+        ? blobData.data
+        : (blobData as BlobPart);
+    const blob = new Blob([blobContent], { type: "text/csv" });
+    const url = globalThis.URL.createObjectURL(blob);
+    const link = globalThis.document.createElement("a");
     link.href = url;
     link.setAttribute("download", "payments.csv");
-    document.body.appendChild(link);
+    globalThis.document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
+    globalThis.document.body.removeChild(link);
+    globalThis.URL.revokeObjectURL(url);
   } catch (err) {
     showError(t("Failed to export payments"));
     console.error("Error exporting payments:", err);
@@ -742,32 +747,6 @@ const showPaymentForm = async () => {
   showForm.value = true;
 };
 
-const openPaymentForm = async (payment: any) => {
-  // For students: open payment form to upload bank check
-  // Only allow opening form for pending payments
-  if (payment.status !== "pending") {
-    return;
-  }
-
-  // Prevent opening if form is already open
-  if (showForm.value) {
-    return;
-  }
-
-  // Create a fresh copy of the payment object, ensuring payment_check is a string or null
-  const cleanPayment = { ...payment };
-  if (cleanPayment.paymentCheck && typeof cleanPayment.paymentCheck !== "string") {
-    cleanPayment.paymentCheck = cleanPayment.paymentCheck || null;
-  }
-  if (cleanPayment.payment_check && typeof cleanPayment.payment_check !== "string") {
-    cleanPayment.payment_check = cleanPayment.payment_check || null;
-  }
-
-  selectedPayment.value = cleanPayment;
-  await nextTick();
-  showForm.value = true;
-};
-
 const closePaymentForm = () => {
   // Clear selected payment first
   selectedPayment.value = null;
@@ -775,7 +754,7 @@ const closePaymentForm = () => {
   showForm.value = false;
 };
 
-const editPayment = async (payment: any) => {
+const editPayment = async (payment: Payment) => {
   // For admins: edit payment
   selectedPayment.value = null;
   await nextTick();
@@ -793,6 +772,22 @@ const handleFormSubmission = async () => {
   await nextTick();
   // Reload payments to get fresh data
   await loadPayments();
+};
+
+// Transaction handling for students/guests
+const createTransactionForPayment = (payment: Payment) => {
+  const userRole = authStore.user?.role?.name ?? authStore.user?.role;
+  let routeName = "transactions";
+  if (userRole === "student") routeName = "Student Transactions";
+  else if (userRole === "guest") routeName = "Guest Transactions";
+
+  router.push({
+    name: routeName,
+    query: {
+      preselect_payment: payment.id,
+      amount: payment.remainingAmount,
+    },
+  });
 };
 
 // Pagination handlers

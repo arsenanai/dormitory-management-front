@@ -3,9 +3,9 @@
     <input
       :id="id"
       type="checkbox"
-      :checked="modelValue"
+      :checked="isChecked"
       :disabled="disabled"
-      @change="$emit('update:modelValue', ($event.target as HTMLInputElement).checked)"
+      @change="handleChange"
       :class="[
         'text-primary-500 h-4 w-4 rounded-sm border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-700',
         disabled
@@ -28,23 +28,43 @@
 </template>
 
 <script setup lang="ts">
-import { withDefaults } from "vue";
+import { computed } from "vue";
 
 // Define props using TypeScript
 interface Props {
   id: string;
   label?: string;
-  modelValue?: boolean;
+  modelValue?: boolean | unknown[];
+  value?: unknown;
   disabled?: boolean;
 }
 
-// Define props
-const props = withDefaults(defineProps<Props>(), {
-  disabled: false,
+const props = defineProps<Props>();
+
+const emit = defineEmits<{
+  (event: "update:modelValue", value: boolean | unknown[]): void;
+}>();
+
+const isChecked = computed(() => {
+  if (Array.isArray(props.modelValue)) {
+    return props.modelValue.includes(props.value);
+  }
+  return !!props.modelValue;
 });
 
-// Define emits
-const emit = defineEmits<{
-  (event: "update:modelValue", value: boolean): void;
-}>();
+const handleChange = (event: Event) => {
+  const checked = (event.target as HTMLInputElement).checked;
+  if (Array.isArray(props.modelValue)) {
+    const next = [...props.modelValue];
+    if (checked) {
+      next.push(props.value);
+    } else {
+      const idx = next.indexOf(props.value);
+      if (idx > -1) next.splice(idx, 1);
+    }
+    emit("update:modelValue", next);
+  } else {
+    emit("update:modelValue", checked);
+  }
+};
 </script>
