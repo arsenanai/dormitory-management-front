@@ -10,8 +10,8 @@ interface User {
   gender?: string;
   room_id?: number | null;
   created_at?: string;
-  dormitory?: any;
-  [key: string]: any;
+  dormitory?: Record<string, unknown>;
+  [key: string]: unknown;
 }
 
 export const useUserStore = defineStore("userStore", {
@@ -39,8 +39,8 @@ export const useUserStore = defineStore("userStore", {
         this.error = null;
         const response = await api.get("/users");
         this.users = response.data;
-      } catch (error: any) {
-        this.error = error.response?.data?.message ?? "Failed to fetch users";
+      } catch (error: unknown) {
+        this.error = error instanceof Error ? error.message : "Failed to fetch users";
         throw error;
       } finally {
         this.loading = false;
@@ -53,30 +53,30 @@ export const useUserStore = defineStore("userStore", {
         this.error = null;
         const response = await api.get(`/users/${id}`);
         return response.data;
-      } catch (error: any) {
-        this.error = error.response?.data?.message || "Failed to fetch user";
+      } catch (error: unknown) {
+        this.error = error instanceof Error ? error.message : "Failed to fetch user";
         return null;
       } finally {
         this.loading = false;
       }
     },
 
-    async createUser(userData: any) {
+    async createUser(userData: Partial<User>) {
       try {
         this.loading = true;
         this.error = null;
         const response = await api.post("/users", userData);
         this.users.push(response.data);
         return response.data;
-      } catch (error: any) {
-        this.error = error.response?.data?.message ?? "Failed to create user";
+      } catch (error: unknown) {
+        this.error = error instanceof Error ? error.message : "Failed to create user";
         return null;
       } finally {
         this.loading = false;
       }
     },
 
-    async updateUser(id: number, userData: any) {
+    async updateUser(id: number, userData: Partial<User>) {
       try {
         this.loading = true;
         this.error = null;
@@ -86,8 +86,8 @@ export const useUserStore = defineStore("userStore", {
           this.users[index] = response.data;
         }
         return response.data;
-      } catch (error: any) {
-        this.error = error.response?.data?.message ?? "Failed to update user";
+      } catch (error: unknown) {
+        this.error = error instanceof Error ? error.message : "Failed to update user";
         return null;
       } finally {
         this.loading = false;
@@ -101,8 +101,8 @@ export const useUserStore = defineStore("userStore", {
         await api.delete(`/users/${id}`);
         this.users = this.users.filter((u) => u.id !== id);
         return true;
-      } catch (error: any) {
-        this.error = error.response?.data?.message ?? "Failed to delete user";
+      } catch (error: unknown) {
+        this.error = error instanceof Error ? error.message : "Failed to delete user";
         return false;
       } finally {
         this.loading = false;
@@ -165,7 +165,7 @@ export const useUserStore = defineStore("userStore", {
       });
     },
 
-    validateUser(user: any) {
+    validateUser(user: Partial<User>) {
       return !!(user?.name && user.email && user.role);
     },
 

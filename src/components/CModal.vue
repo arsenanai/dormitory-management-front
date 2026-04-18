@@ -53,7 +53,7 @@ const props = defineProps({
     default: "",
   },
 });
-const emit = defineEmits(["update:modelValue"]);
+defineEmits(["update:modelValue"]);
 
 const modalContent = ref<HTMLElement | null>(null);
 

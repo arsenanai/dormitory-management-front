@@ -52,7 +52,7 @@
             />
           </div>
         </div>
-        
+
         <!-- Action Buttons Section -->
         <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
           <CButton
@@ -94,11 +94,11 @@
         <template #cell-amount="{ row }">
           {{ formatCurrency(row.amount, currencySymbol) }}
         </template>
-        
+
         <template #cell-status="{ row }">
           <span
             :class="getStatusClass(row.status)"
-            class="px-2 py-1 rounded-full text-xs font-medium"
+            class="rounded-full px-2 py-1 text-xs font-medium"
           >
             {{ t(row.status) }}
           </span>
@@ -110,30 +110,15 @@
 
         <template #cell-actions="{ row }">
           <div class="flex gap-2">
-            <CButton
-              variant="link"
-              size="sm"
-              @click="viewTransaction(row)"
-              class=""
-            >
+            <CButton variant="link" size="sm" @click="viewTransaction(row)" class="">
               <EyeIcon class="h-4 w-4" />
               {{ t("View") }}
             </CButton>
-            <CButton
-              v-if="isAdmin"
-              variant="link"
-              size="sm"
-              @click="editTransaction(row)"
-              class=""
-            >
+            <CButton v-if="isAdmin" variant="link" size="sm" @click="editTransaction(row)" class="">
               <PencilIcon class="h-4 w-4" />
               {{ t("Edit") }}
             </CButton>
-            <CButton
-              v-if="isAdmin"
-              variant="danger"
-              @click="deleteTransaction(row)"
-            >
+            <CButton v-if="isAdmin" variant="danger" @click="deleteTransaction(row)">
               <TrashIcon class="h-5 w-5" />
             </CButton>
           </div>
@@ -180,7 +165,7 @@ import CTable from "@/components/CTable.vue";
 import TransactionForm from "./TransactionForm.vue";
 import TransactionDetails from "./TransactionDetails.vue";
 import { useTransactionsStore } from "@/stores/transactions";
-import { transactionService, paymentService } from "@/services/api";
+import { transactionService, paymentService, configurationService } from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
 import { useSettingsStore } from "@/stores/settings";
 import { useToast } from "@/composables/useToast";
@@ -217,18 +202,19 @@ const showFormModal = ref(false);
 const showDetailsModal = ref(false);
 const selectedTransaction = ref<Transaction | null>(null);
 const availablePayments = ref<Payment[]>([]);
+const availableGateways = ref<{ value: string; label: string }[]>([]);
 
 // Preselection state from query params
 const preselectedPayment = ref<{ id: number; amount: number } | null>(null);
 
 // Computed properties
-const isAdmin = computed(() => authStore.user?.role?.name === "admin" || authStore.user?.role?.name === "sudo");
+const isAdmin = computed(
+  () => authStore.user?.role?.name === "admin" || authStore.user?.role?.name === "sudo"
+);
 
 const paymentMethodOptions = computed(() => [
   { value: "", name: t("All Methods") },
-  { value: "bank_check", name: t("Bank Check") },
-  { value: "kaspi", name: t("Kaspi") },
-  { value: "stripe", name: t("Stripe") },
+  ...availableGateways.value.map((g) => ({ value: g.value, name: g.label })),
 ]);
 
 const statusOptions = computed(() => [
@@ -290,7 +276,7 @@ const fetchTransactions = async () => {
 
 const fetchPayments = async () => {
   try {
-    const params = { status: 'pending', per_page: 100 };
+    const params = { status: "pending", per_page: 100 };
     const response = isAdmin.value
       ? await paymentService.getAll(params)
       : await paymentService.getMyPayments(params);
@@ -382,8 +368,6 @@ const exportTransactions = async () => {
   }
 };
 
-
-
 const getStatusClass = (status: string) => {
   const statusClasses: Record<string, string> = {
     pending: "bg-yellow-100 text-yellow-800",
@@ -407,16 +391,24 @@ watch(
 );
 
 // Lifecycle
-onMounted(() => {
+onMounted(async () => {
   fetchTransactions();
   fetchPayments();
-  
+
+  // Fetch available payment gateways
+  try {
+    const response = await configurationService.getPaymentGateways();
+    availableGateways.value = response.data.data;
+  } catch (err) {
+    console.error("Failed to fetch payment gateways:", err);
+  }
+
   // Handle preselected payment from query params
   const route = useRoute();
   if (route.query.preselect_payment && route.query.amount) {
     preselectedPayment.value = {
       id: Number(route.query.preselect_payment),
-      amount: Number(route.query.amount)
+      amount: Number(route.query.amount),
     };
     // Auto-open the transaction form
     showFormModal.value = true;

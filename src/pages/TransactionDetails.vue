@@ -6,58 +6,58 @@
   >
     <div v-if="transaction" class="space-y-6">
       <!-- Transaction Information -->
-      <div class="bg-gray-50 p-4 rounded-lg">
-        <h3 class="text-lg font-medium mb-4">{{ t('Transaction Information') }}</h3>
+      <div class="rounded-lg bg-gray-50 p-4">
+        <h3 class="mb-4 text-lg font-medium">{{ t("Transaction Information") }}</h3>
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700">{{ t('Transaction ID') }}</label>
+            <label class="block text-sm font-medium text-gray-700">{{ t("Transaction ID") }}</label>
             <p class="text-gray-900">#{{ transaction.id }}</p>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">{{ t('User') }}</label>
+            <label class="block text-sm font-medium text-gray-700">{{ t("User") }}</label>
             <p class="text-gray-900">{{ transaction.user?.name }}</p>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">{{ t('Amount') }}</label>
-            <p class="text-gray-900 font-bold">{{ formatCurrency(transaction.amount) }}</p>
+            <label class="block text-sm font-medium text-gray-700">{{ t("Amount") }}</label>
+            <p class="font-bold text-gray-900">{{ formatCurrency(transaction.amount) }}</p>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">{{ t('Payment Method') }}</label>
+            <label class="block text-sm font-medium text-gray-700">{{ t("Payment Method") }}</label>
             <p class="text-gray-900">{{ t(transaction.paymentMethod) }}</p>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">{{ t('Status') }}</label>
-            <span :class="getStatusClass(transaction.status)" class="px-2 py-1 rounded-full text-xs font-medium">
+            <label class="block text-sm font-medium text-gray-700">{{ t("Status") }}</label>
+            <span
+              :class="getStatusClass(transaction.status)"
+              class="rounded-full px-2 py-1 text-xs font-medium"
+            >
               {{ t(transaction.status) }}
             </span>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">{{ t('Created At') }}</label>
+            <label class="block text-sm font-medium text-gray-700">{{ t("Created At") }}</label>
             <p class="text-gray-900">{{ formatDate(transaction.createdAt) }}</p>
           </div>
         </div>
       </div>
 
       <!-- Bank Check -->
-      <div v-if="transaction.paymentCheck" class="bg-gray-50 p-4 rounded-lg">
-        <h3 class="text-lg font-medium mb-4">{{ t('Bank Check') }}</h3>
+      <div v-if="transaction.paymentCheck" class="rounded-lg bg-gray-50 p-4">
+        <h3 class="mb-4 text-lg font-medium">{{ t("Bank Check") }}</h3>
         <div class="space-y-3">
           <img
             v-if="isImageFile(transaction.paymentCheck)"
             :src="`/storage/${transaction.paymentCheck}`"
             :alt="t('Bank Check')"
-            class="w-full max-h-64 object-contain rounded-lg border bg-white"
+            class="max-h-64 w-full rounded-lg border bg-white object-contain"
           />
           <div v-else class="flex items-center gap-3 text-gray-500">
             <DocumentIcon class="h-10 w-10 shrink-0" />
             <p class="text-sm break-all">{{ getFileName(transaction.paymentCheck) }}</p>
           </div>
           <div>
-            <CButton
-              size="sm"
-              @click="downloadCheck(transaction.paymentCheck)"
-            >
-              <ArrowDownTrayIcon class="h-4 w-4 mr-1" />
+            <CButton size="sm" @click="downloadCheck(transaction.paymentCheck)">
+              <ArrowDownTrayIcon class="mr-1 h-4 w-4" />
               {{ t("Download") }}
             </CButton>
           </div>
@@ -65,52 +65,53 @@
       </div>
 
       <!-- Covered Payments -->
-      <div v-if="transaction.payments && transaction.payments.length > 0" class="bg-gray-50 p-4 rounded-lg">
-        <h3 class="text-lg font-medium mb-4">{{ t('Covered Payments') }}</h3>
+      <div
+        v-if="transaction.payments && transaction.payments.length > 0"
+        class="rounded-lg bg-gray-50 p-4"
+      >
+        <h3 class="mb-4 text-lg font-medium">{{ t("Covered Payments") }}</h3>
         <div class="space-y-3">
           <div
             v-for="payment in transaction.payments"
             :key="payment.id"
-            class="flex items-center justify-between p-3 bg-white border rounded-lg"
+            class="flex items-center justify-between rounded-lg border bg-white p-3"
           >
             <div>
-              <div class="font-medium">{{ payment.type?.name || t('Payment') }} #{{ payment.id }}</div>
-              <div class="text-sm text-gray-600">
-                {{ t('User') }}: {{ payment.user?.name }}
+              <div class="font-medium">
+                {{ payment.type?.name || t("Payment") }} #{{ payment.id }}
               </div>
+              <div class="text-sm text-gray-600">{{ t("User") }}: {{ payment.user?.name }}</div>
               <div class="text-sm text-gray-500">
-                {{ t('Payment Amount') }}: {{ formatCurrency(payment.amount) }}
+                {{ t("Payment Amount") }}: {{ formatCurrency(payment.amount) }}
               </div>
             </div>
             <div class="text-right">
               <div class="font-medium text-green-600">
-                {{ t('Allocated') }}: {{ formatCurrency(payment.pivotAmount) }}
+                {{ t("Allocated") }}: {{ formatCurrency(payment.pivotAmount) }}
               </div>
-              <div class="text-sm text-gray-500">
-                {{ t('Status') }}: {{ t(payment.status) }}
-              </div>
+              <div class="text-sm text-gray-500">{{ t("Status") }}: {{ t(payment.status) }}</div>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Gateway Information (if available) -->
-      <div v-if="transaction.gatewayTransactionId" class="bg-gray-50 p-4 rounded-lg">
-        <h3 class="text-lg font-medium mb-4">{{ t('Gateway Information') }}</h3>
+      <div v-if="transaction.gatewayTransactionId" class="rounded-lg bg-gray-50 p-4">
+        <h3 class="mb-4 text-lg font-medium">{{ t("Gateway Information") }}</h3>
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700">{{ t('Gateway Transaction ID') }}</label>
-            <p class="text-gray-900 font-mono text-sm">{{ transaction.gatewayTransactionId }}</p>
+            <label class="block text-sm font-medium text-gray-700">{{
+              t("Gateway Transaction ID")
+            }}</label>
+            <p class="font-mono text-sm text-gray-900">{{ transaction.gatewayTransactionId }}</p>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Actions -->
-    <div class="flex justify-end gap-3 mt-6">
-      <CButton
-        @click="closeModal"
-      >
+    <div class="mt-6 flex justify-end gap-3">
+      <CButton @click="closeModal">
         {{ t("Close") }}
       </CButton>
     </div>
@@ -172,13 +173,13 @@ const getStatusClass = (status: string) => {
 };
 
 const isImageFile = (filename: string) => {
-  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
-  const extension = filename.toLowerCase().substring(filename.lastIndexOf('.'));
+  const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"];
+  const extension = filename.toLowerCase().substring(filename.lastIndexOf("."));
   return imageExtensions.includes(extension);
 };
 
 const getFileName = (path: string) => {
-  return path.substring(path.lastIndexOf('/') + 1);
+  return path.substring(path.lastIndexOf("/") + 1);
 };
 
 const downloadCheck = async (checkPath: string) => {

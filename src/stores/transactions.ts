@@ -29,13 +29,13 @@ export const useTransactionsStore = defineStore("transactionsStore", {
       this.transactions.unshift(transaction);
     },
     updateTransaction(id: number, updatedTransaction: Transaction) {
-      const index = this.transactions.findIndex(t => t.id === id);
+      const index = this.transactions.findIndex((t) => t.id === id);
       if (index !== -1) {
         this.transactions[index] = updatedTransaction;
       }
     },
     removeTransaction(id: number) {
-      this.transactions = this.transactions.filter(t => t.id !== id);
+      this.transactions = this.transactions.filter((t) => t.id !== id);
     },
     setLoading(loading: boolean) {
       this.loading = loading;

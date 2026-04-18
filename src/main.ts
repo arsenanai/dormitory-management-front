@@ -11,7 +11,7 @@ import { useAccessibility } from "@/composables/useAccessibility";
 // Load saved locale from localStorage
 const savedLocale = localStorage.getItem("locale");
 if (savedLocale && ["en", "ru", "kk"].includes(savedLocale)) {
-  (i18n.global.locale as any).value = savedLocale;
+  (i18n.global.locale as unknown as { value: string }).value = savedLocale;
 }
 
 const app = createApp(App);
@@ -23,7 +23,7 @@ app.use(VueKonva);
 
 // Ensure authStore is initialized before mounting the app
 const authStore = useAuthStore();
-const { loadSettings: loadAccessibilitySettings } = useAccessibility();
+const { loadSettings: _loadAccessibilitySettings } = useAccessibility();
 
 // Load accessibility settings
 // try {

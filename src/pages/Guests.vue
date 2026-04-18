@@ -270,7 +270,7 @@ const fetchGuests = async () => {
       // Fallback
       guests.value = [];
     }
-  } catch (err: any) {
+  } catch (err) {
     console.error("Error fetching guests:", err);
     error.value = err?.message || "Failed to fetch guests";
     guests.value = [];
@@ -326,7 +326,7 @@ const deleteGuest = async (id: number): Promise<void> => {
 // Export guests
 const exportGuests = async (): Promise<void> => {
   try {
-    const params: any = {};
+    const params: Record<string, string> = {};
     if (searchQuery.value) params.search = searchQuery.value;
     params.format = "csv"; // Request CSV format from backend
     const response = await guestService.export(params);

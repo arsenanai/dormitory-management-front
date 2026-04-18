@@ -62,8 +62,8 @@ export const useDashboardStore = defineStore("dashboard", () => {
         withoutMeal: Number(data.without_meal ?? data.students_without_meals ?? 0),
         quotaStudents: Number(data.quota_students ?? 0),
       };
-    } catch (err: any) {
-      error.value = err.response?.data?.message || "Failed to load dashboard statistics";
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : "Failed to load dashboard statistics";
 
       // Set default values based on seeded data if API fails
       // stats.value = {

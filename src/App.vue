@@ -30,7 +30,7 @@ settingsStore.fetchPublicSettings();
 // Optional: Watch for route changes
 watch(
   () => router.currentRoute.value,
-  (newRoute: RouteLocationNormalized) => {
+  (_newRoute: RouteLocationNormalized) => {
     // console.log("Route changed to:", newRoute.path);
   }
 );

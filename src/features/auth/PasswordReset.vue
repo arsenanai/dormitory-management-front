@@ -81,8 +81,8 @@ async function onSubmit() {
   try {
     await authStore.resetPassword(email.value);
     successMessage.value = t("Check your email for the reset link.");
-  } catch (e: any) {
-    errorMessage.value = e?.message ? t(e.message) : t("Failed to send reset link.");
+  } catch (e) {
+    errorMessage.value = e instanceof Error ? e.message : t("Failed to send reset link.");
   } finally {
     loading.value = false;
   }

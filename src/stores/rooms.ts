@@ -5,7 +5,7 @@ interface Room {
   id: number;
   room_number: string;
   dormitory_id: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export const useRoomsStore = defineStore("roomsStore", {

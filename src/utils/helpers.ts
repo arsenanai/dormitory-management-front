@@ -34,16 +34,23 @@ export const formatAmount = (amount: number | string | null | undefined): string
  * @returns Filtered array
  */
 export const filterArrayBySearch = (
-  array: any[],
+  array: Record<string, unknown>[],
   searchQuery: string,
   searchFields: string[]
-): any[] => {
+): Record<string, unknown>[] => {
   if (!searchQuery) return array;
 
   return array.filter((item) => {
     return searchFields.some((field) => {
-      const value = field.split(".").reduce((obj, key) => obj?.[key], item);
-      return value?.toString().toLowerCase().includes(searchQuery.toLowerCase());
+      const value = String(
+        field
+          .split(".")
+          .reduce((obj: unknown, key: string) => (obj as Record<string, unknown>)?.[key], item) ??
+          ""
+      )
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+      return value;
     });
   });
 };
@@ -55,7 +62,7 @@ export const filterArrayBySearch = (
  * @param itemsPerPage - Items per page
  * @returns Paginated array slice
  */
-export const paginateArray = (array: any[], currentPage: number, itemsPerPage: number): any[] => {
+export const paginateArray = <T>(array: T[], currentPage: number, itemsPerPage: number): T[] => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   return array.slice(startIndex, endIndex);
@@ -104,9 +111,12 @@ export const validateEmailHelper = (email: string): boolean => {
  * @param delay - Delay in milliseconds
  * @returns Debounced function
  */
-export const debounceHelper = (func: Function, delay: number) => {
-  let timeoutId: NodeJS.Timeout;
-  return (...args: any[]) => {
+export const debounceHelper = <T extends (...args: unknown[]) => unknown>(
+  func: T,
+  delay: number
+) => {
+  let timeoutId: ReturnType<typeof setTimeout>;
+  return (...args: Parameters<T>) => {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => func.apply(null, args), delay);
   };

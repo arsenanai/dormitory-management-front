@@ -287,7 +287,6 @@ import CInput from "@/components/CInput.vue";
 import CSelect from "@/components/CSelect.vue";
 import CButton from "@/components/CButton.vue";
 import CTextarea from "@/components/CTextarea.vue";
-import CModal from "@/components/CModal.vue";
 import CRoomTypePhotos from "@/components/CRoomTypePhotos.vue";
 import { useToast } from "@/composables/useToast";
 import { guestService, roomService, personalDataService, authService } from "@/services/api";

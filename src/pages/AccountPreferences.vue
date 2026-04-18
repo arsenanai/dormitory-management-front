@@ -117,29 +117,29 @@
       </section>
 
       <!-- Notification Settings Section -->
-      <!-- <section>
-        <h2 class="text-lg font-semibold mb-4 text-primary-700">{{ t('Notification Settings') }}</h2>
-        <div class="space-y-4">
-          <CCheckbox
-            id="email-notifications"
-            v-model="notificationForm.emailNotifications"
-            :label="t('Email Notifications')"
-          />
-          <CCheckbox
-            id="sms-notifications"
-            v-model="notificationForm.smsNotifications"
-            :label="t('SMS Notifications')"
-          />
-          <CCheckbox
-            id="system-notifications"
-            v-model="notificationForm.systemNotifications"
-            :label="t('System Notifications')"
-          />
-          <CButton @click="saveNotificationSettings" :loading="loading">
-            {{ t('Save Notification Settings') }}
-          </CButton>
-        </div>
-      </section>
+      <!-- <section> -->
+      <!--   <h2 class="text-lg font-semibold mb-4 text-primary-700">{{ t('Notification Settings') }}</h2> -->
+      <!--   <div class="space-y-4"> -->
+      <!--     <CCheckbox -->
+      <!--       id="email-notifications" -->
+      <!--       v-model="notificationForm.emailNotifications" -->
+      <!--       :label="t('Email Notifications')" -->
+      <!--     /> -->
+      <!--     <CCheckbox -->
+      <!--       id="sms-notifications" -->
+      <!--       v-model="notificationForm.smsNotifications" -->
+      <!--       :label="t('SMS Notifications')" -->
+      <!--     /> -->
+      <!--     <CCheckbox -->
+      <!--       id="system-notifications" -->
+      <!--       v-model="notificationForm.systemNotifications" -->
+      <!--       :label="t('System Notifications')" -->
+      <!--     /> -->
+      <!--     <CButton @click="saveNotificationSettings" :loading="loading"> -->
+      <!--       {{ t('Save Notification Settings') }} -->
+      <!--     </CButton> -->
+      <!--   </div> -->
+      <!-- </section> -->
 
       <!-- Booking Settings Section -->
       <section v-if="isStudent || isGuest" class="space-y-4">
@@ -264,7 +264,6 @@ import Navigation from "@/components/CNavigation.vue";
 import CButton from "@/components/CButton.vue";
 import CInput from "@/components/CInput.vue";
 import CSelect from "@/components/CSelect.vue";
-import CCheckbox from "@/components/CCheckbox.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useAccessibility } from "@/composables/useAccessibility";
 import { useToast } from "@/composables/useToast";
@@ -373,7 +372,7 @@ const loadProfile = async () => {
     try {
       // Always attempt to load latest profile from server
       await authStore.loadProfile();
-    } catch (err) {
+    } catch (_err) {
       // ignore - we'll still try to read whatever is present
     }
 

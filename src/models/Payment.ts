@@ -16,7 +16,7 @@ export class Payment {
   updated_at: string;
   user?: User;
   transactions?: Transaction[];
-  
+
   // Computed property for remaining amount
   get remainingAmount(): number {
     return this.amount - (this.paid_amount || 0);

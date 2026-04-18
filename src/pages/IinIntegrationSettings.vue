@@ -18,7 +18,10 @@
                 :label="t('Enable IIN Integration (OTP Flow)')"
               />
             </div>
-            <div v-if="form.iin_integration_enabled" class="mt-4 grid grid-cols-1 gap-4 border-t pt-4">
+            <div
+              v-if="form.iin_integration_enabled"
+              class="mt-4 grid grid-cols-1 gap-4 border-t pt-4"
+            >
               <CInput
                 v-model="form.iin_base_url"
                 :label="t('Base URL')"

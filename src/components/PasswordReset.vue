@@ -78,7 +78,7 @@ const sendResetLink = async () => {
     await authStore.resetPassword(resetEmail.value);
     showSuccess(t("Password reset link sent to your email"));
     closeModal();
-  } catch (error: any) {
+  } catch (error) {
     console.error("Password reset failed:", error);
     showError(error.response?.data?.message || t("Failed to send password reset link"));
   } finally {

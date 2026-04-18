@@ -71,8 +71,8 @@ async function onSubmit() {
     await authStore.resetPasswordConfirm(token, password.value, confirmPassword.value, email);
     successMessage.value = "Password reset successful. You can now log in.";
     setTimeout(() => router.push({ name: "login" }), 2000);
-  } catch (e: any) {
-    errorMessage.value = e?.message || "Failed to reset password.";
+  } catch (e) {
+    errorMessage.value = e instanceof Error ? e.message : "Failed to reset password.";
   }
 }
 </script>

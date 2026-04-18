@@ -283,7 +283,7 @@ const handleSubmit = async () => {
       showSuccess(t("Payment type created successfully"));
     }
     showModal.value = false;
-  } catch (err) {
+  } catch (_err) {
     showError(t("Failed to save payment type"));
   }
 };
@@ -294,7 +294,7 @@ const handleDelete = async () => {
     await paymentTypesStore.deletePaymentType(typeToDelete.value);
     showSuccess(t("Payment type deleted successfully"));
     showDeleteModal.value = false;
-  } catch (err) {
+  } catch (_err) {
     showError(t("Failed to delete payment type"));
   }
 };

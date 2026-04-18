@@ -18,7 +18,7 @@ interface Dormitory {
   manager_name?: string;
   manager_phone?: string;
   manager_email?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export const useDormitoriesStore = defineStore("dormitoriesStore", {
@@ -61,7 +61,7 @@ export const useDormitoriesStore = defineStore("dormitoriesStore", {
         this.error = null;
         const response = await dormitoryService.getAll();
         this.dormitories = response.data;
-      } catch (error: any) {
+      } catch (_error: unknown) {
         this.error = "Failed to fetch dormitories";
         this.dormitories = [];
       } finally {
@@ -75,7 +75,7 @@ export const useDormitoriesStore = defineStore("dormitoriesStore", {
         this.error = null;
         const response = await dormitoryService.getById(id);
         return response.data;
-      } catch (error: any) {
+      } catch (_error: unknown) {
         this.error = "Failed to fetch dormitory";
         return null;
       } finally {
@@ -91,7 +91,7 @@ export const useDormitoriesStore = defineStore("dormitoriesStore", {
         const newDormitory = response.data;
         this.dormitories.push(newDormitory);
         return newDormitory;
-      } catch (error: any) {
+      } catch (_error: unknown) {
         this.error = "Failed to create dormitory";
         return null;
       } finally {
@@ -112,7 +112,7 @@ export const useDormitoriesStore = defineStore("dormitoriesStore", {
         }
 
         return updatedDormitory;
-      } catch (error: any) {
+      } catch (_error: unknown) {
         this.error = "Failed to update dormitory";
         return null;
       } finally {
@@ -132,7 +132,7 @@ export const useDormitoriesStore = defineStore("dormitoriesStore", {
         }
 
         return true;
-      } catch (error: any) {
+      } catch (_error: unknown) {
         this.error = "Failed to delete dormitory";
         return false;
       } finally {

@@ -8,8 +8,10 @@
         </p>
         <p v-else class="text-sm text-red-600">{{ error }}</p>
         <details v-if="debugInfo" class="mt-2">
-          <summary class="text-xs text-gray-500 cursor-pointer">Debug Info</summary>
-          <pre class="mt-1 text-xs bg-gray-100 rounded p-2 overflow-auto max-h-48">{{ JSON.stringify(debugInfo, null, 2) }}</pre>
+          <summary class="cursor-pointer text-xs text-gray-500">Debug Info</summary>
+          <pre class="mt-1 max-h-48 overflow-auto rounded bg-gray-100 p-2 text-xs">{{
+            JSON.stringify(debugInfo, null, 2)
+          }}</pre>
         </details>
       </div>
 
@@ -22,7 +24,7 @@
 
         <div class="space-y-2">
           <label class="text-sm font-medium">{{ t("One-Time Password (OTP)") }}</label>
-          <div class="flex gap-2 justify-center">
+          <div class="flex justify-center gap-2">
             <input
               v-for="i in 6"
               :key="i"
@@ -30,14 +32,14 @@
               v-model="otpParts[i - 1]"
               type="text"
               maxlength="1"
-              class="w-10 h-12 text-center text-xl font-bold border rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+              class="focus:ring-primary-500 focus:border-primary-500 h-12 w-10 rounded-md border text-center text-xl font-bold outline-none focus:ring-2"
               @input="handleOtpInput(i - 1)"
               @keydown.backspace="handleOtpBackspace(i - 1)"
               @keydown.enter="handleEnterKey"
               @paste.prevent="handlePaste"
             />
           </div>
-          <p v-if="error" class="text-sm text-red-600 mt-1">{{ error }}</p>
+          <p v-if="error" class="mt-1 text-sm text-red-600">{{ error }}</p>
         </div>
       </div>
 
@@ -72,7 +74,6 @@
 import { ref, computed, nextTick, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import CModal from "@/components/CModal.vue";
-import CInput from "@/components/CInput.vue";
 import CButton from "@/components/CButton.vue";
 import { iinService } from "@/services/api";
 
@@ -105,7 +106,7 @@ const otpParts = ref<string[]>(new Array(6).fill(""));
 const maskedIdentifier = ref("");
 const loading = ref(false);
 const error = ref("");
-const debugInfo = ref<any>(null);
+const debugInfo = ref<unknown>(null);
 
 const isOtpComplete = computed(() => {
   return otpParts.value.every((p) => p.length === 1);
@@ -153,10 +154,10 @@ const handlePaste = (event: ClipboardEvent) => {
 
 const sendOtp = async () => {
   if (!localStudentId.value) return;
-  
+
   loading.value = true;
   error.value = "";
-  
+
   try {
     const response = await iinService.sendOtp(localStudentId.value);
     maskedIdentifier.value = response.data.identifier || "your contact";

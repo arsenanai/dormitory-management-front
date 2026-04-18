@@ -12,7 +12,7 @@ interface Payment {
   deal_date?: string;
   payment_check?: string;
   user?: User;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export const usePaymentsStore = defineStore("paymentsStore", {

@@ -164,7 +164,7 @@ const cards = computed(() => [
 
 // Filter cards for display based on role (hide sudo-only cards for non-sudo users)
 const visibleCards = computed(() => {
-  return cards.value.filter((c: any) => !c.sudoOnly || isSudo.value);
+  return cards.value.filter((c: { sudoOnly?: boolean }) => !c.sudoOnly || isSudo.value);
 });
 </script>
 

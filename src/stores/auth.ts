@@ -176,8 +176,8 @@ export const useAuthStore = defineStore("auth", () => {
       }
 
       router.push(redirectPath);
-    } catch (err: any) {
-      error.value = err.response?.data?.message || "Login failed";
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : "Login failed";
       throw err;
     } finally {
       loading.value = false;
@@ -202,7 +202,7 @@ export const useAuthStore = defineStore("auth", () => {
    * })
    * ```
    */
-  const register = async (userData: any) => {
+  const register = async (userData: Partial<User>) => {
     try {
       loading.value = true;
       error.value = null;
@@ -210,8 +210,8 @@ export const useAuthStore = defineStore("auth", () => {
       const response = await authService.register(userData);
 
       return response.data;
-    } catch (err: any) {
-      error.value = err.response?.data?.message || "Registration failed";
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : "Registration failed";
       throw err;
     } finally {
       loading.value = false;
@@ -273,8 +273,8 @@ export const useAuthStore = defineStore("auth", () => {
         role: apiUser.role, // Store role as string from API
         dormitory: apiUser.dormitory, // Standardized dormitory property
       };
-    } catch (err: any) {
-      error.value = err.response?.data?.message || "Failed to load profile";
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : "Failed to load profile";
       throw err;
     } finally {
       loadingProfile.value = false;
@@ -310,7 +310,7 @@ export const useAuthStore = defineStore("auth", () => {
    * })
    * ```
    */
-  const updateProfile = async (profileData: any) => {
+  const updateProfile = async (profileData: Partial<User>) => {
     try {
       loading.value = true;
       error.value = null;
@@ -329,8 +329,8 @@ export const useAuthStore = defineStore("auth", () => {
       };
 
       return response.data;
-    } catch (err: any) {
-      error.value = err.response?.data?.message || "Failed to update profile";
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : "Failed to update profile";
       throw err;
     } finally {
       loading.value = false;
@@ -418,8 +418,8 @@ export const useAuthStore = defineStore("auth", () => {
 
       const response = await authService.resetPassword(email);
       return response.data;
-    } catch (err: any) {
-      error.value = err.response?.data?.message || "Failed to send reset link";
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : "Failed to send reset link";
       throw err;
     } finally {
       loading.value = false;
@@ -450,8 +450,8 @@ export const useAuthStore = defineStore("auth", () => {
 
       const response = await authService.resetPasswordConfirm(resetData);
       return response.data;
-    } catch (err: any) {
-      error.value = err.response?.data?.message || "Failed to reset password";
+    } catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : "Failed to reset password";
       throw err;
     } finally {
       loading.value = false;

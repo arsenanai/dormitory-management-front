@@ -142,24 +142,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick, Teleport } from "vue";
+import { ref, computed, onMounted, onUnmounted, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   Bars3Icon,
   ChevronDownIcon,
   ChevronRightIcon,
-  ArrowTopRightOnSquareIcon,
   HomeIcon,
-  UserGroupIcon,
-  BuildingOfficeIcon,
-  CurrencyDollarIcon,
-  ChatBubbleLeftRightIcon,
   UserCircleIcon,
   ArrowRightOnRectangleIcon,
 } from "@heroicons/vue/24/outline";
 import { useAuthStore } from "@/stores/auth";
 import { useI18n } from "vue-i18n";
-import CSelect from "@/components/CSelect.vue";
 import { useAccessibility } from "@/composables/useAccessibility";
 import CSidebar from "@/components/CSidebar.vue";
 
@@ -235,7 +229,6 @@ const currentUser = computed(() => {
 });
 
 // Router composables
-const route = useRoute();
 const router = useRouter();
 
 // Reactive state
@@ -327,10 +320,6 @@ const handleProfileClick = () => {
   router.push("/account-preferences");
 };
 
-const isActive = (path: string) => {
-  return route.path === path;
-};
-
 const handleNavClick = (item: NavItem) => {
   closeMobileMenu();
 
@@ -343,7 +332,7 @@ const handleNavClick = (item: NavItem) => {
   emit("navigate", item);
 };
 
-const handleSidebarNavClick = (item: any) => {
+const handleSidebarNavClick = (_item: any) => {
   closeMobileMenu();
 };
 

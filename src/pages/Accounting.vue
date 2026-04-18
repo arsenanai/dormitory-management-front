@@ -89,10 +89,10 @@ const { t } = useI18n();
 const settingsStore = useSettingsStore();
 
 // Reactive data
-const rows = ref<any[]>([]);
+const rows = ref<Record<string, unknown>[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
-const summary = ref<any>({});
+const summary = ref<Record<string, unknown>>({});
 
 // Filters
 const studentFilter = ref("");

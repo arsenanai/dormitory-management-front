@@ -11,7 +11,10 @@
           <div class="lg:col-span-2">
             <div class="flex items-start gap-2">
               <CInput
-                v-if="settingsStore.publicSettings?.sdu_enabled || settingsStore.publicSettings?.iin_integration_enabled"
+                v-if="
+                  settingsStore.publicSettings?.sdu_enabled ||
+                  settingsStore.publicSettings?.iin_integration_enabled
+                "
                 id="student-profile-id"
                 v-model="user.student_profile.student_id"
                 type="text"
@@ -24,8 +27,10 @@
                 @validation="handleStudentIdValidation"
               />
               <CButton
-                v-if="!isEditing && isAdmin && settingsStore.publicSettings?.iin_integration_enabled"
-                class="h-[42px] mt-5"
+                v-if="
+                  !isEditing && isAdmin && settingsStore.publicSettings?.iin_integration_enabled
+                "
+                class="mt-5 h-[42px]"
                 @click="showIinModal = true"
               >
                 {{ t("Import") }}
@@ -519,7 +524,6 @@ import CSelect from "@/components/CSelect.vue";
 import CButton from "@/components/CButton.vue";
 import CCheckbox from "@/components/CCheckbox.vue";
 import CFileInput from "@/components/CFileInput.vue";
-import CModal from "@/components/CModal.vue";
 import CIinImportModal from "@/components/CIinImportModal.vue";
 import CRoomTypePhotos from "@/components/CRoomTypePhotos.vue";
 import { PlusIcon, PrinterIcon, TrashIcon } from "@heroicons/vue/24/outline";
@@ -609,9 +613,7 @@ const debouncedCheckIinAvailability = debounceHelper(checkIinAvailability, 500);
 const handleIinValidation = ({ valid, message }: { valid: boolean; message: string }) => {
   if (valid) {
     delete validationErrors.value["student_profile.iin"];
-    if (
-      user.value.student_profile?.iin?.length === 12
-    ) {
+    if (user.value.student_profile?.iin?.length === 12) {
       debouncedCheckIinAvailability(user.value.student_profile.iin);
     }
   } else {
@@ -633,7 +635,7 @@ const loadingStudentData = ref(false);
 const fetchStudentData = async (studentId: string) => {
   if (!studentId || !settingsStore.publicSettings?.sdu_enabled) return;
 
-  // If editing and student ID hasn't changed from loaded, maybe skip? 
+  // If editing and student ID hasn't changed from loaded, maybe skip?
   // But here we rely on user input change.
 
   loadingStudentData.value = true;
@@ -680,7 +682,7 @@ const handleIinData = (data: any) => {
     if (data.iin) user.value.student_profile.iin = data.iin;
     if (data.passportNumber) {
       user.value.student_profile.identification_number = data.passportNumber;
-      user.value.student_profile.identification_type = 'passport';
+      user.value.student_profile.identification_type = "passport";
     }
     if (data.studentId) user.value.student_profile.student_id = data.studentId;
     if (data.gender) user.value.student_profile.gender = data.gender.toLowerCase();
@@ -694,14 +696,16 @@ const handleIinData = (data: any) => {
     if (data.city) user.value.student_profile.city = data.city;
     if (data.specialist) user.value.student_profile.specialist = data.specialist;
     if (data.enrollmentYear) user.value.student_profile.enrollment_year = data.enrollmentYear;
-    
+
     // Emergency contact mapping
-    if (data.emergencyContactName) user.value.student_profile.emergency_contact_name = data.emergencyContactName;
-    if (data.emergencyContactPhone) user.value.student_profile.emergency_contact_phone = data.emergencyContactPhone;
+    if (data.emergencyContactName)
+      user.value.student_profile.emergency_contact_name = data.emergencyContactName;
+    if (data.emergencyContactPhone)
+      user.value.student_profile.emergency_contact_phone = data.emergencyContactPhone;
     if (data.emergencyContactType) {
       // Normalize "Father" and "Mother" to "Parent"
       const normalizedType = data.emergencyContactType.toLowerCase();
-      if (normalizedType === 'father' || normalizedType === 'mother') {
+      if (normalizedType === "father" || normalizedType === "mother") {
         user.value.student_profile.emergency_contact_type = "parent";
       } else {
         user.value.student_profile.emergency_contact_type = normalizedType;
@@ -710,8 +714,8 @@ const handleIinData = (data: any) => {
       // Assign "Other" as default type when phone or email exists but no type is specified
       user.value.student_profile.emergency_contact_type = "other";
     }
-    if (data.emergencyContactEmail) user.value.student_profile.emergency_contact_email = data.emergencyContactEmail;
- 
+    if (data.emergencyContactEmail)
+      user.value.student_profile.emergency_contact_email = data.emergencyContactEmail;
 
     // Handle photo path from IIN integration
     if (data.photoPath) {

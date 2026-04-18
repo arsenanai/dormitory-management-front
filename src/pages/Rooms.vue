@@ -198,9 +198,9 @@ const roomsStore = useRoomsStore();
 const { showError, showSuccess, showConfirmation } = useToast();
 
 // Room Data
-const rooms = ref<any[]>([]);
-const dormitories = ref<any[]>([]);
-const roomTypes = ref<any[]>([]);
+const rooms = ref<Record<string, unknown>[]>([]);
+const dormitories = ref<Record<string, unknown>[]>([]);
+const roomTypes = ref<Record<string, unknown>[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
 

@@ -385,15 +385,15 @@ export const isValidPhoneNumber = (phoneNumber: string): boolean => {
  * const cloned = deepClone(original);
  * cloned.b.c = 3; // original.b.c remains 2
  */
-export const deepClone = (obj: any): any => {
+export const deepClone = <T>(obj: T): T => {
   if (obj === null || typeof obj !== "object") return obj;
-  if (obj instanceof Date) return new Date(obj);
-  if (obj instanceof Array) return obj.map((item) => deepClone(item));
+  if (obj instanceof Date) return new Date(obj.getTime()) as T;
+  if (obj instanceof Array) return obj.map((item) => deepClone(item)) as T;
   if (typeof obj === "object") {
-    const cloned: any = {};
+    const cloned = {} as T;
     for (const key in obj) {
       if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        cloned[key] = deepClone(obj[key]);
+        (cloned as Record<string, unknown>)[key] = deepClone((obj as Record<string, unknown>)[key]);
       }
     }
     return cloned;
@@ -408,7 +408,7 @@ export const deepClone = (obj: any): any => {
  * @param direction - Sort direction
  * @returns Sorted array
  */
-export const sortBy = (array: any[], key: string, direction: "asc" | "desc" = "asc"): any[] => {
+export const sortBy = <T>(array: T[], key: keyof T, direction: "asc" | "desc" = "asc"): T[] => {
   return [...array].sort((a, b) => {
     const aVal = a[key];
     const bVal = b[key];
@@ -419,15 +419,9 @@ export const sortBy = (array: any[], key: string, direction: "asc" | "desc" = "a
   });
 };
 
-/**
- * Debounce function execution
- * @param func - Function to debounce
- * @param wait - Wait time in milliseconds
- * @returns Debounced function
- */
-export const debounce = (func: Function, wait: number) => {
+export const debounce = <T extends (...args: unknown[]) => unknown>(func: T, wait: number) => {
   let timeout: ReturnType<typeof setTimeout>;
-  return function executedFunction(...args: any[]) {
+  return function executedFunction(...args: Parameters<T>) {
     const later = () => {
       clearTimeout(timeout);
       func(...args);
@@ -443,9 +437,9 @@ export const debounce = (func: Function, wait: number) => {
  * @param limit - Time limit in milliseconds
  * @returns Throttled function
  */
-export const throttle = (func: Function, limit: number) => {
+export const throttle = <T extends (...args: unknown[]) => unknown>(func: T, limit: number) => {
   let inThrottle: boolean;
-  return function executedFunction(...args: any[]) {
+  return function executedFunction(...args: Parameters<T>) {
     if (!inThrottle) {
       func(...args);
       inThrottle = true;

@@ -17,7 +17,7 @@ export class Room {
     number = "",
     floor: number | null = null,
     notes = "",
-    dormitory: any | null = null,
+    dormitory: Dormitory | null = null,
     room_type: RoomType | null = null,
     beds: Bed[] = [],
     quota: number | null = null,

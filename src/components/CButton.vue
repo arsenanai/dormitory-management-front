@@ -52,14 +52,13 @@ interface Props {
   tooltip?: string;
   confirm?: string;
   clearable?: boolean;
-  modelValue?: any;
+  modelValue?: unknown;
 }
 
-// Define emits
 const emit = defineEmits<{
   click: [event: MouseEvent];
   clear: [];
-  "update:modelValue": [value: any];
+  "update:modelValue": [value: unknown];
 }>();
 
 // Define props with TypeScript

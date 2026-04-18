@@ -3,5 +3,5 @@ export interface AdminProfile {
   user_id: number;
   office_phone?: string;
   dormitory_id?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }

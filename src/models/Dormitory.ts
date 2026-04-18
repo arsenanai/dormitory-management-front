@@ -66,7 +66,7 @@ export class Dormitory {
     }, 0);
   }
 
-  static fromApi(data: any): Dormitory {
+  static fromApi(data: Record<string, unknown>): Dormitory {
     return new Dormitory(
       data.name || "",
       data.capacity || 0,

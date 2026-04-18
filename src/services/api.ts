@@ -1,6 +1,5 @@
 import axios from "axios";
 import type { User, UserProfile } from "@/models/User";
-import type { AdminProfile } from "@/models/AdminProfile";
 import type { GuestProfile } from "@/models/GuestProfile";
 import type { Message } from "@/models/Message";
 import type { Payment } from "@/models/Payment";
@@ -9,7 +8,6 @@ import type { Room } from "@/models/Room";
 import type { RoomType } from "@/models/RoomType";
 import type { Dormitory } from "@/models/Dormitory";
 import type { Bed } from "@/models/Bed";
-import type { StudentProfile } from "@/models/StudentProfile";
 import type { Configuration } from "@/models/Configuration";
 import type { PublicSettings } from "@/models/PublicSettings";
 import type { PaymentType } from "@/models/PaymentType";
@@ -280,7 +278,9 @@ export const transactionService = {
   getAll: (params?: FilterParams): Promise<ApiResponse<PaginatedResponse<Transaction>>> =>
     api.get("/transactions", { params }),
 
-  getMyTransactions: (params?: FilterParams): Promise<ApiResponse<PaginatedResponse<Transaction>>> =>
+  getMyTransactions: (
+    params?: FilterParams
+  ): Promise<ApiResponse<PaginatedResponse<Transaction>>> =>
     api.get("/my-transactions", { params }),
 
   getById: (id: number): Promise<ApiResponse<Transaction>> => api.get(`/transactions/${id}`),
@@ -305,7 +305,8 @@ export const transactionService = {
       headers: { "Content-Type": "multipart/form-data" },
     }),
 
-  delete: (id: number): Promise<ApiResponse<{ message: string }>> => api.delete(`/transactions/${id}`),
+  delete: (id: number): Promise<ApiResponse<{ message: string }>> =>
+    api.delete(`/transactions/${id}`),
 
   export: (params?: FilterParams): Promise<Blob> =>
     api.get("/transactions/export", { params, responseType: "blob" }),
@@ -516,6 +517,10 @@ export const configurationService = {
 
   getPublicSettings: (): Promise<PublicSettings> =>
     api.get<PublicSettings>("/configurations/public").then((res) => res.data),
+
+  getPaymentGateways: (): Promise<
+    ApiResponse<{ data: { value: string; label: string }[]; default: string }>
+  > => api.get("/configurations/payment-gateways"),
 };
 
 // Dormitory rules service (sudo only)
@@ -526,8 +531,7 @@ export interface DormitoryRulesLocales {
 }
 
 export const dormitoryRulesService = {
-  get: (): Promise<ApiResponse<{ locales: DormitoryRulesLocales }>> =>
-    api.get("/dormitory-rules"),
+  get: (): Promise<ApiResponse<{ locales: DormitoryRulesLocales }>> => api.get("/dormitory-rules"),
 
   update: (locales: DormitoryRulesLocales): Promise<ApiResponse<{ message: string }>> =>
     api.put("/dormitory-rules", { locales }),
@@ -553,9 +557,7 @@ export interface MailTemplateDetail {
 }
 
 export const mailTemplateService = {
-  getList: (): Promise<
-    ApiResponse<MailTemplateListItem[]>
-  > => api.get("/mail-templates"),
+  getList: (): Promise<ApiResponse<MailTemplateListItem[]>> => api.get("/mail-templates"),
 
   getByType: (type: string): Promise<ApiResponse<MailTemplateDetail>> =>
     api.get(`/mail-templates/${type}`),
@@ -563,8 +565,7 @@ export const mailTemplateService = {
   update: (
     type: string,
     locales: Record<string, MailTemplateLocale>
-  ): Promise<ApiResponse<{ message: string }>> =>
-    api.put(`/mail-templates/${type}`, { locales }),
+  ): Promise<ApiResponse<{ message: string }>> => api.put(`/mail-templates/${type}`, { locales }),
 };
 
 // Dashboard service

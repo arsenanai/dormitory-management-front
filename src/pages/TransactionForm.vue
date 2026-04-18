@@ -46,7 +46,11 @@
           accept="image/*,.pdf"
           :required="!transaction && !existingPaymentCheck"
           :file-path="existingPaymentCheck"
-          :help-text="transaction ? t('Leave empty to keep current check') : t('Upload bank check image or PDF')"
+          :help-text="
+            transaction
+              ? t('Leave empty to keep current check')
+              : t('Upload bank check image or PDF')
+          "
         />
 
         <!-- Status (admin-only) -->
@@ -61,16 +65,18 @@
 
         <!-- Payment Selection -->
         <div class="border-t pt-4">
-          <h3 class="text-lg font-medium mb-3">{{ transaction ? t('Covered Payments') : t('Select Payments to Cover') }}</h3>
+          <h3 class="mb-3 text-lg font-medium">
+            {{ transaction ? t("Covered Payments") : t("Select Payments to Cover") }}
+          </h3>
 
           <!-- No user selected -->
-          <div v-if="!formData.user_id" class="text-gray-400 text-sm text-center py-4">
-            {{ t('Select a user to see their payments') }}
+          <div v-if="!formData.user_id" class="py-4 text-center text-sm text-gray-400">
+            {{ t("Select a user to see their payments") }}
           </div>
 
           <!-- Loading -->
-          <div v-else-if="loadingPayments" class="text-gray-400 text-sm text-center py-4">
-            {{ t('Loading payments...') }}
+          <div v-else-if="loadingPayments" class="py-4 text-center text-sm text-gray-400">
+            {{ t("Loading payments...") }}
           </div>
 
           <!-- Payment list -->
@@ -78,8 +84,12 @@
             <div
               v-for="payment in availablePayments"
               :key="payment.id"
-              class="flex items-center gap-3 p-3 border rounded-lg"
-              :class="selectedPaymentIds.includes(payment.id) ? 'border-primary-400 bg-primary-50' : 'border-gray-200'"
+              class="flex items-center gap-3 rounded-lg border p-3"
+              :class="
+                selectedPaymentIds.includes(payment.id)
+                  ? 'border-primary-400 bg-primary-50'
+                  : 'border-gray-200'
+              "
             >
               <CCheckbox
                 :id="`payment-${payment.id}`"
@@ -87,16 +97,32 @@
                 :value="payment.id"
               />
 
-              <div class="flex-1 min-w-0">
-                <div class="font-medium text-sm">{{ payment.type?.name || t('Payment') }} #{{ payment.id }}</div>
+              <div class="min-w-0 flex-1">
+                <div class="text-sm font-medium">
+                  {{ payment.type?.name || t("Payment") }} #{{ payment.id }}
+                </div>
                 <div class="text-xs text-gray-600">
-                  {{ t('Due') }}: {{ formatCurrency(payment.amount, currencySymbol) }}
-                  <span v-if="payment.paid_amount && payment.paid_amount > 0" class="text-green-600 ml-1">
-                    &bull; {{ t('Paid') }}: {{ formatCurrency(payment.paid_amount, currencySymbol) }}
+                  {{ t("Due") }}: {{ formatCurrency(payment.amount, currencySymbol) }}
+                  <span
+                    v-if="payment.paid_amount && payment.paid_amount > 0"
+                    class="ml-1 text-green-600"
+                  >
+                    &bull; {{ t("Paid") }}:
+                    {{ formatCurrency(payment.paid_amount, currencySymbol) }}
                   </span>
                 </div>
                 <div class="text-xs text-gray-400">
-                  {{ t('Remaining') }}: {{ formatCurrency(payment.amount - (payment.paid_amount || 0) - (selectedPaymentIds.includes(payment.id) ? Number(paymentAllocations[payment.id]) || 0 : 0), currencySymbol) }}
+                  {{ t("Remaining") }}:
+                  {{
+                    formatCurrency(
+                      payment.amount -
+                        (payment.paid_amount || 0) -
+                        (selectedPaymentIds.includes(payment.id)
+                          ? Number(paymentAllocations[payment.id]) || 0
+                          : 0),
+                      currencySymbol
+                    )
+                  }}
                 </div>
               </div>
 
@@ -118,30 +144,31 @@
           </div>
 
           <!-- No payments found -->
-          <div v-else class="text-gray-400 text-sm text-center py-4">
-            {{ t('No pending payments found for this user') }}
+          <div v-else class="py-4 text-center text-sm text-gray-400">
+            {{ t("No pending payments found for this user") }}
           </div>
         </div>
 
         <!-- Total Allocation Summary -->
         <div v-if="selectedPaymentIds.length > 0" class="border-t pt-4">
-          <div class="flex justify-between items-center">
-            <span class="font-medium">{{ t('Total Allocated') }}:</span>
-            <span class="font-bold text-lg">{{ formatCurrency(totalAllocated, currencySymbol) }}</span>
+          <div class="flex items-center justify-between">
+            <span class="font-medium">{{ t("Total Allocated") }}:</span>
+            <span class="text-lg font-bold">{{
+              formatCurrency(totalAllocated, currencySymbol)
+            }}</span>
           </div>
-          <div v-if="Math.abs(totalAllocated - Number(formData.amount)) >= 0.01" class="text-red-600 text-sm mt-2">
-            {{ t('Total allocated must equal transaction amount') }}
+          <div
+            v-if="Math.abs(totalAllocated - Number(formData.amount)) >= 0.01"
+            class="mt-2 text-sm text-red-600"
+          >
+            {{ t("Total allocated must equal transaction amount") }}
           </div>
         </div>
       </div>
 
       <!-- Form Actions -->
-      <div class="flex justify-end gap-3 mt-6">
-        <CButton
-          type="button"
-          @click="closeModal"
-          :disabled="saving"
-        >
+      <div class="mt-6 flex justify-end gap-3">
+        <CButton type="button" @click="closeModal" :disabled="saving">
           {{ t("Cancel") }}
         </CButton>
         <CButton
@@ -170,7 +197,7 @@ import CUserAutocomplete from "@/components/CUserAutocomplete.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useSettingsStore } from "@/stores/settings";
 import { useToast } from "@/composables/useToast";
-import { transactionService, paymentService } from "@/services/api";
+import { transactionService, paymentService, configurationService } from "@/services/api";
 import { formatCurrency } from "@/utils/formatters";
 import type { Transaction } from "@/models/Transaction";
 import type { Payment } from "@/models/Payment";
@@ -205,7 +232,7 @@ const currencySymbol = computed(() => settingsStore.publicSettings?.currency_sym
 const formData = ref({
   user_id: props.transaction?.userId || authStore.user?.id || "",
   amount: props.transaction?.amount || 0,
-  payment_method: props.transaction?.paymentMethod || "bank_check",
+  payment_method: props.transaction?.paymentMethod || "",
   payment_check: null as File | null,
   status: props.transaction?.status || "pending",
 });
@@ -218,16 +245,19 @@ const paymentAllocations = ref<Record<number, number>>({});
 const saving = ref(false);
 const loadingPayments = ref(false);
 const availablePayments = ref<Payment[]>([]);
+const availableGateways = ref<{ value: string; label: string }[]>([]);
 const existingPaymentCheck = ref<string | null>(null);
 
 // Computed properties
 const isVisible = computed(() => true);
 
-const isAdmin = computed(() => authStore.user?.role?.name === "admin" || authStore.user?.role?.name === "sudo");
+const isAdmin = computed(
+  () => authStore.user?.role?.name === "admin" || authStore.user?.role?.name === "sudo"
+);
 
-const paymentMethodOptions = computed(() => [
-  { value: "bank_check", name: t("Bank Check") },
-]);
+const paymentMethodOptions = computed(() =>
+  availableGateways.value.map((g) => ({ value: g.value, name: g.label }))
+);
 
 const statusOptions = computed(() => [
   { value: "pending", name: t("Pending") },
@@ -248,15 +278,19 @@ const isFormValid = computed(() => {
   if (!formData.value.user_id || !formData.value.amount || !formData.value.payment_method) {
     return false;
   }
-  
-  if (formData.value.payment_method === "bank_check" && !props.transaction && !formData.value.payment_check) {
+
+  if (
+    formData.value.payment_method === "bank_check" &&
+    !props.transaction &&
+    !formData.value.payment_check
+  ) {
     return false;
   }
-  
+
   if (selectedPaymentIds.value.length === 0) {
     return false;
   }
-  
+
   return Math.abs(totalAllocated.value - Number(formData.value.amount)) < 0.01;
 });
 
@@ -275,14 +309,18 @@ const initializeForm = () => {
       payment_check: null,
       status: props.transaction.status,
     };
-    
+
     // Initialize payment selections from transaction
     if (props.transaction.payments) {
-      selectedPaymentIds.value = props.transaction.payments.map((p: { id: number; amount: number; pivotAmount: number }) => p.id);
+      selectedPaymentIds.value = props.transaction.payments.map(
+        (p: { id: number; amount: number; pivotAmount: number }) => p.id
+      );
       paymentAllocations.value = {};
-      props.transaction.payments.forEach((p: { id: number; amount: number; pivotAmount: number }) => {
-        paymentAllocations.value[p.id] = p.pivotAmount;
-      });
+      props.transaction.payments.forEach(
+        (p: { id: number; amount: number; pivotAmount: number }) => {
+          paymentAllocations.value[p.id] = p.pivotAmount;
+        }
+      );
     }
   } else {
     existingPaymentCheck.value = null;
@@ -295,7 +333,7 @@ const initializeForm = () => {
     };
     selectedPaymentIds.value = [];
     paymentAllocations.value = {};
-    
+
     // Handle preselected payment
     if (props.preselectedPayment) {
       selectedPaymentIds.value = [props.preselectedPayment.id];
@@ -312,24 +350,48 @@ const fetchPaymentsForUser = async (userId: string | number, includePaymentIds: 
   loadingPayments.value = true;
   try {
     const response = isAdmin.value
-      ? await paymentService.getAll({ user_id: userId, status: 'pending', per_page: 100 })
-      : await paymentService.getMyPayments({ status: 'pending', per_page: 100 });
+      ? await paymentService.getAll({ user_id: userId, status: "pending", per_page: 100 })
+      : await paymentService.getMyPayments({ status: "pending", per_page: 100 });
     const pending: Payment[] = response.data?.data || [];
     const pendingIds = pending.map((p: Payment) => p.id);
-    const extraIds = includePaymentIds.filter(id => !pendingIds.includes(id));
+    const extraIds = includePaymentIds.filter((id) => !pendingIds.includes(id));
     if (extraIds.length > 0) {
-      const extras = await Promise.all(extraIds.map(id => paymentService.getById(id)));
-      const extraPayments = extras.map((r: { data: { data?: Payment } | Payment }) => (r.data as any)?.data ?? r.data).filter(Boolean);
+      const extras = await Promise.all(extraIds.map((id) => paymentService.getById(id)));
+      const extraPayments = extras
+        .map((r: { data: { data?: Payment } | Payment }) => (r.data as any)?.data ?? r.data)
+        .filter(Boolean);
       availablePayments.value = [...pending, ...extraPayments];
     } else {
       availablePayments.value = pending;
     }
+
+    // Auto-select all payments for new transactions
+    if (!props.transaction) {
+      autoSelectAllPayments();
+    }
   } catch (err) {
-    console.error('Failed to fetch payments for user:', err);
+    console.error("Failed to fetch payments for user:", err);
     availablePayments.value = [];
   } finally {
     loadingPayments.value = false;
   }
+};
+
+const autoSelectAllPayments = () => {
+  if (props.transaction) return; // don't override when editing
+  if (availablePayments.value.length === 0) return;
+
+  // Select all, set each allocation to remaining amount
+  selectedPaymentIds.value = availablePayments.value.map((p: Payment) => p.id);
+  paymentAllocations.value = {};
+  availablePayments.value.forEach((p: Payment) => {
+    paymentAllocations.value[p.id] = p.amount - (p.paid_amount || 0);
+  });
+  // Pre-fill total
+  formData.value.amount = selectedPaymentIds.value.reduce(
+    (sum, id) => sum + (Number(paymentAllocations.value[id]) || 0),
+    0
+  );
 };
 
 const handleFormSubmit = async () => {
@@ -339,18 +401,18 @@ const handleFormSubmit = async () => {
 
   try {
     const submitData = new FormData();
-    
+
     // Add basic fields
     submitData.append("user_id", formData.value.user_id.toString());
     submitData.append("amount", formData.value.amount.toString());
     submitData.append("payment_method", formData.value.payment_method);
     submitData.append("status", formData.value.status);
-    
+
     // Add payment check if provided
     if (formData.value.payment_check) {
       submitData.append("payment_check", formData.value.payment_check);
     }
-    
+
     // Add payment IDs and amounts as proper FormData arrays
     selectedPaymentIds.value.forEach((id, index) => {
       submitData.append(`payment_ids[${index}]`, id.toString());
@@ -374,54 +436,86 @@ const handleFormSubmit = async () => {
   }
 };
 
-
 // Watch for changes in payment selection
-watch(selectedPaymentIds, (newIds) => {
-  // Initialize allocations for newly selected payments
-  newIds.forEach(id => {
-    if (!(id in paymentAllocations.value)) {
-      const payment = availablePayments.value.find((p: Payment) => p.id === id);
-      if (payment) {
-        const remainingAmount = payment.amount - (payment.paid_amount || 0);
-        paymentAllocations.value[id] = Math.min(remainingAmount, Number(formData.value.amount));
+watch(
+  selectedPaymentIds,
+  (newIds) => {
+    // Initialize allocations for newly selected payments
+    newIds.forEach((id) => {
+      if (!(id in paymentAllocations.value)) {
+        const payment = availablePayments.value.find((p: Payment) => p.id === id);
+        if (payment) {
+          const remainingAmount = payment.amount - (payment.paid_amount || 0);
+          paymentAllocations.value[id] = Math.min(remainingAmount, Number(formData.value.amount));
+        }
       }
+    });
+
+    // Remove allocations for deselected payments
+    Object.keys(paymentAllocations.value).forEach((id) => {
+      if (!newIds.includes(Number(id))) {
+        delete paymentAllocations.value[Number(id)];
+      }
+    });
+
+    // Keep amount in sync with total allocation
+    if (!props.transaction) {
+      formData.value.amount = newIds.reduce(
+        (sum, id) => sum + (Number(paymentAllocations.value[id]) || 0),
+        0
+      );
     }
-  });
-  
-  // Remove allocations for deselected payments
-  Object.keys(paymentAllocations.value).forEach(id => {
-    if (!newIds.includes(Number(id))) {
-      delete paymentAllocations.value[Number(id)];
-    }
-  });
-}, { deep: true });
+  },
+  { deep: true }
+);
 
 // Watch for amount changes to auto-adjust allocations
-watch(() => formData.value.amount, (newAmount) => {
-  if (selectedPaymentIds.value.length === 1) {
-    const paymentId = selectedPaymentIds.value[0];
-    const payment = availablePayments.value.find((p: Payment) => p.id === paymentId);
-    if (payment) {
-      const remainingAmount = payment.amount - (payment.paid_amount || 0);
-      paymentAllocations.value[paymentId] = Math.min(remainingAmount, newAmount);
+watch(
+  () => formData.value.amount,
+  (newAmount) => {
+    if (selectedPaymentIds.value.length === 1) {
+      const paymentId = selectedPaymentIds.value[0];
+      const payment = availablePayments.value.find((p: Payment) => p.id === paymentId);
+      if (payment) {
+        const remainingAmount = payment.amount - (payment.paid_amount || 0);
+        paymentAllocations.value[paymentId] = Math.min(remainingAmount, newAmount);
+      }
     }
   }
-});
+);
 
 // Watch user_id — reload payments and reset selection when user changes
-watch(() => formData.value.user_id, (newUserId, oldUserId) => {
-  if (newUserId === oldUserId) return;
-  if (!props.transaction) {
-    selectedPaymentIds.value = [];
-    paymentAllocations.value = {};
+watch(
+  () => formData.value.user_id,
+  (newUserId, oldUserId) => {
+    if (newUserId === oldUserId) return;
+    if (!props.transaction) {
+      selectedPaymentIds.value = [];
+      paymentAllocations.value = {};
+    }
+    fetchPaymentsForUser(newUserId);
   }
-  fetchPaymentsForUser(newUserId);
-});
+);
 
 // Lifecycle
-onMounted(() => {
+onMounted(async () => {
+  // Fetch available payment gateways
+  try {
+    const response = await configurationService.getPaymentGateways();
+    availableGateways.value = response.data.data;
+    // Set default payment method if not editing
+    if (!props.transaction && !formData.value.payment_method) {
+      formData.value.payment_method = response.data.default || response.data.data[0]?.value || "";
+    }
+  } catch (err) {
+    console.error("Failed to fetch payment gateways:", err);
+  }
+
   initializeForm();
-  const linkedIds = props.transaction?.payments?.map((p: { id: number; amount: number; pivotAmount: number }) => p.id) ?? [];
+  const linkedIds =
+    props.transaction?.payments?.map(
+      (p: { id: number; amount: number; pivotAmount: number }) => p.id
+    ) ?? [];
   fetchPaymentsForUser(formData.value.user_id, linkedIds);
 });
 

@@ -93,7 +93,7 @@
 <script setup lang="ts">
 import { ref, computed, withDefaults } from "vue";
 import { useI18n } from "vue-i18n";
-import { PaperClipIcon, ArrowDownTrayIcon, TrashIcon } from "@heroicons/vue/24/outline";
+import { PaperClipIcon, TrashIcon } from "@heroicons/vue/24/outline";
 import { resolvedBaseUrl } from "@/services/api"; // Import the resolvedBaseUrl
 
 // Define props using TypeScript
@@ -209,7 +209,7 @@ const downloadFile = async () => {
 
     // Best practice: Try to get filename from Content-Disposition header first.
     const contentDisposition = response.headers.get("Content-Disposition");
-    let downloadFilename = displayFileName.value || "download";
+    let downloadFilename = displayFileName.value ?? "download";
     if (contentDisposition) {
       const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
       if (filenameMatch && filenameMatch.length > 1) {
@@ -226,7 +226,7 @@ const downloadFile = async () => {
     a.click();
     window.URL.revokeObjectURL(url);
     a.remove();
-  } catch (error: any) {
+  } catch (error) {
     console.error("Download error:", error);
     internalValidationMessage.value = t("Failed to download file. Please try again.");
   }
@@ -241,7 +241,7 @@ const handleFileChange = (event: Event) => {
     validateMultipleFiles(files);
     emit("change", files);
   } else {
-    const file = files?.[0] || null;
+    const file = files?.[0] ?? null;
     validateFile(file);
     emit("change", file);
     emit("update:modelValue", file ?? null);
@@ -284,7 +284,7 @@ const handleDrop = (event: DragEvent) => {
     validateMultipleFiles(files);
     emit("change", files);
   } else {
-    const file = files?.[0] || null;
+    const file = files?.[0] ?? null;
     validateFile(file);
     emit("change", file);
     emit("update:modelValue", file ?? null);

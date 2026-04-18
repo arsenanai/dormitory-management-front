@@ -6,7 +6,7 @@ interface RoomType {
   name: string;
   dormitory_id?: number;
   bed_count?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export const useRoomTypesStore = defineStore("roomTypesStore", {

@@ -25,29 +25,74 @@
               {{ t("Semester Configuration") }}
             </h3>
             <div class="space-y-4">
-              <div v-for="(semester, semesterName) in paymentConfigForm.semester_config" :key="semesterName"
-                class="rounded-lg border border-gray-100 p-4">
+              <div
+                v-for="(semester, semesterName) in paymentConfigForm.semester_config"
+                :key="semesterName"
+                class="rounded-lg border border-gray-100 p-4"
+              >
                 <h4 class="mb-3 text-sm font-medium text-gray-800 capitalize">
                   {{ t(semesterName) }} {{ t("Semester") }}
                 </h4>
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div class="grid grid-cols-2 gap-2">
-                    <CInput :id="`${semesterName}-start-month`" v-model.number="semester.start_month"
-                      :label="t('Start Month')" type="number" min="1" max="12" required />
-                    <CInput :id="`${semesterName}-start-day`" v-model.number="semester.start_day"
-                      :label="t('Start Day')" type="number" min="1" max="31" required />
+                    <CInput
+                      :id="`${semesterName}-start-month`"
+                      v-model.number="semester.start_month"
+                      :label="t('Start Month')"
+                      type="number"
+                      min="1"
+                      max="12"
+                      required
+                    />
+                    <CInput
+                      :id="`${semesterName}-start-day`"
+                      v-model.number="semester.start_day"
+                      :label="t('Start Day')"
+                      type="number"
+                      min="1"
+                      max="31"
+                      required
+                    />
                   </div>
                   <div class="grid grid-cols-2 gap-2">
-                    <CInput :id="`${semesterName}-end-month`" v-model.number="semester.end_month"
-                      :label="t('End Month')" type="number" min="1" max="12" required />
-                    <CInput :id="`${semesterName}-end-day`" v-model.number="semester.end_day" :label="t('End Day')"
-                      type="number" min="1" max="31" required />
+                    <CInput
+                      :id="`${semesterName}-end-month`"
+                      v-model.number="semester.end_month"
+                      :label="t('End Month')"
+                      type="number"
+                      min="1"
+                      max="12"
+                      required
+                    />
+                    <CInput
+                      :id="`${semesterName}-end-day`"
+                      v-model.number="semester.end_day"
+                      :label="t('End Day')"
+                      type="number"
+                      min="1"
+                      max="31"
+                      required
+                    />
                   </div>
                   <div class="grid grid-cols-2 gap-2">
-                    <CInput :id="`${semesterName}-deadline-month`" v-model.number="semester.payment_deadline_month"
-                      :label="t('Deadline Month')" type="number" min="1" max="12" required />
-                    <CInput :id="`${semesterName}-deadline-day`" v-model.number="semester.payment_deadline_day"
-                      :label="t('Deadline Day')" type="number" min="1" max="31" required />
+                    <CInput
+                      :id="`${semesterName}-deadline-month`"
+                      v-model.number="semester.payment_deadline_month"
+                      :label="t('Deadline Month')"
+                      type="number"
+                      min="1"
+                      max="12"
+                      required
+                    />
+                    <CInput
+                      :id="`${semesterName}-deadline-day`"
+                      v-model.number="semester.payment_deadline_day"
+                      :label="t('Deadline Day')"
+                      type="number"
+                      min="1"
+                      max="31"
+                      required
+                    />
                   </div>
                 </div>
               </div>
@@ -85,8 +130,8 @@
             />
           </div>-->
 
-        <!-- <h2 class="text-primary-700 mb-4 text-lg font-semibold">{{ t("Feature Toggles") }}</h2>
-          <!-- 1C Integration Toggle -->
+        <!-- <h2 class="text-primary-700 mb-4 text-lg font-semibold">{{ t("Feature Toggles") }}</h2> -->
+        <!-- 1C Integration Toggle -->
         <!--<div class="rounded-lg border border-gray-200 p-4">
             <h3 class="text-md text-primary-600 mb-3 font-medium">{{ t("1C Integration") }}</h3>
             <CCheckbox

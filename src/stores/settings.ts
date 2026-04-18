@@ -64,7 +64,7 @@ import type { IinSettings } from "@/models/IinSettings";
 // }
 
 export const useSettingsStore = defineStore("settings", () => {
-  const { showError, showSuccess } = useToast();
+  const { showError } = useToast();
 
   // State
   const smtpSettings = ref<SmtpSettings | null>(null);
@@ -78,7 +78,7 @@ export const useSettingsStore = defineStore("settings", () => {
   const iinSettings = ref<IinSettings | null>(null);
   const systemLogs = ref<SystemLog[]>([]);
   const loading = ref(false);
-  const error = ref<Error | null>(null);
+  const error = ref<unknown | null>(null);
 
   // Computed
   const hasSmtpSettings = computed(() => smtpSettings.value !== null);
@@ -96,9 +96,9 @@ export const useSettingsStore = defineStore("settings", () => {
       const response = await api.get("/configurations/smtp");
       smtpSettings.value = response.data;
       error.value = null;
-    } catch (err: any) {
+    } catch (err: unknown) {
       error.value = err;
-      showError(err.response?.data?.message || "Failed to fetch SMTP settings");
+      showError(err instanceof Error ? err.message : "Failed to fetch SMTP settings");
     } finally {
       loading.value = false;
     }
@@ -113,9 +113,9 @@ export const useSettingsStore = defineStore("settings", () => {
       error.value = null;
       // showSuccess('SMTP settings updated successfully');
       return response.data;
-    } catch (err: any) {
+    } catch (err: unknown) {
       error.value = err;
-      showError(err.response?.data?.message || "Failed to update SMTP settings");
+      showError(err instanceof Error ? err.message : "Failed to update SMTP settings");
       throw err;
     } finally {
       loading.value = false;
@@ -138,7 +138,7 @@ export const useSettingsStore = defineStore("settings", () => {
     // }
   };
 
-  const updateCardReaderSettings = async (settings: CardReaderSettings) => {
+  const updateCardReaderSettings = async (_settings: CardReaderSettings) => {
     // Commented out - feature toggle disabled
     // try {
     //   loading.value = true;
@@ -173,7 +173,7 @@ export const useSettingsStore = defineStore("settings", () => {
     // }
   };
 
-  const updateOnecSettings = async (settings: OneCSettings) => {
+  const updateOnecSettings = async (_settings: OneCSettings) => {
     // Commented out - feature toggle disabled
     // try {
     //   loading.value = true;
@@ -209,7 +209,7 @@ export const useSettingsStore = defineStore("settings", () => {
     // }
   };
 
-  const updateKaspiSettings = async (settings: KaspiSettings) => {
+  const updateKaspiSettings = async (_settings: KaspiSettings) => {
     // Commented out - feature toggle disabled
     // try {
     //   loading.value = true;
@@ -245,7 +245,7 @@ export const useSettingsStore = defineStore("settings", () => {
     // }
   };
 
-  const updateSduSettings = async (settings: SduSettings) => {
+  const updateSduSettings = async (_settings: SduSettings) => {
     // Commented out - feature toggle disabled
     // try {
     //   loading.value = true;
@@ -271,9 +271,9 @@ export const useSettingsStore = defineStore("settings", () => {
       const response = await api.get("/configurations/iin");
       iinSettings.value = response.data;
       error.value = null;
-    } catch (err: any) {
+    } catch (err: unknown) {
       error.value = err;
-      showError(err.response?.data?.message || "Failed to fetch IIN settings");
+      showError(err instanceof Error ? err.message : "Failed to fetch IIN settings");
     } finally {
       loading.value = false;
     }
@@ -287,9 +287,9 @@ export const useSettingsStore = defineStore("settings", () => {
       iinSettings.value = response.data;
       error.value = null;
       return response.data;
-    } catch (err: any) {
+    } catch (err: unknown) {
       error.value = err;
-      showError(err.response?.data?.message || "Failed to update IIN settings");
+      showError(err instanceof Error ? err.message : "Failed to update IIN settings");
       throw err;
     } finally {
       loading.value = false;
@@ -306,9 +306,9 @@ export const useSettingsStore = defineStore("settings", () => {
       error.value = null;
       // showSuccess('Currency settings updated successfully');
       return response.data;
-    } catch (err: any) {
+    } catch (err: unknown) {
       error.value = err;
-      showError(err.response?.data?.message || "Failed to update currency settings");
+      showError(err instanceof Error ? err.message : "Failed to update currency settings");
       throw err;
     } finally {
       loading.value = false;
@@ -323,9 +323,9 @@ export const useSettingsStore = defineStore("settings", () => {
       error.value = null;
       // showSuccess('Bank requisites updated successfully');
       return response.data;
-    } catch (err: any) {
+    } catch (err: unknown) {
       error.value = err;
-      showError(err.response?.data?.message || "Failed to update bank requisites");
+      showError(err instanceof Error ? err.message : "Failed to update bank requisites");
       throw err;
     } finally {
       loading.value = false;
@@ -339,9 +339,9 @@ export const useSettingsStore = defineStore("settings", () => {
       const response = await api.get("/configurations/languages");
       installedLanguages.value = response.data;
       error.value = null;
-    } catch (err: any) {
+    } catch (err: unknown) {
       error.value = err;
-      showError(err.response?.data?.message || "Failed to fetch installed languages");
+      showError(err instanceof Error ? err.message : "Failed to fetch installed languages");
     } finally {
       loading.value = false;
     }
@@ -365,9 +365,9 @@ export const useSettingsStore = defineStore("settings", () => {
       error.value = null;
       // showSuccess('Language file uploaded successfully');
       return response.data;
-    } catch (err: any) {
+    } catch (err: unknown) {
       error.value = err;
-      showError(err.response?.data?.message || "Failed to upload language file");
+      showError(err instanceof Error ? err.message : "Failed to upload language file");
       throw err;
     } finally {
       loading.value = false;
@@ -383,9 +383,9 @@ export const useSettingsStore = defineStore("settings", () => {
       });
       systemLogs.value = response.data;
       error.value = null;
-    } catch (err: any) {
+    } catch (err: unknown) {
       error.value = err;
-      showError(err.response?.data?.message || "Failed to fetch system logs");
+      showError(err instanceof Error ? err.message : "Failed to fetch system logs");
     } finally {
       loading.value = false;
     }
@@ -399,9 +399,9 @@ export const useSettingsStore = defineStore("settings", () => {
       systemLogs.value = [];
       error.value = null;
       // showSuccess('System logs cleared successfully');
-    } catch (err: any) {
+    } catch (err: unknown) {
       error.value = err;
-      showError(err.response?.data?.message || "Failed to clear system logs");
+      showError(err instanceof Error ? err.message : "Failed to clear system logs");
       throw err;
     } finally {
       loading.value = false;
@@ -415,9 +415,9 @@ export const useSettingsStore = defineStore("settings", () => {
       await api.post("/configurations/initialize");
       error.value = null;
       // showSuccess('Default configurations initialized successfully');
-    } catch (err: any) {
+    } catch (err: unknown) {
       error.value = err;
-      showError(err.response?.data?.message || "Failed to initialize defaults");
+      showError(err instanceof Error ? err.message : "Failed to initialize defaults");
       throw err;
     } finally {
       loading.value = false;
@@ -447,8 +447,8 @@ export const useSettingsStore = defineStore("settings", () => {
         loading.value = true;
         const response = await configurationService.getPublicSettings();
         publicSettings.value = response;
-      } catch (err: any) {
-        showError(err.response?.data?.message || "Failed to fetch public settings");
+      } catch (err: unknown) {
+        showError(err instanceof Error ? err.message : "Failed to fetch public settings");
       } finally {
         loading.value = false;
         // Reset promise after completion to allow re-fetching if needed later
@@ -469,7 +469,9 @@ export const useSettingsStore = defineStore("settings", () => {
     } catch (err: unknown) {
       error.value = err as Error;
       const errorMessage =
-        (err as any).response?.data?.message ?? "Failed to fetch payment settings";
+        err && typeof err === 'object' && 'response' in err && typeof err.response === 'object' && err.response && 'data' in err.response && typeof err.response.data === 'object' && err.response.data && 'message' in err.response.data && typeof err.response.data.message === 'string'
+          ? err.response.data.message
+          : "Failed to fetch payment settings";
       showError(errorMessage);
     } finally {
       loading.value = false;
@@ -487,7 +489,9 @@ export const useSettingsStore = defineStore("settings", () => {
     } catch (err: unknown) {
       error.value = err as Error;
       const errorMessage =
-        (err as any).response?.data?.message ?? "Failed to update payment settings";
+        err && typeof err === 'object' && 'response' in err && typeof err.response === 'object' && err.response && 'data' in err.response && typeof err.response.data === 'object' && err.response.data && 'message' in err.response.data && typeof err.response.data.message === 'string'
+          ? err.response.data.message
+          : "Failed to update payment settings";
       showError(errorMessage);
       throw err;
     } finally {

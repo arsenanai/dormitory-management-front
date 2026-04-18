@@ -1,3 +1,5 @@
+import { Bed } from "./Bed";
+
 export class RoomType {
   id: string;
   name: string;
@@ -5,7 +7,7 @@ export class RoomType {
   photos: string[];
   capacity: number;
   price: number;
-  beds: any[];
+  beds: Bed[];
   daily_rate: number;
   semester_rate: number;
 
@@ -16,7 +18,7 @@ export class RoomType {
     photos: string | string[] = [],
     capacity = 1,
     price = 0,
-    beds: any[] = [],
+    beds: Bed[] = [],
     daily_rate = 0,
     semester_rate = 0
   ) {

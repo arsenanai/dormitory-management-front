@@ -106,8 +106,11 @@
           additionalClass="h-full flex-1"
           wrapperClass="flex flex-col flex-1"
         />
-        <div class="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-          <strong>{{ t('Note') }}:</strong> {{ t('To make a payment, please go to the Transactions page and create a new transaction.') }}
+        <div class="rounded-lg bg-blue-50 p-3 text-sm text-gray-600">
+          <strong>{{ t("Note") }}:</strong>
+          {{
+            t("To make a payment, please go to the Transactions page and create a new transaction.")
+          }}
         </div>
       </div>
 
@@ -324,7 +327,10 @@ const resetForm = () => {
   };
 };
 
-const loadIndividual = async (id: string | number, service: any) => {
+const loadIndividual = async (
+  id: string | number,
+  service: { getById: (id: number) => Promise<{ data: unknown }> }
+) => {
   // If the requested ID matches the currently authenticated user, use the cached user data
   const currentUser = authStore.user;
   if (Number(id) === currentUser?.id) {
@@ -332,7 +338,7 @@ const loadIndividual = async (id: string | number, service: any) => {
   }
   // Otherwise, fetch via the service (admin or other users)
   try {
-    const one: any = await service.getById(Number(id));
+    const one = await service.getById(Number(id));
     return one?.data;
   } catch (err) {
     console.error(`Failed to fetch individual ${id}:`, err);
@@ -343,7 +349,9 @@ const loadIndividual = async (id: string | number, service: any) => {
 const handleFormSubmit = async () => {
   // Students/guests should use the Transactions page to make payments
   if (isRestrictedUser.value && props.selectedPayment) {
-    showError(t("To make a payment, please go to the Transactions page and create a new transaction."));
+    showError(
+      t("To make a payment, please go to the Transactions page and create a new transaction.")
+    );
     return;
   }
 

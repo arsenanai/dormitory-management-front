@@ -22,7 +22,7 @@
 
     <ul
       v-if="open && suggestions.length > 0"
-      class="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto dark:bg-gray-800 dark:border-gray-600"
+      class="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-600 dark:bg-gray-800"
     >
       <li
         v-for="(user, index) in suggestions"
@@ -30,7 +30,7 @@
         @mousedown.prevent="selectUser(user)"
         @mouseover="highlightedIndex = index"
         :class="[
-          'px-3 py-2 cursor-pointer text-sm',
+          'cursor-pointer px-3 py-2 text-sm',
           highlightedIndex === index
             ? 'bg-primary-100 dark:bg-primary-700'
             : 'hover:bg-gray-100 dark:hover:bg-gray-700',
@@ -41,8 +41,11 @@
       </li>
     </ul>
 
-    <p v-if="open && !loading && inputText.length >= 1 && suggestions.length === 0" class="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-sm text-gray-500 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400">
-      {{ t('No users found') }}
+    <p
+      v-if="open && !loading && inputText.length >= 1 && suggestions.length === 0"
+      class="absolute z-50 mt-1 w-full rounded-lg border border-gray-200 bg-white p-3 text-sm text-gray-500 shadow-lg dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400"
+    >
+      {{ t("No users found") }}
     </p>
   </div>
 </template>

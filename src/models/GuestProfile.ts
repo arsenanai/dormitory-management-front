@@ -15,7 +15,7 @@ export interface GuestProfile {
   payment_received?: number; // Simple payment received amount
   created_at?: string;
   updated_at?: string;
-  bank_paycheck: any;
+  bank_paycheck?: unknown;
   bed_id?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }

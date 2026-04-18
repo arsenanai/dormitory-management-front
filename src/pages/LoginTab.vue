@@ -107,7 +107,7 @@ const handleLogin = async () => {
   try {
     await authStore.login(credentials.value);
     showSuccess(t("Login successful"));
-  } catch (error: any) {
+  } catch (error) {
     // possible messages
     // t('auth.invalid_credentials')
     // t('auth.not_approved')

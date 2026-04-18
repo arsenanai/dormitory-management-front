@@ -16,7 +16,7 @@
             v-model="otpParts[i - 1]"
             type="text"
             maxlength="1"
-            class="w-10 h-12 text-center text-xl font-bold border rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+            class="focus:ring-primary-500 focus:border-primary-500 h-12 w-10 rounded-md border text-center text-xl font-bold outline-none focus:ring-2"
             @input="handleInput(i - 1)"
             @keydown.backspace="handleBackspace(i - 1)"
             @keydown.enter="handleEnterKey"
@@ -25,7 +25,7 @@
         </div>
       </div>
 
-      <div class="flex justify-end gap-3 mt-6">
+      <div class="mt-6 flex justify-end gap-3">
         <CButton variant="secondary" @click="$emit('close')">
           {{ t("Cancel") }}
         </CButton>
@@ -53,7 +53,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: "close"): void;
-  (e: "verified", data: any): void;
+  (e: "verified", data: unknown): void;
 }>();
 
 const { t } = useI18n();
@@ -80,25 +80,25 @@ const handleBackspace = (index: number) => {
   }
 };
 
-const handleEnterKey = (event: KeyboardEvent) => {
+const handleEnterKey = (_event: KeyboardEvent) => {
   if (isOtpComplete.value) {
     verifyOtp();
   }
 };
 
 const handlePaste = (event: ClipboardEvent) => {
-  const pastedData = event.clipboardData?.getData('text') || '';
-  
+  const pastedData = event.clipboardData?.getData("text") || "";
+
   // Take only first 6 characters and ignore the rest
-  const otpDigits = pastedData.slice(0, 6).split('');
-  
+  const otpDigits = pastedData.slice(0, 6).split("");
+
   // Fill the otp parts array
   otpDigits.forEach((digit, i) => {
     if (i < 6) {
       otpParts.value[i] = digit;
     }
   });
-  
+
   // Focus the last filled input or the next empty one
   const lastFilledIndex = Math.min(otpDigits.length - 1, 5);
   setTimeout(() => {

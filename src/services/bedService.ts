@@ -7,7 +7,7 @@ export const bedService = {
    * @param data The data to update for the bed.
    * @returns The API response.
    */
-  update(id: number, data: any) {
+  update(id: number, data: Record<string, unknown>) {
     return api.put(`/beds/${id}`, data);
   },
 

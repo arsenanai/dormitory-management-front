@@ -95,7 +95,7 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from "vue";
-import { useRoute, useRouter, RouteLocationMatched } from "vue-router";
+import { useRoute, useRouter, RouteLocationMatched, type RouteRecordRaw } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { useAuthStore } from "@/stores/auth";
 
@@ -135,7 +135,7 @@ const emit = defineEmits<{
 }>();
 
 // Function to map a route to a menu item
-const mapRouteToMenu = (route: any): Menu => ({
+const mapRouteToMenu = (route: RouteRecordRaw): Menu => ({
   name: route.name as string,
   path: route.path,
   meta: {

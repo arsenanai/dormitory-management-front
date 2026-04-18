@@ -70,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, defineEmits, nextTick, onMounted, onUnmounted } from "vue";
+import { ref, watch, defineEmits, onMounted, onUnmounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { ArrowsPointingOutIcon, ArrowsPointingInIcon } from "@heroicons/vue/24/outline";
 
@@ -84,7 +84,6 @@ const {
   readonly,
   disabled,
   modelValue,
-  required = false,
   validationState = "",
   wrapperClass = "",
   additionalClass = "",
@@ -170,7 +169,7 @@ const updateValue = (value: string) => {
   emit("update:modelValue", value);
 };
 
-const validateInput = () => {
+const _validateInput = () => {
   isValid.value = inputValue.value.trim().length > 0;
 };
 

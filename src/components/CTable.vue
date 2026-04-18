@@ -99,18 +99,18 @@ interface Column {
   label: string;
   sortable?: boolean;
   class?: string;
-  format?: (value: any) => string;
+  format?: (value: unknown) => string;
   type?: string;
 }
 
 interface Props {
-  data?: any[];
+  data?: Record<string, unknown>[];
   columns?: Column[];
   loading?: boolean;
   selectable?: boolean;
   striped?: boolean;
   hoverable?: boolean;
-  rowKey?: string | ((row: any) => string | number);
+  rowKey?: string | ((row: Record<string, unknown>) => string | number);
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -124,14 +124,14 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{
-  "row-click": [row: any];
+  "row-click": [row: Record<string, unknown>];
   sort: [sortConfig: { column: string; direction: "asc" | "desc" }];
-  "selection-change": [selectedRows: any[]];
+  "selection-change": [selectedRows: Record<string, unknown>[]];
 }>();
 
 const sortBy = ref<string>("");
 const sortDirection = ref<"asc" | "desc">("asc");
-const selectedRows = ref<any[]>([]);
+const selectedRows = ref<Record<string, unknown>[]>([]);
 
 const selectAll = computed({
   get: () => selectedRows.value.length === props.data.length && props.data.length > 0,
