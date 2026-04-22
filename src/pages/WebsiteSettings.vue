@@ -31,7 +31,7 @@
                 class="rounded-lg border border-gray-100 p-4"
               >
                 <h4 class="mb-3 text-sm font-medium text-gray-800 capitalize">
-                  {{ t(semesterName) }} {{ t("Semester") }}
+                  {{ t(semesterName.charAt(0).toUpperCase() + semesterName.slice(1)) }} {{ t("Semester") }}
                 </h4>
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div class="grid grid-cols-2 gap-2">
@@ -100,12 +100,14 @@
           </div>
         </section>
 
-        <!-- Feature Toggles Section -->
-        <!--<section>
-        -->
-        <!-- General Settings -->
-        <!--<div class="rounded-lg border border-gray-200 p-4">
-            <h3 class="text-md text-primary-600 mb-3 font-medium">{{ t("General Settings") }}</h3>
+        <!-- General Settings Section -->
+        <section>
+          <h2 class="text-primary-700 mb-4 text-lg font-semibold">
+            {{ t("General Settings") }}
+          </h2>
+
+          <div class="mb-6 rounded-lg border border-gray-200 p-4">
+            <h3 class="text-md text-primary-600 mb-3 font-medium">{{ t("Currency") }}</h3>
             <CSelect
               id="currency-symbol"
               v-model="dormitorySettingsForm.currency_symbol"
@@ -114,10 +116,10 @@
               :options="currencyOptions"
               required
             />
-          </div>-->
+          </div>
 
-        <!-- Dormitory Bank requisites/payment instructions -->
-        <!--<div class="rounded-lg border border-gray-200 p-4">
+          <!-- Dormitory Bank requisites/payment instructions -->
+          <div class="rounded-lg border border-gray-200 p-4">
             <h3 class="text-md text-primary-600 mb-3 font-medium">
               {{ t("Bank requisites / payment instructions") }}
             </h3>
@@ -126,9 +128,10 @@
               v-model="dormitorySettingsForm.bank_requisites"
               :label="t('Dormitory Bank requisites / payment instructions')"
               class="mb-4"
-              rows="10"
+              :rows="10"
             />
-          </div>-->
+          </div>
+        </section>
 
         <!-- <h2 class="text-primary-700 mb-4 text-lg font-semibold">{{ t("Feature Toggles") }}</h2> -->
         <!-- 1C Integration Toggle -->
